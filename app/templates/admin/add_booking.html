@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Z Padel - إضافة حجز</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <style>
+        :root { --brand: #0ea5e9; }
+        body { background: #0f172a; color: #f1f5f9; }
+        .sidebar { width: 240px; min-height: 100vh; background: #1e293b; border-left: 1px solid #334155; position: fixed; right: 0; top: 0; padding: 1.5rem 0; }
+        .sidebar .brand { font-size: 1.5rem; font-weight: 900; color: var(--brand); text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid #334155; }
+        .sidebar a { display: block; padding: 0.75rem 1.5rem; color: #94a3b8; text-decoration: none; }
+        .sidebar a:hover, .sidebar a.active { color: var(--brand); background: rgba(14,165,233,0.1); }
+        .main-content { margin-right: 240px; padding: 2rem; }
+        .form-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 2rem; max-width: 650px; }
+        .form-label { color: #94a3b8; font-size: 0.9rem; }
+        .form-control, .form-select { background: #0f172a; border: 1px solid #334155; color: #f1f5f9; border-radius: 8px; }
+        .form-control:focus, .form-select:focus { background: #0f172a; border-color: var(--brand); color: #f1f5f9; box-shadow: none; }
+        .form-select option { background: #1e293b; }
+        .btn-brand { background: var(--brand); color: white; border: none; border-radius: 8px; padding: 0.75rem 2rem; font-weight: 700; }
+        .btn-brand:hover { background: #0284c7; color: white; }
+        .price-preview { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        .price-num { font-size: 1.5rem; font-weight: 900; color: var(--brand); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">Z PADEL</div>
+        <div style="margin-top: 1.5rem;">
+            <a href="/admin/">📊 الرئيسية</a>
+            <a href="/admin/courts">🏟 الملاعب</a>
+            <a href="/admin/bookings" class="active">📅 الحجوزات</a>
+        </div>
+    </div>
+    <div class="main-content">
+        <h1 style="font-size:1.4rem;font-weight:700;margin-bottom:1.5rem;">إضافة حجز جديد</h1>
+        <div class="form-card">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">اسم العميل *</label>
+                        <input type="text" name="customer_name" class="form-control" required placeholder="الاسم الكامل">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">رقم الهاتف *</label>
+                        <input type="text" name="customer_phone" class="form-control" required placeholder="07xx-xxx-xxxx">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">الملعب *</label>
+                        <select name="court_id" class="form-select" required id="courtSelect">
+                            <option value="">اختر الملعب</option>
+                            {% for court in courts %}
+                            <option value="{{ court.id }}" data-price="{{ court.price_per_hour }}">
+                                {{ court.name }} — {{ court.price_per_hour | int }} د.ع/ساعة
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">التاريخ *</label>
+                        <input type="date" name="date" class="form-control" required id="dateInput">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">وقت البداية *</label>
+                        <input type="time" name="start_time" class="form-control" required id="startTime">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">وقت النهاية *</label>
+                        <input type="time" name="end_time" class="form-control" required id="endTime">
+                    </div>
+                    <div class="col-12">
+                        <div class="price-preview">
+                            <div style="color:#94a3b8;font-size:0.85rem;">المبلغ الإجمالي</div>
+                            <div class="price-num" id="totalPrice">0 د.ع</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">ملاحظات</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn-brand">حفظ الحجز</button>
+                    <a href="/admin/bookings" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        function calcPrice() {
+            const court = document.getElementById('courtSelect');
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            const price = court.options[court.selectedIndex]?.dataset.price || 0;
+            if (start && end && price) {
+                const [sh, sm] = start.split(':').map(Number);
+                const [eh, em] = end.split(':').map(Number);
+                const hours = ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+                if (hours > 0) {
+                    document.getElementById('totalPrice').textContent = Math.round(hours * price).toLocaleString() + ' د.ع';
+                    return;
+                }
+            }
+            document.getElementById('totalPrice').textContent = '0 د.ع';
+        }
+        document.getElementById('courtSelect').addEventListener('change', calcPrice);
+        document.getElementById('startTime').addEventListener('change', calcPrice);
+        document.getElementById('endTime').addEventListener('change', calcPrice);
+
+        // Set today as default date
+        document.getElementById('dateInput').valueAsDate = new Date();
+    </script>
+</body>
+</html>

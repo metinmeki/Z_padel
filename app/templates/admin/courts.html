@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Z Padel - الملاعب</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <style>
+        :root { --brand: #0ea5e9; }
+        body { background: #0f172a; color: #f1f5f9; }
+        .sidebar { width: 240px; min-height: 100vh; background: #1e293b; border-left: 1px solid #334155; position: fixed; right: 0; top: 0; padding: 1.5rem 0; }
+        .sidebar .brand { font-size: 1.5rem; font-weight: 900; color: var(--brand); text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid #334155; }
+        .sidebar a { display: block; padding: 0.75rem 1.5rem; color: #94a3b8; text-decoration: none; font-size: 0.95rem; }
+        .sidebar a:hover, .sidebar a.active { color: var(--brand); background: rgba(14,165,233,0.1); }
+        .main-content { margin-right: 240px; padding: 2rem; }
+        .card-court { background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden; }
+        .card-court img { width: 100%; height: 160px; object-fit: cover; }
+        .card-court .no-img { width: 100%; height: 160px; background: #0f172a; display: flex; align-items: center; justify-content: center; color: #334155; font-size: 3rem; }
+        .card-body { padding: 1rem; }
+        .court-name { font-weight: 700; font-size: 1.1rem; }
+        .court-price { color: var(--brand); font-weight: 700; }
+        .btn-brand { background: var(--brand); color: white; border: none; border-radius: 8px; padding: 0.5rem 1.2rem; font-weight: 600; text-decoration: none; }
+        .btn-brand:hover { background: #0284c7; color: white; }
+        .badge-active { background: #14532d; color: #86efac; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; }
+        .badge-inactive { background: #450a0a; color: #fca5a5; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .alert-success { background: #14532d; border: 1px solid #166534; color: #86efac; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">Z PADEL</div>
+        <div style="margin-top: 1.5rem;">
+            <a href="/admin/">📊 <span>الرئيسية</span></a>
+            <a href="/admin/courts" class="active">🏟 <span>الملاعب</span></a>
+            <a href="/admin/bookings">📅 <span>الحجوزات</span></a>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="topbar">
+            <h1 style="font-size:1.4rem;font-weight:700;">إدارة الملاعب</h1>
+            <a href="/admin/courts/add" class="btn-brand">+ إضافة ملعب</a>
+        </div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-success mb-3">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+        <div class="row g-3">
+            {% for court in courts %}
+            <div class="col-md-4">
+                <div class="card-court">
+                    {% if court.image %}
+                        <img src="/static/images/{{ court.image }}" alt="{{ court.name }}">
+                    {% else %}
+                        <div class="no-img">🏟</div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="court-name">{{ court.name }}</div>
+                            {% if court.is_active %}
+                                <span class="badge-active">نشط</span>
+                            {% else %}
+                                <span class="badge-inactive">موقف</span>
+                            {% endif %}
+                        </div>
+                        <div class="court-price mb-2">{{ court.price_per_hour }} د.ع / ساعة</div>
+                        <p style="color:#94a3b8;font-size:0.85rem;">{{ court.description or '' }}</p>
+                        <div class="d-flex gap-2 mt-2">
+                            <a href="/admin/courts/edit/{{ court.id }}" class="btn-brand" style="font-size:0.85rem;">تعديل</a>
+                            <a href="/admin/courts/delete/{{ court.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('هل أنت متأكد؟')">حذف</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5" style="color:#94a3b8;">
+                <div style="font-size:3rem;">🏟</div>
+                <p>لا توجد ملاعب بعد — أضف أول ملعب!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
