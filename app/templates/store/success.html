@@ -1,0 +1,34 @@
+﻿
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تم الطلب بنجاح</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background:#0f172a; color:#f1f5f9; font-family:'Segoe UI',sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .box { background:#1e293b; border:1px solid #334155; border-radius:18px; padding:2.5rem 2rem; max-width:420px; width:100%; text-align:center; }
+    .icon { font-size:3.5rem; margin-bottom:1rem; }
+    h2 { font-size:1.4rem; font-weight:800; margin-bottom:.4rem; }
+    .order-num { color:#0ea5e9; font-size:1.8rem; font-weight:900; margin:.5rem 0 1.5rem; }
+    .info-row { display:flex; justify-content:space-between; padding:.5rem 0; border-bottom:1px solid #334155; font-size:.88rem; color:#94a3b8; }
+    .info-row span:last-child { color:#f1f5f9; font-weight:600; }
+    .btn-home { display:block; margin-top:1.5rem; background:#0ea5e9; color:#fff; border-radius:10px; padding:.75rem; font-weight:700; text-decoration:none; transition:.15s; }
+    .btn-home:hover { background:#0284c7; color:#fff; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="icon">✅</div>
+  <h2>تم استلام طلبك!</h2>
+  <p style="color:#64748b; font-size:.88rem;">سنتواصل معك قريباً</p>
+  <div class="order-num">#{{ order.id }}</div>
+  <div class="info-row"><span>الاسم</span><span>{{ order.customer_name }}</span></div>
+  <div class="info-row"><span>الهاتف</span><span>{{ order.customer_phone }}</span></div>
+  <div class="info-row"><span>الإجمالي</span><span style="color:#0ea5e9;">{{ "{:,.0f}".format(order.total_price) }} IQD</span></div>
+  <div class="info-row" style="border:none;"><span>الدفع</span><span style="color:#22c55e;">كاش عند الاستلام</span></div>
+  <a href="{{ url_for('store.shop') }}" class="btn-home"><i class="fas fa-shopping-bag me-2"></i>متابعة التسوق</a>
+</div>
+</body>
+</html>

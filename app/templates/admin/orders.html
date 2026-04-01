@@ -1,0 +1,219 @@
+﻿
+{% extends 'admin/base.html' %}
+{% block title %}الطلبات{% endblock %}
+{% block page_title %}طلبات المتجر{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:1.4rem; }
+  .sb { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:.9rem 1rem; position:relative; overflow:hidden; }
+  .sb::before { content:''; position:absolute; top:0; right:0; width:3px; height:100%; }
+  .sb.s-all::before    { background:#64748b; }
+  .sb.s-pend::before   { background:#f59e0b; }
+  .sb.s-ready::before  { background:#0ea5e9; }
+  .sb.s-done::before   { background:#22c55e; }
+  .sb.s-cancel::before { background:#ef4444; }
+  .sb .n { font-size:1.6rem; font-weight:800; line-height:1; }
+  .sb .l { font-size:.68rem; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-top:4px; font-weight:600; }
+  .sb.s-all   .n { color:#94a3b8; }
+  .sb.s-pend  .n { color:#fbbf24; }
+  .sb.s-ready .n { color:#38bdf8; }
+  .sb.s-done  .n { color:#4ade80; }
+  .sb.s-cancel .n{ color:#f87171; }
+
+  /* Filter tabs */
+  .tab-bar { display:flex; gap:6px; margin-bottom:1.2rem; flex-wrap:wrap; }
+  .tab { padding:5px 14px; border-radius:8px; font-size:.78rem; font-weight:600; border:1px solid #334155; background:#0f172a; color:#64748b; text-decoration:none; transition:.15s; }
+  .tab:hover, .tab.active { background:#0ea5e9; border-color:#0ea5e9; color:#fff; }
+  .tab.t-pend.active   { background:#f59e0b; border-color:#f59e0b; }
+  .tab.t-ready.active  { background:#0ea5e9; border-color:#0ea5e9; }
+  .tab.t-done.active   { background:#22c55e; border-color:#22c55e; }
+  .tab.t-cancel.active { background:#ef4444; border-color:#ef4444; }
+
+  /* Orders grid */
+  .orders-grid { display:flex; flex-direction:column; gap:10px; }
+
+  .order-card { background:#1e293b; border:1px solid #334155; border-radius:13px; overflow:hidden; transition:border-color .15s; }
+  .order-card:hover { border-color:#475569; }
+  .order-card.st-pending  { border-right:3px solid #f59e0b; }
+  .order-card.st-ready    { border-right:3px solid #0ea5e9; }
+  .order-card.st-done     { border-right:3px solid #22c55e; }
+  .order-card.st-cancelled{ border-right:3px solid #ef4444; }
+
+  .order-head { display:flex; justify-content:space-between; align-items:center; padding:.85rem 1.2rem; border-bottom:1px solid #334155; flex-wrap:wrap; gap:8px; }
+  .order-id { font-family:monospace; font-size:.75rem; color:#334155; font-weight:700; }
+  .order-name { font-weight:700; color:#f1f5f9; font-size:.9rem; }
+  .order-phone { font-size:.75rem; color:#64748b; }
+  .order-time { font-size:.72rem; color:#475569; }
+  .order-total { font-weight:800; color:#0ea5e9; font-size:.95rem; }
+
+  .order-items { padding:.7rem 1.2rem; border-bottom:1px solid #334155; }
+  .oi-row { display:flex; justify-content:space-between; font-size:.8rem; padding:3px 0; color:#94a3b8; }
+  .oi-row .oi-name { color:#cbd5e1; }
+  .oi-row .oi-sub  { color:#475569; }
+
+  .order-foot { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.2rem; gap:8px; flex-wrap:wrap; }
+
+  /* Status select */
+  .status-sel { background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:8px; font-size:.78rem; padding:4px 10px; cursor:pointer; transition:.15s; }
+  .status-sel:focus { border-color:#0ea5e9; box-shadow:none; outline:none; }
+  .status-sel option { background:#1e293b; }
+
+  /* Action btns */
+  .act-row { display:flex; gap:6px; }
+  .act-b { width:30px; height:30px; border-radius:7px; border:1px solid #334155; background:#0f172a; color:#475569; display:flex; align-items:center; justify-content:center; font-size:.7rem; cursor:pointer; transition:.15s; text-decoration:none; }
+  .act-b:hover { border-color:#0ea5e9; color:#38bdf8; background:rgba(14,165,233,.1); }
+  .act-b.del:hover { border-color:#ef4444; color:#f87171; background:rgba(239,68,68,.1); }
+
+  /* Status badges */
+  .stbadge { font-size:.68rem; padding:2px 9px; border-radius:6px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+  .stbadge.pending   { background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.2); color:#fbbf24; }
+  .stbadge.ready     { background:rgba(14,165,233,.1); border:1px solid rgba(14,165,233,.2); color:#38bdf8; }
+  .stbadge.done      { background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.2);  color:#4ade80; }
+  .stbadge.cancelled { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.2);  color:#f87171; }
+
+  .notes-tag { font-size:.72rem; color:#64748b; font-style:italic; }
+
+  .empty-box { text-align:center; padding:3.5rem; background:#1e293b; border:1px solid #334155; border-radius:13px; color:#334155; }
+  .empty-box i { font-size:2.5rem; display:block; margin-bottom:1rem; opacity:.3; }
+
+  @media(max-width:768px) {
+    .stat-grid { grid-template-columns:repeat(3,1fr); }
+    .order-head { flex-direction:column; align-items:flex-start; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-1 py-2">
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="sb s-all"><div class="n">{{ stats.total }}</div><div class="l">الكل</div></div>
+    <div class="sb s-pend"><div class="n">{{ stats.pending }}</div><div class="l">معلق</div></div>
+    <div class="sb s-ready"><div class="n">{{ stats.ready }}</div><div class="l">جاهز</div></div>
+    <div class="sb s-done"><div class="n">{{ stats.done }}</div><div class="l">تم</div></div>
+    <div class="sb s-cancel"><div class="n">{{ stats.cancelled }}</div><div class="l">ملغي</div></div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="tab-bar">
+    <a href="{{ url_for('admin.orders') }}"                          class="tab {% if status_filter=='all' %}active{% endif %}">الكل</a>
+    <a href="{{ url_for('admin.orders', status='pending') }}"        class="tab t-pend  {% if status_filter=='pending' %}active{% endif %}">معلق</a>
+    <a href="{{ url_for('admin.orders', status='ready') }}"          class="tab t-ready {% if status_filter=='ready' %}active{% endif %}">جاهز</a>
+    <a href="{{ url_for('admin.orders', status='done') }}"           class="tab t-done  {% if status_filter=='done' %}active{% endif %}">تم</a>
+    <a href="{{ url_for('admin.orders', status='cancelled') }}"      class="tab t-cancel {% if status_filter=='cancelled' %}active{% endif %}">ملغي</a>
+  </div>
+
+  <!-- Orders -->
+  {% if orders %}
+  <div class="orders-grid">
+    {% for o in orders %}
+    <div class="order-card st-{{ o.status }}" id="oc-{{ o.id }}">
+
+      <!-- Head -->
+      <div class="order-head">
+        <div>
+          <span class="order-id">#{{ o.id }}</span>
+          <div class="order-name">{{ o.customer_name }}</div>
+          <div class="order-phone"><i class="fas fa-phone" style="font-size:.6rem;"></i> {{ o.customer_phone }}</div>
+        </div>
+        <div style="text-align:left;">
+          <div class="order-total">{{ "{:,.0f}".format(o.total_price) }} IQD</div>
+          <div class="order-time">{{ o.created_at.strftime('%d %b %Y — %H:%M') }}</div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="order-items">
+        {% for item in o.items %}
+        <div class="oi-row">
+          <span class="oi-name">{{ item.product.name if item.product else 'منتج محذوف' }} <span style="color:#475569;">× {{ item.quantity }}</span></span>
+          <span class="oi-sub">{{ "{:,.0f}".format(item.subtotal) }} IQD</span>
+        </div>
+        {% endfor %}
+        {% if o.notes %}
+        <div class="notes-tag mt-1"><i class="fas fa-sticky-note me-1"></i>{{ o.notes }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Footer -->
+      <div class="order-foot">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="stbadge {{ o.status }}" id="badge-{{ o.id }}">
+            {% if o.status=='pending'   %}<i class="fas fa-clock"></i>معلق
+            {% elif o.status=='ready'   %}<i class="fas fa-bell"></i>جاهز للاستلام
+            {% elif o.status=='done'    %}<i class="fas fa-check-circle"></i>تم التسليم
+            {% elif o.status=='cancelled'%}<i class="fas fa-times-circle"></i>ملغي
+            {% endif %}
+          </span>
+        </div>
+        <div class="act-row">
+          <!-- Status change -->
+          <select class="status-sel" onchange="changeStatus({{ o.id }}, this.value)" title="تغيير الحالة">
+            <option value="pending"   {% if o.status=='pending'   %}selected{% endif %}>معلق</option>
+            <option value="ready"     {% if o.status=='ready'     %}selected{% endif %}>جاهز</option>
+            <option value="done"      {% if o.status=='done'      %}selected{% endif %}>تم</option>
+            <option value="cancelled" {% if o.status=='cancelled' %}selected{% endif %}>ملغي</option>
+          </select>
+          <!-- Delete -->
+          <button class="act-b del" title="حذف" onclick="deleteOrder({{ o.id }})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-box">
+    <i class="fas fa-shopping-bag"></i>
+    <div style="font-size:.95rem; font-weight:600; color:#475569;">لا توجد طلبات</div>
+    <div style="font-size:.82rem; color:#334155; margin-top:4px;">
+      {% if status_filter != 'all' %}جرّب تغيير الفلتر{% else %}لم يتم استلام أي طلبات بعد{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const statusLabels = {
+  pending:   '<i class="fas fa-clock"></i>معلق',
+  ready:     '<i class="fas fa-bell"></i>جاهز للاستلام',
+  done:      '<i class="fas fa-check-circle"></i>تم التسليم',
+  cancelled: '<i class="fas fa-times-circle"></i>ملغي'
+};
+
+function changeStatus(id, status) {
+  fetch(`/admin/orders/${id}/status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) return alert('خطأ');
+    const card  = document.getElementById(`oc-${id}`);
+    const badge = document.getElementById(`badge-${id}`);
+    card.className = `order-card st-${status}`;
+    badge.className = `stbadge ${status}`;
+    badge.innerHTML = statusLabels[status];
+  });
+}
+
+function deleteOrder(id) {
+  if (!confirm('حذف هذا الطلب نهائياً؟')) return;
+  fetch(`/admin/orders/${id}/delete`, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) document.getElementById(`oc-${id}`).remove();
+      else alert('خطأ');
+    });
+}
+</script>
+{% endblock %}
