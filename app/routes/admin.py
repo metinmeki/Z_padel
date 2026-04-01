@@ -35,6 +35,15 @@ def dashboard():
     )
 
 
+# Pending requests
+
+@admin.route('/requests')
+@login_required
+def pending_requests():
+    requests = Booking.query.filter_by(status='pending') \
+        .order_by(Booking.created_at.asc()).all()
+    return render_template('admin/pending_requests.html', requests=requests)
+
 # ─────────────────────────────────────────────
 #  COURTS
 # ─────────────────────────────────────────────
@@ -377,3 +386,6 @@ def toggle_product(product_id):
     p.is_active = not p.is_active
     db.session.commit()
     return jsonify({'success': True, 'is_active': p.is_active})
+
+
+

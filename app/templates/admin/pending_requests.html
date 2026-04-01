@@ -1,0 +1,308 @@
+{% extends 'admin/base.html' %}
+{% block title %}طلبات الحجز{% endblock %}
+{% block page_title %}طلبات الحجز المعلقة{% endblock %}
+
+{% block extra_css %}
+<style>
+  .count-badge {
+    background: #f59e0b; color: #0f172a;
+    border-radius: 20px; padding: 2px 10px;
+    font-size: .72rem; font-weight: 800;
+    margin-right: 8px;
+  }
+
+  .req-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .req-card {
+    background: #1e293b; border: 1px solid #334155;
+    border-right: 4px solid #f59e0b;
+    border-radius: 14px; overflow: hidden;
+    transition: border-color .15s;
+  }
+  .req-card:hover { border-color: #475569; border-right-color: #f59e0b; }
+
+  .req-body { padding: 1.2rem 1.4rem; }
+
+  /* Customer info */
+  .cust-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .cust-avatar {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 800; color: #fbbf24; flex-shrink: 0;
+  }
+  .cust-name  { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+  .cust-phone { font-size: .88rem; color: #38bdf8; font-weight: 600; margin-top: 2px; }
+
+  .call-btn {
+    margin-right: auto;
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3);
+    color: #4ade80; border-radius: 10px; padding: .5rem 1.1rem;
+    text-decoration: none; font-size: .82rem; font-weight: 700;
+    transition: .15s;
+  }
+  .call-btn:hover { background: rgba(34,197,94,.22); color: #4ade80; }
+
+  /* Booking details */
+  .details-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: .9rem; }
+  .det-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #0f172a; border: 1px solid #334155;
+    border-radius: 8px; padding: 5px 12px;
+    font-size: .78rem; color: #94a3b8;
+  }
+  .det-chip i { color: #475569; font-size: .65rem; }
+  .det-chip .val { color: #e2e8f0; font-weight: 600; }
+
+  .price-chip {
+    background: rgba(14,165,233,.08); border-color: rgba(14,165,233,.2);
+  }
+  .price-chip .val { color: #38bdf8; font-size: .9rem; }
+
+  /* Notes */
+  .notes-box {
+    background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+    padding: .6rem .9rem; font-size: .78rem; color: #64748b;
+    font-style: italic; margin-bottom: .9rem;
+  }
+  .notes-box i { margin-left: 5px; }
+
+  /* Time info */
+  .req-time { font-size: .68rem; color: #334155; margin-top: 4px; }
+
+  /* Actions */
+  .req-foot {
+    display: flex; gap: 10px; padding: 1rem 1.4rem;
+    border-top: 1px solid #334155; background: rgba(0,0,0,.1);
+    flex-wrap: wrap;
+  }
+  .btn-accept {
+    flex: 1; min-width: 120px;
+    background: #22c55e; border: none; color: #fff;
+    border-radius: 9px; padding: .65rem 1rem;
+    font-weight: 700; font-size: .85rem; cursor: pointer;
+    transition: background .15s; display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .btn-accept:hover { background: #16a34a; }
+
+  .btn-reject {
+    flex: 1; min-width: 120px;
+    background: transparent; border: 1px solid #ef4444; color: #f87171;
+    border-radius: 9px; padding: .65rem 1rem;
+    font-weight: 700; font-size: .85rem; cursor: pointer;
+    transition: .15s; display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .btn-reject:hover { background: rgba(239,68,68,.12); }
+
+  /* Empty */
+  .empty-box {
+    text-align: center; padding: 4rem 2rem;
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 14px; color: #334155;
+  }
+  .empty-box i { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: .3; }
+  .empty-box .e-title { font-size: 1rem; font-weight: 600; color: #475569; }
+  .empty-box .e-sub   { font-size: .82rem; color: #334155; margin-top: 4px; }
+
+  /* Reject modal dark */
+  .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 14px; color: #e2e8f0; }
+  .modal-header, .modal-footer { border-color: #334155; }
+  #rejReason { background: #0f172a; border-color: #334155; color: #e2e8f0; border-radius: 8px; }
+  #rejReason:focus { background: #0f172a; border-color: #0ea5e9; box-shadow: none; color: #e2e8f0; }
+
+  /* Pulse animation on count */
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
+  .count-badge.has-items { animation: pulse 2s infinite; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-1 py-2">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      {% if requests %}
+      <span class="count-badge has-items">{{ requests|length }} طلب جديد</span>
+      {% else %}
+      <span class="count-badge">0 طلبات</span>
+      {% endif %}
+      <small style="color:#64748b;">بانتظار مراجعتك — اتصل بالعميل ثم قبل أو ارفض</small>
+    </div>
+    <a href="{{ url_for('admin.bookings') }}"
+       style="font-size:.78rem; color:#64748b; text-decoration:none;">
+      <i class="fas fa-list me-1"></i>كل الحجوزات
+    </a>
+  </div>
+
+  {% if requests %}
+  <div class="req-grid">
+    {% for b in requests %}
+    <div class="req-card" id="rc-{{ b.id }}">
+      <div class="req-body">
+
+        <!-- Customer -->
+        <div class="cust-row">
+          <div class="cust-avatar">
+            {{ b.customer_name[0] | upper }}
+          </div>
+          <div>
+            <div class="cust-name">{{ b.customer_name }}</div>
+            <div class="cust-phone">
+              <i class="fas fa-phone" style="font-size:.65rem;"></i>
+              {{ b.customer_phone }}
+            </div>
+          </div>
+          <a href="tel:{{ b.customer_phone }}" class="call-btn">
+            <i class="fas fa-phone-alt"></i> اتصل الآن
+          </a>
+        </div>
+
+        <!-- Booking details -->
+        <div class="details-row">
+          <div class="det-chip">
+            <i class="fas fa-table-tennis"></i>
+            <span class="val">{{ b.court.name if b.court else 'ملعب '~b.court_id }}</span>
+          </div>
+          <div class="det-chip">
+            <i class="fas fa-calendar"></i>
+            <span class="val">{{ b.date.strftime('%d %b %Y') }}</span>
+          </div>
+          <div class="det-chip">
+            <i class="fas fa-clock"></i>
+            <span class="val">{{ b.start_time.strftime('%H:%M') }} → {{ b.end_time.strftime('%H:%M') }}</span>
+          </div>
+          <div class="det-chip price-chip">
+            <i class="fas fa-money-bill-wave"></i>
+            <span class="val">{{ "{:,.0f}".format(b.total_price) }} IQD</span>
+          </div>
+        </div>
+
+        {% if b.notes %}
+        <div class="notes-box">
+          <i class="fas fa-sticky-note"></i>{{ b.notes }}
+        </div>
+        {% endif %}
+
+        <div class="req-time">
+          <i class="fas fa-history me-1"></i>
+          طلب في {{ b.created_at.strftime('%d %b %Y — %H:%M') }}
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="req-foot">
+        <button class="btn-accept" onclick="acceptReq({{ b.id }})">
+          <i class="fas fa-check-circle"></i> قبول الحجز
+        </button>
+        <button class="btn-reject" onclick="openReject({{ b.id }})">
+          <i class="fas fa-times-circle"></i> رفض
+        </button>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-box">
+    <i class="fas fa-check-double"></i>
+    <div class="e-title">لا توجد طلبات معلقة</div>
+    <div class="e-sub">جميع الطلبات تمت معالجتها ✅</div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Reject modal -->
+<div class="modal fade" id="rejModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">
+          <i class="fas fa-times-circle text-danger me-2"></i>رفض الحجز
+        </h6>
+        <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label style="font-size:.78rem; color:#64748b; display:block; margin-bottom:5px;">سبب الرفض (اختياري)</label>
+        <textarea id="rejReason" class="form-control form-control-sm" rows="3"
+                  placeholder="مثال: الوقت غير متاح، تم الإلغاء…"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">إلغاء</button>
+        <button class="btn btn-sm btn-danger rounded-pill px-3" id="confirmRejBtn">
+          <i class="fas fa-times me-1"></i>رفض
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let _rejId = null;
+
+function acceptReq(id) {
+  if (!confirm('قبول هذا الحجز؟')) return;
+  fetch(`/admin/bookings/${id}/approve`, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        const card = document.getElementById(`rc-${id}`);
+        card.style.transition = 'opacity .4s';
+        card.style.opacity = '0';
+        setTimeout(() => card.remove(), 400);
+        updateCount(-1);
+      } else alert(d.message || 'خطأ');
+    });
+}
+
+function openReject(id) {
+  _rejId = id;
+  document.getElementById('rejReason').value = '';
+  new bootstrap.Modal(document.getElementById('rejModal')).show();
+}
+
+document.getElementById('confirmRejBtn').addEventListener('click', () => {
+  const reason = document.getElementById('rejReason').value;
+  fetch(`/admin/bookings/${_rejId}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason })
+  })
+  .then(r => r.json())
+  .then(d => {
+    bootstrap.Modal.getInstance(document.getElementById('rejModal')).hide();
+    if (d.success) {
+      const card = document.getElementById(`rc-${_rejId}`);
+      card.style.transition = 'opacity .4s';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 400);
+      updateCount(-1);
+    } else alert(d.message || 'خطأ');
+  });
+});
+
+function updateCount(delta) {
+  const badge = document.querySelector('.count-badge');
+  const remaining = document.querySelectorAll('.req-card').length - 1;
+  if (remaining <= 0) {
+    // Show empty state
+    document.querySelector('.req-grid').innerHTML = `
+      <div class="empty-box">
+        <i class="fas fa-check-double" style="font-size:3rem; display:block; margin-bottom:1rem; opacity:.3; color:#64748b;"></i>
+        <div class="e-title">لا توجد طلبات معلقة</div>
+        <div class="e-sub">جميع الطلبات تمت معالجتها ✅</div>
+      </div>`;
+    badge.textContent = '0 طلبات';
+    badge.classList.remove('has-items');
+  } else {
+    badge.textContent = `${remaining} طلب جديد`;
+  }
+}
+</script>
+{% endblock %}

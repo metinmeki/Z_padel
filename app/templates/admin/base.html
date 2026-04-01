@@ -79,6 +79,16 @@
                 <i class="fas fa-calendar-alt"></i> الحجوزات
             </a>
 
+            <div class="nav-section">الحجوزات</div>
+<a href="{{ url_for('admin.pending_requests') }}"
+   class="{% if request.endpoint == 'admin.pending_requests' %}active{% endif %}">
+    <i class="fas fa-bell"></i> الطلبات المعلقة
+    <!-- optional live count badge -->
+</a>
+<a href="{{ url_for('admin.courts') }}" ...> ...
+
+
+
             <div class="nav-section">المتجر</div>
             <a href="{{ url_for('admin.orders') }}"
                class="{% if request.endpoint == 'admin.orders' %}active{% endif %}">
