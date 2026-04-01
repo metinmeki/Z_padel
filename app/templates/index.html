@@ -4,824 +4,526 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Z Padel — ملاعب البادل الاحترافية</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link id="bsCSS" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --brand:   #0ea5e9;
-      --brand2:  #06b6d4;
-      --dk:      #0284c7;
-      --bg:      #060d18;
-      --bg2:     #0a1628;
-      --card:    #0d1e35;
-      --border:  #132840;
-      --text:    #e8f4fd;
-      --muted:   #4a7a9b;
-      --glow:    rgba(14,165,233,.18);
+      --brand:#0ea5e9; --brand2:#06b6d4; --dk:#0284c7;
+      --bg:#060d18; --bg2:#0a1628; --card:#0d1e35;
+      --border:#132840; --text:#e8f4fd; --muted:#4a7a9b;
+      --glow:rgba(14,165,233,.18);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
-    }
-
-    /* ── Scrollbar ── */
+    body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 99px; }
 
-    /* ══════════════════════════════
-       CURSOR GLOW
-    ══════════════════════════════ */
-    .cursor-glow {
-      width: 320px; height: 320px;
-      background: radial-gradient(circle, rgba(14,165,233,.07) 0%, transparent 70%);
-      border-radius: 50%;
-      position: fixed;
-      pointer-events: none;
-      z-index: 0;
-      transform: translate(-50%, -50%);
-      transition: transform .08s ease;
-    }
+    /* cursor glow */
+    .cursor-glow { width:320px;height:320px;background:radial-gradient(circle,rgba(14,165,233,.07) 0%,transparent 70%);border-radius:50%;position:fixed;pointer-events:none;z-index:0;transform:translate(-50%,-50%);transition:transform .08s ease; }
 
-    /* ══════════════════════════════
-       NAV
-    ══════════════════════════════ */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      z-index: 1000;
-      padding: .9rem 2.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(6,13,24,.85);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid transparent;
-      transition: border-color .3s, background .3s;
-    }
-    nav.scrolled {
-      border-color: var(--border);
-      background: rgba(6,13,24,.96);
-    }
-    .nav-brand {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.55rem; font-weight: 900;
-      color: var(--brand); letter-spacing: 3px;
-      text-decoration: none;
-      position: relative;
-    }
-    .nav-brand::after {
-      content: '';
-      position: absolute; bottom: -3px; right: 0;
-      width: 100%; height: 2px;
-      background: linear-gradient(90deg, var(--brand), var(--brand2));
-      transform: scaleX(0); transform-origin: left;
-      transition: transform .3s ease;
-    }
-    .nav-brand:hover::after { transform: scaleX(1); }
+    /* ── LANG SWITCHER ── */
+    .lang-switcher { display:flex;align-items:center;gap:4px;background:rgba(13,30,53,.8);border:1px solid var(--border);border-radius:10px;padding:3px; }
+    .lang-btn { background:none;border:none;color:var(--muted);font-size:.72rem;font-weight:800;padding:4px 9px;border-radius:7px;cursor:pointer;transition:all .18s;font-family:'Cairo',sans-serif;letter-spacing:.3px; }
+    .lang-btn:hover { color:var(--text); }
+    .lang-btn.active { background:var(--brand);color:#fff;box-shadow:0 0 12px rgba(14,165,233,.35); }
 
-    .nav-links { display: flex; align-items: center; gap: 2rem; }
-    .nav-links a {
-      color: var(--muted); text-decoration: none;
-      font-size: .88rem; font-weight: 600;
-      transition: color .2s;
-      position: relative;
-    }
-    .nav-links a::after {
-      content: '';
-      position: absolute; bottom: -4px; right: 0;
-      width: 0; height: 1.5px;
-      background: var(--brand);
-      transition: width .2s;
-    }
-    .nav-links a:hover { color: var(--brand); }
-    .nav-links a:hover::after { width: 100%; }
+    /* ── NAV ── */
+    nav { position:fixed;top:0;left:0;right:0;z-index:1000;padding:.9rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:rgba(6,13,24,.85);backdrop-filter:blur(18px);border-bottom:1px solid transparent;transition:border-color .3s,background .3s; }
+    nav.scrolled { border-color:var(--border);background:rgba(6,13,24,.96); }
+    .nav-brand { font-family:'Tajawal',sans-serif;font-size:1.55rem;font-weight:900;color:var(--brand);letter-spacing:3px;text-decoration:none;position:relative; }
+    .nav-brand::after { content:'';position:absolute;bottom:-3px;right:0;width:100%;height:2px;background:linear-gradient(90deg,var(--brand),var(--brand2));transform:scaleX(0);transform-origin:left;transition:transform .3s ease; }
+    .nav-brand:hover::after { transform:scaleX(1); }
+    .nav-links { display:flex;align-items:center;gap:1.8rem; }
+    .nav-links a { color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:600;transition:color .2s;position:relative; }
+    .nav-links a::after { content:'';position:absolute;bottom:-4px;right:0;width:0;height:1.5px;background:var(--brand);transition:width .2s; }
+    .nav-links a:hover { color:var(--brand); }
+    .nav-links a:hover::after { width:100%; }
+    .nav-right { display:flex;align-items:center;gap:12px; }
+    .nav-cta { background:var(--brand);color:#fff!important;text-decoration:none;padding:.52rem 1.4rem;border-radius:9px;font-size:.88rem;font-weight:800;letter-spacing:.5px;transition:all .2s;box-shadow:0 0 20px rgba(14,165,233,.3); }
+    .nav-cta:hover { background:var(--dk);color:#fff!important;transform:translateY(-2px);box-shadow:0 6px 28px rgba(14,165,233,.45); }
+    .mob-menu-btn { display:none;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer; }
 
-    .nav-cta {
-      background: var(--brand);
-      color: #fff !important; text-decoration: none;
-      padding: .52rem 1.4rem; border-radius: 9px;
-      font-size: .88rem; font-weight: 800;
-      letter-spacing: .5px;
-      transition: all .2s;
-      box-shadow: 0 0 20px rgba(14,165,233,.3);
-    }
-    .nav-cta:hover {
-      background: var(--dk); color: #fff !important;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 28px rgba(14,165,233,.45);
-    }
+    /* ── HERO ── */
+    .hero { min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:7rem 2.5rem 4rem; }
+    .hero-bg { position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 70% 40%,rgba(14,165,233,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 20% 70%,rgba(6,182,212,.05) 0%,transparent 50%),linear-gradient(180deg,#060d18 0%,#0a1628 100%); }
+    .hero-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(14,165,233,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(14,165,233,.04) 1px,transparent 1px);background-size:60px 60px;animation:gridShift 20s linear infinite; }
+    @keyframes gridShift { from{background-position:0 0;}to{background-position:60px 60px;} }
+    .orb { position:absolute;border-radius:50%;filter:blur(60px);animation:float 8s ease-in-out infinite; }
+    .orb-1 { width:400px;height:400px;background:rgba(14,165,233,.06);top:-100px;left:-100px;animation-delay:0s; }
+    .orb-2 { width:300px;height:300px;background:rgba(6,182,212,.05);bottom:0;right:10%;animation-delay:-4s; }
+    @keyframes float { 0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-30px) scale(1.05);} }
+    .hero-content { position:relative;z-index:2;max-width:640px; }
+    .hero-tag { display:inline-flex;align-items:center;gap:8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);color:var(--brand);font-size:.78rem;font-weight:700;padding:.38rem 1rem;border-radius:20px;letter-spacing:1px;text-transform:uppercase;margin-bottom:1.8rem;animation:fadeSlideDown .8s ease both; }
+    .hero-tag .dot { width:7px;height:7px;border-radius:50%;background:var(--brand);animation:pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);} }
+    .hero h1 { font-family:'Tajawal',sans-serif;font-size:clamp(2.4rem,5vw,4rem);font-weight:900;line-height:1.15;margin-bottom:1.4rem;animation:fadeSlideDown .8s .15s ease both; }
+    .hero h1 .accent { color:var(--brand);position:relative;display:inline-block; }
+    .hero h1 .accent::after { content:'';position:absolute;bottom:2px;right:0;width:100%;height:3px;background:linear-gradient(90deg,var(--brand),var(--brand2));border-radius:2px;animation:lineGrow 1s .8s ease both;transform:scaleX(0);transform-origin:right; }
+    @keyframes lineGrow { to{transform:scaleX(1);} }
+    .hero p { font-size:1.05rem;color:var(--muted);line-height:1.9;margin-bottom:2.2rem;animation:fadeSlideDown .8s .3s ease both; }
+    .hero-btns { display:flex;gap:1rem;flex-wrap:wrap;animation:fadeSlideDown .8s .45s ease both; }
+    .btn-hero-primary { background:var(--brand);color:#fff;padding:.85rem 2.2rem;border-radius:11px;font-weight:800;font-size:.98rem;text-decoration:none;transition:all .25s;box-shadow:0 0 30px rgba(14,165,233,.35);display:inline-flex;align-items:center;gap:8px; }
+    .btn-hero-primary:hover { color:#fff;background:var(--dk);transform:translateY(-3px);box-shadow:0 10px 40px rgba(14,165,233,.5); }
+    .btn-hero-secondary { background:transparent;color:var(--text);border:1px solid var(--border);padding:.85rem 2.2rem;border-radius:11px;font-weight:700;font-size:.98rem;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px; }
+    .btn-hero-secondary:hover { color:var(--brand);border-color:var(--brand);background:var(--glow); }
+    .hero-visual { position:absolute;left:5%;top:50%;transform:translateY(-50%);z-index:1;animation:fadeSlideDown .8s .2s ease both; }
+    .hero-court-preview { width:420px;height:300px;background:linear-gradient(135deg,var(--card),#0a1628);border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px rgba(14,165,233,.1); }
+    .hero-court-preview::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(14,165,233,.04) 0%,transparent 60%); }
+    .court-lines { width:280px;height:200px;border:2px solid rgba(14,165,233,.3);border-radius:4px;position:relative; }
+    .court-lines::before { content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(14,165,233,.25); }
+    .court-lines::after { content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(14,165,233,.2); }
+    .court-net { position:absolute;top:50%;left:0;right:0;height:3px;background:rgba(14,165,233,.5);transform:translateY(-50%); }
+    @keyframes fadeSlideDown { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
 
-    /* ══════════════════════════════
-       HERO
-    ══════════════════════════════ */
-    .hero {
-      min-height: 100vh;
-      display: flex; align-items: center;
-      position: relative; overflow: hidden;
-      padding: 7rem 2.5rem 4rem;
-    }
+    /* ── STATS ── */
+    .stats-bar { background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border); }
+    .stat-item { padding:1.8rem 1rem;text-align:center;border-left:1px solid var(--border);transition:background .2s; }
+    [dir=ltr] .stat-item { border-left:none;border-right:1px solid var(--border); }
+    [dir=ltr] .stat-item:last-child { border-right:none; }
+    .stat-item:last-child { border-left:none; }
+    .stat-item:hover { background:rgba(14,165,233,.04); }
+    .stat-num { font-family:'Tajawal',sans-serif;font-size:2rem;font-weight:900;color:var(--brand);display:block; }
+    .stat-lbl { font-size:.8rem;color:var(--muted);margin-top:3px;font-weight:600; }
 
-    /* Animated mesh background */
-    .hero-bg {
-      position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(14,165,233,.07) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 20% 70%, rgba(6,182,212,.05) 0%, transparent 50%),
-        linear-gradient(180deg, #060d18 0%, #0a1628 100%);
-    }
+    /* ── SECTIONS SHARED ── */
+    .section { padding:6rem 2.5rem; }
+    .section-eyebrow { font-size:.72rem;font-weight:800;color:var(--brand);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:.5rem;display:flex;align-items:center;gap:8px; }
+    .section-eyebrow::before { content:'';width:28px;height:2px;background:var(--brand);display:inline-block; }
+    [dir=ltr] .section-eyebrow::before { display:none; }
+    [dir=ltr] .section-eyebrow::after { content:'';width:28px;height:2px;background:var(--brand);display:inline-block; }
+    .section-title { font-family:'Tajawal',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;margin-bottom:.6rem; }
+    .section-sub { color:var(--muted);font-size:.96rem;margin-bottom:3rem; }
+    .reveal { opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease; }
+    .reveal.visible { opacity:1;transform:translateY(0); }
+    .reveal-delay-1{transition-delay:.1s;} .reveal-delay-2{transition-delay:.2s;} .reveal-delay-3{transition-delay:.3s;}
+    .reveal-delay-4{transition-delay:.4s;} .reveal-delay-5{transition-delay:.5s;}
 
-    /* Animated grid lines */
-    .hero-grid {
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(14,165,233,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(14,165,233,.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      animation: gridShift 20s linear infinite;
-    }
-    @keyframes gridShift {
-      from { background-position: 0 0; }
-      to   { background-position: 60px 60px; }
-    }
+    /* ── COURTS ── */
+    .courts-section { background:var(--bg); }
+    .court-card { background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .3s ease;position:relative; }
+    .court-card::after { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(14,165,233,.06) 0%,transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none; }
+    .court-card:hover { border-color:rgba(14,165,233,.4);transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px rgba(14,165,233,.15); }
+    .court-card:hover::after { opacity:1; }
+    .court-img { height:210px;object-fit:cover;width:100%;transition:transform .4s ease; }
+    .court-card:hover .court-img { transform:scale(1.04); }
+    .court-no-img { height:210px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:3.5rem;color:var(--border); }
+    .court-body { padding:1.4rem; }
+    .court-name { font-size:1.1rem;font-weight:800;margin-bottom:5px; }
+    .court-desc { color:var(--muted);font-size:.85rem;line-height:1.7;margin-bottom:1rem; }
+    .court-price { font-family:'Tajawal',sans-serif;font-size:1.5rem;font-weight:900;color:var(--brand);margin-bottom:1rem; }
+    .court-price span { font-size:.82rem;font-weight:400;color:var(--muted); }
+    .court-book { display:flex;align-items:center;justify-content:center;gap:7px;background:var(--brand);color:#fff!important;padding:.72rem;border-radius:10px;font-weight:800;text-decoration:none;transition:all .2s; }
+    .court-book:hover { background:var(--dk);color:#fff;box-shadow:0 6px 22px rgba(14,165,233,.4);transform:translateY(-1px); }
 
-    /* Floating orbs */
-    .orb {
-      position: absolute; border-radius: 50%;
-      filter: blur(60px);
-      animation: float 8s ease-in-out infinite;
-    }
-    .orb-1 {
-      width: 400px; height: 400px;
-      background: rgba(14,165,233,.06);
-      top: -100px; left: -100px;
-      animation-delay: 0s;
-    }
-    .orb-2 {
-      width: 300px; height: 300px;
-      background: rgba(6,182,212,.05);
-      bottom: 0; right: 10%;
-      animation-delay: -4s;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50%       { transform: translateY(-30px) scale(1.05); }
-    }
+    /* ── FEATURES ── */
+    .features-section { background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border); }
+    .feature-card { background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;height:100%;transition:all .3s;position:relative;overflow:hidden; }
+    .feature-card::before { content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--brand);transform:scaleY(0);transform-origin:bottom;transition:transform .3s ease; }
+    [dir=ltr] .feature-card::before { right:auto;left:0; }
+    .feature-card:hover { border-color:rgba(14,165,233,.3);transform:translateY(-4px); }
+    .feature-card:hover::before { transform:scaleY(1); }
+    .feature-icon-wrap { width:50px;height:50px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:1.1rem;transition:all .3s; }
+    .feature-card:hover .feature-icon-wrap { background:rgba(14,165,233,.18);box-shadow:0 0 20px rgba(14,165,233,.2); }
+    .feature-title { font-size:1rem;font-weight:800;margin-bottom:.5rem; }
+    .feature-desc { color:var(--muted);font-size:.87rem;line-height:1.75; }
 
-    .hero-content {
-      position: relative; z-index: 2;
-      max-width: 640px;
-    }
+    /* ── DISCOUNT BANNER ── */
+    .discount-banner { background:linear-gradient(135deg,#0c2340 0%,#0d1e35 100%);border:1px solid rgba(14,165,233,.2);border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;margin:0 2.5rem 4rem; }
+    .discount-banner::before { content:'';position:absolute;top:-60px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(14,165,233,.12) 0%,transparent 70%);border-radius:50%; }
+    .discount-banner::after { content:'';position:absolute;bottom:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(6,182,212,.08) 0%,transparent 70%);border-radius:50%; }
+    .discount-pct { font-family:'Tajawal',sans-serif;font-size:3.5rem;font-weight:900;color:var(--brand);line-height:1; }
+    .discount-title { font-size:1.3rem;font-weight:800;margin-bottom:.4rem; }
+    .discount-sub { color:var(--muted);font-size:.9rem; }
 
-    .hero-tag {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(14,165,233,.1);
-      border: 1px solid rgba(14,165,233,.25);
-      color: var(--brand);
-      font-size: .78rem; font-weight: 700;
-      padding: .38rem 1rem; border-radius: 20px;
-      letter-spacing: 1px; text-transform: uppercase;
-      margin-bottom: 1.8rem;
-      animation: fadeSlideDown .8s ease both;
-    }
-    .hero-tag .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--brand);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: .4; transform: scale(.7); }
-    }
+    /* ── STORE SECTION ── */
+    .store-section { background:var(--bg);border-top:1px solid var(--border); }
+    .prod-card { background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .3s;display:flex;flex-direction:column;height:100%; }
+    .prod-card:hover { border-color:rgba(14,165,233,.35);transform:translateY(-5px);box-shadow:0 16px 48px rgba(0,0,0,.35); }
+    .prod-img-wrap { overflow:hidden; }
+    .prod-img { width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .4s; }
+    .prod-card:hover .prod-img { transform:scale(1.05); }
+    .prod-no-img { width:100%;aspect-ratio:4/3;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:2.8rem;color:var(--border); }
+    .prod-body { padding:1.1rem;flex:1;display:flex;flex-direction:column; }
+    .prod-name { font-weight:800;font-size:.95rem;margin-bottom:4px; }
+    .prod-desc { font-size:.8rem;color:var(--muted);flex:1;margin-bottom:.8rem;line-height:1.6; }
+    .prod-footer { display:flex;justify-content:space-between;align-items:center; }
+    .prod-price { font-family:'Tajawal',sans-serif;font-size:1.1rem;font-weight:900;color:var(--brand); }
+    .prod-price small { font-size:.65rem;font-weight:500;color:var(--muted); }
+    .btn-add-cart { width:36px;height:36px;border-radius:9px;background:var(--brand);border:none;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;cursor:pointer;transition:all .18s; }
+    .btn-add-cart:hover { background:var(--dk);box-shadow:0 4px 14px rgba(14,165,233,.4);transform:scale(1.1); }
+    .btn-add-cart.added { background:#22c55e; }
+    .out-stock { font-size:.7rem;color:#f87171;font-weight:700; }
+    .store-cta-row { display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px; }
+    .cart-pill { display:inline-flex;align-items:center;gap:8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:var(--brand);padding:.5rem 1.2rem;border-radius:20px;text-decoration:none;font-size:.85rem;font-weight:700;transition:all .2s; }
+    .cart-pill:hover { background:rgba(14,165,233,.18);color:var(--brand); }
+    .cart-pill .cc { background:var(--brand);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800; }
 
-    .hero h1 {
-      font-family: 'Tajawal', sans-serif;
-      font-size: clamp(2.4rem, 5vw, 4rem);
-      font-weight: 900;
-      line-height: 1.15;
-      margin-bottom: 1.4rem;
-      animation: fadeSlideDown .8s .15s ease both;
-    }
-    .hero h1 .accent {
-      color: var(--brand);
-      position: relative;
-      display: inline-block;
-    }
-    .hero h1 .accent::after {
-      content: '';
-      position: absolute; bottom: 2px; right: 0;
-      width: 100%; height: 3px;
-      background: linear-gradient(90deg, var(--brand), var(--brand2));
-      border-radius: 2px;
-      animation: lineGrow 1s .8s ease both;
-      transform: scaleX(0); transform-origin: right;
-    }
-    @keyframes lineGrow {
-      to { transform: scaleX(1); }
-    }
+    /* ── CONTACT ── */
+    .contact-section { background:var(--bg); }
+    .contact-card { background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;text-align:center;height:100%;transition:all .3s; }
+    .contact-card:hover { border-color:rgba(14,165,233,.3);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3); }
+    .contact-icon { width:56px;height:56px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 1rem;color:var(--brand); }
+    .contact-title { font-size:1rem;font-weight:800;margin-bottom:.4rem; }
+    .contact-val { color:var(--muted);font-size:.9rem; }
 
-    .hero p {
-      font-size: 1.05rem; color: var(--muted);
-      line-height: 1.9; margin-bottom: 2.2rem;
-      animation: fadeSlideDown .8s .3s ease both;
-    }
+    /* ── FOOTER ── */
+    footer { background:var(--card);border-top:1px solid var(--border);padding:2.5rem;text-align:center; }
+    .footer-brand { font-family:'Tajawal',sans-serif;font-size:1.6rem;font-weight:900;color:var(--brand);letter-spacing:3px;display:block;margin-bottom:.5rem; }
+    footer p { color:var(--muted);font-size:.82rem; }
 
-    .hero-btns {
-      display: flex; gap: 1rem; flex-wrap: wrap;
-      animation: fadeSlideDown .8s .45s ease both;
-    }
-    .btn-hero-primary {
-      background: var(--brand); color: #fff;
-      padding: .85rem 2.2rem; border-radius: 11px;
-      font-weight: 800; font-size: .98rem;
-      text-decoration: none;
-      transition: all .25s;
-      box-shadow: 0 0 30px rgba(14,165,233,.35);
-      display: inline-flex; align-items: center; gap: 8px;
-    }
-    .btn-hero-primary:hover {
-      color: #fff; background: var(--dk);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 40px rgba(14,165,233,.5);
-    }
-    .btn-hero-secondary {
-      background: transparent; color: var(--text);
-      border: 1px solid var(--border); padding: .85rem 2.2rem;
-      border-radius: 11px; font-weight: 700; font-size: .98rem;
-      text-decoration: none; transition: all .25s;
-      display: inline-flex; align-items: center; gap: 8px;
-    }
-    .btn-hero-secondary:hover {
-      color: var(--brand); border-color: var(--brand);
-      background: var(--glow);
-    }
+    /* Toast */
+    .toast-box { position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;border-radius:10px;padding:.6rem 1.4rem;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;display:flex;align-items:center;gap:8px; }
+    .toast-box.show { opacity:1; }
 
-    /* Hero visual (right side) */
-    .hero-visual {
-      position: absolute;
-      left: 5%; top: 50%; transform: translateY(-50%);
-      z-index: 1;
-      animation: fadeSlideDown .8s .2s ease both;
-    }
-    .hero-court-preview {
-      width: 420px; height: 300px;
-      background: linear-gradient(135deg, var(--card), #0a1628);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
-      box-shadow: 0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(14,165,233,.1);
-    }
-    .hero-court-preview::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(14,165,233,.04) 0%, transparent 60%);
-    }
-    .court-lines {
-      width: 280px; height: 200px;
-      border: 2px solid rgba(14,165,233,.3);
-      border-radius: 4px;
-      position: relative;
-    }
-    .court-lines::before {
-      content: '';
-      position: absolute; top: 50%; left: 0; right: 0;
-      height: 1px; background: rgba(14,165,233,.25);
-    }
-    .court-lines::after {
-      content: '';
-      position: absolute; top: 0; bottom: 0; left: 50%;
-      width: 1px; background: rgba(14,165,233,.2);
-    }
-    .court-net {
-      position: absolute; top: 50%; left: 0; right: 0;
-      height: 3px; background: rgba(14,165,233,.5);
-      transform: translateY(-50%);
-    }
-
-    @keyframes fadeSlideDown {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ══════════════════════════════
-       STATS BAR
-    ══════════════════════════════ */
-    .stats-bar {
-      background: var(--card);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .stat-item {
-      padding: 1.8rem 1rem;
-      text-align: center;
-      border-left: 1px solid var(--border);
-      transition: background .2s;
-    }
-    .stat-item:last-child { border-left: none; }
-    .stat-item:hover { background: rgba(14,165,233,.04); }
-    .stat-num {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 2rem; font-weight: 900;
-      color: var(--brand);
-      display: block;
-    }
-    .stat-lbl { font-size: .8rem; color: var(--muted); margin-top: 3px; font-weight: 600; }
-
-    /* ══════════════════════════════
-       SECTION SHARED
-    ══════════════════════════════ */
-    .section { padding: 6rem 2.5rem; }
-    .section-eyebrow {
-      font-size: .72rem; font-weight: 800;
-      color: var(--brand); letter-spacing: 2.5px;
-      text-transform: uppercase; margin-bottom: .5rem;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .section-eyebrow::before {
-      content: '';
-      width: 28px; height: 2px;
-      background: var(--brand); display: inline-block;
-    }
-    .section-title {
-      font-family: 'Tajawal', sans-serif;
-      font-size: clamp(1.6rem, 3vw, 2.4rem);
-      font-weight: 900; margin-bottom: .6rem;
-    }
-    .section-sub { color: var(--muted); font-size: .96rem; margin-bottom: 3rem; }
-
-    /* scroll reveal */
-    .reveal {
-      opacity: 0; transform: translateY(28px);
-      transition: opacity .7s ease, transform .7s ease;
-    }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    .reveal-delay-1 { transition-delay: .1s; }
-    .reveal-delay-2 { transition-delay: .2s; }
-    .reveal-delay-3 { transition-delay: .3s; }
-    .reveal-delay-4 { transition-delay: .4s; }
-    .reveal-delay-5 { transition-delay: .5s; }
-
-    /* ══════════════════════════════
-       COURTS SECTION
-    ══════════════════════════════ */
-    .courts-section { background: var(--bg); }
-
-    .court-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px; overflow: hidden;
-      transition: all .3s ease;
-      position: relative;
-    }
-    .court-card::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(14,165,233,.06) 0%, transparent 60%);
-      opacity: 0; transition: opacity .3s;
-      pointer-events: none;
-    }
-    .court-card:hover {
-      border-color: rgba(14,165,233,.4);
-      transform: translateY(-6px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(14,165,233,.15);
-    }
-    .court-card:hover::after { opacity: 1; }
-    .court-img { height: 210px; object-fit: cover; width: 100%; transition: transform .4s ease; }
-    .court-card:hover .court-img { transform: scale(1.04); }
-    .court-no-img {
-      height: 210px; background: var(--bg2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 3.5rem; color: var(--border);
-    }
-    .court-body { padding: 1.4rem; }
-    .court-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 5px; }
-    .court-desc { color: var(--muted); font-size: .85rem; line-height: 1.7; margin-bottom: 1rem; }
-    .court-price {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.5rem; font-weight: 900;
-      color: var(--brand); margin-bottom: 1rem;
-    }
-    .court-price span { font-size: .82rem; font-weight: 400; color: var(--muted); }
-    .court-book {
-      display: flex; align-items: center; justify-content: center; gap: 7px;
-      background: var(--brand); color: #fff !important;
-      padding: .72rem; border-radius: 10px;
-      font-weight: 800; text-decoration: none;
-      transition: all .2s;
-    }
-    .court-book:hover {
-      background: var(--dk); color: #fff;
-      box-shadow: 0 6px 22px rgba(14,165,233,.4);
-      transform: translateY(-1px);
-    }
-
-    /* ══════════════════════════════
-       FEATURES SECTION
-    ══════════════════════════════ */
-    .features-section {
-      background: var(--bg2);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .feature-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px; padding: 1.8rem;
-      height: 100%;
-      transition: all .3s;
-      position: relative; overflow: hidden;
-    }
-    .feature-card::before {
-      content: '';
-      position: absolute; top: 0; right: 0;
-      width: 3px; height: 100%;
-      background: var(--brand);
-      transform: scaleY(0); transform-origin: bottom;
-      transition: transform .3s ease;
-    }
-    .feature-card:hover { border-color: rgba(14,165,233,.3); transform: translateY(-4px); }
-    .feature-card:hover::before { transform: scaleY(1); }
-    .feature-icon-wrap {
-      width: 50px; height: 50px;
-      background: rgba(14,165,233,.1);
-      border: 1px solid rgba(14,165,233,.2);
-      border-radius: 13px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; margin-bottom: 1.1rem;
-      transition: all .3s;
-    }
-    .feature-card:hover .feature-icon-wrap {
-      background: rgba(14,165,233,.18);
-      box-shadow: 0 0 20px rgba(14,165,233,.2);
-    }
-    .feature-title { font-size: 1rem; font-weight: 800; margin-bottom: .5rem; }
-    .feature-desc { color: var(--muted); font-size: .87rem; line-height: 1.75; }
-
-    /* ══════════════════════════════
-       DISCOUNT BANNER
-    ══════════════════════════════ */
-    .discount-banner {
-      background: linear-gradient(135deg, #0c2340 0%, #0d1e35 100%);
-      border: 1px solid rgba(14,165,233,.2);
-      border-radius: 20px;
-      padding: 2.5rem;
-      position: relative; overflow: hidden;
-      margin: 0 2.5rem 4rem;
-    }
-    .discount-banner::before {
-      content: '';
-      position: absolute; top: -60px; left: -60px;
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(14,165,233,.12) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .discount-banner::after {
-      content: '';
-      position: absolute; bottom: -40px; right: -40px;
-      width: 160px; height: 160px;
-      background: radial-gradient(circle, rgba(6,182,212,.08) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .discount-pct {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 3.5rem; font-weight: 900;
-      color: var(--brand); line-height: 1;
-    }
-    .discount-title { font-size: 1.3rem; font-weight: 800; margin-bottom: .4rem; }
-    .discount-sub { color: var(--muted); font-size: .9rem; }
-
-    /* ══════════════════════════════
-       CONTACT
-    ══════════════════════════════ */
-    .contact-section { background: var(--bg); }
-    .contact-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px; padding: 1.8rem;
-      text-align: center; height: 100%;
-      transition: all .3s;
-    }
-    .contact-card:hover {
-      border-color: rgba(14,165,233,.3);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,.3);
-    }
-    .contact-icon {
-      width: 56px; height: 56px;
-      background: rgba(14,165,233,.1);
-      border: 1px solid rgba(14,165,233,.2);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; margin: 0 auto 1rem;
-      color: var(--brand);
-    }
-    .contact-title { font-size: 1rem; font-weight: 800; margin-bottom: .4rem; }
-    .contact-val { color: var(--muted); font-size: .9rem; }
-
-    /* ══════════════════════════════
-       FOOTER
-    ══════════════════════════════ */
-    footer {
-      background: var(--card);
-      border-top: 1px solid var(--border);
-      padding: 2.5rem;
-      text-align: center;
-    }
-    .footer-brand {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.6rem; font-weight: 900;
-      color: var(--brand); letter-spacing: 3px;
-      display: block; margin-bottom: .5rem;
-    }
-    footer p { color: var(--muted); font-size: .82rem; }
-
-    /* ══════════════════════════════
-       MOBILE NAV
-    ══════════════════════════════ */
-    .mob-menu-btn {
-      display: none;
-      background: none; border: none;
-      color: var(--muted); font-size: 1.2rem;
-      cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-      nav { padding: .9rem 1.2rem; }
-      .nav-links { display: none; }
-      .mob-menu-btn { display: block; }
-      .hero { padding: 6rem 1.2rem 3rem; }
-      .hero-visual { display: none; }
-      .hero h1 { font-size: 2.2rem; }
-      .section { padding: 4rem 1.2rem; }
-      .discount-banner { margin: 0 1.2rem 3rem; }
+    @media (max-width:768px) {
+      nav { padding:.9rem 1.2rem; }
+      .nav-links { display:none; }
+      .mob-menu-btn { display:block; }
+      .hero { padding:6rem 1.2rem 3rem; }
+      .hero-visual { display:none; }
+      .hero h1 { font-size:2.2rem; }
+      .section { padding:4rem 1.2rem; }
+      .discount-banner { margin:0 1.2rem 3rem; }
     }
   </style>
 </head>
 <body>
 
-<!-- Cursor glow -->
 <div class="cursor-glow" id="cursorGlow"></div>
 
-<!-- ═══════ NAV ═══════ -->
+<!-- ═══ NAV ═══ -->
 <nav id="mainNav">
   <a href="/" class="nav-brand">Z PADEL</a>
   <div class="nav-links">
-    <a href="#courts">الملاعب</a>
-    <a href="#features">مميزاتنا</a>
-    <a href="#contact">تواصل معنا</a>
-    <a href="/booking" class="nav-cta">
-      <i class="fas fa-calendar-check me-1"></i> احجز الآن
-    </a>
+    <a href="#courts" data-i18n="nav_courts">الملاعب</a>
+    <a href="#features" data-i18n="nav_features">مميزاتنا</a>
+    <a href="#store" data-i18n="nav_store">المتجر</a>
+    <a href="#contact" data-i18n="nav_contact">تواصل معنا</a>
   </div>
-  <button class="mob-menu-btn" onclick="toggleMobNav()">
-    <i class="fas fa-bars"></i>
-  </button>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ar" onclick="I18N.apply('ar')">ع</button>
+      <button class="lang-btn" data-lang="ku" onclick="I18N.apply('ku')">ک</button>
+      <button class="lang-btn" data-lang="en" onclick="I18N.apply('en')">EN</button>
+    </div>
+    <a href="/booking" class="nav-cta" data-i18n="nav_book">احجز الآن</a>
+  </div>
+  <button class="mob-menu-btn" onclick="toggleMobNav()"><i class="fas fa-bars"></i></button>
 </nav>
 
-<!-- ═══════ HERO ═══════ -->
+<!-- ═══ HERO ═══ -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
-
   <div class="hero-content">
     <div class="hero-tag">
       <span class="dot"></span>
-      أفضل ملاعب بادل في دهوك
+      <span data-i18n="hero_tag">أفضل ملاعب بادل في دهوك</span>
     </div>
     <h1>
-      العب، تنافس،<br>
-      <span class="accent">انتصر</span> معنا
+      <span data-i18n="hero_h1_1">العب، تنافس،</span><br>
+      <span class="accent" data-i18n="hero_h1_2">انتصر</span>
+      <span data-i18n="hero_h1_3"> معنا</span>
     </h1>
-    <p>ملاعب بادل احترافية بأعلى المواصفات وأجواء رياضية لا مثيل لها.<br>احجز ملعبك الآن واستمتع بتجربة فريدة من نوعها.</p>
+    <p data-i18n="hero_p">ملاعب بادل احترافية بأعلى المواصفات وأجواء رياضية لا مثيل لها.</p>
     <div class="hero-btns">
       <a href="/booking" class="btn-hero-primary">
         <i class="fas fa-calendar-check"></i>
-        احجز ملعبك الآن
+        <span data-i18n="hero_btn1">احجز ملعبك الآن</span>
       </a>
       <a href="#courts" class="btn-hero-secondary">
         <i class="fas fa-eye"></i>
-        شاهد الملاعب
+        <span data-i18n="hero_btn2">شاهد الملاعب</span>
       </a>
     </div>
   </div>
-
-  <!-- Court illustration -->
   <div class="hero-visual">
     <div class="hero-court-preview">
-      <div class="court-lines">
-        <div class="court-net"></div>
-      </div>
+      <div class="court-lines"><div class="court-net"></div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══════ STATS ═══════ -->
+<!-- ═══ STATS ═══ -->
 <div class="stats-bar">
   <div class="row g-0">
     <div class="col-3 stat-item reveal">
       <span class="stat-num" data-count="{{ courts|length }}">0</span>
-      <span class="stat-lbl">ملاعب احترافية</span>
+      <span class="stat-lbl" data-i18n="stat_courts">ملاعب احترافية</span>
     </div>
     <div class="col-3 stat-item reveal reveal-delay-1">
       <span class="stat-num">7/7</span>
-      <span class="stat-lbl">أيام متاحة</span>
+      <span class="stat-lbl" data-i18n="stat_days">أيام متاحة</span>
     </div>
     <div class="col-3 stat-item reveal reveal-delay-2">
       <span class="stat-num" data-count="100">0</span>
-      <span class="stat-lbl">لاعب مسجل</span>
+      <span class="stat-lbl" data-i18n="stat_players">لاعب مسجل</span>
     </div>
     <div class="col-3 stat-item reveal reveal-delay-3">
       <span class="stat-num">24/7</span>
-      <span class="stat-lbl">حجز إلكتروني</span>
+      <span class="stat-lbl" data-i18n="stat_booking">حجز إلكتروني</span>
     </div>
   </div>
 </div>
 
-<!-- ═══════ DISCOUNT BANNER ═══════ -->
+<!-- ═══ DISCOUNT BANNER ═══ -->
 <div class="discount-banner reveal" style="margin-top:4rem;">
   <div class="row align-items-center g-3">
     <div class="col-md-2 text-center">
-      <div class="discount-pct">25%</div>
+      <div class="discount-pct" data-i18n="disc_pct">25%</div>
     </div>
     <div class="col-md-7">
-      <div class="discount-title">خصم خاص على الحجوزات النهارية</div>
-      <div class="discount-sub">استمتع بخصم 25% على جميع الحجوزات من الساعة 12:00 ظهراً حتى 4:00 عصراً يومياً</div>
+      <div class="discount-title" data-i18n="disc_title">خصم خاص على الحجوزات النهارية</div>
+      <div class="discount-sub" data-i18n="disc_sub">استمتع بخصم 25% على جميع الحجوزات من 12:00 ظهراً حتى 4:00 عصراً</div>
     </div>
     <div class="col-md-3 text-center">
       <a href="/booking" class="btn-hero-primary" style="display:inline-flex;">
-        <i class="fas fa-bolt"></i> احجز بالخصم
+        <i class="fas fa-bolt"></i>
+        <span data-i18n="disc_btn">احجز بالخصم</span>
       </a>
     </div>
   </div>
 </div>
 
-<!-- ═══════ COURTS ═══════ -->
+<!-- ═══ COURTS ═══ -->
 <section class="section courts-section" id="courts">
   <div class="container-fluid px-0">
-    <div class="section-eyebrow reveal">ملاعبنا</div>
-    <div class="section-title reveal">اختر ملعبك المناسب</div>
-    <div class="section-sub reveal">ملاعب متنوعة تناسب جميع المستويات والأوقات</div>
-
+    <div class="section-eyebrow reveal" data-i18n="sec_courts_eye">ملاعبنا</div>
+    <div class="section-title reveal" data-i18n="sec_courts_h">اختر ملعبك المناسب</div>
+    <div class="section-sub reveal" data-i18n="sec_courts_sub">ملاعب متنوعة تناسب جميع المستويات والأوقات</div>
     <div class="row g-4">
       {% for court in courts %}
       <div class="col-md-4 reveal reveal-delay-{{ loop.index }}">
         <div class="court-card">
           {% if court.image %}
-            <div style="overflow:hidden;">
-              <img src="/static/images/{{ court.image }}" class="court-img" alt="{{ court.name }}">
-            </div>
+            <div style="overflow:hidden;"><img src="/static/images/{{ court.image }}" class="court-img" alt="{{ court.name }}"></div>
           {% else %}
             <div class="court-no-img"><i class="fas fa-table-tennis"></i></div>
           {% endif %}
           <div class="court-body">
             <div class="court-name">{{ court.name }}</div>
-            <div class="court-desc">{{ court.description or 'ملعب بادل احترافي مجهز بأحدث المعدات وأفضل الأرضيات' }}</div>
-            <div class="court-price">
-              {{ "{:,.0f}".format(court.price_per_hour) }}
-              <span>د.ع / ساعة</span>
-            </div>
+            <div class="court-desc">{{ court.description or '' }}</div>
+            <div class="court-price">{{ "{:,.0f}".format(court.price_per_hour) }} <span data-i18n="court_price_unit">د.ع / ساعة</span></div>
             <a href="/booking?court={{ court.id }}" class="court-book">
               <i class="fas fa-calendar-plus"></i>
-              احجز هذا الملعب
+              <span data-i18n="court_book_btn">احجز هذا الملعب</span>
             </a>
           </div>
         </div>
       </div>
       {% else %}
       <div class="col-12 text-center py-5" style="color:var(--muted);">
-        <i class="fas fa-table-tennis" style="font-size:3rem; display:block; margin-bottom:1rem; opacity:.2;"></i>
-        <p>لا توجد ملاعب متاحة حالياً</p>
+        <i class="fas fa-table-tennis" style="font-size:3rem;display:block;margin-bottom:1rem;opacity:.2;"></i>
+        <p data-i18n="no_courts">لا توجد ملاعب متاحة حالياً</p>
       </div>
       {% endfor %}
     </div>
   </div>
 </section>
 
-<!-- ═══════ FEATURES ═══════ -->
+<!-- ═══ FEATURES ═══ -->
 <section class="section features-section" id="features">
   <div class="container-fluid px-0">
-    <div class="section-eyebrow reveal">لماذا نحن؟</div>
-    <div class="section-title reveal">تجربة لا تُنسى</div>
-    <div class="section-sub reveal">كل ما تحتاجه في مكان واحد</div>
-
+    <div class="section-eyebrow reveal" data-i18n="sec_feat_eye">لماذا نحن؟</div>
+    <div class="section-title reveal" data-i18n="sec_feat_h">تجربة لا تُنسى</div>
+    <div class="section-sub reveal" data-i18n="sec_feat_sub">كل ما تحتاجه في مكان واحد</div>
     <div class="row g-4">
-      {% set features = [
-        ('fa-table-tennis-paddle-ball', 'ملاعب بمواصفات دولية', 'أرضيات احترافية ومعدات مطابقة للمعايير الدولية لتجربة لعب مثالية'),
-        ('fa-lightbulb', 'إضاءة LED عالية الجودة', 'إضاءة احترافية تضمن رؤية مثالية في جميع الأوقات ليلاً ونهاراً'),
-        ('fa-calendar-check', 'حجز سهل وسريع', 'نظام حجز إلكتروني بسيط متاح على مدار الساعة من أي جهاز'),
-        ('fa-users', 'لجميع المستويات', 'سواء كنت مبتدئاً أو محترفاً، ملاعبنا مناسبة لجميع المستويات'),
-        ('fa-mug-hot', 'كافيه ومرطبات', 'استمتع بمشروباتك المفضلة قبل وبعد اللعب في أجواء رياضية رائعة'),
-        ('fa-trophy', 'بطولات وفعاليات', 'بطولات منتظمة للهواة والمحترفين مع جوائز قيمة وأجواء تنافسية'),
-      ] %}
-      {% for icon, title, desc in features %}
-      <div class="col-md-4 reveal reveal-delay-{{ loop.index }}">
-        <div class="feature-card">
-          <div class="feature-icon-wrap"><i class="fas {{ icon }}"></i></div>
-          <div class="feature-title">{{ title }}</div>
-          <div class="feature-desc">{{ desc }}</div>
+      <div class="col-md-4 reveal reveal-delay-1"><div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-table-tennis-paddle-ball"></i></div>
+        <div class="feature-title" data-i18n="feat_1_t">ملاعب بمواصفات دولية</div>
+        <div class="feature-desc" data-i18n="feat_1_d">أرضيات احترافية ومعدات مطابقة للمعايير الدولية لتجربة لعب مثالية</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-2"><div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-lightbulb"></i></div>
+        <div class="feature-title" data-i18n="feat_2_t">إضاءة LED عالية الجودة</div>
+        <div class="feature-desc" data-i18n="feat_2_d">إضاءة احترافية تضمن رؤية مثالية في جميع الأوقات ليلاً ونهاراً</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-3"><div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-calendar-check"></i></div>
+        <div class="feature-title" data-i18n="feat_3_t">حجز سهل وسريع</div>
+        <div class="feature-desc" data-i18n="feat_3_d">نظام حجز إلكتروني بسيط متاح على مدار الساعة من أي جهاز</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-4"><div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-users"></i></div>
+        <div class="feature-title" data-i18n="feat_4_t">لجميع المستويات</div>
+        <div class="feature-desc" data-i18n="feat_4_d">سواء كنت مبتدئاً أو محترفاً، ملاعبنا مناسبة لجميع المستويات</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-5"><div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-mug-hot"></i></div>
+        <div class="feature-title" data-i18n="feat_5_t">كافيه ومرطبات</div>
+        <div class="feature-desc" data-i18n="feat_5_d">استمتع بمشروباتك المفضلة قبل وبعد اللعب في أجواء رياضية رائعة</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-5"><div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-trophy"></i></div>
+        <div class="feature-title" data-i18n="feat_6_t">بطولات وفعاليات</div>
+        <div class="feature-desc" data-i18n="feat_6_d">بطولات منتظمة للهواة والمحترفين مع جوائز قيمة وأجواء تنافسية</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STORE ═══ -->
+<section class="section store-section" id="store">
+  <div class="container-fluid px-0">
+    <div class="store-cta-row">
+      <div>
+        <div class="section-eyebrow reveal" data-i18n="nav_store">المتجر</div>
+        <div class="section-title reveal" data-i18n="store_h">تسوق معنا</div>
+        <div class="section-sub reveal" data-i18n="store_sub">منتجات Z Padel — استلام فوري عند الدفع</div>
+      </div>
+      <a href="/store/cart" class="cart-pill reveal">
+        <i class="fas fa-shopping-cart"></i>
+        <span data-i18n="store_cart">السلة</span>
+        <span class="cc" id="cartCountHome">0</span>
+      </a>
+    </div>
+
+    {% if store_products %}
+    <div class="row g-4">
+      {% for p in store_products %}
+      <div class="col-6 col-md-3 reveal reveal-delay-{{ loop.index }}">
+        <div class="prod-card">
+          {% if p.image %}
+            <div class="prod-img-wrap">
+              <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" class="prod-img" alt="{{ p.name }}">
+            </div>
+          {% else %}
+            <div class="prod-no-img"><i class="fas fa-box"></i></div>
+          {% endif %}
+          <div class="prod-body">
+            <div class="prod-name">{{ p.name }}</div>
+            {% if p.description %}<div class="prod-desc">{{ p.description }}</div>{% endif %}
+            <div class="prod-footer">
+              <div class="prod-price">{{ "{:,.0f}".format(p.price) }} <small>د.ع</small></div>
+              {% if p.stock == 0 %}
+                <span class="out-stock" data-i18n="store_out"><i class="fas fa-times-circle me-1"></i>نفذ</span>
+              {% else %}
+                <button class="btn-add-cart" id="abtn-{{ p.id }}" onclick="addToCartHome({{ p.id }}, this)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
       {% endfor %}
     </div>
+    <div class="text-center mt-4 reveal">
+      <a href="/store/" class="btn-hero-secondary" style="display:inline-flex;">
+        <i class="fas fa-store"></i>
+        <span data-i18n="store_all">عرض كل المنتجات</span>
+      </a>
+    </div>
+    {% else %}
+    <div class="text-center py-5 reveal" style="color:var(--muted);">
+      <i class="fas fa-box-open" style="font-size:2.5rem;display:block;margin-bottom:1rem;opacity:.2;"></i>
+      <p data-i18n="store_empty">لا توجد منتجات حالياً</p>
+    </div>
+    {% endif %}
   </div>
 </section>
 
-<!-- ═══════ CONTACT ═══════ -->
+<!-- ═══ CONTACT ═══ -->
 <section class="section contact-section" id="contact">
   <div class="container-fluid px-0">
-    <div class="section-eyebrow reveal">تواصل معنا</div>
-    <div class="section-title reveal">نحن هنا لمساعدتك</div>
+    <div class="section-eyebrow reveal" data-i18n="sec_contact_eye">تواصل معنا</div>
+    <div class="section-title reveal" data-i18n="sec_contact_h">نحن هنا لمساعدتك</div>
     <div class="row g-4 mt-1">
-      <div class="col-md-4 reveal reveal-delay-1">
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fas fa-location-dot"></i></div>
-          <div class="contact-title">الموقع</div>
-          <div class="contact-val">دهوك، العراق</div>
-        </div>
-      </div>
-      <div class="col-md-4 reveal reveal-delay-2">
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fas fa-phone"></i></div>
-          <div class="contact-title">الهاتف</div>
-          <div class="contact-val">+964 750 000 0000</div>
-        </div>
-      </div>
-      <div class="col-md-4 reveal reveal-delay-3">
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fas fa-clock"></i></div>
-          <div class="contact-title">أوقات العمل</div>
-          <div class="contact-val">يومياً من 12 ظهراً حتى 4 فجراً</div>
-        </div>
-      </div>
+      <div class="col-md-4 reveal reveal-delay-1"><div class="contact-card">
+        <div class="contact-icon"><i class="fas fa-location-dot"></i></div>
+        <div class="contact-title" data-i18n="contact_loc_t">الموقع</div>
+        <div class="contact-val" data-i18n="contact_loc_v">دهوك، العراق</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-2"><div class="contact-card">
+        <div class="contact-icon"><i class="fas fa-phone"></i></div>
+        <div class="contact-title" data-i18n="contact_tel_t">الهاتف</div>
+        <div class="contact-val" data-i18n="contact_tel_v">+964 750 000 0000</div>
+      </div></div>
+      <div class="col-md-4 reveal reveal-delay-3"><div class="contact-card">
+        <div class="contact-icon"><i class="fas fa-clock"></i></div>
+        <div class="contact-title" data-i18n="contact_hrs_t">أوقات العمل</div>
+        <div class="contact-val" data-i18n="contact_hrs_v">يومياً من 12 ظهراً حتى 4 فجراً</div>
+      </div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══════ FOOTER ═══════ -->
+<!-- ═══ FOOTER ═══ -->
 <footer>
   <span class="footer-brand">Z PADEL</span>
-  <p>© 2026 Z Padel — جميع الحقوق محفوظة | دهوك، العراق</p>
+  <p data-i18n="footer_copy">© 2026 Z Padel — جميع الحقوق محفوظة | دهوك، العراق</p>
 </footer>
 
+<!-- Toast -->
+<div class="toast-box" id="storeToast">
+  <i class="fas fa-check-circle"></i>
+  <span data-i18n="store_added">تمت الإضافة للسلة</span>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/i18n.js"></script>
 <script>
-  /* ── Nav scroll effect ── */
+  /* Nav scroll */
   const nav = document.getElementById('mainNav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 40);
-  });
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 40));
 
-  /* ── Cursor glow ── */
+  /* Cursor glow */
   const glow = document.getElementById('cursorGlow');
-  document.addEventListener('mousemove', e => {
-    glow.style.left = e.clientX + 'px';
-    glow.style.top  = e.clientY + 'px';
-  });
+  document.addEventListener('mousemove', e => { glow.style.left = e.clientX+'px'; glow.style.top = e.clientY+'px'; });
 
-  /* ── Scroll reveal ── */
-  const revealEls = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  revealEls.forEach(el => observer.observe(el));
+  /* Scroll reveal */
+  const obs = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+  }), { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-  /* ── Counter animation ── */
-  function animateCount(el, target, suffix = '') {
-    let start = 0;
-    const dur = 1800;
-    const step = timestamp => {
-      if (!start) start = timestamp;
-      const progress = Math.min((timestamp - start) / dur, 1);
-      el.textContent = Math.floor(progress * target) + suffix;
-      if (progress < 1) requestAnimationFrame(step);
-    };
+  /* Counter */
+  function animCount(el, target) {
+    let s = 0; const dur = 1800;
+    const step = ts => { if (!s) s=ts; const p=Math.min((ts-s)/dur,1); el.textContent=Math.floor(p*target); if(p<1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   }
-  const counterObs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        const target = parseInt(e.target.dataset.count);
-        const suffix = e.target.dataset.suffix || '';
-        animateCount(e.target, target, suffix);
-        counterObs.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.5 });
-  document.querySelectorAll('[data-count]').forEach(el => counterObs.observe(el));
+  const cObs = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { animCount(e.target, +e.target.dataset.count); cObs.unobserve(e.target); }
+  }), { threshold:.5 });
+  document.querySelectorAll('[data-count]').forEach(el => cObs.observe(el));
+
+  /* Store cart */
+  function addToCartHome(id, btn) {
+    fetch(`/store/cart/add/${id}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.success) return;
+        document.getElementById('cartCountHome').textContent = d.cart_count;
+        btn.classList.add('added');
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = '<i class="fas fa-plus"></i>'; }, 900);
+        const t = document.getElementById('storeToast');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2200);
+      });
+  }
+
+  /* Load cart count */
+  fetch('/store/cart/count').then(r => r.json()).then(d => {
+    if (d.count !== undefined) document.getElementById('cartCountHome').textContent = d.count;
+  }).catch(() => {});
+
+  /* Lang change — Bootstrap RTL swap */
+  document.addEventListener('langchange', ({ detail: { cfg } }) => {
+    document.getElementById('bsCSS').href = cfg.dir === 'rtl'
+      ? 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css'
+      : 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
+  });
+
+  /* Init i18n */
+  I18N.init();
 </script>
 </body>
 </html>

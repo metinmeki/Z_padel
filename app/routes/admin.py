@@ -388,4 +388,57 @@ def toggle_product(product_id):
     return jsonify({'success': True, 'is_active': p.is_active})
 
 
+@admin.route('/pos')
+@login_required
+def pos():
+    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    return render_template('admin/pos.html', products=products)
 
+
+@admin.route('/pos/checkout', methods=['POST'])
+@login_required
+def pos_checkout():
+    from app.models.store import Order, OrderItem
+    data = request.get_json(silent=True) or {}
+
+    items = data.get('items', [])
+    total = data.get('total', 0)
+    cust_name = data.get('customer_name', 'زبون POS')
+    cust_phone = data.get('customer_phone', '—')
+    pay_method = data.get('pay_method', 'cash')
+
+    if not items:
+        return jsonify({'success': False, 'message': 'لا توجد منتجات'})
+
+    try:
+        order = Order(
+            customer_name=cust_name,
+            customer_phone=cust_phone,
+            total_price=total,
+            status='done',  # POS orders are instant
+            source='pos',
+            notes=f'دفع: {pay_method}'
+        )
+        db.session.add(order)
+        db.session.flush()
+
+        for item in items:
+            p = Product.query.get(item['product_id'])
+            if not p:
+                continue
+            db.session.add(OrderItem(
+                order_id=order.id,
+                product_id=p.id,
+                quantity=item['qty'],
+                unit_price=item['unit_price']
+            ))
+            # Deduct stock
+            if p.stock > 0:
+                p.stock = max(0, p.stock - item['qty'])
+
+        db.session.commit()
+        return jsonify({'success': True, 'order_id': order.id})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})

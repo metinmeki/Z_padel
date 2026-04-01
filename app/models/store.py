@@ -4,14 +4,15 @@ from datetime import datetime
 
 class Product(db.Model):
     __tablename__ = 'product'
-    id          = db.Column(db.Integer, primary_key=True)
-    name        = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text)
-    price       = db.Column(db.Float, nullable=False)
-    image       = db.Column(db.String(200))
-    stock       = db.Column(db.Integer, default=0)
-    is_active   = db.Column(db.Boolean, default=True)
-    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+    id               = db.Column(db.Integer, primary_key=True)
+    name             = db.Column(db.String(120), nullable=False)
+    description      = db.Column(db.Text)
+    price            = db.Column(db.Float, nullable=False)
+    image            = db.Column(db.String(200))
+    stock            = db.Column(db.Integer, default=0)
+    is_active        = db.Column(db.Boolean, default=True)
+    show_on_website  = db.Column(db.Boolean, default=False)   # ← NEW
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
 
@@ -27,7 +28,7 @@ class Order(db.Model):
     notes          = db.Column(db.Text)
     total_price    = db.Column(db.Float, nullable=False, default=0)
     status         = db.Column(db.String(30), default='pending')
-    # pending → ready → done / cancelled
+    source         = db.Column(db.String(20), default='website')  # 'website' or 'pos'
     created_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
     items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')

@@ -1,106 +1,183 @@
-﻿
-{% extends 'admin/base.html' %}
-{% block title %}{{ 'تعديل' if product else 'إضافة' }} منتج{% endblock %}
+﻿{% extends 'admin/base.html' %}
+{% block title %}{{ 'تعديل منتج' if product else 'إضافة منتج' }}{% endblock %}
 {% block page_title %}{{ 'تعديل منتج' if product else 'إضافة منتج جديد' }}{% endblock %}
 
 {% block extra_css %}
 <style>
-  .form-card { background:#1e293b; border:1px solid #334155; border-radius:14px; padding:1.5rem; max-width:580px; }
-  .form-label { font-size:.76rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
-  .form-control, .form-select {
-    background:#0f172a; border:1px solid #334155; color:#e2e8f0;
-    border-radius:9px; padding:.6rem .9rem; transition:border-color .15s;
+  .form-wrap { max-width: 660px; }
+  .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 13px; padding: 1.8rem; }
+  .f-label { font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; display: block; }
+  .f-ctrl { display: block; width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 9px; font-size: .85rem; padding: 8px 12px; font-family: 'Cairo', sans-serif; transition: border-color .15s, box-shadow .15s; }
+  .f-ctrl:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14,165,233,.12); background: var(--surface); color: var(--text); }
+  .f-ctrl::placeholder { color: var(--muted); }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: .82rem; font-weight: 600; margin-bottom: 1.2rem; transition: color .15s; }
+  .back-link:hover { color: var(--brand); }
+  .img-preview { width: 100%; height: 140px; object-fit: cover; border-radius: 9px; margin-bottom: 10px; border: 1px solid var(--border); }
+
+  /* ── Visibility toggle ── */
+  .visibility-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
   }
-  .form-control:focus, .form-select:focus {
-    background:#0f172a; border-color:#0ea5e9; color:#e2e8f0;
-    box-shadow:0 0 0 3px rgba(14,165,233,.12);
+  .vis-title {
+    font-size: .78rem; font-weight: 800;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: .6px; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 7px;
   }
-  .form-control::placeholder { color:#334155; }
+  .vis-option {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .8rem 1rem;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: border-color .18s;
+    cursor: pointer;
+  }
+  .vis-option:last-child { margin-bottom: 0; }
+  .vis-option.always-on { border-color: rgba(34,197,94,.3); }
+  .vis-option:has(input:checked) { border-color: var(--brand); background: rgba(14,165,233,.06); }
+  .vis-left { display: flex; align-items: center; gap: 10px; }
+  .vis-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
+  .vi-pos  { background: rgba(251,191,36,.1); color: #fbbf24; }
+  .vi-web  { background: rgba(14,165,233,.1); color: var(--brand); }
+  .vis-info .vi-name { font-size: .88rem; font-weight: 700; }
+  .vis-info .vi-desc { font-size: .72rem; color: var(--muted); margin-top: 1px; }
 
-  .img-preview { width:100%; max-height:200px; object-fit:cover; border-radius:9px; border:1px solid #334155; display:none; margin-top:.6rem; }
+  /* Toggle switch */
+  .toggle-wrap { position: relative; }
+  .toggle-wrap input[type=checkbox] { display: none; }
+  .toggle-sw {
+    width: 42px; height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    display: block; cursor: pointer;
+    transition: background .2s;
+    position: relative;
+  }
+  .toggle-sw::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: #fff; border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: transform .2s;
+  }
+  .toggle-wrap input:checked + .toggle-sw { background: var(--brand); }
+  .toggle-wrap input:checked + .toggle-sw::after { transform: translateX(18px); }
 
-  .form-check-input { background:#0f172a; border-color:#334155; width:1.1rem; height:1.1rem; }
-  .form-check-input:checked { background:#0ea5e9; border-color:#0ea5e9; }
-  .form-check-label { color:#94a3b8; font-size:.85rem; }
-
-  .btn-save { background:#0ea5e9; color:#fff; border:none; border-radius:9px; padding:.7rem 2rem; font-weight:700; font-size:.9rem; transition:.15s; }
-  .btn-save:hover { background:#0284c7; color:#fff; }
-  .btn-cancel { background:transparent; color:#64748b; border:1px solid #334155; border-radius:9px; padding:.7rem 1.5rem; font-size:.9rem; text-decoration:none; transition:.15s; }
-  .btn-cancel:hover { color:#e2e8f0; border-color:#475569; }
+  .always-badge { font-size: .65rem; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: #4ade80; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="px-1 py-2">
-<form method="POST" enctype="multipart/form-data">
-  <div class="form-card">
 
-    <div class="mb-3">
-      <label class="form-label">اسم المنتج *</label>
-      <input type="text" name="name" class="form-control" required
-             value="{{ product.name if product else '' }}" placeholder="مثال: مضرب Babolat">
+<a href="{{ url_for('admin.products') }}" class="back-link">
+  <i class="fas fa-arrow-right"></i> العودة للمنتجات
+</a>
+
+<div class="form-wrap">
+
+  <!-- Visibility card -->
+  <div class="visibility-card">
+    <div class="vis-title">
+      <i class="fas fa-eye" style="color:var(--brand);"></i>
+      مكان عرض المنتج
     </div>
 
-    <div class="mb-3">
-      <label class="form-label">الوصف</label>
-      <textarea name="description" class="form-control" rows="3"
-                placeholder="وصف قصير للمنتج…">{{ product.description if product else '' }}</textarea>
-    </div>
-
-    <div class="row g-3 mb-3">
-      <div class="col-6">
-        <label class="form-label">السعر (IQD) *</label>
-        <input type="number" name="price" class="form-control" required min="0" step="500"
-               value="{{ product.price | int if product else '' }}" placeholder="5000">
+    <!-- POS — always on -->
+    <div class="vis-option always-on">
+      <div class="vis-left">
+        <div class="vis-icon vi-pos"><i class="fas fa-cash-register"></i></div>
+        <div class="vis-info">
+          <div class="vi-name">نظام POS</div>
+          <div class="vi-desc">يظهر دائماً في نظام نقطة البيع</div>
+        </div>
       </div>
-      <div class="col-6">
-        <label class="form-label">الكمية في المخزن</label>
-        <input type="number" name="stock" class="form-control" min="0"
-               value="{{ product.stock if product else 0 }}">
+      <span class="always-badge"><i class="fas fa-check me-1"></i>دائماً</span>
+    </div>
+
+    <!-- Website — toggle -->
+    <label class="vis-option" for="showOnWebsite">
+      <div class="vis-left">
+        <div class="vis-icon vi-web"><i class="fas fa-globe"></i></div>
+        <div class="vis-info">
+          <div class="vi-name">متجر الموقع</div>
+          <div class="vi-desc">اعرض هذا المنتج للزوار على الموقع</div>
+        </div>
       </div>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">صورة المنتج</label>
-      <input type="file" name="image" class="form-control" accept="image/*"
-             onchange="previewImg(this)">
-      {% if product and product.image %}
-        <img src="{{ url_for('static', filename='images/products/' ~ product.image) }}"
-             class="img-preview" style="display:block;" id="imgPrev" alt="">
-      {% else %}
-        <img class="img-preview" id="imgPrev" alt="">
-      {% endif %}
-    </div>
-
-    <div class="mb-4">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
-               {% if not product or product.is_active %}checked{% endif %}>
-        <label class="form-check-label" for="isActive">منتج نشط (يظهر في المتجر)</label>
+      <div class="toggle-wrap">
+        <input type="checkbox" name="show_on_website" id="showOnWebsite"
+               {% if product and product.show_on_website %}checked{% endif %}>
+        <label class="toggle-sw" for="showOnWebsite"></label>
       </div>
-    </div>
-
-    <div class="d-flex gap-3 align-items-center">
-      <button type="submit" class="btn-save">
-        <i class="fas fa-save me-2"></i>{{ 'حفظ التعديلات' if product else 'إضافة المنتج' }}
-      </button>
-      <a href="{{ url_for('admin.products') }}" class="btn-cancel">إلغاء</a>
-    </div>
-
+    </label>
   </div>
-</form>
-</div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-function previewImg(input) {
-  const prev = document.getElementById('imgPrev');
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = e => { prev.src = e.target.result; prev.style.display = 'block'; };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-</script>
+  <!-- Product form -->
+  <div class="form-card">
+    <form method="POST" enctype="multipart/form-data">
+
+      <div class="mb-3">
+        <label class="f-label">اسم المنتج *</label>
+        <input type="text" name="name" class="f-ctrl" required
+               value="{{ product.name if product else '' }}" placeholder="مثال: Red Bull">
+      </div>
+
+      <div class="mb-3">
+        <label class="f-label">الوصف</label>
+        <textarea name="description" class="f-ctrl" rows="2"
+                  placeholder="وصف المنتج...">{{ product.description or '' if product else '' }}</textarea>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="f-label">السعر (د.ع) *</label>
+          <input type="number" name="price" class="f-ctrl" required step="0.01"
+                 value="{{ product.price | int if product else '' }}" placeholder="2500">
+        </div>
+        <div class="col-md-6">
+          <label class="f-label">المخزون</label>
+          <input type="number" name="stock" class="f-ctrl"
+                 value="{{ product.stock if product else 0 }}" placeholder="0">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="f-label">صورة المنتج</label>
+        {% if product and product.image %}
+          <img src="{{ url_for('static', filename='images/products/' ~ product.image) }}"
+               class="img-preview" alt="{{ product.name }}">
+        {% endif %}
+        <input type="file" name="image" class="f-ctrl" accept="image/*" style="padding:6px 12px;">
+        {% if product and product.image %}
+          <div style="font-size:.72rem; color:var(--muted); margin-top:4px;">اتركه فارغاً للإبقاء على الصورة الحالية</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-4">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" name="is_active" id="isActive"
+                 {% if not product or product.is_active %}checked{% endif %}
+                 style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;">
+          <label for="isActive" style="font-size:.85rem;cursor:pointer;">المنتج نشط</label>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn-z">
+          <i class="fas fa-save"></i>
+          {{ 'حفظ التعديلات' if product else 'إضافة المنتج' }}
+        </button>
+        <a href="{{ url_for('admin.products') }}" class="btn-z-ghost">إلغاء</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
 {% endblock %}

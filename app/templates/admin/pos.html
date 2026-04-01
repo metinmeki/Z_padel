@@ -1,0 +1,593 @@
+{% extends 'admin/base.html' %}
+{% block title %}نظام POS{% endblock %}
+{% block page_title %}نقطة البيع{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── POS LAYOUT ── */
+  .pos-wrap {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    height: calc(100vh - var(--th) - 2.8rem);
+    overflow: hidden;
+  }
+
+  /* ── LEFT: Products ── */
+  .pos-products { display: flex; flex-direction: column; overflow: hidden; }
+
+  .pos-search-bar {
+    display: flex; gap: 10px; margin-bottom: 12px; flex-shrink: 0;
+  }
+  .pos-search {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 8px 14px;
+    font-size: .88rem; font-family: 'Cairo', sans-serif;
+    transition: border-color .15s;
+  }
+  .pos-search:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
+  .pos-search::placeholder { color: var(--muted); }
+
+  .cat-filters {
+    display: flex; gap: 7px; margin-bottom: 12px;
+    flex-wrap: wrap; flex-shrink: 0;
+  }
+  .cat-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: 5px 14px;
+    font-size: .78rem; font-weight: 700; cursor: pointer;
+    transition: all .15s; font-family: 'Cairo', sans-serif;
+  }
+  .cat-btn.active, .cat-btn:hover {
+    background: var(--brand); border-color: var(--brand); color: #fff;
+  }
+
+  .prod-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 8px;
+  }
+  .prod-grid::-webkit-scrollbar { width: 4px; }
+  .prod-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  .pos-prod {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: .9rem .8rem;
+    cursor: pointer; transition: all .18s;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+    user-select: none;
+  }
+  .pos-prod::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(14,165,233,.08); opacity: 0;
+    transition: opacity .15s;
+  }
+  .pos-prod:hover { border-color: var(--brand); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+  .pos-prod:hover::after { opacity: 1; }
+  .pos-prod:active { transform: scale(.97); }
+  .pos-prod.out { opacity: .45; cursor: not-allowed; }
+  .pos-prod.out:hover { transform: none; border-color: var(--border); }
+  .pos-prod.out:hover::after { opacity: 0; }
+
+  .pp-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+  .pp-no-img {
+    width: 100%; aspect-ratio: 1; background: var(--surface);
+    border-radius: 8px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; color: var(--border);
+  }
+  .pp-name { font-size: .82rem; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+  .pp-price { font-family: 'Tajawal', sans-serif; font-size: .95rem; font-weight: 900; color: var(--brand); }
+  .pp-stock { font-size: .65rem; color: var(--muted); margin-top: 2px; }
+  .pp-out-badge {
+    position: absolute; top: 7px; left: 7px;
+    background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3);
+    color: #f87171; font-size: .58rem; font-weight: 800;
+    padding: 2px 6px; border-radius: 6px;
+  }
+
+  /* ── RIGHT: Cart / Receipt ── */
+  .pos-cart {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cart-header {
+    padding: .9rem 1.1rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .cart-title { font-size: .88rem; font-weight: 800; }
+  .cart-clear {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 7px; padding: 3px 10px;
+    font-size: .7rem; cursor: pointer; font-family: 'Cairo', sans-serif;
+    transition: all .15s;
+  }
+  .cart-clear:hover { border-color: #ef4444; color: #f87171; }
+
+  .cart-items { flex: 1; overflow-y: auto; padding: .6rem; }
+  .cart-items::-webkit-scrollbar { width: 3px; }
+  .cart-items::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  .cart-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: var(--muted); font-size: .84rem; text-align: center;
+    gap: 8px;
+  }
+  .cart-empty i { font-size: 2.5rem; opacity: .2; }
+
+  .ci-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border-radius: 10px;
+    padding: .65rem .8rem; margin-bottom: 6px;
+    transition: background .15s;
+  }
+  .ci-row:hover { background: rgba(14,165,233,.06); }
+  .ci-name { flex: 1; font-size: .82rem; font-weight: 700; }
+  .ci-price { font-size: .78rem; color: var(--muted); }
+  .ci-qty-ctrl { display: flex; align-items: center; gap: 5px; }
+  .ci-btn {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); cursor: pointer; font-size: .78rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .ci-btn:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .ci-qty { font-size: .82rem; font-weight: 800; min-width: 22px; text-align: center; }
+  .ci-sub { font-size: .78rem; font-weight: 800; color: var(--brand); min-width: 60px; text-align: left; }
+  .ci-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .72rem; transition: color .15s; padding: 2px; }
+  .ci-del:hover { color: #f87171; }
+
+  /* ── Cart footer ── */
+  .cart-footer { padding: .9rem 1.1rem; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+  .totals-row {
+    display: flex; justify-content: space-between;
+    font-size: .82rem; color: var(--muted); margin-bottom: 4px;
+  }
+  .totals-total {
+    display: flex; justify-content: space-between;
+    font-size: 1.1rem; font-weight: 900;
+    color: var(--text); margin-bottom: 14px; margin-top: 8px;
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .totals-total .amt { color: var(--brand); font-family: 'Tajawal', sans-serif; font-size: 1.3rem; }
+
+  /* Customer quick input */
+  .cust-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .pos-input {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 7px 10px;
+    font-size: .8rem; font-family: 'Cairo', sans-serif; width: 100%;
+    transition: border-color .15s;
+  }
+  .pos-input:focus { outline: none; border-color: var(--brand); }
+  .pos-input::placeholder { color: var(--muted); font-size: .75rem; }
+
+  /* Payment method */
+  .pay-methods { display: flex; gap: 7px; margin-bottom: 12px; }
+  .pay-btn {
+    flex: 1; padding: 7px; border-radius: 9px; font-size: .78rem; font-weight: 700;
+    cursor: pointer; transition: all .18s; font-family: 'Cairo', sans-serif;
+    border: 1.5px solid var(--border); background: var(--surface); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .pay-btn.active { border-color: var(--brand); background: rgba(14,165,233,.1); color: var(--brand); }
+  .pay-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+  /* Checkout button */
+  .btn-checkout {
+    width: 100%; background: var(--brand); color: #fff; border: none;
+    border-radius: 11px; padding: .9rem; font-size: .98rem; font-weight: 800;
+    font-family: 'Cairo', sans-serif; cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 0 24px rgba(14,165,233,.25);
+  }
+  .btn-checkout:hover:not(:disabled) { background: var(--brand-dk); transform: translateY(-1px); box-shadow: 0 6px 28px rgba(14,165,233,.4); }
+  .btn-checkout:disabled { background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: not-allowed; box-shadow: none; }
+
+  /* ── Receipt modal ── */
+  .receipt-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+    z-index: 9999; align-items: center; justify-content: center;
+  }
+  .receipt-modal.show { display: flex; }
+  .receipt-box {
+    background: #fff; color: #111; border-radius: 14px;
+    width: 320px; padding: 1.5rem;
+    font-family: 'Courier New', monospace; font-size: .82rem;
+    animation: popIn .3s ease both;
+  }
+  @keyframes popIn { from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);} }
+  .receipt-brand { text-align: center; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 4px; }
+  .receipt-sub { text-align: center; font-size: .72rem; color: #555; margin-bottom: 12px; }
+  .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 8px 0; }
+  .receipt-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .receipt-total { display: flex; justify-content: space-between; font-weight: 900; font-size: .95rem; margin-top: 8px; }
+  .receipt-footer { text-align: center; font-size: .68rem; color: #888; margin-top: 12px; }
+  .receipt-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .r-btn {
+    flex: 1; padding: 8px; border-radius: 8px; font-size: .82rem; font-weight: 700;
+    cursor: pointer; border: none; font-family: 'Cairo', sans-serif;
+  }
+  .r-print { background: #0ea5e9; color: #fff; }
+  .r-new   { background: #f1f5f9; color: #333; }
+  .r-print:hover { background: #0284c7; }
+
+  /* ── Numpad (optional quick cash) ── */
+  .cash-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cash-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: 4px 10px;
+    font-size: .72rem; font-weight: 700; cursor: pointer;
+    transition: all .15s; font-family: 'Cairo', sans-serif;
+  }
+  .cash-chip:hover { border-color: var(--brand); color: var(--brand); }
+
+  /* ── Keyboard shortcut hint ── */
+  .shortcut { font-size: .6rem; color: var(--muted); text-align: center; margin-top: 6px; }
+
+  @media (max-width: 900px) {
+    .pos-wrap { grid-template-columns: 1fr; height: auto; }
+    .pos-cart { min-height: 400px; }
+    .prod-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pos-wrap">
+
+  <!-- ═══ LEFT: PRODUCTS ═══ -->
+  <div class="pos-products">
+
+    <!-- Search -->
+    <div class="pos-search-bar">
+      <input type="text" class="pos-search" id="prodSearch"
+             placeholder="🔍 ابحث عن منتج..." oninput="filterProds()">
+    </div>
+
+    <!-- Products grid -->
+    <div class="prod-grid" id="prodGrid">
+      {% for p in products %}
+      <div class="pos-prod {% if p.stock == 0 %}out{% endif %}"
+           id="pp-{{ p.id }}"
+           data-name="{{ p.name|lower }}"
+           data-price="{{ p.price }}"
+           data-stock="{{ p.stock }}"
+           onclick="{% if p.stock != 0 %}addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }}, {{ p.stock }}){% endif %}">
+
+        {% if p.stock == 0 %}<div class="pp-out-badge">نفذ</div>{% endif %}
+
+        {% if p.image %}
+          <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" class="pp-img" alt="{{ p.name }}">
+        {% else %}
+          <div class="pp-no-img"><i class="fas fa-box"></i></div>
+        {% endif %}
+
+        <div class="pp-name">{{ p.name }}</div>
+        <div class="pp-price">{{ "{:,.0f}".format(p.price) }} <span style="font-size:.6rem;color:var(--muted);">د.ع</span></div>
+        {% if p.stock > 0 %}
+          <div class="pp-stock">مخزون: {{ p.stock }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+  </div><!-- /pos-products -->
+
+  <!-- ═══ RIGHT: CART ═══ -->
+  <div class="pos-cart">
+
+    <div class="cart-header">
+      <span class="cart-title"><i class="fas fa-receipt me-2" style="color:var(--brand);"></i>الفاتورة</span>
+      <button class="cart-clear" onclick="clearCart()"><i class="fas fa-trash me-1"></i>مسح</button>
+    </div>
+
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty" id="cartEmpty">
+        <i class="fas fa-shopping-basket"></i>
+        <span>اضغط على منتج للإضافة</span>
+      </div>
+    </div>
+
+    <div class="cart-footer">
+
+      <!-- Totals -->
+      <div class="totals-row">
+        <span>المجموع الفرعي</span>
+        <span id="subtotalVal">0 د.ع</span>
+      </div>
+      <div class="totals-row">
+        <span>العناصر</span>
+        <span id="itemsCount">0</span>
+      </div>
+      <div class="totals-total">
+        <span>الإجمالي</span>
+        <span class="amt" id="totalVal">0 د.ع</span>
+      </div>
+
+      <!-- Customer -->
+      <div class="cust-row">
+        <input type="text" class="pos-input" id="custName" placeholder="اسم الزبون (اختياري)">
+        <input type="text" class="pos-input" id="custPhone" placeholder="الهاتف (اختياري)">
+      </div>
+
+      <!-- Payment method -->
+      <div class="pay-methods">
+        <button class="pay-btn active" id="pay-cash" onclick="setPay('cash')">
+          <i class="fas fa-money-bill-wave"></i> نقدي
+        </button>
+        <button class="pay-btn" id="pay-card" onclick="setPay('card')">
+          <i class="fas fa-credit-card"></i> بطاقة
+        </button>
+        <button class="pay-btn" id="pay-tab" onclick="setPay('tab')">
+          <i class="fas fa-clock"></i> آجل
+        </button>
+      </div>
+
+      <!-- Quick cash chips -->
+      <div class="cash-row" id="cashChips">
+        <span style="font-size:.7rem;color:var(--muted);align-self:center;">نقدي:</span>
+        <button class="cash-chip" onclick="setCash(5000)">5,000</button>
+        <button class="cash-chip" onclick="setCash(10000)">10,000</button>
+        <button class="cash-chip" onclick="setCash(25000)">25,000</button>
+        <button class="cash-chip" onclick="setCash(50000)">50,000</button>
+      </div>
+
+      <!-- Checkout -->
+      <button class="btn-checkout" id="checkoutBtn" onclick="checkout()" disabled>
+        <i class="fas fa-check-circle"></i>
+        إتمام البيع
+      </button>
+      <div class="shortcut">Enter لإتمام البيع • Esc لمسح الفاتورة</div>
+
+    </div>
+  </div><!-- /pos-cart -->
+
+</div><!-- /pos-wrap -->
+
+<!-- ═══ RECEIPT MODAL ═══ -->
+<div class="receipt-modal" id="receiptModal">
+  <div class="receipt-box" id="receiptBox">
+    <div class="receipt-brand">Z PADEL</div>
+    <div class="receipt-sub">نظام نقطة البيع | دهوك</div>
+    <hr class="receipt-divider">
+    <div id="receiptDate" style="font-size:.7rem;color:#555;margin-bottom:8px;"></div>
+    <div id="receiptItems"></div>
+    <hr class="receipt-divider">
+    <div class="receipt-total">
+      <span>الإجمالي</span>
+      <span id="receiptTotal"></span>
+    </div>
+    <div id="receiptPayMethod" style="font-size:.72rem;color:#555;margin-top:4px;"></div>
+    <div id="receiptCust" style="font-size:.72rem;color:#555;margin-top:2px;"></div>
+    <div class="receipt-footer">شكراً لزيارتكم ✦ Z Padel</div>
+    <div class="receipt-actions">
+      <button class="r-btn r-print" onclick="printReceipt()"><i class="fas fa-print me-1"></i>طباعة</button>
+      <button class="r-btn r-new"   onclick="newSale()">بيع جديد</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* ── State ── */
+  let cart = {};        // { id: {name, price, qty, stock} }
+  let payMethod = 'cash';
+
+  /* ── Add to cart ── */
+  function addToCart(id, name, price, stock) {
+    if (cart[id]) {
+      if (stock > 0 && cart[id].qty >= stock) return showFlash('وصل الحد الأقصى للمخزون', 'warn');
+      cart[id].qty++;
+    } else {
+      cart[id] = { name, price, qty: 1, stock };
+    }
+    renderCart();
+    flashProd(id);
+  }
+
+  /* ── Remove / update ── */
+  function changeQty(id, delta) {
+    if (!cart[id]) return;
+    cart[id].qty += delta;
+    if (cart[id].qty <= 0) delete cart[id];
+    renderCart();
+  }
+  function removeItem(id) { delete cart[id]; renderCart(); }
+  function clearCart() { cart = {}; renderCart(); }
+
+  /* ── Render cart ── */
+  function renderCart() {
+    const wrap  = document.getElementById('cartItems');
+    const empty = document.getElementById('cartEmpty');
+    const ids   = Object.keys(cart);
+
+    if (!ids.length) {
+      empty.style.display = 'flex';
+      wrap.innerHTML = '';
+      wrap.appendChild(empty);
+      updateTotals(0, 0);
+      document.getElementById('checkoutBtn').disabled = true;
+      return;
+    }
+
+    empty.style.display = 'none';
+    let html = '';
+    let total = 0, items = 0;
+    ids.forEach(id => {
+      const c = cart[id];
+      const sub = c.price * c.qty;
+      total += sub; items += c.qty;
+      html += `
+        <div class="ci-row">
+          <div style="flex:1;min-width:0;">
+            <div class="ci-name">${c.name}</div>
+            <div class="ci-price">${fmt(c.price)} × ${c.qty}</div>
+          </div>
+          <div class="ci-qty-ctrl">
+            <button class="ci-btn" onclick="changeQty(${id},-1)">−</button>
+            <span class="ci-qty">${c.qty}</span>
+            <button class="ci-btn" onclick="changeQty(${id},1)">+</button>
+          </div>
+          <div class="ci-sub">${fmt(sub)}</div>
+          <button class="ci-del" onclick="removeItem(${id})"><i class="fas fa-times"></i></button>
+        </div>`;
+    });
+    wrap.innerHTML = html;
+    updateTotals(total, items);
+    document.getElementById('checkoutBtn').disabled = false;
+  }
+
+  function updateTotals(total, items) {
+    document.getElementById('subtotalVal').textContent = fmt(total) + ' د.ع';
+    document.getElementById('totalVal').textContent    = fmt(total) + ' د.ع';
+    document.getElementById('itemsCount').textContent  = items + ' قطعة';
+  }
+
+  function fmt(n) { return Math.round(n).toLocaleString('ar-IQ'); }
+
+  /* ── Payment method ── */
+  function setPay(method) {
+    payMethod = method;
+    ['cash','card','tab'].forEach(m => {
+      document.getElementById('pay-'+m).classList.toggle('active', m === method);
+    });
+    document.getElementById('cashChips').style.display = method === 'cash' ? 'flex' : 'none';
+  }
+
+  function setCash(amt) {
+    /* just a visual hint — not stored */
+    showFlash(`نقدي: ${fmt(amt)} د.ع`, 'info');
+  }
+
+  /* ── Search / filter ── */
+  function filterProds() {
+    const q = document.getElementById('prodSearch').value.toLowerCase().trim();
+    document.querySelectorAll('.pos-prod').forEach(el => {
+      el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+    });
+  }
+
+  /* ── Flash prod animation ── */
+  function flashProd(id) {
+    const el = document.getElementById('pp-'+id);
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.borderColor = 'var(--brand)';
+    el.style.boxShadow = '0 0 0 3px rgba(14,165,233,.25)';
+    setTimeout(() => {
+      el.style.transition = 'all .3s';
+      el.style.borderColor = '';
+      el.style.boxShadow = '';
+    }, 300);
+  }
+
+  /* ── Checkout ── */
+  function checkout() {
+    const ids = Object.keys(cart);
+    if (!ids.length) return;
+
+    const items = ids.map(id => ({ product_id: +id, qty: cart[id].qty, unit_price: cart[id].price }));
+    const total = items.reduce((s, i) => s + i.qty * i.unit_price, 0);
+    const name  = document.getElementById('custName').value.trim()  || 'زبون POS';
+    const phone = document.getElementById('custPhone').value.trim() || '—';
+
+    fetch('/admin/pos/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, total, customer_name: name, customer_phone: phone, pay_method: payMethod })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) showReceipt(d.order_id, total, name, phone);
+      else showFlash(d.message || 'خطأ في الحفظ', 'error');
+    })
+    .catch(() => showFlash('خطأ في الاتصال', 'error'));
+  }
+
+  /* ── Receipt ── */
+  function showReceipt(orderId, total, name, phone) {
+    const now = new Date();
+    document.getElementById('receiptDate').textContent =
+      `#${orderId} | ${now.toLocaleDateString('ar')} ${now.toLocaleTimeString('ar', {hour:'2-digit',minute:'2-digit'})}`;
+
+    let html = '';
+    Object.values(cart).forEach(c => {
+      html += `<div class="receipt-row"><span>${c.name} ×${c.qty}</span><span>${fmt(c.price*c.qty)}</span></div>`;
+    });
+    document.getElementById('receiptItems').innerHTML = html;
+    document.getElementById('receiptTotal').textContent = fmt(total) + ' د.ع';
+    document.getElementById('receiptPayMethod').textContent =
+      'طريقة الدفع: ' + { cash:'نقدي', card:'بطاقة', tab:'آجل' }[payMethod];
+    if (name !== 'زبون POS')
+      document.getElementById('receiptCust').textContent = `الزبون: ${name} | ${phone}`;
+
+    document.getElementById('receiptModal').classList.add('show');
+  }
+
+  function printReceipt() {
+    const box = document.getElementById('receiptBox').innerHTML;
+    const w = window.open('', '_blank', 'width=400,height=600');
+    w.document.write(`<html><head><title>فاتورة Z Padel</title>
+      <style>body{font-family:'Courier New',monospace;font-size:12px;padding:16px;}
+      .receipt-brand{text-align:center;font-size:16px;font-weight:900;letter-spacing:2px;}
+      .receipt-sub,.receipt-footer{text-align:center;font-size:10px;color:#666;}
+      .receipt-divider{border:none;border-top:1px dashed #ccc;margin:6px 0;}
+      .receipt-row,.receipt-total{display:flex;justify-content:space-between;margin-bottom:3px;}
+      .receipt-total{font-weight:900;font-size:14px;margin-top:6px;}
+      .receipt-actions{display:none;}
+      </style></head><body>${box}</body></html>`);
+    w.document.close();
+    w.print();
+  }
+
+  function newSale() {
+    document.getElementById('receiptModal').classList.remove('show');
+    cart = {};
+    document.getElementById('custName').value = '';
+    document.getElementById('custPhone').value = '';
+    setPay('cash');
+    renderCart();
+  }
+
+  /* ── Flash message ── */
+  function showFlash(msg, type = 'info') {
+    const colors = { info:'#0ea5e9', warn:'#f59e0b', error:'#ef4444' };
+    const el = document.createElement('div');
+    el.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+      background:${colors[type]};color:#fff;padding:8px 20px;border-radius:10px;
+      font-size:.84rem;font-weight:700;z-index:9999;animation:popIn .25s ease;
+      font-family:'Cairo',sans-serif;`;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+
+  /* ── Keyboard shortcuts ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('checkoutBtn').disabled) {
+      if (document.activeElement.tagName !== 'INPUT') checkout();
+    }
+    if (e.key === 'Escape') {
+      if (document.getElementById('receiptModal').classList.contains('show')) newSale();
+      else clearCart();
+    }
+    if (e.key === 'f' || e.key === 'F') document.getElementById('prodSearch').focus();
+  });
+
+  /* init */
+  renderCart();
+</script>
+{% endblock %
