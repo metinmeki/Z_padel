@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Z Padel POS{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary:        #0ea5e9;
+      --primary-dark:   #0284c7;
+      --primary-light:  #38bdf8;
+      --primary-glow:   rgba(14,165,233,0.15);
+      --primary-subtle: rgba(14,165,233,0.08);
+
+      --bg-base:        #F0F4F8;
+      --bg-surface:     #FFFFFF;
+      --bg-card:        #FFFFFF;
+      --bg-card-hover:  #F5FAFF;
+      --bg-input:       #FFFFFF;
+      --border:         #DDE3ED;
+      --border-strong:  rgba(14,165,233,0.4);
+
+      --text-primary:   #1A1F2E;
+      --text-secondary: #5A6478;
+      --text-muted:     #9BA5B7;
+
+      --success:        #16A34A;
+      --success-bg:     #F0FDF4;
+      --success-border: #BBF7D0;
+      --danger:         #DC2626;
+      --danger-bg:      #FFF1F1;
+      --danger-border:  #FECACA;
+      --warning:        #D97706;
+      --warning-bg:     #FFFBEB;
+      --warning-border: #FDE68A;
+    }
+
+    * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+    body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: #CBD0DC; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* ── Navbar ── */
+    .pos-nav {
+      background: var(--bg-surface);
+      border-bottom: 2px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      padding: .65rem 0;
+      position: sticky; top: 0; z-index: 1000;
+    }
+    .pos-nav::after {
+      content: '';
+      position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary) 40%, var(--primary-light) 60%, transparent);
+    }
+    .nav-brand {
+      color: var(--text-primary) !important;
+      font-weight: 800; font-size: 1.2rem;
+      display: flex; align-items: center; gap: .6rem;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; box-shadow: 0 3px 10px var(--primary-glow);
+    }
+    .brand-icon i { color: #fff; }
+    .nav-link {
+      color: var(--text-secondary) !important;
+      font-weight: 600; font-size: .88rem;
+      padding: .42rem .88rem !important;
+      border-radius: 8px;
+      transition: all .2s;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .nav-link:hover { background: var(--primary-subtle); color: var(--primary) !important; }
+    .nav-link.active-link { background: var(--primary-subtle); color: var(--primary) !important; font-weight: 700; }
+    #navClock {
+      background: var(--primary-subtle); border-radius: 8px;
+      padding: .32rem .75rem !important; border: 1px solid var(--border-strong);
+      color: var(--primary); font-size: .88rem;
+    }
+
+    /* ── Cards ── */
+    .pos-card {
+      background: var(--bg-surface); border-radius: 14px;
+      padding: 1.2rem 1.4rem; border: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none; color: #fff; font-weight: 700; border-radius: 10px;
+      padding: .58rem 1.3rem; transition: all .2s;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(14,165,233,.35); color: #fff; }
+    .btn-success {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+      border: none; color: #fff; font-weight: 700; border-radius: 10px;
+      padding: .58rem 1.3rem; transition: all .2s;
+    }
+    .btn-success:hover { transform: translateY(-1px); color: #fff; }
+    .btn-danger {
+      background: linear-gradient(135deg, #EF4444, #DC2626);
+      border: none; color: #fff; font-weight: 700; border-radius: 10px;
+      padding: .58rem 1.3rem; transition: all .2s;
+    }
+    .btn-danger:hover { transform: translateY(-1px); color: #fff; }
+    .btn-warning {
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      border: none; color: #fff; font-weight: 700; border-radius: 10px;
+      padding: .58rem 1.3rem; transition: all .2s;
+    }
+    .btn-warning:hover { transform: translateY(-1px); color: #fff; }
+    .btn-outline-secondary {
+      border: 1.5px solid var(--border); color: var(--text-secondary);
+      background: transparent; font-weight: 600; border-radius: 10px;
+      transition: all .2s;
+    }
+    .btn-outline-secondary:hover { background: var(--bg-base); color: var(--text-primary); border-color: #B0B8CC; }
+    .btn-outline-danger {
+      border: 1.5px solid var(--danger-border); color: var(--danger);
+      background: transparent; font-weight: 600; border-radius: 10px;
+    }
+    .btn-outline-danger:hover { background: var(--danger-bg); color: var(--danger); }
+
+    /* ── Form controls ── */
+    .form-control, .form-select {
+      background: var(--bg-input); border: 1.5px solid var(--border);
+      color: var(--text-primary); border-radius: 10px;
+      padding: .62rem 1rem; transition: all .2s; font-size: .93rem;
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--bg-input); border-color: var(--primary);
+      color: var(--text-primary); box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .form-control::placeholder { color: var(--text-muted); }
+    .form-label { font-weight: 700; color: var(--text-secondary); font-size: .86rem; margin-bottom: .35rem; }
+
+    /* ── Barcode input ── */
+    .barcode-input {
+      font-size: 1.05rem; padding: .88rem 1rem;
+      border: 2px solid var(--primary) !important;
+    }
+    .barcode-input:focus { box-shadow: 0 0 0 4px var(--primary-glow) !important; }
+
+    /* ── Product card ── */
+    .product-card {
+      background: var(--bg-surface); border-radius: 12px; padding: .9rem .8rem;
+      text-align: center; cursor: pointer; transition: all .25s;
+      border: 1.5px solid var(--border); user-select: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04); position: relative; overflow: hidden;
+    }
+    .product-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--primary-glow), transparent);
+      opacity: 0; transition: opacity .25s; border-radius: 12px;
+    }
+    .product-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 6px 18px var(--primary-glow); }
+    .product-card:hover::before { opacity: 1; }
+    .product-card:active { transform: translateY(-1px) scale(.98); }
+    .product-card h6 { color: var(--text-primary); font-size: .84rem; margin: .4rem 0 .2rem; font-weight: 700; line-height: 1.3; }
+    .product-card .price { color: var(--primary); font-weight: 800; font-size: .92rem; }
+    @keyframes addFlash {
+      0%   { box-shadow: 0 0 0 0 rgba(14,165,233,.6); }
+      50%  { box-shadow: 0 0 0 8px rgba(14,165,233,0); }
+      100% { box-shadow: 0 0 0 0 rgba(14,165,233,0); }
+    }
+    .product-card.flash { animation: addFlash .4s ease-out; }
+
+    /* ── Cart ── */
+    .cart-item {
+      background: var(--bg-base); border-radius: 10px;
+      padding: .75rem .9rem; margin-bottom: .5rem; border: 1px solid var(--border);
+      transition: border-color .15s;
+    }
+    .cart-item:hover { border-color: var(--border-strong); }
+    .qty-control { display: flex; align-items: center; gap: .35rem; }
+    .qty-btn {
+      width: 26px; height: 26px; border-radius: 7px;
+      border: 1.5px solid var(--primary); background: transparent;
+      color: var(--primary); font-weight: 700; display: flex;
+      align-items: center; justify-content: center; cursor: pointer;
+      transition: all .15s; font-size: .9rem;
+    }
+    .qty-btn:hover { background: var(--primary); color: #fff; }
+    .qty-display { min-width: 26px; text-align: center; font-weight: 700; font-size: .88rem; color: var(--text-primary); }
+
+    /* ── Category tabs ── */
+    .category-tab {
+      padding: .45rem 1rem; border-radius: 22px;
+      border: 1.5px solid var(--border); background: var(--bg-surface);
+      color: var(--text-secondary); font-weight: 600; font-size: .85rem;
+      cursor: pointer; white-space: nowrap; transition: all .2s;
+    }
+    .category-tab:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-subtle); }
+    .category-tab.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border-color: var(--primary); box-shadow: 0 2px 8px var(--primary-glow); }
+
+    /* ── Alerts ── */
+    .alert { border-radius: 12px; border: 1.5px solid; padding: .82rem 1.2rem; font-weight: 600; font-size: .9rem; }
+    .alert-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+    .alert-danger  { background: var(--danger-bg);  border-color: var(--danger-border);  color: var(--danger); }
+    .alert-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+
+    /* ── Modal ── */
+    .modal-content { background: var(--bg-surface); border: 1.5px solid var(--border); border-radius: 16px; color: var(--text-primary); box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+    .modal-header  { border-bottom: 1px solid var(--border); background: var(--bg-base); border-radius: 16px 16px 0 0; }
+    .modal-footer  { border-top: 1px solid var(--border); background: var(--bg-base); border-radius: 0 0 16px 16px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 991px) {
+      .cart-sticky { position: static; }
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="pos-nav navbar navbar-expand-lg">
+  <div class="container-fluid px-4">
+    <a class="nav-brand" href="{{ url_for('pos.quick_sale') }}">
+      <div class="brand-icon"><i class="fas fa-table-tennis"></i></div>
+      Z Padel <span style="color:var(--primary);margin-right:.3rem;">POS</span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#posNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="posNav">
+      <ul class="navbar-nav me-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pos.quick_sale') }}">
+            <i class="fas fa-bolt"></i>بيع سريع
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav gap-1 align-items-center">
+        <li class="nav-item d-none d-lg-block">
+          <span class="nav-link" id="navClock">
+            <i class="fas fa-clock me-1"></i>
+            <span id="clockTime">--:--</span>
+          </span>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+            <i class="fas fa-cog"></i>الإدارة
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout" style="color:var(--danger)!important;">
+            <i class="fas fa-sign-out-alt"></i>خروج
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Flash messages -->
+<div class="container-fluid px-4 mt-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category=='success' else 'danger' if category=='error' else 'info' }} alert-dismissible fade show">
+          <i class="fas fa-{{ 'check-circle' if category=='success' else 'exclamation-circle' }} me-2"></i>
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+<!-- Content -->
+<div class="container-fluid px-4 mt-3 pb-4">
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function updateClock() {
+    const n = new Date();
+    const el = document.getElementById('clockTime');
+    if (el) el.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  }
+  updateClock(); setInterval(updateClock, 10000);
+
+  // Active nav
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.getAttribute('href') === window.location.pathname) l.classList.add('active-link');
+  });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

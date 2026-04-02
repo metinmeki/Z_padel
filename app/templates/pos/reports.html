@@ -1,0 +1,270 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}تقارير المبيعات — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 1.5rem; }
+  .stat-box {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.2rem 1.4rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    transition: box-shadow .2s;
+  }
+  .stat-box:hover { box-shadow: 0 4px 16px var(--primary-glow); }
+  .stat-box::before { content:''; position:absolute; top:0; right:0; width:4px; height:100%; border-radius:0 14px 14px 0; }
+  .sb-revenue::before { background: var(--primary); }
+  .sb-orders::before  { background: #22c55e; }
+  .sb-items::before   { background: #f59e0b; }
+  .sb-avg::before     { background: #8b5cf6; }
+  .stat-num { font-size: 1.8rem; font-weight: 900; line-height: 1; }
+  .sb-revenue .stat-num { color: var(--primary); }
+  .sb-orders  .stat-num { color: #22c55e; }
+  .sb-items   .stat-num { color: #f59e0b; }
+  .sb-avg     .stat-num { color: #8b5cf6; }
+  .stat-lbl { font-size: .72rem; color: var(--text-muted); margin-top: 5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-sub { font-size: .75rem; color: var(--text-secondary); margin-top: 4px; }
+  .stat-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: .06; }
+
+  .section-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+  .section-head { display: flex; justify-content: space-between; align-items: center; padding: .9rem 1.3rem; border-bottom: 1px solid var(--border); background: var(--bg-base); }
+  .section-title { font-size: .88rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 7px; }
+  .section-title i { color: var(--primary); }
+
+  .rep-table { font-size: .83rem; width: 100%; border-collapse: collapse; }
+  .rep-table thead th { background: var(--bg-base); color: var(--text-muted); font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; padding: 9px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .rep-table tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); vertical-align: middle; }
+  .rep-table tbody tr:last-child td { border-bottom: none; }
+  .rep-table tbody tr:hover { background: var(--bg-card-hover); }
+
+  .rank-badge { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 800; flex-shrink: 0; }
+  .rank-1 { background: #fef3c7; color: #d97706; }
+  .rank-2 { background: #f1f5f9; color: #64748b; }
+  .rank-3 { background: #fdf2f8; color: #c026d3; }
+  .rank-n { background: var(--bg-base); color: var(--text-muted); }
+
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 99px; transition: width .6s ease; }
+  .bar-pct { font-size: .72rem; color: var(--text-muted); min-width: 36px; text-align: left; }
+
+  .date-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .filter-chip { padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; text-decoration: none; }
+  .filter-chip:hover, .filter-chip.active { border-color: var(--primary); color: var(--primary); background: var(--primary-subtle); }
+  .filter-chip.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border-color: var(--primary); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .empty-state i { font-size: 2.5rem; display: block; margin-bottom: .8rem; opacity: .2; }
+
+  .pay-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: .7rem; font-weight: 700; }
+  .pay-cash { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+  .pay-card { background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; }
+  .pay-debt { background: #fff1f1; border: 1px solid #fecaca; color: #dc2626; }
+
+  @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header + filters -->
+<div class="section-card" style="margin-bottom:1.2rem;">
+  <div class="section-head">
+    <div class="section-title">
+      <i class="fas fa-chart-bar"></i>
+      تقارير المبيعات
+    </div>
+    <div class="date-filters">
+      <a href="{{ url_for('pos.reports', period='today') }}"
+         class="filter-chip {% if period=='today' %}active{% endif %}">اليوم</a>
+      <a href="{{ url_for('pos.reports', period='week') }}"
+         class="filter-chip {% if period=='week' %}active{% endif %}">هذا الأسبوع</a>
+      <a href="{{ url_for('pos.reports', period='month') }}"
+         class="filter-chip {% if period=='month' %}active{% endif %}">هذا الشهر</a>
+      <a href="{{ url_for('pos.reports', period='all') }}"
+         class="filter-chip {% if period=='all' %}active{% endif %}">الكل</a>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-box sb-revenue">
+    <div class="stat-num">{{ "{:,.0f}".format(stats.revenue) }}</div>
+    <div class="stat-lbl">إجمالي المبيعات</div>
+    <div class="stat-sub">د.ع</div>
+    <i class="fas fa-coins stat-icon"></i>
+  </div>
+  <div class="stat-box sb-orders">
+    <div class="stat-num">{{ stats.orders }}</div>
+    <div class="stat-lbl">عدد الفواتير</div>
+    <div class="stat-sub">فاتورة مكتملة</div>
+    <i class="fas fa-receipt stat-icon"></i>
+  </div>
+  <div class="stat-box sb-items">
+    <div class="stat-num">{{ stats.items_sold }}</div>
+    <div class="stat-lbl">قطع مباعة</div>
+    <div class="stat-sub">مجموع الكميات</div>
+    <i class="fas fa-box stat-icon"></i>
+  </div>
+  <div class="stat-box sb-avg">
+    <div class="stat-num">{{ "{:,.0f}".format(stats.avg_order) }}</div>
+    <div class="stat-lbl">متوسط الفاتورة</div>
+    <div class="stat-sub">د.ع</div>
+    <i class="fas fa-calculator stat-icon"></i>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Top products -->
+  <div class="col-lg-6">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-title"><i class="fas fa-trophy"></i>أكثر المنتجات مبيعاً</div>
+        <span style="font-size:.75rem;color:var(--text-muted);">{{ period_label }}</span>
+      </div>
+      {% if top_products %}
+      <table class="rep-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>المنتج</th>
+            <th>كمية</th>
+            <th>إجمالي</th>
+            <th>نسبة</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in top_products %}
+          <tr>
+            <td>
+              <span class="rank-badge rank-{{ loop.index if loop.index <= 3 else 'n' }}">
+                {{ loop.index }}
+              </span>
+            </td>
+            <td style="font-weight:700;">{{ p.name }}</td>
+            <td style="font-weight:700;color:var(--primary);">{{ p.qty }}</td>
+            <td style="font-weight:700;">{{ "{:,.0f}".format(p.total) }} <span style="font-size:.65rem;color:var(--text-muted);">د.ع</span></td>
+            <td style="min-width:100px;">
+              <div class="bar-wrap">
+                <div class="bar-bg"><div class="bar-fill" style="width:{{ p.pct }}%;"></div></div>
+                <span class="bar-pct">{{ p.pct }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <p>لا توجد مبيعات في هذه الفترة</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Payment methods breakdown -->
+  <div class="col-lg-6">
+    <div class="section-card" style="margin-bottom:1rem;">
+      <div class="section-head">
+        <div class="section-title"><i class="fas fa-wallet"></i>طرق الدفع</div>
+      </div>
+      <div style="padding:1rem 1.3rem;">
+        {% for pm in pay_methods %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="pay-pill pay-{{ pm.method }}">
+              <i class="fas fa-{{ 'money-bill-wave' if pm.method=='cash' else 'credit-card' if pm.method=='card' else 'user-clock' }}"></i>
+              {{ 'نقدي' if pm.method=='cash' else 'بطاقة' if pm.method=='card' else 'دين' }}
+            </span>
+            <span style="font-size:.82rem;color:var(--text-secondary);">{{ pm.count }} فاتورة</span>
+          </div>
+          <span style="font-weight:800;color:var(--text-primary);">{{ "{:,.0f}".format(pm.total) }} <span style="font-size:.65rem;color:var(--text-muted);">د.ع</span></span>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="fas fa-wallet"></i><p>لا بيانات</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Hourly best time -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-title"><i class="fas fa-clock"></i>أوقات الذروة</div>
+      </div>
+      <div style="padding:1rem 1.3rem;">
+        {% for h in peak_hours %}
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:.78rem;font-weight:700;min-width:52px;color:var(--text-secondary);">{{ h.hour }}:00</span>
+          <div class="bar-bg" style="flex:1;"><div class="bar-fill" style="width:{{ h.pct }}%;background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div></div>
+          <span style="font-size:.75rem;color:var(--text-muted);min-width:28px;">{{ h.count }}</span>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:.84rem;">لا بيانات</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Recent orders -->
+<div class="section-card">
+  <div class="section-head">
+    <div class="section-title"><i class="fas fa-list"></i>آخر الفواتير</div>
+    <span style="font-size:.75rem;color:var(--text-muted);">{{ stats.orders }} فاتورة</span>
+  </div>
+  {% if recent_orders %}
+  <div class="table-responsive">
+    <table class="rep-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الوقت</th>
+          <th>الزبون</th>
+          <th>المنتجات</th>
+          <th>الدفع</th>
+          <th>المبلغ</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in recent_orders %}
+        <tr>
+          <td style="font-family:monospace;font-size:.75rem;color:var(--text-muted);">#{{ '%05d'%o.id }}</td>
+          <td style="font-size:.78rem;white-space:nowrap;">{{ o.created_at.strftime('%H:%M') }}</td>
+          <td style="font-weight:600;">{{ o.customer_name if o.customer_name != 'زبون POS' else '—' }}</td>
+          <td style="font-size:.78rem;color:var(--text-secondary);">
+            {% for item in o.items %}
+              {{ item.product.name }} ×{{ item.quantity }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% set method = 'cash' if 'cash' in (o.notes or '') else 'card' if 'card' in (o.notes or '') else 'debt' if 'دين' in (o.notes or '') else 'cash' %}
+            <span class="pay-pill pay-{{ method }}">
+              {{ 'نقدي' if method=='cash' else 'بطاقة' if method=='card' else 'دين' }}
+            </span>
+          </td>
+          <td style="font-weight:800;color:var(--primary);">{{ "{:,.0f}".format(o.total_price) }} <span style="font-size:.65rem;color:var(--text-muted);">د.ع</span></td>
+          <td>
+            <a href="{{ url_for('pos.receipt', order_id=o.id) }}"
+               class="btn btn-outline-secondary btn-sm py-1 px-2" target="_blank">
+              <i class="fas fa-print"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-receipt"></i>
+    <p>لا توجد فواتير في هذه الفترة</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

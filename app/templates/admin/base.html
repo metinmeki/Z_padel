@@ -37,42 +37,24 @@
       transition: grid-template-columns .3s cubic-bezier(.4,0,.2,1);
     }
     body.sb-closed .shell { grid-template-columns: 1fr var(--sc); }
-    [dir=ltr] .shell { grid-template-columns: var(--sw) 1fr; }
-    [dir=ltr] body.sb-closed .shell { grid-template-columns: var(--sc) 1fr; }
 
     /* ── SIDEBAR ── */
-    .sidebar {
-      grid-column: 2; grid-row: 1;
-      height: 100vh; background: var(--surface);
-      border-left: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      overflow: hidden; position: relative;
-    }
-    [dir=ltr] .sidebar { grid-column: 1; border-left: none; border-right: 1px solid var(--border); }
-
+    .sidebar { grid-column:2; grid-row:1; height:100vh; background:var(--surface); border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; position:relative; }
     .sb-brand { height:var(--th); display:flex; align-items:center; gap:11px; padding:0 14px; border-bottom:1px solid var(--border); flex-shrink:0; overflow:hidden; }
     .sb-logo { width:32px; height:32px; flex-shrink:0; background:linear-gradient(135deg,var(--brand),#075985); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.85rem; box-shadow:0 0 14px rgba(14,165,233,.28); }
     .sb-name { font-weight:900; font-size:1rem; color:var(--brand); letter-spacing:1px; white-space:nowrap; transition:opacity .25s ease; }
     body.sb-closed .sb-name { opacity:0; }
-
     .sb-toggle { position:absolute; left:-12px; top:16px; width:24px; height:24px; border-radius:50%; background:var(--card); border:1px solid var(--border); color:var(--muted); display:flex; align-items:center; justify-content:center; font-size:.58rem; cursor:pointer; transition:background .2s,color .2s; z-index:10; }
-    [dir=ltr] .sb-toggle { left:auto; right:-12px; }
     .sb-toggle:hover { background:var(--brand); color:#fff; border-color:var(--brand); }
     .sb-toggle .arr { transition:transform .3s ease; }
     body.sb-closed .sb-toggle .arr { transform:rotate(180deg); }
-    [dir=ltr] body.sb-closed .sb-toggle .arr { transform:rotate(0deg); }
-    [dir=ltr] .sb-toggle .arr { transform:rotate(180deg); }
-
     .sb-nav { flex:1; overflow-y:auto; overflow-x:hidden; padding:8px 0 16px; }
     .sb-nav::-webkit-scrollbar { width:0; }
-
     .sb-label { display:block; font-size:.56rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); padding:16px 16px 4px; white-space:nowrap; transition:opacity .2s; }
     body.sb-closed .sb-label { opacity:0; }
-
     .sb-link { display:flex !important; align-items:center; gap:11px; padding:9px 13px; margin:1px 7px; border-radius:9px; color:var(--muted) !important; text-decoration:none !important; font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; transition:background .15s,color .15s; cursor:pointer; }
     .sb-link:hover { background:var(--brand-glow); color:var(--brand) !important; }
     .sb-link.active { background:var(--brand-glow); color:var(--brand) !important; box-shadow:inset -3px 0 0 var(--brand); }
-    [dir=ltr] .sb-link.active { box-shadow:inset 3px 0 0 var(--brand); }
     .sb-icon { width:18px; flex-shrink:0; text-align:center; font-size:.88rem; transition:transform .15s; }
     .sb-link:hover .sb-icon { transform:scale(1.12); }
     .sb-text { flex:1; transition:opacity .25s ease; overflow:hidden; }
@@ -81,7 +63,10 @@
     /* Tooltip collapsed */
     body.sb-closed .sb-link[data-tip]:hover { position:relative; overflow:visible; }
     body.sb-closed .sb-link[data-tip]:hover::after { content:attr(data-tip); position:absolute; right:calc(var(--sc) + 2px); top:50%; transform:translateY(-50%); background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:7px; padding:4px 11px; font-size:.76rem; white-space:nowrap; pointer-events:none; z-index:9999; box-shadow:0 4px 18px rgba(0,0,0,.5); }
-    [dir=ltr] body.sb-closed .sb-link[data-tip]:hover::after { right:auto; left:calc(var(--sc) + 2px); }
+
+    /* Notification badge on sidebar link */
+    .sb-notif { background:var(--brand); color:#fff; font-size:.6rem; font-weight:800; min-width:18px; height:18px; border-radius:99px; display:inline-flex; align-items:center; justify-content:center; padding:0 4px; margin-right:auto; transition:opacity .25s; }
+    body.sb-closed .sb-notif { opacity:0; }
 
     .sb-footer { padding:9px 7px; border-top:1px solid var(--border); flex-shrink:0; }
     .sb-foot-link { display:flex !important; align-items:center; gap:11px; padding:8px 13px; border-radius:9px; color:var(--muted) !important; text-decoration:none !important; font-size:.83rem; font-weight:600; white-space:nowrap; overflow:hidden; transition:background .15s,color .15s; }
@@ -91,16 +76,54 @@
 
     /* ── MAIN ── */
     .main { grid-column:1; grid-row:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; min-width:0; }
-    [dir=ltr] .main { grid-column:2; }
-
     .topbar { height:var(--th); background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 18px; gap:12px; flex-shrink:0; }
     .mob-btn { display:none; background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer; padding:4px; transition:color .2s; }
     .mob-btn:hover { color:var(--brand); }
     .topbar-title { flex:1; font-size:1.05rem; font-weight:800; color:var(--text); }
     .topbar-right { display:flex; align-items:center; gap:8px; }
     .tb-clock { font-size:.72rem; color:var(--muted); font-weight:700; }
-    .tb-btn { width:32px; height:32px; background:var(--card); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:.8rem; text-decoration:none; transition:all .2s; }
+    .tb-btn { width:32px; height:32px; background:var(--card); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:.8rem; text-decoration:none; transition:all .2s; position:relative; }
     .tb-btn:hover { color:var(--brand); border-color:var(--brand); background:var(--brand-glow); }
+
+    /* ── Notification bell ── */
+    .notif-bell { cursor:pointer; }
+    .notif-dot {
+      position:absolute; top:-5px; right:-5px;
+      background:#ef4444; color:#fff;
+      font-size:.55rem; font-weight:900;
+      min-width:16px; height:16px; border-radius:99px;
+      display:none; align-items:center; justify-content:center;
+      padding:0 3px; border:1.5px solid var(--surface);
+      animation:notifPop .3s ease both;
+    }
+    .notif-dot.show { display:flex; }
+    @keyframes notifPop { from{transform:scale(0);}to{transform:scale(1);} }
+
+    /* Notification dropdown */
+    .notif-dropdown {
+      position:absolute; top:42px; left:0;
+      width:290px; background:var(--card); border:1px solid var(--border);
+      border-radius:13px; box-shadow:0 12px 40px rgba(0,0,0,.45);
+      z-index:9999; display:none; overflow:hidden;
+      animation:dropIn .2s ease both;
+    }
+    .notif-dropdown.open { display:block; }
+    @keyframes dropIn { from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);} }
+    .notif-header { padding:.75rem 1rem; border-bottom:1px solid var(--border); font-size:.78rem; font-weight:800; color:var(--text); display:flex; justify-content:space-between; align-items:center; }
+    .notif-item { display:flex; align-items:center; gap:10px; padding:.75rem 1rem; border-bottom:1px solid var(--border); transition:background .15s; text-decoration:none; }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:var(--brand-glow); }
+    .notif-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
+    .ni-booking { background:rgba(14,165,233,.1); color:var(--brand); }
+    .ni-cancel  { background:rgba(168,85,247,.1); color:#c084fc; }
+    .ni-order   { background:rgba(34,197,94,.1);  color:#4ade80; }
+    .ni-debt    { background:rgba(239,68,68,.1);  color:#f87171; }
+    .notif-info { flex:1; min-width:0; }
+    .notif-title { font-size:.78rem; font-weight:700; color:var(--text); }
+    .notif-count { font-size:.7rem; color:var(--muted); }
+    .notif-badge { background:var(--brand); color:#fff; font-size:.62rem; font-weight:800; padding:2px 7px; border-radius:99px; }
+    .notif-badge.red { background:#ef4444; }
+    .notif-empty { text-align:center; padding:1.5rem; color:var(--muted); font-size:.82rem; }
 
     .page-body { flex:1; overflow-y:auto; overflow-x:hidden; padding:1.4rem 1.5rem; }
     .page-body::-webkit-scrollbar { width:4px; }
@@ -151,7 +174,6 @@
       .shell { display:block; }
       .main { width:100%; }
       .sidebar { position:fixed !important; top:0; right:0; height:100vh; width:var(--sw) !important; transform:translateX(110%); transition:transform .3s ease; z-index:500; box-shadow:-12px 0 40px rgba(0,0,0,.6); }
-      [dir=ltr] .sidebar { right:auto; left:0; transform:translateX(-110%); }
       body.mob-open .sidebar { transform:translateX(0); }
       body.mob-open .mob-overlay { display:block; }
       .sb-toggle { display:none; }
@@ -175,13 +197,33 @@
       <div class="topbar-title">{% block page_title %}لوحة التحكم{% endblock %}</div>
       <div class="topbar-right">
         <span class="tb-clock" id="tbClock"></span>
-        <!-- Lang switcher in topbar -->
+
+        <!-- Lang switcher -->
         <div class="lang-switcher">
           <button class="lang-btn active" data-lang="ar" onclick="I18N.apply('ar')">ع</button>
           <button class="lang-btn" data-lang="ku" onclick="I18N.apply('ku')">ک</button>
           <button class="lang-btn" data-lang="en" onclick="I18N.apply('en')">EN</button>
         </div>
-        <a href="{{ url_for('admin.add_booking') }}" class="tb-btn" title="New Booking">
+
+        <!-- Notification bell -->
+        <div style="position:relative;">
+          <button class="tb-btn notif-bell" onclick="toggleNotif()" id="notifBell" title="الإشعارات">
+            <i class="fas fa-bell"></i>
+            <span class="notif-dot" id="notifDot">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span><i class="fas fa-bell me-1" style="color:var(--brand);"></i>الإشعارات</span>
+              <span class="notif-badge" id="notifTotalBadge">0</span>
+            </div>
+            <div id="notifItems">
+              <div class="notif-empty"><i class="fas fa-check-circle" style="color:#4ade80;font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>لا توجد إشعارات جديدة</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New booking btn -->
+        <a href="{{ url_for('admin.add_booking') }}" class="tb-btn" title="حجز جديد">
           <i class="fas fa-plus"></i>
         </a>
       </div>
@@ -214,12 +256,13 @@
       <div class="sb-logo"><i class="fas fa-table-tennis"></i></div>
       <span class="sb-name">Z PADEL</span>
     </div>
+
     <div class="sb-nav">
 
       <span class="sb-label" data-i18n="adm_general">عام</span>
       <a href="{{ url_for('admin.dashboard') }}"
          class="sb-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
-         data-tip-key="adm_home">
+         data-tip="الرئيسية">
         <i class="fas fa-chart-pie sb-icon"></i>
         <span class="sb-text" data-i18n="adm_home">الرئيسية</span>
       </a>
@@ -227,48 +270,57 @@
       <span class="sb-label" data-i18n="adm_bk_sec">الملاعب والحجوزات</span>
       <a href="{{ url_for('admin.courts') }}"
          class="sb-link {% if 'court' in request.endpoint %}active{% endif %}"
-         data-tip-key="adm_courts">
+         data-tip="الملاعب">
         <i class="fas fa-table-tennis-paddle-ball sb-icon"></i>
         <span class="sb-text" data-i18n="adm_courts">الملاعب</span>
       </a>
       <a href="{{ url_for('admin.bookings') }}"
          class="sb-link {% if request.endpoint == 'admin.bookings' %}active{% endif %}"
-         data-tip-key="adm_bookings">
+         data-tip="الحجوزات">
         <i class="fas fa-calendar-alt sb-icon"></i>
         <span class="sb-text" data-i18n="adm_bookings">الحجوزات</span>
       </a>
       <a href="{{ url_for('admin.pending_requests') }}"
          class="sb-link {% if request.endpoint == 'admin.pending_requests' %}active{% endif %}"
-         data-tip-key="adm_pending">
+         data-tip="الطلبات المعلقة">
         <i class="fas fa-bell sb-icon"></i>
         <span class="sb-text" data-i18n="adm_pending">الطلبات المعلقة</span>
+        <span class="sb-notif" id="sbPendingBadge" style="display:none;">0</span>
       </a>
 
       <span class="sb-label">POS</span>
-      <a href="{{ url_for('admin.pos') }}"
-         class="sb-link {% if request.endpoint == 'admin.pos' %}active{% endif %}"
+      <a href="{{ url_for('pos.quick_sale') }}"
+         class="sb-link {% if request.endpoint and 'pos.' in request.endpoint and 'report' not in request.endpoint %}active{% endif %}"
          data-tip="نقطة البيع">
         <i class="fas fa-cash-register sb-icon"></i>
         <span class="sb-text">نقطة البيع</span>
+      </a>
+      <a href="{{ url_for('pos.reports') }}"
+         class="sb-link {% if request.endpoint == 'pos.reports' %}active{% endif %}"
+         data-tip="تقارير POS">
+        <i class="fas fa-chart-line sb-icon"></i>
+        <span class="sb-text">تقارير المبيعات</span>
       </a>
 
       <span class="sb-label" data-i18n="adm_store">المتجر</span>
       <a href="{{ url_for('admin.orders') }}"
          class="sb-link {% if request.endpoint == 'admin.orders' %}active{% endif %}"
-         data-tip-key="adm_orders">
+         data-tip="الطلبات">
         <i class="fas fa-shopping-bag sb-icon"></i>
         <span class="sb-text" data-i18n="adm_orders">الطلبات</span>
+        <span class="sb-notif" id="sbOrdersBadge" style="display:none;">0</span>
       </a>
       <a href="{{ url_for('admin.products') }}"
          class="sb-link {% if 'product' in request.endpoint %}active{% endif %}"
-         data-tip-key="adm_products">
+         data-tip="المنتجات">
         <i class="fas fa-box sb-icon"></i>
         <span class="sb-text" data-i18n="adm_products">المنتجات</span>
       </a>
+
     </div>
 
     <div class="sb-footer">
-      <a href="/logout" class="sb-foot-link" data-tip-key="adm_logout">
+      <a href="/logout" class="sb-foot-link">
         <i class="fas fa-sign-out-alt sb-icon"></i>
         <span class="sb-text" data-i18n="adm_logout">تسجيل خروج</span>
       </a>
@@ -280,7 +332,7 @@
 <script src="/static/js/i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  /* Sidebar collapse */
+  /* ── Sidebar collapse ── */
   const SB_KEY = 'zpanel_sb';
   if (localStorage.getItem(SB_KEY) === '1') document.body.classList.add('sb-closed');
   document.getElementById('sbToggle').addEventListener('click', () => {
@@ -288,19 +340,19 @@
     localStorage.setItem(SB_KEY, document.body.classList.contains('sb-closed') ? '1' : '0');
   });
 
-  /* Mobile */
+  /* ── Mobile ── */
   const mobOv = document.getElementById('mobOv');
   function mobOpen()  { document.body.classList.add('mob-open');    mobOv.classList.add('open'); }
   function mobClose() { document.body.classList.remove('mob-open'); mobOv.classList.remove('open'); }
 
-  /* Clock */
+  /* ── Clock ── */
   function tick() {
     const n = new Date(), el = document.getElementById('tbClock');
     if (el) el.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
   }
   tick(); setInterval(tick, 15000);
 
-  /* Auto-dismiss flash */
+  /* ── Auto-dismiss flash ── */
   setTimeout(() => {
     document.querySelectorAll('.flash-item').forEach(el => {
       el.style.transition = 'opacity .4s, transform .4s';
@@ -309,19 +361,90 @@
     });
   }, 4500);
 
-  /* Lang change — update tooltip data-tip from data-tip-key */
+  /* ── Lang change ── */
   document.addEventListener('langchange', ({ detail: { cfg } }) => {
-    /* Bootstrap RTL swap */
     document.getElementById('bsCSS').href = cfg.dir === 'rtl'
       ? 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css'
       : 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
-    /* Update tooltip keys */
-    document.querySelectorAll('[data-tip-key]').forEach(el => {
-      el.setAttribute('data-tip', cfg[el.dataset.tipKey] || '');
-    });
+  });
+  I18N.init();
+
+  /* ══════════════════════════════════════════
+     NOTIFICATIONS
+  ══════════════════════════════════════════ */
+  let notifOpen = false;
+
+  function toggleNotif() {
+    notifOpen = !notifOpen;
+    document.getElementById('notifDropdown').classList.toggle('open', notifOpen);
+    if (notifOpen) fetchNotifications();
+  }
+
+  // Close when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#notifBell') && !e.target.closest('#notifDropdown')) {
+      notifOpen = false;
+      document.getElementById('notifDropdown').classList.remove('open');
+    }
   });
 
-  I18N.init();
+  function fetchNotifications() {
+    fetch('/pos/api/notifications')
+      .then(r => r.json())
+      .then(d => {
+        const dot      = document.getElementById('notifDot');
+        const badge    = document.getElementById('notifTotalBadge');
+        const items    = document.getElementById('notifItems');
+        const sbPend   = document.getElementById('sbPendingBadge');
+        const sbOrders = document.getElementById('sbOrdersBadge');
+
+        // Update sidebar badges
+        if (d.pending_bookings > 0) { sbPend.textContent = d.pending_bookings; sbPend.style.display = 'flex'; }
+        else sbPend.style.display = 'none';
+
+        if (d.website_orders > 0) { sbOrders.textContent = d.website_orders; sbOrders.style.display = 'flex'; }
+        else sbOrders.style.display = 'none';
+
+        // Bell dot
+        if (d.total > 0) { dot.textContent = d.total > 99 ? '99+' : d.total; dot.classList.add('show'); }
+        else dot.classList.remove('show');
+
+        badge.textContent = d.total;
+
+        if (d.total === 0) {
+          items.innerHTML = '<div class="notif-empty"><i class="fas fa-check-circle" style="color:#4ade80;font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>لا توجد إشعارات جديدة</div>';
+          return;
+        }
+
+        let html = '';
+        if (d.pending_bookings > 0)
+          html += notifRow('ni-booking', 'fa-calendar-alt', 'حجوزات معلقة', d.pending_bookings + ' حجز ينتظر الموافقة', d.pending_bookings, "{{ url_for('admin.pending_requests') }}");
+        if (d.cancel_requests > 0)
+          html += notifRow('ni-cancel', 'fa-times-circle', 'طلبات إلغاء', d.cancel_requests + ' طلب إلغاء', d.cancel_requests, "{{ url_for('admin.pending_requests') }}", true);
+        if (d.website_orders > 0)
+          html += notifRow('ni-order', 'fa-shopping-bag', 'طلبات المتجر', d.website_orders + ' طلب جديد', d.website_orders, "{{ url_for('admin.orders') }}");
+        if (d.pos_debts > 0)
+          html += notifRow('ni-debt', 'fa-user-clock', 'ديون POS', d.pos_debts + ' دين غير مسدد', d.pos_debts, "{{ url_for('admin.orders') }}", true);
+
+        items.innerHTML = html;
+      })
+      .catch(() => {});
+  }
+
+  function notifRow(cls, icon, title, sub, count, href, red = false) {
+    return `<a href="${href}" class="notif-item" onclick="notifOpen=false;document.getElementById('notifDropdown').classList.remove('open');">
+      <div class="notif-icon ${cls}"><i class="fas ${icon}"></i></div>
+      <div class="notif-info">
+        <div class="notif-title">${title}</div>
+        <div class="notif-count">${sub}</div>
+      </div>
+      <span class="notif-badge${red?' red':''}">${count}</span>
+    </a>`;
+  }
+
+  /* Fetch on load + every 30s */
+  fetchNotifications();
+  setInterval(fetchNotifications, 30000);
 </script>
 {% block extra_js %}{% endblock %}
 </body>

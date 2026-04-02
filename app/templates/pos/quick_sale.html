@@ -1,0 +1,387 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}بيع سريع — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+<style>
+  .search-card { background: var(--bg-card); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+  .category-tabs { display:flex; gap:.5rem; overflow-x:auto; padding:.4rem 0 .6rem; margin-bottom:1rem; scrollbar-width:none; }
+  .category-tabs::-webkit-scrollbar { display:none; }
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.85rem; }
+  .product-img-wrap { width:68px;height:68px;margin:0 auto .5rem;border-radius:10px;overflow:hidden;background:var(--bg-base);display:flex;align-items:center;justify-content:center; }
+  .product-img-wrap img { width:100%;height:100%;object-fit:cover; }
+  .cart-sticky { position:sticky; top:76px; }
+  .cart-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border); }
+  .cart-title { font-size:.98rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:.5rem; }
+  .cart-badge { background:var(--primary);color:#fff;font-size:.75rem;font-weight:700;padding:.18rem .55rem;border-radius:20px;min-width:26px;text-align:center; }
+  .cart-items { max-height:46vh;overflow-y:auto;margin-bottom:.75rem;padding-left:2px; }
+  .cart-items::-webkit-scrollbar { width:3px; }
+  .cart-items::-webkit-scrollbar-thumb { background:var(--border);border-radius:99px; }
+  .cart-item-name { font-size:.86rem;font-weight:600;color:var(--text-primary);margin-bottom:.08rem; }
+  .cart-item-unit { font-size:.76rem;color:var(--text-muted); }
+  .cart-item-subtotal { font-weight:700;color:var(--primary);font-size:.88rem; }
+  .cart-empty { text-align:center;padding:2.5rem 1rem;color:var(--text-muted); }
+  .cart-empty i { font-size:2.5rem;opacity:.25;display:block;margin-bottom:.6rem; }
+  .cart-empty p { margin:0;font-size:.86rem; }
+  .total-bar { background:var(--bg-surface);border-radius:10px;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;border:1px solid var(--border-strong); }
+  .total-label { color:var(--text-secondary);font-weight:600;font-size:.9rem; }
+  .total-amount { font-size:1.5rem;font-weight:800;color:var(--primary);font-feature-settings:'tnum'; }
+  .checkout-grid { display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem; }
+  #noResults { display:none;text-align:center;padding:3rem;color:var(--text-muted); }
+  @media (max-width:991px) { .product-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));} .cart-sticky{position:static;} .cart-items{max-height:35vh;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pos-card mb-3" style="padding:.9rem 1.2rem;">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 style="margin:0;font-size:1.3rem;font-weight:800;">
+      <i class="fas fa-bolt me-2" style="color:var(--primary);"></i>بيع سريع
+    </h2>
+    <span style="font-size:.8rem;color:var(--text-muted);">{{ products|length }} منتج</span>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- ══ Products ══ -->
+  <div class="col-lg-8">
+
+    <!-- Search & Barcode -->
+    <div class="search-card">
+      <div class="row g-2">
+        <div class="col-md-6" style="position:relative;">
+          <i class="fas fa-barcode" style="position:absolute;right:22px;top:50%;transform:translateY(-50%);color:var(--primary);font-size:1.05rem;pointer-events:none;"></i>
+          <input type="text" id="barcodeInput" class="form-control barcode-input" style="padding-right:2.5rem;" placeholder="امسح الباركود..." autofocus>
+        </div>
+        <div class="col-md-6" style="position:relative;">
+          <i class="fas fa-search" style="position:absolute;right:22px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
+          <input type="text" id="searchInput" class="form-control" style="padding-right:2.5rem;" placeholder="بحث بالاسم...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="category-tabs">
+      <button class="category-tab active" data-cat="all">
+        <i class="fas fa-th me-1"></i>الكل
+      </button>
+    </div>
+
+    <!-- Products grid -->
+    <div class="product-grid" id="prodGrid">
+      {% for p in products %}
+      <div class="product-item"
+           data-name="{{ p.name|lower }}"
+           data-id="{{ p.id }}">
+        <div class="product-card {% if p.stock == 0 %}opacity-50{% endif %}"
+             onclick="{% if p.stock != 0 %}addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price }}, {{ (p.image or '')|tojson }}, this){% endif %}">
+          <div class="product-img-wrap">
+            {% if p.image %}
+              <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
+            {% else %}
+              <i class="fas fa-box" style="font-size:1.7rem;color:var(--text-muted);"></i>
+            {% endif %}
+          </div>
+          <h6>{{ p.name }}</h6>
+          <div class="price">{{ '{:,.0f}'.format(p.price) }} د.ع</div>
+          {% if p.stock == 0 %}
+            <div style="font-size:.65rem;color:var(--danger);font-weight:700;margin-top:2px;">نفذ</div>
+          {% elif p.stock <= 5 %}
+            <div style="font-size:.65rem;color:var(--warning);font-weight:700;margin-top:2px;">متبقي {{ p.stock }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="noResults">
+      <i class="fas fa-search fa-2x mb-3" style="opacity:.3;display:block;"></i>
+      <p>لا توجد منتجات مطابقة</p>
+    </div>
+
+  </div><!-- /col -->
+
+  <!-- ══ Cart ══ -->
+  <div class="col-lg-4">
+    <div class="pos-card cart-sticky">
+
+      <div class="cart-header">
+        <div class="cart-title">
+          <i class="fas fa-shopping-basket" style="color:var(--primary);"></i>
+          السلة
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span class="cart-badge" id="itemsCount">0</span>
+          <button class="btn btn-outline-danger btn-sm py-1 px-2"
+                  onclick="clearCart()" id="clearBtn" disabled>
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty">
+          <i class="fas fa-shopping-basket"></i>
+          <p>السلة فارغة</p>
+          <small style="font-size:.76rem;color:var(--text-muted);">امسح الباركود أو اختر منتج</small>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="total-bar">
+        <span class="total-label">المجموع</span>
+        <span class="total-amount" id="totalAmount">0 د.ع</span>
+      </div>
+
+      <!-- Checkout buttons -->
+      <div class="checkout-grid">
+        <button class="btn btn-success btn-lg" onclick="checkout('cash')" id="cashBtn" disabled>
+          <i class="fas fa-money-bill-wave d-block mb-1" style="font-size:1.1rem;"></i>
+          <span style="font-size:.82rem;">نقدي</span>
+        </button>
+        <button class="btn btn-primary btn-lg" onclick="checkout('card')" id="cardBtn" disabled>
+          <i class="fas fa-credit-card d-block mb-1" style="font-size:1.1rem;"></i>
+          <span style="font-size:.82rem;">بطاقة</span>
+        </button>
+      </div>
+
+      <button class="btn btn-danger w-100 mt-2" onclick="openDebtModal()" id="debtBtn" disabled>
+        <i class="fas fa-user-clock me-2"></i>تسجيل كدين
+      </button>
+
+    </div>
+  </div>
+
+</div><!-- /row -->
+
+<!-- Debt modal -->
+<div class="modal fade" id="debtModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#EF4444,#C01E1E);border-bottom:none;border-radius:16px 16px 0 0;">
+        <h5 class="modal-title" style="color:#fff;"><i class="fas fa-user-clock me-2"></i>تسجيل دين</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:1.2rem;">
+        <p style="color:var(--text-muted);font-size:.86rem;margin-bottom:1rem;">
+          سيتم حفظ السلة كـ <strong style="color:var(--danger);">دين</strong> بدون دفع فوري.
+        </p>
+        <div class="mb-3">
+          <label class="form-label">اسم الشخص <span style="color:var(--danger);">*</span></label>
+          <input type="text" id="debtName" class="form-control" placeholder="مثال: أحمد محمد">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">رقم الهاتف <small style="color:var(--text-muted);">(اختياري)</small></label>
+          <input type="text" id="debtPhone" class="form-control" placeholder="07xx xxx xxxx">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">ملاحظة <small style="color:var(--text-muted);">(اختياري)</small></label>
+          <textarea id="debtNote" class="form-control" rows="2" placeholder="ملاحظات..."></textarea>
+        </div>
+        <div style="background:var(--bg-base);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:.9rem 1rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:600;color:var(--text-secondary);">إجمالي الدين</span>
+          <span style="font-weight:800;color:var(--danger);font-size:1.1rem;" id="debtTotalText">0 د.ع</span>
+        </div>
+        <div id="debtError" class="mt-2" style="display:none;color:var(--danger);font-size:.86rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+        <button class="btn btn-danger" onclick="submitDebt()" id="debtSaveBtn">
+          <i class="fas fa-save me-2"></i>حفظ الدين
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cart = [];
+
+/* ── Helpers ── */
+function fmt(n) { return Number(n||0).toLocaleString('ar-IQ'); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function focusBarcode() { const el=document.getElementById('barcodeInput'); if(el) el.focus({preventScroll:true}); }
+function getScrollY() { return window.scrollY||0; }
+function restoreScroll(y) { requestAnimationFrame(()=>{ window.scrollTo(0,y); setTimeout(()=>window.scrollTo(0,y),60); }); }
+
+/* ── Filter ── */
+function applyFilters() {
+  const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  let vis = 0;
+  document.querySelectorAll('.product-item').forEach(el => {
+    const show = !q || el.dataset.name.includes(q);
+    el.style.display = show ? '' : 'none';
+    if (show) vis++;
+  });
+  document.getElementById('noResults').style.display = vis===0 ? 'block' : 'none';
+}
+
+/* ── Cart UI ── */
+function updateCartUI() {
+  const wrap    = document.getElementById('cartItems');
+  const total   = document.getElementById('totalAmount');
+  const cnt     = document.getElementById('itemsCount');
+  const btns    = ['cashBtn','cardBtn','clearBtn','debtBtn'].map(id=>document.getElementById(id));
+  const hasItems = cart.length > 0;
+  btns.forEach(b=>{ if(b) b.disabled=!hasItems; });
+
+  if (!hasItems) {
+    wrap.innerHTML=`<div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>السلة فارغة</p><small style="font-size:.76rem;color:var(--text-muted);">امسح الباركود أو اختر منتج</small></div>`;
+    total.textContent='0 د.ع'; cnt.textContent='0'; return;
+  }
+
+  let html='', sum=0, qty=0;
+  cart.forEach((item,i)=>{
+    const sub=item.price*item.qty; sum+=sub; qty+=item.qty;
+    html+=`<div class="cart-item">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div style="flex:1;min-width:0;margin-left:.5rem;">
+          <div class="cart-item-name">${escHtml(item.name)}</div>
+          <div class="cart-item-unit">${fmt(item.price)} × ${item.qty}</div>
+        </div>
+        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeItem(${i})"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="updateQty(${i},${item.qty-1})">−</button>
+          <span class="qty-display">${item.qty}</span>
+          <button class="qty-btn" onclick="updateQty(${i},${item.qty+1})">+</button>
+        </div>
+        <span class="cart-item-subtotal">${fmt(sub)} د.ع</span>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML=html;
+  total.textContent=fmt(sum)+' د.ع';
+  cnt.textContent=String(qty);
+}
+
+/* ── Cart Actions ── */
+function addToCart(id, name, price, img, cardEl) {
+  const scrollY=getScrollY();
+  const ex=cart.find(i=>i.id===id);
+  if (ex) ex.qty++;
+  else cart.push({id, name, price:Number(price||0), qty:1, img:img||''});
+  if (cardEl) { cardEl.classList.remove('flash'); void cardEl.offsetWidth; cardEl.classList.add('flash'); }
+  updateCartUI(); applyFilters(); restoreScroll(scrollY); focusBarcode();
+}
+
+function updateQty(idx, newQty) {
+  const y=getScrollY();
+  if (newQty<=0) cart.splice(idx,1); else cart[idx].qty=newQty;
+  updateCartUI(); restoreScroll(y);
+}
+
+function removeItem(idx) { const y=getScrollY(); cart.splice(idx,1); updateCartUI(); restoreScroll(y); }
+
+function clearCart() {
+  if (!confirm('إفراغ السلة؟')) return;
+  const y=getScrollY(); cart=[]; updateCartUI(); restoreScroll(y);
+}
+
+/* ── Checkout ── */
+function checkout(method) {
+  if (!cart.length) return;
+  const btn=document.getElementById(method==='cash'?'cashBtn':'cardBtn');
+  const orig=btn?.innerHTML||'';
+  if (btn) btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+  ['cashBtn','cardBtn','debtBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=true; });
+
+  fetch('/pos/checkout', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ items:cart.map(i=>({product_id:i.id,quantity:i.qty,unit_price:i.price})), payment_method:method })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if (d.success) window.location.href=`/pos/receipt/${d.order_id}?autoprint=1`;
+    else { showToast(d.message||'حدث خطأ','danger'); if(btn) btn.innerHTML=orig; updateCartUI(); }
+  })
+  .catch(()=>{ showToast('فشل الاتصال','danger'); if(btn) btn.innerHTML=orig; updateCartUI(); });
+}
+
+/* ── Debt ── */
+function openDebtModal() {
+  if (!cart.length) return;
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('debtTotalText').textContent=fmt(total)+' د.ع';
+  document.getElementById('debtError').style.display='none';
+  ['debtName','debtPhone','debtNote'].forEach(id=>document.getElementById(id).value='');
+  new bootstrap.Modal(document.getElementById('debtModal')).show();
+  setTimeout(()=>document.getElementById('debtName').focus(),250);
+}
+
+function submitDebt() {
+  const name=document.getElementById('debtName').value.trim();
+  const err=document.getElementById('debtError');
+  err.style.display='none';
+  if (!name) { err.textContent='الرجاء كتابة اسم الشخص'; err.style.display='block'; document.getElementById('debtName').focus(); return; }
+
+  const btn=document.getElementById('debtSaveBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+
+  fetch('/pos/debt', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      name, phone:document.getElementById('debtPhone').value.trim(),
+      note:document.getElementById('debtNote').value.trim(),
+      items:cart.map(i=>({product_id:i.id,quantity:i.qty,unit_price:i.price}))
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-2"></i>حفظ الدين';
+    if (!d.success) { err.textContent=d.message||'حدث خطأ'; err.style.display='block'; return; }
+    bootstrap.Modal.getInstance(document.getElementById('debtModal'))?.hide();
+    cart=[]; updateCartUI(); showToast('تم تسجيل الدين بنجاح ✅','success');
+  })
+  .catch(()=>{ btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-2"></i>حفظ الدين'; err.textContent='فشل الاتصال'; err.style.display='block'; });
+}
+
+/* ── Barcode ── */
+let lastBarcode='', lastAt=0;
+document.getElementById('barcodeInput')?.addEventListener('keydown', function(e) {
+  if (e.key!=='Enter') return; e.preventDefault();
+  const barcode=this.value.trim(); if (!barcode) return;
+  const now=Date.now();
+  if (barcode===lastBarcode && (now-lastAt)<300) { this.value=''; return; }
+  lastBarcode=barcode; lastAt=now;
+  const y=getScrollY(); this.value='';
+
+  // Try to match product by name/id directly
+  const item=document.querySelector(`.product-item[data-id="${barcode}"]`);
+  if (item) {
+    const card=item.querySelector('.product-card'); if(card) card.click();
+    restoreScroll(y); return;
+  }
+  showToast('المنتج غير موجود!','danger');
+});
+
+/* ── Search ── */
+document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+
+/* ── Toast ── */
+function showToast(msg, type='success') {
+  const existing=document.getElementById('posToast'); if(existing) existing.remove();
+  const colors={success:'var(--success)',danger:'var(--danger)',warning:'var(--warning)'};
+  const icons={success:'check-circle',danger:'exclamation-circle',warning:'exclamation-triangle'};
+  const t=document.createElement('div'); t.id='posToast';
+  t.style.cssText=`position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid ${colors[type]};color:var(--text-primary);padding:.8rem 1.5rem;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:9999;font-weight:600;font-family:'Cairo',sans-serif;display:flex;align-items:center;gap:.6rem;`;
+  t.innerHTML=`<i class="fas fa-${icons[type]}" style="color:${colors[type]};"></i>${msg}`;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+}
+
+/* ── Keyboard shortcuts ── */
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') clearCart();
+  if ((e.key==='f'||e.key==='F') && document.activeElement.tagName!=='INPUT') focusBarcode();
+});
+
+/* Init */
+updateCartUI();
+</script>
+{% endblock %}

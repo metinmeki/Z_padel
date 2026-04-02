@@ -7,11 +7,9 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
-
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-
     db.init_app(app)
     login_manager.init_app(app)
 
@@ -20,12 +18,14 @@ def create_app():
     from app.routes.auth import auth
     from app.routes.admin import admin
     from app.routes.store import store
+    from app.routes.pos import pos          # ← هنا داخل الfunction
 
     app.register_blueprint(main)
     app.register_blueprint(booking)
     app.register_blueprint(auth)
     app.register_blueprint(admin, url_prefix='/admin')
     app.register_blueprint(store)
+    app.register_blueprint(pos)             # ← وهنا أيضاً
 
     with app.app_context():
         from app import models
