@@ -37,11 +37,28 @@
     .page-header p{font-size:13px;color:rgba(255,255,255,0.65);}
 
     /* LAYOUT */
-    .booking-layout{max-width:1200px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
-    @media(max-width:860px){.booking-layout{grid-template-columns:1fr;padding:12px;gap:12px;}}
+    .booking-layout{
+      max-width:1200px;
+      margin:0 auto;
+      padding:16px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 300px;
+      gap:16px;
+      align-items:start;
+    }
+    .col-left {display:flex;flex-direction:column;gap:14px;min-width:0;}
+    .col-right{display:flex;flex-direction:column;gap:14px;min-width:0;}
 
-    /* CARD */
-    .card-z{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;animation:fadeUp 0.4s ease both;}
+    /* CARD — REMOVED overflow:hidden, replaced with border-radius clip via clip-path on hover only */
+    .card-z{
+      background:white;
+      border-radius:var(--radius);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      /* NO overflow:hidden — it was killing grid width calculation */
+      animation:fadeUp 0.4s ease both;
+      width:100%;
+    }
     .card-header-z{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
     .ch-icon{width:30px;height:30px;border-radius:var(--radius-sm);background:var(--blue-soft);color:var(--blue-main);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
     .ch-title{font-size:14px;font-weight:700;color:var(--blue-deep);}
@@ -84,8 +101,28 @@
     .legend-dot.past    {background:#F5F5F5;border:1px solid #E0E0E0;}
 
     /* SLOTS GRID */
-    .slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:6px;direction:ltr;}
-    .slot-btn{display:flex;flex-direction:column;align-items:center;padding:9px 4px;border-radius:var(--radius-sm);border:1.5px solid;cursor:pointer;transition:var(--transition);position:relative;font-family:'Cairo',sans-serif;user-select:none;}
+    #slotsContainer{width:100%;}
+    .slots-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:6px;
+      direction:ltr;
+      width:100%;
+    }
+    .slot-btn{
+      display:flex;flex-direction:column;align-items:center;
+      padding:9px 4px;
+      border-radius:var(--radius-sm);
+      border:1.5px solid;
+      cursor:pointer;
+      transition:var(--transition);
+      position:relative;
+      font-family:'Cairo',sans-serif;
+      user-select:none;
+      overflow:visible;
+      min-width:0;
+      width:100%;
+    }
     .slot-btn.free    {background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32;}
     .slot-btn.discount{background:#FFF8E1;border-color:#FFCC80;color:#E65100;}
     .slot-btn.booked  {background:#FFEBEE;border-color:#EF9A9A;color:#C62828;cursor:not-allowed;}
@@ -97,7 +134,7 @@
     .slot-time {font-size:13px;font-weight:800;line-height:1;}
     .slot-dur  {font-size:9px;font-weight:500;opacity:.75;margin-top:2px;}
     .slot-price{font-size:10px;font-weight:700;margin-top:3px;}
-    .slot-tag  {position:absolute;top:-6px;left:50%;transform:translateX(-50%);background:#FB8C00;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:4px;white-space:nowrap;}
+    .slot-tag  {position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#FB8C00;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:4px;white-space:nowrap;z-index:1;}
     .slot-check{display:none;position:absolute;top:4px;right:4px;font-size:9px;}
     .slots-loading{display:flex;align-items:center;justify-content:center;padding:32px;gap:10px;color:var(--text-muted);font-size:13px;}
     .slots-loading i{animation:spin .8s linear infinite;color:var(--blue-main);font-size:18px;}
@@ -134,26 +171,49 @@
     .alert-z.error  {background:rgba(229,57,53,0.10);border:1px solid rgba(229,57,53,0.25);color:#C62828;}
     .alert-z.info   {background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue-deep);}
 
-    /* ── MOBILE ── */
-    @media(max-width:600px){
-      .page-header h1{font-size:18px;}
-      .page-header p {font-size:11px;}
-      .slots-grid{grid-template-columns:repeat(4,1fr)!important;gap:5px;}
-      .slot-btn  {padding:7px 2px;}
-      .slot-time {font-size:11px;}
-      .slot-dur  {font-size:7px;}
-      .slot-price{font-size:8px;}
-      .date-btn  {min-width:48px;padding:6px 5px;}
-      .date-btn .dd{font-size:14px;}
-      .court-tab {padding:6px 10px;font-size:11px;}
-      .discount-banner{font-size:11px;padding:7px 10px;}
-      .slots-legend{gap:7px;}
-      .legend-item{font-size:9.5px;}
-      .summary-field{font-size:12px;}
-      .price-total-value{font-size:18px;}
+    /* ── TABLET ≤860px ── */
+    @media(max-width:860px){
+      .booking-layout{
+        grid-template-columns:1fr;
+        padding:10px;
+        gap:10px;
+      }
+      .col-left {order:1;}
+      .col-right{order:2;}
     }
-    @media(max-width:360px){
-      .slots-grid{grid-template-columns:repeat(3,1fr)!important;}
+
+    /* ── MOBILE ≤600px ── */
+    @media(max-width:600px){
+      .page-header h1{font-size:17px;}
+      .page-header p {font-size:11px;}
+      .nav-brand-name{font-size:16px;}
+      .slots-section {padding:10px;}
+      .card-body-z   {padding:12px;}
+      .slots-grid    {gap:5px;}
+      .slot-btn      {padding:8px 2px;}
+      .slot-time     {font-size:11px;}
+      .slot-dur      {font-size:7px;}
+      .slot-price    {font-size:8px;}
+      .slot-tag      {font-size:6px;padding:1px 3px;}
+      .date-strip    {gap:4px;}
+      .date-btn      {min-width:44px;padding:6px 4px;}
+      .date-btn .dd  {font-size:14px;}
+      .date-btn .dn,
+      .date-btn .dm  {font-size:8px;}
+      .court-tabs    {gap:5px;padding:10px 10px 0;}
+      .court-tab     {padding:5px 10px;font-size:11px;}
+      .discount-banner{font-size:11px;padding:7px 10px;}
+      .slots-legend  {gap:6px;}
+      .legend-item   {font-size:9.5px;}
+      .summary-field {font-size:12px;}
+      .price-total-value{font-size:18px;}
+      .btn-confirm   {font-size:14px;padding:12px;}
+    }
+
+    /* ── VERY SMALL ≤380px: 3 cols ── */
+    @media(max-width:380px){
+      .slots-grid{grid-template-columns:repeat(3,1fr);}
+      .date-btn  {min-width:38px;}
     }
   </style>
 </head>
@@ -191,8 +251,8 @@
 
 <div class="booking-layout">
 
-  <!-- LEFT -->
-  <div style="display:flex;flex-direction:column;gap:14px;">
+  <!-- LEFT COLUMN -->
+  <div class="col-left">
 
     <div class="card-z">
       <div class="card-header-z">
@@ -238,8 +298,8 @@
 
   </div>
 
-  <!-- RIGHT -->
-  <div style="display:flex;flex-direction:column;gap:14px;">
+  <!-- RIGHT COLUMN -->
+  <div class="col-right">
 
     <div class="card-z">
       <div class="card-header-z">
@@ -302,16 +362,18 @@
 <script>
 const COURTS       = {{ courts_data | tojson }};
 const BOOKED_SLOTS = {{ booked_slots | tojson }};
-const OPEN=6,CLOSE=23,DS=12,DE=16,DPCT=0.25;
-let selDate=null,selCourt=null,selPrice=25000,selStart=null,dur=1;
+const OPEN=8, CLOSE=23, DS=12, DE=16, DPCT=0.25;
+let selDate=null, selCourt=null, selPrice=25000, selStart=null, dur=1;
 
 function buildDateStrip(){
-  const s=document.getElementById('dateStrip');s.innerHTML='';
+  const s=document.getElementById('dateStrip');
+  s.innerHTML='';
   const t=new Date();
   const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
   const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   for(let i=0;i<14;i++){
-    const d=new Date(t);d.setDate(t.getDate()+i);
+    const d=new Date(t);
+    d.setDate(t.getDate()+i);
     const ds=d.toISOString().split('T')[0];
     const b=document.createElement('button');
     b.className='date-btn'+(i===0?' today active':'');
@@ -319,14 +381,15 @@ function buildDateStrip(){
     b.innerHTML=`<span class="dn">${DN[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dm">${MN[d.getMonth()]}</span>`;
     b.onclick=()=>selectDate(b,ds);
     s.appendChild(b);
-    if(i===0)selDate=ds;
+    if(i===0) selDate=ds;
   }
 }
 
 function selectDate(btn,ds){
   document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');selDate=ds;selStart=null;
-  renderSlots();updateSummary();
+  btn.classList.add('active');
+  selDate=ds; selStart=null;
+  renderSlots(); updateSummary();
 }
 
 function selectCourt(btn){
@@ -334,40 +397,51 @@ function selectCourt(btn){
   btn.classList.add('active');
   selCourt=btn.dataset.courtId;
   selPrice=parseFloat(btn.dataset.courtPrice)||25000;
-  selStart=null;renderSlots();updateSummary();
+  selStart=null;
+  renderSlots(); updateSummary();
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
   buildDateStrip();
   const f=document.querySelector('.court-tab');
-  if(f){selCourt=f.dataset.courtId;selPrice=parseFloat(f.dataset.courtPrice)||25000;renderSlots();}
-  else document.getElementById('slotsContainer').innerHTML=
-    `<div style="text-align:center;padding:32px;color:var(--text-muted);">
-      <i class="fas fa-shield-halved" style="font-size:28px;color:#BBDEFB;display:block;margin-bottom:8px;"></i>
-      <p style="font-size:13px;">لا توجد ملاعب متاحة</p></div>`;
+  if(f){
+    selCourt=f.dataset.courtId;
+    selPrice=parseFloat(f.dataset.courtPrice)||25000;
+    renderSlots();
+  } else {
+    document.getElementById('slotsContainer').innerHTML=
+      `<div style="text-align:center;padding:32px;color:var(--text-muted);">
+        <i class="fas fa-shield-halved" style="font-size:28px;color:#BBDEFB;display:block;margin-bottom:8px;"></i>
+        <p style="font-size:13px;">لا توجد ملاعب متاحة</p>
+      </div>`;
+  }
 });
 
 function renderSlots(){
-  if(!selDate||!selCourt)return;
+  if(!selDate||!selCourt) return;
   const booked=(BOOKED_SLOTS[`${selCourt}:${selDate}`])||[];
   const now=new Date();
   const isToday=selDate===now.toISOString().split('T')[0];
+  const nowH=now.getHours();
+  const nowM=now.getMinutes();
+
+  /* IMPORTANT: no inline style on the grid div — CSS controls columns */
   let html='<div class="slots-grid">';
   for(let h=OPEN;h<CLOSE;h++){
     const ts=`${String(h).padStart(2,'0')}:00`;
-    const past=isToday&&h<=now.getHours();
+    const past=isToday&&(h<nowH||(h===nowH&&nowM>0));
     const bkd=booked.includes(ts);
     const disc=h>=DS&&h<DE;
     const sel=selStart===ts;
     let cls='slot-btn ';
-    if(sel)cls+='selected';
-    else if(past)cls+='past';
-    else if(bkd)cls+='booked';
-    else if(disc)cls+='discount';
-    else cls+='free';
+    if(sel)       cls+='selected';
+    else if(past) cls+='past';
+    else if(bkd)  cls+='booked';
+    else if(disc) cls+='discount';
+    else          cls+='free';
     const price=(disc?Math.round(selPrice*(1-DPCT)):selPrice).toLocaleString();
     const ok=!past&&!bkd;
-    html+=`<div class="${cls}" ${ok?`onclick="selectSlot('${ts}',${disc})"`:''}>
+    html+=`<div class="${cls}"${ok?` onclick="selectSlot('${ts}',${disc})"`:''}>
       ${disc&&!sel&&!past&&!bkd?'<span class="slot-tag">خصم</span>':''}
       <i class="fas fa-check slot-check"></i>
       <span class="slot-time">${ts}</span>
@@ -388,10 +462,11 @@ function selectSlot(ts,disc){
   document.getElementById('f_booking_date').value=selDate;
   document.getElementById('f_start_time').value=ts;
   document.getElementById('f_end_time').value=et;
-  renderSlots();updateSummary();
-  document.getElementById('bookingFormCard').style.display='block';
-  if(window.innerWidth<860)
-    document.getElementById('bookingFormCard').scrollIntoView({behavior:'smooth',block:'start'});
+  renderSlots();
+  updateSummary();
+  const fc=document.getElementById('bookingFormCard');
+  fc.style.display='block';
+  if(window.innerWidth<=860) fc.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function setDuration(h,btn){
@@ -404,7 +479,8 @@ function setDuration(h,btn){
     document.getElementById('f_end_time').value=
       `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
   }
-  updateSummary();renderSlots();
+  updateSummary();
+  renderSlots();
 }
 
 function updateSummary(){
@@ -424,11 +500,26 @@ function updateSummary(){
   const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
   const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   body.innerHTML=`
-    <div class="summary-field"><div class="sf-label"><i class="fas fa-shield-halved"></i>الملعب</div><div class="sf-value">${name}</div></div>
-    <div class="summary-field"><div class="sf-label"><i class="fas fa-calendar-day"></i>التاريخ</div><div class="sf-value">${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</div></div>
-    <div class="summary-field"><div class="sf-label"><i class="fas fa-clock"></i>الوقت</div><div class="sf-value" style="direction:ltr;">${selStart} — ${et}</div></div>
-    <div class="summary-field"><div class="sf-label"><i class="fas fa-hourglass"></i>المدة</div><div class="sf-value">${dur===1?'ساعة':dur===1.5?'ساعة ونص':'ساعتان'}</div></div>
-    <div class="price-total"><div class="price-total-label">الإجمالي</div><div class="price-total-value">${total.toLocaleString()} <small>د.ع</small></div></div>
+    <div class="summary-field">
+      <div class="sf-label"><i class="fas fa-shield-halved"></i>الملعب</div>
+      <div class="sf-value">${name}</div>
+    </div>
+    <div class="summary-field">
+      <div class="sf-label"><i class="fas fa-calendar-day"></i>التاريخ</div>
+      <div class="sf-value">${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</div>
+    </div>
+    <div class="summary-field">
+      <div class="sf-label"><i class="fas fa-clock"></i>الوقت</div>
+      <div class="sf-value" style="direction:ltr;">${selStart} — ${et}</div>
+    </div>
+    <div class="summary-field">
+      <div class="sf-label"><i class="fas fa-hourglass"></i>المدة</div>
+      <div class="sf-value">${dur===1?'ساعة':dur===1.5?'ساعة ونص':'ساعتان'}</div>
+    </div>
+    <div class="price-total">
+      <div class="price-total-label">الإجمالي</div>
+      <div class="price-total-value">${total.toLocaleString()} <small>د.ع</small></div>
+    </div>
     ${disc?'<div class="discount-applied"><i class="fas fa-tag"></i> خصم 25% مطبق (12–16)</div>':''}`;
 }
 </script>

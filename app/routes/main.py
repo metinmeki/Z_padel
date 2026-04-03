@@ -3,7 +3,13 @@ from app.models.main import Court, Booking
 
 main_bp = Blueprint('main', __name__)
 
+
 @main_bp.route('/')
+def loading():
+    return render_template('loading.html')
+
+
+@main_bp.route('/home')
 def index():
     courts = Court.query.filter_by(is_active=True).all()
     total_bookings = Booking.query.filter_by(status='confirmed').count()
