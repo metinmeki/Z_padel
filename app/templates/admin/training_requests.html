@@ -1,0 +1,314 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}طلبات التدريب — Z Padel{% endblock %}
+{% block page_icon %}fas fa-dumbbell{% endblock %}
+{% block page_title %}طلبات التدريب{% endblock %}
+
+{% block extra_styles %}
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px; margin-bottom: 22px;
+}
+.table-wrapper {
+  background: white; border-radius: var(--radius);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  overflow: hidden; animation: fadeSlideIn 0.4s ease 0.1s both;
+}
+.table-toolbar {
+  padding: 14px 20px; border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.table-title {
+  font-size: 15px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 8px;
+}
+.count-pill {
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px;
+}
+.search-wrap {
+  position: relative; display: flex; align-items: center;
+}
+.search-wrap i {
+  position: absolute; right: 11px;
+  color: var(--text-muted); font-size: 13px; pointer-events: none;
+}
+.search-wrap input {
+  padding: 8px 34px 8px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  width: 210px; outline: none; transition: var(--transition); color: var(--text-dark);
+}
+.search-wrap input:focus {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
+}
+.action-btns { display: flex; gap: 6px; }
+.action-btn {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  border: none; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; transition: var(--transition);
+}
+.action-btn.confirm { background: rgba(67,160,71,0.12); color: #2E7D32; }
+.action-btn.reject  { background: rgba(229,57,53,0.10); color: #C62828; }
+.action-btn.view    { background: var(--brand-blue-soft); color: var(--brand-blue); }
+.action-btn:hover   { transform: scale(1.12); }
+.pagination-wrap {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 20px; border-top: 1px solid var(--border-color);
+  flex-wrap: wrap; gap: 10px;
+}
+.empty-state {
+  text-align: center; padding: 60px 20px;
+}
+.empty-state i { font-size: 44px; color: var(--brand-blue-mid); margin-bottom: 12px; display: block; }
+.empty-state p { font-size: 13.5px; color: var(--text-muted); font-weight: 500; }
+.modal-z .modal-content { border-radius: var(--radius); border: none; box-shadow: var(--shadow-lg); overflow: hidden; }
+.modal-z .modal-header { background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue)); color: white; border: none; padding: 16px 22px; }
+.modal-z .modal-title { font-size: 16px; font-weight: 700; font-family: 'Cairo', sans-serif; display: flex; align-items: center; gap: 10px; }
+.modal-z .btn-close { filter: invert(1); opacity: 0.8; }
+.modal-z .modal-body   { padding: 22px; }
+.modal-z .modal-footer { border-top: 1px solid var(--border-color); padding: 14px 22px; gap: 8px; }
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="stats-strip">
+  <div class="stat-card blue" style="animation-delay:0s;">
+    <div class="stat-icon blue"><i class="fas fa-dumbbell"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ training_requests|length if training_requests else 0 }}</div>
+      <div class="stat-label">إجمالي الطلبات</div>
+    </div>
+  </div>
+  <div class="stat-card orange" style="animation-delay:0.07s;">
+    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ training_requests|selectattr('status','equalto','pending')|list|length if training_requests else 0 }}</div>
+      <div class="stat-label">معلقة</div>
+    </div>
+  </div>
+  <div class="stat-card green" style="animation-delay:0.14s;">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ training_requests|selectattr('status','equalto','confirmed')|list|length if training_requests else 0 }}</div>
+      <div class="stat-label">مؤكدة</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.21s;">
+    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;">
+      <i class="fas fa-circle-xmark"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ training_requests|selectattr('status','equalto','cancelled')|list|length if training_requests else 0 }}</div>
+      <div class="stat-label">ملغية</div>
+    </div>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="table-title">
+      <i class="fas fa-dumbbell" style="color:var(--brand-blue);"></i>
+      طلبات التدريب
+      <span class="count-pill">{{ training_requests|length if training_requests else 0 }}</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="search-wrap">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..." oninput="filterTable()"/>
+      </div>
+      <select id="statusFilter" onchange="filterTable()"
+              style="padding:8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;outline:none;color:var(--text-dark);background:white;">
+        <option value="">كل الحالات</option>
+        <option value="pending">معلقة</option>
+        <option value="confirmed">مؤكدة</option>
+        <option value="cancelled">ملغية</option>
+      </select>
+      <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addRequestModal">
+        <i class="fas fa-plus"></i> طلب جديد
+      </button>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="table-z" id="requestsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>العميل</th>
+          <th>المدرب</th>
+          <th>التاريخ المفضل</th>
+          <th>الوقت المفضل</th>
+          <th>الحالة</th>
+          <th>ملاحظات</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="requestsBody">
+        {% if training_requests %}
+          {% for tr in training_requests %}
+          <tr data-name="{{ tr.customer_name|lower }}"
+              data-phone="{{ tr.customer_phone }}"
+              data-status="{{ tr.status|default('pending') }}">
+            <td style="color:var(--text-muted);font-size:12px;">{{ loop.index }}</td>
+            <td>
+              <div style="font-weight:700;font-size:13.5px;">{{ tr.customer_name }}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);direction:ltr;">{{ tr.customer_phone }}</div>
+            </td>
+            <td>
+              {% if tr.coach %}
+                <div style="display:flex;align-items:center;gap:7px;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--brand-blue-soft);color:var(--brand-blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">
+                    {{ tr.coach.name[0]|upper }}
+                  </div>
+                  <span style="font-size:13px;font-weight:600;">{{ tr.coach.name }}</span>
+                </div>
+              {% else %}
+                <span style="color:var(--text-muted);font-size:12px;">غير محدد</span>
+              {% endif %}
+            </td>
+            <td style="font-size:13px;white-space:nowrap;">
+              {% if tr.preferred_date %}
+                <i class="fas fa-calendar-day" style="color:var(--text-muted);margin-left:5px;font-size:10px;"></i>
+                {{ tr.preferred_date.strftime('%Y-%m-%d') }}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if tr.preferred_time %}
+                <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;direction:ltr;display:inline-block;">
+                  {{ tr.preferred_time.strftime('%H:%M') }}
+                </span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% set s = tr.status|default('pending') %}
+              {% if s == 'confirmed' %}
+                <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مؤكد</span>
+              {% elif s == 'pending' %}
+                <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>معلق</span>
+              {% elif s == 'cancelled' %}
+                <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>ملغي</span>
+              {% endif %}
+            </td>
+            <td style="font-size:12.5px;color:var(--text-muted);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              {{ tr.notes|default('—') }}
+            </td>
+            <td>
+              <div class="action-btns">
+                {% if tr.status == 'pending' %}
+                <form method="POST" action="{{ url_for('admin.confirm_training', req_id=tr.id) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="action-btn confirm" title="تأكيد">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin.cancel_training', req_id=tr.id) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="action-btn reject" title="إلغاء">
+                    <i class="fas fa-xmark"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <i class="fas fa-dumbbell"></i>
+                <p>لا توجد طلبات تدريب بعد</p>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ADD REQUEST MODAL -->
+<div class="modal fade modal-z" id="addRequestModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> إضافة طلب تدريب</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin.add_training_request') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label-z">اسم العميل <span style="color:#e53935;">*</span></label>
+              <input type="text" name="customer_name" class="form-control-z" required placeholder="الاسم الكامل"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-z">رقم الهاتف <span style="color:#e53935;">*</span></label>
+              <input type="tel" name="customer_phone" class="form-control-z" required placeholder="07xx xxx xxxx" dir="ltr"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-z">المدرب</label>
+              <select name="coach_id" class="form-control-z">
+                <option value="">اختر المدرب</option>
+                {% for coach in coaches %}
+                  <option value="{{ coach.id }}">{{ coach.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-z">التاريخ المفضل</label>
+              <input type="date" name="preferred_date" class="form-control-z"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-z">الوقت المفضل</label>
+              <input type="time" name="preferred_time" class="form-control-z"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-z">الحالة</label>
+              <select name="status" class="form-control-z">
+                <option value="pending">معلق</option>
+                <option value="confirmed">مؤكد</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label-z">ملاحظات</label>
+              <textarea name="notes" class="form-control-z" rows="2" style="resize:none;" placeholder="ملاحظات إضافية..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn-z-primary"><i class="fas fa-plus-circle"></i> إضافة الطلب</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterTable() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#requestsBody tr').forEach(row => {
+    const name  = row.dataset.name  || '';
+    const phone = row.dataset.phone || '';
+    const st    = row.dataset.status || '';
+    const mQ = !q      || name.includes(q) || phone.includes(q);
+    const mS = !status || st === status;
+    row.style.display = (mQ && mS) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

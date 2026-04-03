@@ -1,0 +1,359 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}طلبات الإلغاء — Z Padel{% endblock %}
+{% block page_icon %}fas fa-ban{% endblock %}
+{% block page_title %}طلبات الإلغاء{% endblock %}
+
+{% block extra_styles %}
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px; margin-bottom: 22px;
+}
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.req-card {
+  background: white;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: var(--transition);
+  animation: fadeSlideIn 0.4s ease both;
+  position: relative;
+}
+.req-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  border-color: rgba(229,57,53,0.30);
+}
+.req-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #E53935, #EF5350);
+}
+.req-header {
+  padding: 14px 16px 10px;
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 10px;
+}
+.req-customer { flex: 1; }
+.req-name { font-size: 15px; font-weight: 800; color: var(--text-dark); }
+.req-phone { font-size: 12px; color: var(--text-muted); direction: ltr; display: inline-block; margin-top: 2px; }
+.req-id {
+  font-size: 11px; color: var(--text-muted);
+  background: var(--off-white); border: 1px solid var(--border-color);
+  border-radius: 20px; padding: 2px 9px; flex-shrink: 0;
+}
+.req-body {
+  padding: 0 16px 14px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.req-field { display: flex; flex-direction: column; gap: 2px; }
+.req-field-label {
+  font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+  letter-spacing: 0.3px; text-transform: uppercase;
+}
+.req-field-value { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.court-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+}
+.time-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; direction: ltr;
+}
+.reason-box {
+  margin: 0 16px 12px;
+  background: rgba(229,57,53,0.06);
+  border: 1px solid rgba(229,57,53,0.15);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12.5px; color: #C62828;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.reason-box i { color: #E53935; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+.req-divider { height: 1px; background: var(--border-color); margin: 0 16px 12px; }
+.req-footer {
+  padding: 12px 16px;
+  background: var(--off-white);
+  border-top: 1px solid var(--border-color);
+  display: flex; gap: 8px;
+}
+.btn-approve {
+  flex: 1;
+  background: linear-gradient(135deg, #43A047, #388E3C);
+  color: white; border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer; transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn-approve:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(67,160,71,0.35); }
+.btn-reject-req {
+  background: rgba(229,57,53,0.10);
+  color: #C62828; border: 1.5px solid rgba(229,57,53,0.25);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer; transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn-reject-req:hover { background: rgba(229,57,53,0.18); color: #B71C1C; }
+.btn-view-detail {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  background: white; border: 1.5px solid var(--border-color);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; cursor: pointer; transition: var(--transition);
+  text-decoration: none; flex-shrink: 0;
+}
+.btn-view-detail:hover { background: var(--brand-blue-soft); border-color: var(--brand-blue-mid); color: var(--brand-blue); }
+.empty-state {
+  text-align: center; padding: 80px 20px;
+  grid-column: 1/-1;
+}
+.empty-state .empty-icon {
+  width: 80px; height: 80px;
+  background: rgba(67,160,71,0.10); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; color: #43A047; margin: 0 auto 16px;
+}
+.empty-state h4 { font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+.empty-state p  { font-size: 13px; color: var(--text-muted); }
+.modal-z .modal-content { border-radius: var(--radius); border: none; box-shadow: var(--shadow-lg); overflow: hidden; }
+.modal-z .modal-header { background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue)); color: white; border: none; padding: 16px 22px; }
+.modal-z.approve-modal .modal-header { background: linear-gradient(135deg, #2E7D32, #43A047); }
+.modal-z.reject-modal .modal-header  { background: linear-gradient(135deg, #B71C1C, #E53935); }
+.modal-z .modal-title { font-size: 16px; font-weight: 700; font-family: 'Cairo', sans-serif; display: flex; align-items: center; gap: 10px; }
+.modal-z .btn-close { filter: invert(1); opacity: 0.8; }
+.modal-z .modal-body   { padding: 22px; }
+.modal-z .modal-footer { border-top: 1px solid var(--border-color); padding: 14px 22px; gap: 8px; }
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="stats-strip">
+  <div class="stat-card" style="animation-delay:0s;">
+    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;">
+      <i class="fas fa-ban"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ cancel_requests|length if cancel_requests else 0 }}</div>
+      <div class="stat-label">إجمالي الطلبات</div>
+    </div>
+  </div>
+  <div class="stat-card orange" style="animation-delay:0.07s;">
+    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ cancel_requests|selectattr('status','equalto','pending')|list|length if cancel_requests else 0 }}</div>
+      <div class="stat-label">قيد الانتظار</div>
+    </div>
+  </div>
+  <div class="stat-card green" style="animation-delay:0.14s;">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ approved_count|default(0) }}</div>
+      <div class="stat-label">تم قبولها</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.21s;">
+    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;">
+      <i class="fas fa-circle-xmark"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ rejected_count|default(0) }}</div>
+      <div class="stat-label">تم رفضها</div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert if pending requests -->
+{% if cancel_requests %}
+<div style="background:rgba(229,57,53,0.08);border:1.5px solid rgba(229,57,53,0.25);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px;margin-bottom:20px;animation:fadeSlideIn 0.35s ease both;">
+  <div style="width:40px;height:40px;background:rgba(229,57,53,0.15);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;color:#E53935;flex-shrink:0;">
+    <i class="fas fa-triangle-exclamation"></i>
+  </div>
+  <div style="flex:1;">
+    <strong style="font-size:14px;color:#C62828;display:block;margin-bottom:2px;">
+      يوجد {{ cancel_requests|length }} طلب إلغاء بانتظار المراجعة
+    </strong>
+    <span style="font-size:12.5px;color:#BF360C;">يرجى مراجعة الطلبات وقبولها أو رفضها</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- Toolbar -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="position:relative;display:flex;align-items:center;">
+      <i class="fas fa-magnifying-glass" style="position:absolute;right:11px;color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
+      <input type="text" id="searchInput" placeholder="بحث باسم العميل..."
+             oninput="filterCards()"
+             style="padding:8px 34px 8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;width:220px;outline:none;color:var(--text-dark);"
+             onfocus="this.style.borderColor='var(--brand-blue-light)'"
+             onblur="this.style.borderColor='var(--border-color)'"/>
+    </div>
+    <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline" style="padding:7px 16px;font-size:13px;">
+      <i class="fas fa-calendar-check"></i> عرض كل الحجوزات
+    </a>
+  </div>
+</div>
+
+<!-- Cards Grid -->
+<div class="requests-grid" id="requestsGrid">
+
+  {% if cancel_requests %}
+    {% for cr in cancel_requests %}
+    <div class="req-card" data-name="{{ cr.booking.customer_name|lower if cr.booking else '' }}"
+         style="animation-delay:{{ loop.index0 * 0.06 }}s;">
+
+      <div class="req-header">
+        <div class="req-customer">
+          <div class="req-name">{{ cr.booking.customer_name if cr.booking else '—' }}</div>
+          <div class="req-phone">{{ cr.booking.customer_phone if cr.booking else '—' }}</div>
+        </div>
+        <span class="req-id">#{{ cr.id }}</span>
+      </div>
+
+      <div class="req-body">
+        <div class="req-field">
+          <div class="req-field-label">الملعب</div>
+          <div class="req-field-value">
+            <span class="court-pill">
+              <i class="fas fa-circle" style="font-size:7px;"></i>
+              {{ cr.booking.court.name if cr.booking and cr.booking.court else '—' }}
+            </span>
+          </div>
+        </div>
+        <div class="req-field">
+          <div class="req-field-label">التاريخ</div>
+          <div class="req-field-value" style="font-size:12.5px;">
+            {{ cr.booking.booking_date.strftime('%Y-%m-%d') if cr.booking and cr.booking.booking_date else '—' }}
+          </div>
+        </div>
+        <div class="req-field">
+          <div class="req-field-label">الوقت</div>
+          <div class="req-field-value">
+            <span class="time-pill">
+              <i class="fas fa-clock" style="font-size:10px;"></i>
+              {{ cr.booking.start_time.strftime('%H:%M') if cr.booking and cr.booking.start_time else '—' }}
+              –
+              {{ cr.booking.end_time.strftime('%H:%M') if cr.booking and cr.booking.end_time else '—' }}
+            </span>
+          </div>
+        </div>
+        <div class="req-field">
+          <div class="req-field-label">المبلغ</div>
+          <div class="req-field-value" style="color:var(--brand-blue);font-size:14px;font-weight:800;">
+            {{ "{:,.0f}".format(cr.booking.total_price) if cr.booking and cr.booking.total_price else '—' }}
+            {% if cr.booking and cr.booking.total_price %}
+              <small style="font-size:11px;color:var(--text-muted);font-weight:400;"> د.ع</small>
+            {% endif %}
+          </div>
+        </div>
+        <div class="req-field">
+          <div class="req-field-label">تاريخ الطلب</div>
+          <div class="req-field-value" style="font-size:12px;color:var(--text-muted);">
+            {{ cr.created_at.strftime('%Y-%m-%d %H:%M') if cr.created_at else '—' }}
+          </div>
+        </div>
+        <div class="req-field">
+          <div class="req-field-label">الحالة</div>
+          <div class="req-field-value">
+            {% if cr.status == 'pending' %}
+              <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>انتظار</span>
+            {% elif cr.status == 'approved' %}
+              <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مقبول</span>
+            {% elif cr.status == 'rejected' %}
+              <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>مرفوض</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if cr.reason %}
+      <div class="reason-box">
+        <i class="fas fa-message"></i>
+        <span>{{ cr.reason }}</span>
+      </div>
+      {% endif %}
+
+      {% if cr.notes %}
+      <div style="margin: 0 16px 12px;font-size:12px;color:var(--text-muted);">
+        <i class="fas fa-note-sticky" style="margin-left:5px;color:var(--brand-blue-light);"></i>
+        {{ cr.notes }}
+      </div>
+      {% endif %}
+
+      <div class="req-divider"></div>
+
+      {% if cr.status == 'pending' %}
+      <div class="req-footer">
+        <form method="POST" action="{{ url_for('admin.approve_cancel', req_id=cr.id) }}" style="flex:1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-approve" style="width:100%;"
+                  onclick="return confirm('هل تريد قبول طلب الإلغاء؟')">
+            <i class="fas fa-check"></i> قبول الإلغاء
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.reject_cancel', req_id=cr.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-reject-req"
+                  onclick="return confirm('هل تريد رفض طلب الإلغاء؟')">
+            <i class="fas fa-xmark"></i> رفض
+          </button>
+        </form>
+        <a href="{{ url_for('admin.booking_detail', booking_id=cr.booking_id) }}"
+           class="btn-view-detail" title="عرض تفاصيل الحجز">
+          <i class="fas fa-eye"></i>
+        </a>
+      </div>
+      {% else %}
+      <div class="req-footer" style="justify-content:center;">
+        <a href="{{ url_for('admin.booking_detail', booking_id=cr.booking_id) }}"
+           class="btn-z-outline" style="padding:7px 18px;font-size:13px;">
+          <i class="fas fa-eye"></i> عرض تفاصيل الحجز
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fas fa-circle-check"></i></div>
+      <h4>لا توجد طلبات إلغاء</h4>
+      <p>جميع الحجوزات سليمة، لا يوجد طلبات معلقة ✅</p>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterCards() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.req-card').forEach(card => {
+    card.style.display = !q || card.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

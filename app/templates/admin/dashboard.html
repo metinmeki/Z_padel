@@ -1,181 +1,701 @@
-{% extends 'admin/base.html' %}
-{% block title %}الرئيسية{% endblock %}
+{% extends "admin/base_admin.html" %}
+
+{% block title %}لوحة التحكم — Z Padel{% endblock %}
+{% block page_icon %}fas fa-gauge-high{% endblock %}
 {% block page_title %}لوحة التحكم{% endblock %}
 
-{% block extra_css %}
-<style>
-  /* ── Stat cards ── */
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 1.5rem;
-  }
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 1.3rem 1.4rem;
-    position: relative;
-    overflow: hidden;
-    transition: transform .2s, box-shadow .2s;
-  }
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(0,0,0,.3);
-  }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 4px; height: 100%;
-    border-radius: 0 13px 13px 0;
-  }
-  .sc-courts::before  { background: #0ea5e9; }
-  .sc-total::before   { background: #8b5cf6; }
-  .sc-ok::before      { background: #22c55e; }
-  .sc-pend::before    { background: #f59e0b; }
+{% block extra_styles %}
+/* ── Welcome banner ── */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--brand-blue-deep) 0%, var(--brand-blue) 60%, var(--brand-blue-light) 100%);
+  border-radius: var(--radius);
+  padding: 28px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeSlideIn 0.4s ease both;
+  box-shadow: var(--shadow-md);
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: -60px;
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: 120px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,176,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.welcome-text h2 {
+  font-size: 22px; font-weight: 900; color: white; margin-bottom: 6px;
+}
+.welcome-text p { font-size: 13px; color: rgba(255,255,255,0.70); }
+.welcome-icon {
+  font-size: 64px;
+  opacity: 0.18;
+  color: white;
+  position: absolute;
+  left: 28px; top: 50%;
+  transform: translateY(-50%);
+}
+.welcome-date {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+  z-index: 1;
+}
 
-  .stat-num {
-    font-size: 2.4rem;
-    font-weight: 900;
-    line-height: 1;
-  }
-  .sc-courts .stat-num  { color: #38bdf8; }
-  .sc-total  .stat-num  { color: #a78bfa; }
-  .sc-ok     .stat-num  { color: #4ade80; }
-  .sc-pend   .stat-num  { color: #fbbf24; }
+/* ── Stats grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
-  .stat-lbl {
-    font-size: .75rem;
-    color: var(--muted);
-    margin-top: 6px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-  }
-  .stat-icon {
-    position: absolute;
-    left: 1.2rem; top: 50%;
-    transform: translateY(-50%);
-    font-size: 2.2rem;
-    opacity: .05;
-  }
+/* ── Chart card ── */
+.chart-card {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: fadeSlideIn 0.45s ease 0.2s both;
+}
+.chart-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chart-card-title {
+  font-size: 14px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 8px;
+}
+.chart-card-title i { color: var(--brand-blue); font-size: 13px; }
+.chart-card-body { padding: 20px; }
+.chart-tabs { display: flex; gap: 4px; }
+.chart-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--border-color);
+  background: white; color: var(--text-muted);
+  cursor: pointer; transition: var(--transition);
+  font-family: 'Cairo', sans-serif;
+}
+.chart-tab.active, .chart-tab:hover {
+  background: var(--brand-blue); border-color: var(--brand-blue); color: white;
+}
 
-  /* ── Recent bookings card ── */
-  .rec-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    overflow: hidden;
-  }
-  .rec-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: .9rem 1.2rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .rec-title {
-    font-size: .9rem;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .rec-title i { color: var(--brand); margin-left: 7px; }
+/* ── Court availability ── */
+.availability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.court-avail-card {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: var(--transition);
+  animation: fadeSlideIn 0.5s ease both;
+}
+.court-avail-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.court-avail-header {
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+.court-color-bar {
+  width: 6px; height: 36px; border-radius: 3px; flex-shrink: 0;
+}
+.court-avail-name { font-size: 14px; font-weight: 700; color: var(--brand-blue-dark); }
+.court-avail-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding: 12px 14px;
+}
+.slot-cell {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+  cursor: default;
+  transition: var(--transition);
+  position: relative;
+}
+.slot-cell.free     { background: rgba(67,160,71,0.12);  color: #2E7D32; border: 1px solid rgba(67,160,71,0.20); }
+.slot-cell.booked   { background: rgba(229,57,53,0.12);  color: #C62828; border: 1px solid rgba(229,57,53,0.20); }
+.slot-cell.discount { background: rgba(251,140,0,0.12);  color: #E65100; border: 1px solid rgba(251,140,0,0.20); }
+.slot-cell.past     { background: var(--off-white);       color: var(--text-muted); border: 1px solid var(--border-color); opacity: 0.5; }
+.slot-cell:hover { transform: scale(1.15); z-index: 2; }
+.slots-legend {
+  display: flex; gap: 12px; padding: 0 14px 12px;
+  flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+.legend-dot.free     { background: rgba(67,160,71,0.55); }
+.legend-dot.booked   { background: rgba(229,57,53,0.55); }
+.legend-dot.discount { background: rgba(251,140,0,0.55); }
 
-  @media (max-width: 768px) {
-    .stat-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-</style>
+/* ── Recent bookings mini table ── */
+.mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mini-table th {
+  padding: 9px 14px;
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+  font-weight: 700; font-size: 11.5px;
+  border-bottom: 2px solid var(--brand-blue-mid);
+}
+.mini-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+.mini-table tr:hover td { background: var(--brand-blue-soft); }
+.mini-table tr:last-child td { border-bottom: none; }
+
+/* ── Quick actions ── */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+.quick-action-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 18px 10px;
+  background: white; border-radius: var(--radius);
+  border: 1.5px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  color: var(--brand-blue-dark);
+  text-decoration: none;
+  font-size: 12.5px; font-weight: 700;
+  transition: var(--transition);
+  text-align: center;
+}
+.quick-action-btn .qa-icon {
+  width: 42px; height: 42px; border-radius: var(--radius-sm);
+  background: var(--brand-blue-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--brand-blue);
+  transition: var(--transition);
+}
+.quick-action-btn:hover {
+  border-color: var(--brand-blue-light);
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.quick-action-btn:hover .qa-icon {
+  background: var(--brand-blue);
+  color: white;
+}
+
+/* ── Revenue summary ── */
+.revenue-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.revenue-row:last-child { border-bottom: none; }
+.revenue-label { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.revenue-label i { width: 18px; text-align: center; color: var(--brand-blue-light); }
+.revenue-value { font-size: 15px; font-weight: 800; color: var(--brand-blue-dark); }
+
+/* ── Progress bar ── */
+.progress-z {
+  height: 6px; border-radius: 3px;
+  background: var(--brand-blue-mid);
+  overflow: hidden; margin-top: 5px;
+}
+.progress-z-bar {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--brand-blue-light), var(--accent));
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
 {% endblock %}
 
 {% block content %}
 
-  <!-- Stats -->
-  <div class="stat-grid">
-    <div class="stat-card sc-courts">
-      <div class="stat-num">{{ total_courts }}</div>
-      <div class="stat-lbl">عدد الملاعب</div>
-      <i class="fas fa-table-tennis stat-icon"></i>
-    </div>
-    <div class="stat-card sc-total">
-      <div class="stat-num">{{ total_bookings }}</div>
-      <div class="stat-lbl">إجمالي الحجوزات</div>
-      <i class="fas fa-calendar stat-icon"></i>
-    </div>
-    <div class="stat-card sc-ok">
-      <div class="stat-num">{{ confirmed_bookings }}</div>
-      <div class="stat-lbl">حجوزات مؤكدة</div>
-      <i class="fas fa-check-circle stat-icon"></i>
-    </div>
-    <div class="stat-card sc-pend">
-      <div class="stat-num">{{ pending_bookings }}</div>
-      <div class="stat-lbl">حجوزات معلقة</div>
-      <i class="fas fa-clock stat-icon"></i>
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+  <div class="welcome-text" style="z-index:1;">
+    <h2>أهلاً، {{ current_user.username if current_user.is_authenticated else 'Admin' }} 👋</h2>
+    <p>إليك ملخص نشاط Z Padel اليوم</p>
+  </div>
+  <i class="fas fa-table-tennis-paddle-ball welcome-icon"></i>
+  <div class="welcome-date" id="liveClock">
+    <i class="fas fa-clock"></i>
+    <span id="clockText">--:--</span>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card blue" style="animation-delay:0s">
+    <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="countTotal">{{ total_bookings|default(0) }}</div>
+      <div class="stat-label">إجمالي الحجوزات</div>
+      <div class="progress-z" style="margin-top:8px;">
+        <div class="progress-z-bar" style="width:{{ [((total_bookings|default(0)) / 100 * 100)|round, 100]|min }}%;"></div>
+      </div>
     </div>
   </div>
+
+  <div class="stat-card cyan" style="animation-delay:0.07s">
+    <div class="stat-icon cyan"><i class="fas fa-calendar-day"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ today_bookings|default(0) }}</div>
+      <div class="stat-label">حجوزات اليوم</div>
+      <div class="progress-z" style="margin-top:8px;">
+        <div class="progress-z-bar" style="width:{{ [((today_bookings|default(0)) / 20 * 100)|round, 100]|min }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card green" style="animation-delay:0.14s">
+    <div class="stat-icon green"><i class="fas fa-coins"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ "{:,.0f}".format(today_revenue|default(0)) }}</div>
+      <div class="stat-label">إيراد اليوم (د.ع)</div>
+      <div class="progress-z" style="margin-top:8px;">
+        <div class="progress-z-bar" style="width:65%;background:linear-gradient(90deg,#43A047,#66BB6A);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card orange" style="animation-delay:0.21s">
+    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ pending_count|default(0) }}</div>
+      <div class="stat-label">حجوزات معلقة</div>
+      <div class="progress-z" style="margin-top:8px;">
+        <div class="progress-z-bar" style="width:{{ [((pending_count|default(0)) / 10 * 100)|round, 100]|min }}%;background:linear-gradient(90deg,#FB8C00,#FFA726);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="animation-delay:0.28s;">
+    <div class="stat-icon" style="background:rgba(156,39,176,0.10);color:#7B1FA2;"><i class="fas fa-bag-shopping"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ total_orders|default(0) }}</div>
+      <div class="stat-label">طلبات المتجر</div>
+      <div class="progress-z" style="margin-top:8px;">
+        <div class="progress-z-bar" style="background:linear-gradient(90deg,#9C27B0,#BA68C8);width:40%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="animation-delay:0.35s;">
+    <div class="stat-icon" style="background:rgba(0,150,136,0.10);color:#00695C;"><i class="fas fa-chart-line"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ "{:,.0f}".format(month_revenue|default(0)) }}</div>
+      <div class="stat-label">إيراد الشهر (د.ع)</div>
+      <div class="progress-z" style="margin-top:8px;">
+        <div class="progress-z-bar" style="background:linear-gradient(90deg,#009688,#4DB6AC);width:55%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Row: Chart + Revenue -->
+<div class="row g-4 mb-4">
+
+  <!-- Bookings Chart -->
+  <div class="col-lg-8">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">
+          <i class="fas fa-chart-bar"></i> الحجوزات والإيرادات
+        </div>
+        <div class="chart-tabs">
+          <button class="chart-tab active" onclick="switchChart('week',this)">أسبوع</button>
+          <button class="chart-tab" onclick="switchChart('month',this)">شهر</button>
+        </div>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="bookingsChart" height="90"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Summary + Quick Actions -->
+  <div class="col-lg-4" style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Revenue Summary -->
+    <div class="chart-card" style="flex:1;">
+      <div class="chart-card-header">
+        <div class="chart-card-title">
+          <i class="fas fa-wallet"></i> ملخص الإيرادات
+        </div>
+      </div>
+      <div class="chart-card-body" style="padding:14px 20px;">
+        <div class="revenue-row">
+          <div class="revenue-label"><i class="fas fa-sun"></i> اليوم</div>
+          <div class="revenue-value">{{ "{:,.0f}".format(today_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="revenue-row">
+          <div class="revenue-label"><i class="fas fa-calendar-week"></i> هذا الأسبوع</div>
+          <div class="revenue-value">{{ "{:,.0f}".format(week_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="revenue-row">
+          <div class="revenue-label"><i class="fas fa-calendar"></i> هذا الشهر</div>
+          <div class="revenue-value">{{ "{:,.0f}".format(month_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="revenue-row">
+          <div class="revenue-label"><i class="fas fa-tag"></i> إيراد المتجر</div>
+          <div class="revenue-value">{{ "{:,.0f}".format(store_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="revenue-row" style="border-bottom:none;padding-top:14px;border-top:2px solid var(--brand-blue-mid);margin-top:4px;">
+          <div class="revenue-label" style="font-weight:700;color:var(--brand-blue-dark);font-size:14px;"><i class="fas fa-sigma"></i> الإجمالي</div>
+          <div class="revenue-value" style="font-size:18px;color:var(--brand-blue);">
+            {{ "{:,.0f}".format((month_revenue|default(0)) + (store_revenue|default(0))) }}
+            <small style="font-size:11px;color:var(--text-muted);">د.ع</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Donut chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title"><i class="fas fa-chart-pie"></i> توزيع الحالات</div>
+      </div>
+      <div class="chart-card-body" style="padding:14px;display:flex;align-items:center;gap:16px;">
+        <canvas id="statusChart" width="100" height="100" style="flex-shrink:0;"></canvas>
+        <div style="font-size:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:10px;height:10px;border-radius:2px;background:#43A047;flex-shrink:0;"></div>
+            <span style="color:var(--text-muted);">مؤكدة:</span>
+            <strong>{{ confirmed_count|default(0) }}</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:10px;height:10px;border-radius:2px;background:#FB8C00;flex-shrink:0;"></div>
+            <span style="color:var(--text-muted);">معلقة:</span>
+            <strong>{{ pending_count|default(0) }}</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:10px;height:10px;border-radius:2px;background:#E53935;flex-shrink:0;"></div>
+            <span style="color:var(--text-muted);">ملغية:</span>
+            <strong>{{ cancelled_count|default(0) }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Court Availability -->
+<div class="chart-card mb-4">
+  <div class="chart-card-header">
+    <div class="chart-card-title">
+      <i class="fas fa-shield-halved"></i> توفر الملاعب — اليوم
+    </div>
+    <span style="font-size:12px;color:var(--text-muted);" id="availDate"></span>
+  </div>
+  <div class="chart-card-body">
+    <div class="availability-grid">
+      {% for court in courts %}
+      <div class="court-avail-card" style="animation-delay:{{ loop.index0 * 0.1 }}s;">
+        <div class="court-avail-header">
+          <div class="court-color-bar" style="background:{{ court.color|default('var(--brand-blue)') }};"></div>
+          <div>
+            <div class="court-avail-name">{{ court.name }}</div>
+            <div class="court-avail-sub">
+              {% set booked_slots = court.today_booked_slots|default([]) %}
+              {{ booked_slots|length }} محجوز من 18 فترة
+            </div>
+          </div>
+        </div>
+        <div class="slots-grid">
+          {% for h in range(6, 24) %}
+            {% set slot_label = '%02d'|format(h) %}
+            {% set is_booked  = slot_label in (court.today_booked_slots|default([])) %}
+            {% set is_discount = h >= 12 and h < 16 %}
+            {% set is_past    = h < current_hour|default(0) %}
+            <div class="slot-cell {{ 'booked' if is_booked else 'discount' if is_discount else 'past' if is_past else 'free' }}"
+                 title="{{ slot_label }}:00 — {{ 'محجوز' if is_booked else 'خصم 25%' if is_discount else 'متاح' }}">
+              {{ slot_label }}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="slots-legend">
+          <div class="legend-item"><div class="legend-dot free"></div>متاح</div>
+          <div class="legend-item"><div class="legend-dot booked"></div>محجوز</div>
+          <div class="legend-item"><div class="legend-dot discount"></div>خصم 25%</div>
+        </div>
+      </div>
+      {% else %}
+      <div style="color:var(--text-muted);font-size:13px;padding:20px;">لا توجد ملاعب مضافة بعد.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row: Recent bookings + Quick actions -->
+<div class="row g-4">
 
   <!-- Recent Bookings -->
-  <div class="rec-card">
-    <div class="rec-header">
-      <span class="rec-title"><i class="fas fa-list"></i>آخر الحجوزات</span>
-      <a href="{{ url_for('admin.bookings') }}" class="btn-z" style="font-size:.75rem; padding:5px 12px;">
-        عرض الكل <i class="fas fa-arrow-left ms-1"></i>
-      </a>
+  <div class="col-lg-8">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">
+          <i class="fas fa-clock-rotate-left"></i> آخر الحجوزات
+        </div>
+        <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline" style="padding:5px 14px;font-size:12px;">
+          عرض الكل <i class="fas fa-arrow-left" style="font-size:10px;"></i>
+        </a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>العميل</th>
+              <th>الملعب</th>
+              <th>التاريخ</th>
+              <th>الوقت</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_bookings %}
+              {% for b in recent_bookings %}
+              <tr>
+                <td>
+                  <div style="font-weight:700;font-size:13px;">{{ b.customer_name }}</div>
+                  <div style="font-size:11px;color:var(--text-muted);">{{ b.customer_phone }}</div>
+                </td>
+                <td style="font-size:13px;">{{ b.court.name if b.court else '—' }}</td>
+                <td style="font-size:12.5px;white-space:nowrap;">{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}</td>
+                <td>
+                  <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);padding:2px 8px;border-radius:20px;font-size:11.5px;font-weight:700;direction:ltr;display:inline-block;">
+                    {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }}
+                  </span>
+                </td>
+                <td>
+                  {% if b.status == 'confirmed' %}
+                    <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:6px;"></i>مؤكد</span>
+                  {% elif b.status == 'pending' %}
+                    <span class="badge-z pending"><i class="fas fa-circle" style="font-size:6px;"></i>معلق</span>
+                  {% else %}
+                    <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:6px;"></i>ملغي</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">
+                لا توجد حجوزات حديثة
+              </td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
     </div>
-
-    {% if recent_bookings %}
-    <div class="table-responsive">
-      <table class="z-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>العميل</th>
-            <th>الهاتف</th>
-            <th>الملعب</th>
-            <th>التاريخ</th>
-            <th>الوقت</th>
-            <th>الحالة</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for b in recent_bookings %}
-          <tr>
-            <td style="color:var(--muted); font-size:.75rem; font-family:monospace;">#{{ b.id }}</td>
-            <td style="font-weight:600;">{{ b.customer_name or '—' }}</td>
-            <td style="color:var(--muted); font-size:.8rem;">{{ b.customer_phone or '—' }}</td>
-            <td>
-              <span class="sbadge sbadge-info">{{ b.court.name if b.court else '—' }}</span>
-            </td>
-            <td style="font-weight:600; white-space:nowrap;">{{ b.date.strftime('%d %b %Y') }}</td>
-            <td style="white-space:nowrap;">
-              {{ b.start_time.strftime('%H:%M') }}
-              <span style="color:var(--muted); font-size:.75rem;"> → {{ b.end_time.strftime('%H:%M') }}</span>
-            </td>
-            <td>
-              {% if b.status == 'confirmed' %}
-                <span class="sbadge sbadge-ok"><i class="fas fa-check-circle"></i>مؤكد</span>
-              {% elif b.status == 'cancelled' %}
-                <span class="sbadge sbadge-cancel"><i class="fas fa-times-circle"></i>ملغي</span>
-              {% elif b.status == 'rejected' %}
-                <span class="sbadge sbadge-cancel"><i class="fas fa-ban"></i>مرفوض</span>
-              {% elif b.status == 'pending_cancel' %}
-                <span class="sbadge sbadge-purple"><i class="fas fa-hourglass-half"></i>طلب إلغاء</span>
-              {% else %}
-                <span class="sbadge sbadge-pend"><i class="fas fa-clock"></i>معلق</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div style="text-align:center; padding:3rem 1rem; color:var(--muted);">
-      <i class="fas fa-calendar-times" style="font-size:2.5rem; display:block; margin-bottom:.8rem; opacity:.2;"></i>
-      <div style="font-weight:600;">لا توجد حجوزات بعد</div>
-    </div>
-    {% endif %}
   </div>
 
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div class="chart-card-title">
+          <i class="fas fa-bolt"></i> وصول سريع
+        </div>
+      </div>
+      <div class="chart-card-body">
+        <div class="quick-actions">
+          <a href="{{ url_for('admin.bookings') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-calendar-plus"></i></div>
+            حجز جديد
+          </a>
+          <a href="{{ url_for('admin.courts') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-shield-halved"></i></div>
+            الملاعب
+          </a>
+          <a href="{{ url_for('pos.quick_sale') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-cash-register"></i></div>
+            نقطة البيع
+          </a>
+          <a href="{{ url_for('admin.products') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-box-open"></i></div>
+            المنتجات
+          </a>
+          <a href="{{ url_for('admin.reports') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-chart-line"></i></div>
+            التقارير
+          </a>
+          <a href="{{ url_for('admin.expenses') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-receipt"></i></div>
+            المصروفات
+          </a>
+          <a href="{{ url_for('admin.pending_bookings') }}" class="quick-action-btn">
+            <div class="qa-icon" style="background:rgba(251,140,0,0.12);color:#FB8C00;"><i class="fas fa-clock"></i></div>
+            المعلقة
+            {% if pending_count|default(0) > 0 %}
+              <span style="background:#FB8C00;color:white;font-size:10px;padding:1px 7px;border-radius:20px;">{{ pending_count }}</span>
+            {% endif %}
+          </a>
+          <a href="{{ url_for('admin.settings') }}" class="quick-action-btn">
+            <div class="qa-icon"><i class="fas fa-gear"></i></div>
+            الإعدادات
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Live clock ──
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clockText').textContent = `${h}:${m}:${s}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── Today date label ──
+const today = new Date();
+document.getElementById('availDate').textContent =
+  today.toLocaleDateString('ar-IQ', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── Chart data from Flask ──
+const weekLabels  = {{ week_labels  | default(['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة']) | tojson }};
+const weekData    = {{ week_data    | default([3,5,2,8,6,4,7]) | tojson }};
+const weekRevenue = {{ week_revenue_data | default([75000,125000,50000,200000,150000,100000,175000]) | tojson }};
+const monthLabels = {{ month_labels | default(['أسبوع 1','أسبوع 2','أسبوع 3','أسبوع 4']) | tojson }};
+const monthData   = {{ month_data   | default([18,24,19,28]) | tojson }};
+const monthRev    = {{ month_revenue_data | default([450000,600000,475000,700000]) | tojson }};
+
+// ── Bookings chart ──
+const ctx = document.getElementById('bookingsChart').getContext('2d');
+let bookingsChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: weekLabels,
+    datasets: [
+      {
+        label: 'الحجوزات',
+        data: weekData,
+        backgroundColor: 'rgba(21,101,192,0.18)',
+        borderColor: '#1565C0',
+        borderWidth: 2,
+        borderRadius: 6,
+        yAxisID: 'y',
+      },
+      {
+        label: 'الإيراد (د.ع)',
+        data: weekRevenue,
+        type: 'line',
+        borderColor: '#00B0FF',
+        backgroundColor: 'rgba(0,176,255,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#00B0FF',
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y1',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        labels: { font: { family: 'Cairo', size: 12 }, color: '#0D1B3E' }
+      }
+    },
+    scales: {
+      y: {
+        type: 'linear', position: 'right',
+        ticks: { font: { family: 'Cairo', size: 11 }, color: '#6B8BB5' },
+        grid: { color: 'rgba(21,101,192,0.06)' }
+      },
+      y1: {
+        type: 'linear', position: 'left',
+        ticks: { font: { family: 'Cairo', size: 11 }, color: '#00B0FF',
+          callback: v => (v/1000).toFixed(0) + 'k' },
+        grid: { drawOnChartArea: false }
+      },
+      x: {
+        ticks: { font: { family: 'Cairo', size: 12 }, color: '#0D1B3E' },
+        grid: { color: 'rgba(21,101,192,0.05)' }
+      }
+    }
+  }
+});
+
+function switchChart(period, btn) {
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (period === 'week') {
+    bookingsChart.data.labels = weekLabels;
+    bookingsChart.data.datasets[0].data = weekData;
+    bookingsChart.data.datasets[1].data = weekRevenue;
+  } else {
+    bookingsChart.data.labels = monthLabels;
+    bookingsChart.data.datasets[0].data = monthData;
+    bookingsChart.data.datasets[1].data = monthRev;
+  }
+  bookingsChart.update('active');
+}
+
+// ── Status donut chart ──
+const sCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(sCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['مؤكدة', 'معلقة', 'ملغية'],
+    datasets: [{
+      data: [
+        {{ confirmed_count|default(0) }},
+        {{ pending_count|default(0) }},
+        {{ cancelled_count|default(0) }}
+      ],
+      backgroundColor: ['#43A047','#FB8C00','#E53935'],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    cutout: '70%',
+    plugins: { legend: { display: false } },
+    responsive: false
+  }
+});
+</script>
 {% endblock %}

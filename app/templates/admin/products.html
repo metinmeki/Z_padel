@@ -1,142 +1,820 @@
-﻿
-{% extends 'admin/base.html' %}
-{% block title %}المنتجات{% endblock %}
-{% block page_title %}إدارة المنتجات{% endblock %}
+{% extends "admin/base_admin.html" %}
 
-{% block extra_css %}
-<style>
-  .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; }
-  .btn-add { background:#0ea5e9; color:#fff; border:none; border-radius:9px; padding:7px 16px; font-size:.82rem; font-weight:700; text-decoration:none; transition:.15s; }
-  .btn-add:hover { background:#0284c7; color:#fff; }
+{% block title %}المنتجات — Z Padel{% endblock %}
+{% block page_icon %}fas fa-box-open{% endblock %}
+{% block page_title %}المنتجات{% endblock %}
 
-  .prod-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px; }
+{% block extra_styles %}
+/* ── Stats strip ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
 
-  .pc { background:#1e293b; border:1px solid #334155; border-radius:13px; overflow:hidden; transition:border-color .15s; }
-  .pc:hover { border-color:#475569; }
-  .pc.inactive { opacity:.5; }
+/* ── Toolbar ── */
+.products-toolbar {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeSlideIn 0.35s ease both;
+}
+.toolbar-left  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
 
-  .pc-img { width:100%; aspect-ratio:4/3; object-fit:cover; background:#0f172a; display:block; }
-  .pc-img-ph { width:100%; aspect-ratio:4/3; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#334155; font-size:2rem; }
+.search-wrap {
+  position: relative; display: flex; align-items: center;
+}
+.search-wrap i {
+  position: absolute; right: 11px;
+  color: var(--text-muted); font-size: 13px; pointer-events: none;
+}
+.search-wrap input {
+  padding: 8px 34px 8px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  width: 220px; outline: none; transition: var(--transition);
+  color: var(--text-dark);
+}
+.search-wrap input:focus {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
+  width: 260px;
+}
+.filter-select {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  outline: none; color: var(--text-dark);
+  background: white; cursor: pointer;
+  transition: var(--transition);
+}
+.filter-select:focus { border-color: var(--brand-blue-light); }
 
-  .pc-body { padding:.9rem 1rem; }
-  .pc-name  { font-weight:700; color:#f1f5f9; font-size:.9rem; margin-bottom:3px; }
-  .pc-desc  { font-size:.75rem; color:#64748b; margin-bottom:.7rem; line-height:1.4; min-height:32px; }
-  .pc-meta  { display:flex; justify-content:space-between; align-items:center; }
-  .pc-price { font-weight:800; color:#0ea5e9; font-size:.95rem; }
-  .pc-stock { font-size:.7rem; color:#64748b; }
-  .stock-ok   { color:#4ade80; }
-  .stock-zero { color:#f87171; }
+/* View toggle */
+.view-toggle { display: flex; gap: 4px; }
+.view-btn {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color);
+  background: white; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: var(--transition); font-size: 13px;
+}
+.view-btn.active, .view-btn:hover {
+  background: var(--brand-blue-soft);
+  border-color: var(--brand-blue-mid); color: var(--brand-blue);
+}
 
-  .pc-foot { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1rem; border-top:1px solid #334155; }
-  .act-b { width:28px; height:28px; border-radius:7px; border:1px solid #334155; background:#0f172a; color:#475569; display:flex; align-items:center; justify-content:center; font-size:.68rem; cursor:pointer; transition:.15s; text-decoration:none; }
-  .act-b:hover      { border-color:#0ea5e9; color:#38bdf8; background:rgba(14,165,233,.1); }
-  .act-b.del:hover  { border-color:#ef4444; color:#f87171; background:rgba(239,68,68,.1); }
-  .act-b.tog:hover  { border-color:#f59e0b; color:#fbbf24; background:rgba(245,158,11,.1); }
+/* ── Product Grid ── */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
 
-  .active-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-left:5px; }
-  .dot-on  { background:#22c55e; }
-  .dot-off { background:#ef4444; }
+/* ── Product Card ── */
+.product-card {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: var(--transition);
+  animation: fadeSlideIn 0.4s ease both;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.product-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--brand-blue-mid);
+}
 
-  .empty-box { text-align:center; padding:3rem; background:#1e293b; border:1px solid #334155; border-radius:13px; color:#334155; }
-  .empty-box i { font-size:2.5rem; display:block; margin-bottom:1rem; opacity:.25; }
-</style>
+/* Stock badge on image */
+.product-img-wrap {
+  position: relative;
+  height: 180px;
+  background: var(--off-white);
+  overflow: hidden;
+}
+.product-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.product-card:hover .product-img-wrap img { transform: scale(1.05); }
+.product-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px;
+  color: var(--brand-blue-mid); font-size: 36px;
+}
+.product-img-placeholder span {
+  font-size: 12px; color: var(--text-muted); font-weight: 500;
+}
+
+.stock-badge {
+  position: absolute; top: 10px; right: 10px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  backdrop-filter: blur(6px);
+}
+.stock-badge.in-stock   { background: rgba(67,160,71,0.90);  color: white; }
+.stock-badge.low-stock  { background: rgba(251,140,0,0.90);  color: white; }
+.stock-badge.out-stock  { background: rgba(229,57,53,0.90);  color: white; }
+
+.category-badge {
+  position: absolute; bottom: 10px; left: 10px;
+  background: rgba(21,101,192,0.85); color: white;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  backdrop-filter: blur(6px);
+}
+
+/* Card body */
+.product-body { padding: 14px 16px; flex: 1; }
+.product-name {
+  font-size: 14.5px; font-weight: 800;
+  color: var(--text-dark); margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.product-desc {
+  font-size: 12px; color: var(--text-muted);
+  line-height: 1.5; margin-bottom: 10px;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.product-meta {
+  display: flex; align-items: center;
+  justify-content: space-between;
+}
+.product-price {
+  font-size: 16px; font-weight: 900; color: var(--brand-blue);
+}
+.product-price small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.product-stock-num {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: 4px;
+}
+.product-stock-num i { font-size: 10px; }
+
+/* Card footer */
+.product-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-color);
+  background: var(--off-white);
+  display: flex; gap: 7px;
+}
+.pf-btn {
+  flex: 1; padding: 7px 10px;
+  border-radius: var(--radius-sm); border: none;
+  font-size: 12.5px; font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer; transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  text-decoration: none;
+}
+.pf-btn.edit   { background: var(--brand-blue-soft); color: var(--brand-blue-dark); }
+.pf-btn.delete { background: rgba(229,57,53,0.10); color: #C62828; }
+.pf-btn:hover  { filter: brightness(0.93); transform: translateY(-1px); }
+
+/* ── Table view ── */
+.table-wrapper {
+  background: white; border-radius: var(--radius);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  overflow: hidden; display: none;
+}
+.table-wrapper.active { display: block; }
+.products-grid.hidden  { display: none; }
+
+/* Product thumbnail in table */
+.prod-thumb {
+  width: 42px; height: 42px; border-radius: var(--radius-sm);
+  object-fit: cover; border: 1px solid var(--border-color);
+}
+.prod-thumb-placeholder {
+  width: 42px; height: 42px; border-radius: var(--radius-sm);
+  background: var(--off-white); border: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--brand-blue-mid); font-size: 18px;
+}
+
+/* ── Modals ── */
+.modal-z .modal-content {
+  border-radius: var(--radius); border: none;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.modal-z .modal-header {
+  background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
+  color: white; border: none; padding: 16px 22px;
+}
+.modal-z.delete-modal .modal-header { background: linear-gradient(135deg,#B71C1C,#E53935); }
+.modal-z .modal-title {
+  font-size: 16px; font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-z .btn-close { filter: invert(1); opacity: 0.8; }
+.modal-z .modal-body  { padding: 22px; }
+.modal-z .modal-footer{ border-top: 1px solid var(--border-color); padding: 14px 22px; gap: 8px; }
+
+/* Image upload area */
+.img-upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.img-upload-area:hover, .img-upload-area.drag-over {
+  border-color: var(--brand-blue-light);
+  background: var(--brand-blue-soft);
+}
+.img-upload-area i   { font-size: 28px; color: var(--brand-blue-mid); margin-bottom: 8px; display: block; }
+.img-upload-area p   { font-size: 12.5px; color: var(--text-muted); margin: 0; }
+.img-upload-area input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+#imgPreview {
+  width: 100%; max-height: 140px; object-fit: cover;
+  border-radius: var(--radius-sm); display: none; margin-top: 10px;
+}
+
+/* Stock level indicator */
+.stock-level-wrap { margin-top: 6px; }
+.stock-level-bar  { height: 5px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
+.stock-level-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 70px 20px;
+  grid-column: 1/-1;
+}
+.empty-state i   { font-size: 48px; color: var(--brand-blue-mid); margin-bottom: 14px; display: block; }
+.empty-state p   { font-size: 14px; color: var(--text-muted); font-weight: 500; }
 {% endblock %}
 
 {% block content %}
-<div class="px-1 py-2">
 
-  <div class="top-bar">
-    <small style="color:#64748b;">{{ products|length }} منتج</small>
-    <a href="{{ url_for('admin.add_product') }}" class="btn-add">
-      <i class="fas fa-plus me-1"></i>إضافة منتج
+<!-- Stats -->
+<div class="stats-strip">
+  <div class="stat-card blue" style="animation-delay:0s;">
+    <div class="stat-icon blue"><i class="fas fa-box-open"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ products|length if products else 0 }}</div>
+      <div class="stat-label">إجمالي المنتجات</div>
+    </div>
+  </div>
+  <div class="stat-card green" style="animation-delay:0.07s;">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ products|selectattr('stock','gt',5)|list|length if products else 0 }}</div>
+      <div class="stat-label">متوفر</div>
+    </div>
+  </div>
+  <div class="stat-card orange" style="animation-delay:0.14s;">
+    <div class="stat-icon orange"><i class="fas fa-triangle-exclamation"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ products|selectattr('stock','le',5)|selectattr('stock','gt',0)|list|length if products else 0 }}</div>
+      <div class="stat-label">مخزون منخفض</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.21s;">
+    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;">
+      <i class="fas fa-circle-xmark"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ products|selectattr('stock','eq',0)|list|length if products else 0 }}</div>
+      <div class="stat-label">نفد المخزون</div>
+    </div>
+  </div>
+  <div class="stat-card cyan" style="animation-delay:0.28s;">
+    <div class="stat-icon cyan"><i class="fas fa-tags"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ categories|length if categories else 0 }}</div>
+      <div class="stat-label">الفئات</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="products-toolbar">
+  <div class="toolbar-left">
+    <div class="search-wrap">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="بحث باسم المنتج..." oninput="filterProducts()"/>
+    </div>
+    <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
+      <option value="">كل الفئات</option>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}">{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <select class="filter-select" id="stockFilter" onchange="filterProducts()">
+      <option value="">كل المخزون</option>
+      <option value="in">متوفر</option>
+      <option value="low">منخفض</option>
+      <option value="out">نفد</option>
+    </select>
+  </div>
+  <div class="toolbar-right">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('grid',this)" title="شبكة">
+        <i class="fas fa-grip"></i>
+      </button>
+      <button class="view-btn" onclick="setView('table',this)" title="جدول">
+        <i class="fas fa-table-list"></i>
+      </button>
+    </div>
+    <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+      <i class="fas fa-plus"></i> منتج جديد
+    </button>
+    <a href="{{ url_for('admin.print_barcodes') }}" class="btn-z-outline">
+      <i class="fas fa-barcode"></i> باركود
     </a>
   </div>
+</div>
 
+<!-- ═══ GRID VIEW ═══ -->
+<div class="products-grid" id="gridView">
   {% if products %}
-  <div class="prod-grid">
     {% for p in products %}
-    <div class="pc {% if not p.is_active %}inactive{% endif %}" id="pc-{{ p.id }}">
+    {% set stock_class = 'out-stock' if p.stock == 0 else 'low-stock' if p.stock <= 5 else 'in-stock' %}
+    {% set stock_label = 'نفد'       if p.stock == 0 else 'منخفض'    if p.stock <= 5 else 'متوفر' %}
+    <div class="product-card"
+         data-name="{{ p.name|lower }}"
+         data-cat="{{ p.category_id|default('') }}"
+         data-stock="{{ 'out' if p.stock == 0 else 'low' if p.stock <= 5 else 'in' }}"
+         style="animation-delay:{{ loop.index0 * 0.05 }}s;">
 
-      {% if p.image %}
-        <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" class="pc-img" alt="{{ p.name }}">
-      {% else %}
-        <div class="pc-img-ph"><i class="fas fa-box"></i></div>
-      {% endif %}
+      <!-- Image -->
+      <div class="product-img-wrap">
+        {% if p.image %}
+          <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}"
+               alt="{{ p.name }}" loading="lazy"/>
+        {% else %}
+          <div class="product-img-placeholder">
+            <i class="fas fa-box-open"></i>
+            <span>لا توجد صورة</span>
+          </div>
+        {% endif %}
+        <span class="stock-badge {{ stock_class }}">{{ stock_label }}</span>
+        {% if p.category %}
+          <span class="category-badge">{{ p.category.name }}</span>
+        {% endif %}
+      </div>
 
-      <div class="pc-body">
-        <div class="pc-name">
-          <span class="active-dot {% if p.is_active %}dot-on{% else %}dot-off{% endif %}"></span>
-          {{ p.name }}
+      <!-- Body -->
+      <div class="product-body">
+        <div class="product-name" title="{{ p.name }}">{{ p.name }}</div>
+        {% if p.description %}
+          <div class="product-desc">{{ p.description }}</div>
+        {% endif %}
+        <div class="product-meta">
+          <div class="product-price">
+            {{ "{:,.0f}".format(p.price) if p.price else '—' }}
+            {% if p.price %}<small> د.ع</small>{% endif %}
+          </div>
+          <div class="product-stock-num">
+            <i class="fas fa-warehouse"></i>
+            {{ p.stock|default(0) }} قطعة
+          </div>
         </div>
-        <div class="pc-desc">{{ p.description or '—' }}</div>
-        <div class="pc-meta">
-          <span class="pc-price">{{ "{:,.0f}".format(p.price) }} <small style="font-size:.6rem;font-weight:500;color:#475569;">IQD</small></span>
-          <span class="pc-stock {% if p.stock == 0 %}stock-zero{% else %}stock-ok{% endif %}">
-            <i class="fas fa-cubes" style="font-size:.6rem;"></i>
-            {{ p.stock }} قطعة
-          </span>
+        <!-- Stock bar -->
+        <div class="stock-level-wrap">
+          <div class="stock-level-bar">
+            <div class="stock-level-fill"
+                 style="width:{{ [p.stock / [p.max_stock|default(50), 1]|max * 100, 100]|min }}%;
+                        background:{{ '#E53935' if p.stock == 0 else '#FB8C00' if p.stock <= 5 else '#43A047' }};"></div>
+          </div>
         </div>
       </div>
 
-      <div class="pc-foot">
-        <div style="display:flex; gap:6px;">
-          <a href="{{ url_for('admin.edit_product', product_id=p.id) }}" class="act-b" title="تعديل">
-            <i class="fas fa-pen"></i>
-          </a>
-          <button class="act-b tog" title="تفعيل/إيقاف" onclick="toggleProd({{ p.id }}, this)">
-            <i class="fas fa-{% if p.is_active %}eye{% else %}eye-slash{% endif %}"></i>
-          </button>
-          <button class="act-b del" title="حذف" onclick="deleteProd({{ p.id }})">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-        <small style="font-size:.65rem; color:#334155;">#{{ p.id }}</small>
+      <!-- Footer -->
+      <div class="product-footer">
+        <button class="pf-btn edit"
+                onclick="openEditModal(
+                  {{ p.id }},
+                  '{{ p.name|replace("'","\\'")|e }}',
+                  {{ p.price|default(0) }},
+                  {{ p.stock|default(0) }},
+                  '{{ p.description|default('')|replace("'","\\'")|e }}',
+                  {{ p.category_id|default('null') }},
+                  '{{ p.barcode|default('') }}'
+                )">
+          <i class="fas fa-pen"></i> تعديل
+        </button>
+        <button class="pf-btn delete"
+                onclick="openDeleteModal({{ p.id }}, '{{ p.name|replace("'","\\'")|e }}')">
+          <i class="fas fa-trash"></i> حذف
+        </button>
       </div>
 
     </div>
     {% endfor %}
-  </div>
-
   {% else %}
-  <div class="empty-box">
-    <i class="fas fa-box-open"></i>
-    <div style="font-size:.9rem; color:#475569; font-weight:600;">لا توجد منتجات</div>
-    <a href="{{ url_for('admin.add_product') }}" style="color:#0ea5e9; font-size:.82rem;">أضف أول منتج</a>
-  </div>
+    <div class="empty-state">
+      <i class="fas fa-box-open"></i>
+      <p>لا توجد منتجات بعد. أضف أول منتج!</p>
+    </div>
   {% endif %}
-
 </div>
+
+
+<!-- ═══ TABLE VIEW ═══ -->
+<div class="table-wrapper" id="tableView">
+  <div style="padding:14px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;">
+    <i class="fas fa-box-open" style="color:var(--brand-blue);"></i>
+    <span style="font-size:15px;font-weight:700;color:var(--brand-blue-dark);">قائمة المنتجات</span>
+    <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;">
+      {{ products|length if products else 0 }}
+    </span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="table-z">
+      <thead>
+        <tr>
+          <th>الصورة</th>
+          <th>اسم المنتج</th>
+          <th>الفئة</th>
+          <th>السعر</th>
+          <th>المخزون</th>
+          <th>الباركود</th>
+          <th>الحالة</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        {% if products %}
+          {% for p in products %}
+          {% set stock_class = 'out-stock' if p.stock == 0 else 'low-stock' if p.stock <= 5 else 'in-stock' %}
+          {% set stock_label = 'نفد'       if p.stock == 0 else 'منخفض'    if p.stock <= 5 else 'متوفر' %}
+          <tr data-name="{{ p.name|lower }}" data-cat="{{ p.category_id|default('') }}"
+              data-stock="{{ 'out' if p.stock == 0 else 'low' if p.stock <= 5 else 'in' }}">
+            <td>
+              {% if p.image %}
+                <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}"
+                     class="prod-thumb" alt="{{ p.name }}"/>
+              {% else %}
+                <div class="prod-thumb-placeholder"><i class="fas fa-box-open"></i></div>
+              {% endif %}
+            </td>
+            <td>
+              <div style="font-weight:700;font-size:13.5px;">{{ p.name }}</div>
+              {% if p.description %}
+                <div style="font-size:11.5px;color:var(--text-muted);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  {{ p.description }}
+                </div>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.category %}
+                <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">
+                  {{ p.category.name }}
+                </span>
+              {% else %}—{% endif %}
+            </td>
+            <td style="font-weight:800;color:var(--brand-blue);font-size:14px;">
+              {{ "{:,.0f}".format(p.price) if p.price else '—' }}
+              {% if p.price %}<small style="color:var(--text-muted);font-weight:400;font-size:11px;"> د.ع</small>{% endif %}
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:700;font-size:13px;">{{ p.stock|default(0) }}</span>
+                <div class="stock-level-bar" style="width:60px;">
+                  <div class="stock-level-fill"
+                       style="width:{{ [p.stock / [p.max_stock|default(50),1]|max * 100,100]|min }}%;
+                              background:{{ '#E53935' if p.stock==0 else '#FB8C00' if p.stock<=5 else '#43A047' }};"></div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:var(--text-muted);direction:ltr;">
+              {{ p.barcode|default('—') }}
+            </td>
+            <td>
+              <span class="badge-z {{ 'cancelled' if p.stock==0 else 'pending' if p.stock<=5 else 'confirmed' }}">
+                <i class="fas fa-circle" style="font-size:7px;"></i>{{ stock_label }}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="action-btn edit"
+                        style="width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;
+                               display:flex;align-items:center;justify-content:center;font-size:12px;
+                               transition:var(--transition);background:rgba(251,140,0,0.10);color:#E65100;"
+                        onclick="openEditModal({{ p.id }},'{{ p.name|replace("'","\\'")|e }}',{{ p.price|default(0) }},{{ p.stock|default(0) }},'{{ p.description|default('')|replace("'","\\'")|e }}',{{ p.category_id|default('null') }},'{{ p.barcode|default('') }}')"
+                        title="تعديل">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="action-btn cancel"
+                        style="width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;
+                               display:flex;align-items:center;justify-content:center;font-size:12px;
+                               transition:var(--transition);background:rgba(229,57,53,0.10);color:#C62828;"
+                        onclick="openDeleteModal({{ p.id }},'{{ p.name|replace("'","\\'")|e }}')"
+                        title="حذف">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
+              <i class="fas fa-box-open" style="font-size:28px;color:var(--brand-blue-mid);display:block;margin-bottom:8px;"></i>
+              لا توجد منتجات
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══ ADD PRODUCT MODAL ═══ -->
+<div class="modal fade modal-z" id="addProductModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> إضافة منتج جديد</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin.add_product') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label-z">اسم المنتج <span style="color:#e53935;">*</span></label>
+              <input type="text" name="name" class="form-control-z" required placeholder="مثال: مضرب باديل"/>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">الفئة <span style="color:#e53935;">*</span></label>
+              <select name="category_id" class="form-control-z" required>
+                <option value="">اختر الفئة</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label-z">السعر (د.ع) <span style="color:#e53935;">*</span></label>
+              <input type="number" name="price" class="form-control-z" required
+                     placeholder="0" min="0" step="500"/>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label-z">المخزون <span style="color:#e53935;">*</span></label>
+              <input type="number" name="stock" class="form-control-z" required
+                     placeholder="0" min="0"/>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label-z">الباركود</label>
+              <input type="text" name="barcode" class="form-control-z"
+                     placeholder="تلقائي إن تُرك فارغاً" dir="ltr"/>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label-z">الوصف</label>
+              <textarea name="description" class="form-control-z" rows="2"
+                        placeholder="وصف مختصر للمنتج..." style="resize:none;"></textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label-z">صورة المنتج</label>
+              <div class="img-upload-area" id="uploadArea">
+                <input type="file" name="image" accept="image/*" onchange="previewImage(event)"/>
+                <i class="fas fa-cloud-arrow-up"></i>
+                <p>اسحب الصورة هنا أو انقر للاختيار</p>
+                <p style="font-size:11px;margin-top:4px;">PNG, JPG, WEBP — حد أقصى 2MB</p>
+              </div>
+              <img id="imgPreview" src="" alt="معاينة الصورة"/>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-plus-circle"></i> إضافة المنتج
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ EDIT PRODUCT MODAL ═══ -->
+<div class="modal fade modal-z" id="editProductModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-pen"></i> تعديل المنتج</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="editForm" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label-z">اسم المنتج <span style="color:#e53935;">*</span></label>
+              <input type="text" name="name" id="editName" class="form-control-z" required/>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">الفئة</label>
+              <select name="category_id" id="editCategory" class="form-control-z">
+                <option value="">بدون فئة</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label-z">السعر (د.ع)</label>
+              <input type="number" name="price" id="editPrice" class="form-control-z" min="0" step="500"/>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label-z">المخزون</label>
+              <input type="number" name="stock" id="editStock" class="form-control-z" min="0"/>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label-z">الباركود</label>
+              <input type="text" name="barcode" id="editBarcode" class="form-control-z" dir="ltr"/>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label-z">الوصف</label>
+              <textarea name="description" id="editDesc" class="form-control-z"
+                        rows="2" style="resize:none;"></textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label-z">صورة جديدة (اتركها فارغة للإبقاء على الحالية)</label>
+              <div class="img-upload-area">
+                <input type="file" name="image" accept="image/*" onchange="previewEditImage(event)"/>
+                <i class="fas fa-cloud-arrow-up"></i>
+                <p>اسحب الصورة هنا أو انقر للاختيار</p>
+              </div>
+              <img id="editImgPreview" src="" alt="" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--radius-sm);display:none;margin-top:10px;"/>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ التعديلات
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ DELETE CONFIRM MODAL ═══ -->
+<div class="modal fade modal-z delete-modal" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-trash"></i> حذف المنتج</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="deleteForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <div style="text-align:center;padding:10px 0 20px;">
+            <div style="width:64px;height:64px;background:rgba(229,57,53,0.10);border-radius:50%;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:28px;color:#E53935;margin:0 auto 16px;">
+              <i class="fas fa-trash"></i>
+            </div>
+            <p style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:6px;">
+              هل تريد حذف هذا المنتج؟
+            </p>
+            <p style="font-size:13px;color:var(--text-muted);">
+              سيتم حذف <strong id="deleteProductName" style="color:#E53935;"></strong> بشكل نهائي.
+              لا يمكن التراجع.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content:center;">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal" style="min-width:100px;">إلغاء</button>
+          <button type="submit" class="btn-z-danger" style="min-width:120px;padding:9px 20px;">
+            <i class="fas fa-trash"></i> نعم، احذف
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
-{% block extra_js %}
+
+{% block extra_scripts %}
 <script>
-function toggleProd(id, btn) {
-  fetch(`/admin/products/toggle/${id}`, { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-      const card = document.getElementById(`pc-${id}`);
-      const dot  = card.querySelector('.active-dot');
-      const icon = btn.querySelector('i');
-      if (d.is_active) {
-        card.classList.remove('inactive');
-        dot.className  = 'active-dot dot-on';
-        icon.className = 'fas fa-eye';
-      } else {
-        card.classList.add('inactive');
-        dot.className  = 'active-dot dot-off';
-        icon.className = 'fas fa-eye-slash';
-      }
-    });
+// ── View toggle ──
+function setView(view, btn) {
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (view === 'grid') {
+    document.getElementById('gridView').classList.remove('hidden');
+    document.getElementById('tableView').classList.remove('active');
+  } else {
+    document.getElementById('gridView').classList.add('hidden');
+    document.getElementById('tableView').classList.add('active');
+  }
 }
 
-function deleteProd(id) {
-  if (!confirm('حذف هذا المنتج نهائياً؟')) return;
-  fetch(`/admin/products/delete/${id}`, { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-      if (d.success) document.getElementById(`pc-${id}`).remove();
-      else alert('خطأ');
-    });
+// ── Filter products ──
+function filterProducts() {
+  const q     = document.getElementById('searchInput').value.toLowerCase();
+  const cat   = document.getElementById('categoryFilter').value;
+  const stock = document.getElementById('stockFilter').value;
+
+  // Grid cards
+  document.querySelectorAll('.product-card').forEach(card => {
+    const matchQ = !q     || card.dataset.name.includes(q);
+    const matchC = !cat   || card.dataset.cat === cat;
+    const matchS = !stock || card.dataset.stock === stock;
+    card.style.display = (matchQ && matchC && matchS) ? '' : 'none';
+  });
+  // Table rows
+  document.querySelectorAll('#tableBody tr').forEach(row => {
+    const matchQ = !q     || row.dataset.name.includes(q);
+    const matchC = !cat   || row.dataset.cat === cat;
+    const matchS = !stock || row.dataset.stock === stock;
+    row.style.display = (matchQ && matchC && matchS) ? '' : 'none';
+  });
+}
+
+// ── Image previews ──
+function previewImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = document.getElementById('imgPreview');
+  img.src = URL.createObjectURL(file);
+  img.style.display = 'block';
+}
+function previewEditImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = document.getElementById('editImgPreview');
+  img.src = URL.createObjectURL(file);
+  img.style.display = 'block';
+}
+
+// ── Drag-over effect on upload area ──
+document.querySelectorAll('.img-upload-area').forEach(area => {
+  area.addEventListener('dragover',  e => { e.preventDefault(); area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop',      e => { e.preventDefault(); area.classList.remove('drag-over'); });
+});
+
+// ── Edit modal ──
+function openEditModal(id, name, price, stock, desc, catId, barcode) {
+  document.getElementById('editForm').action = `/admin/products/${id}/edit`;
+  document.getElementById('editName').value     = name;
+  document.getElementById('editPrice').value    = price;
+  document.getElementById('editStock').value    = stock;
+  document.getElementById('editDesc').value     = desc;
+  document.getElementById('editBarcode').value  = barcode;
+  document.getElementById('editImgPreview').style.display = 'none';
+  const catSel = document.getElementById('editCategory');
+  if (catId) catSel.value = catId; else catSel.value = '';
+  new bootstrap.Modal(document.getElementById('editProductModal')).show();
+}
+
+// ── Delete modal ──
+function openDeleteModal(id, name) {
+  document.getElementById('deleteForm').action = `/admin/products/${id}/delete`;
+  document.getElementById('deleteProductName').textContent = name;
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 </script>
 {% endblock %}

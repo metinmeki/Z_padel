@@ -1,75 +1,653 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z Padel - تسجيل الدخول</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <style>
-        :root { --brand: #0ea5e9; }
-        body { background: #0f172a; min-height: 100vh; display: flex; align-items: center; }
-        .login-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            padding: 2.5rem;
-        }
-        .brand { font-size: 2rem; font-weight: 900; color: var(--brand); letter-spacing: 2px; }
-        .form-control {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: #f1f5f9;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-        }
-        .form-control:focus {
-            background: #0f172a;
-            border-color: var(--brand);
-            color: #f1f5f9;
-            box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
-        }
-        .form-label { color: #94a3b8; font-size: 0.9rem; }
-        .btn-brand {
-            background: var(--brand);
-            border: none;
-            color: white;
-            font-weight: 700;
-            padding: 0.75rem;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        .btn-brand:hover { background: #0284c7; color: white; }
-        .alert-danger { background: #450a0a; border: 1px solid #991b1b; color: #fca5a5; border-radius: 8px; }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تسجيل الدخول — Z Padel</title>
+
+  <!-- Bootstrap 5 RTL -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Google Fonts: Syne (display) + Cairo (body) -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ════════════════════════════════════
+       VARIABLES
+    ════════════════════════════════════ */
+    :root {
+      --blue-deep:   #0A1F4E;
+      --blue-dark:   #0D47A1;
+      --blue-main:   #1565C0;
+      --blue-light:  #1E88E5;
+      --blue-soft:   #E3F0FF;
+      --accent:      #00B0FF;
+      --accent-glow: rgba(0,176,255,0.45);
+      --white:       #FFFFFF;
+      --off-white:   #F4F8FF;
+      --text-dark:   #0A1F4E;
+      --text-muted:  #6B8BB5;
+      --border:      #D0E4F7;
+      --radius:      16px;
+      --radius-sm:   10px;
+      --transition:  all 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ════════════════════════════════════
+       RESET
+    ════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: 'Cairo', sans-serif;
+      background: var(--blue-deep);
+    }
+
+    /* ════════════════════════════════════
+       KEYFRAMES
+    ════════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(28px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity:0; } to { opacity:1; }
+    }
+    @keyframes float {
+      0%,100% { transform:translateY(0) rotate(0deg); }
+      50%     { transform:translateY(-18px) rotate(3deg); }
+    }
+    @keyframes floatReverse {
+      0%,100% { transform:translateY(0) rotate(0deg); }
+      50%     { transform:translateY(14px) rotate(-2deg); }
+    }
+    @keyframes pulse {
+      0%,100% { opacity:0.5; transform:scale(1); }
+      50%     { opacity:1;   transform:scale(1.05); }
+    }
+    @keyframes spin-slow {
+      from { transform:rotate(0deg); }
+      to   { transform:rotate(360deg); }
+    }
+    @keyframes shimmer {
+      0%   { background-position:-200% 0; }
+      100% { background-position:200% 0; }
+    }
+    @keyframes ripple {
+      0%   { transform:scale(0); opacity:0.6; }
+      100% { transform:scale(4); opacity:0; }
+    }
+    @keyframes dash {
+      from { stroke-dashoffset: 800; }
+      to   { stroke-dashoffset: 0; }
+    }
+
+    /* ════════════════════════════════════
+       LAYOUT — split screen
+    ════════════════════════════════════ */
+    .login-wrap {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      height: 100vh;
+    }
+
+    /* ════════════════════════════════════
+       LEFT PANEL — visual
+    ════════════════════════════════════ */
+    .visual-panel {
+      position: relative;
+      background: linear-gradient(145deg, var(--blue-deep) 0%, var(--blue-dark) 55%, var(--blue-main) 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden; padding: 48px;
+    }
+
+    /* Mesh gradient blobs */
+    .blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(60px); pointer-events: none;
+    }
+    .blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,176,255,0.20) 0%, transparent 70%);
+      top: -120px; right: -120px;
+      animation: pulse 6s ease-in-out infinite;
+    }
+    .blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(21,101,192,0.25) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+      animation: pulse 8s ease-in-out infinite 2s;
+    }
+    .blob-3 {
+      width: 250px; height: 250px;
+      background: radial-gradient(circle, rgba(0,176,255,0.15) 0%, transparent 70%);
+      top: 50%; left: 50%; transform:translate(-50%,-50%);
+      animation: pulse 5s ease-in-out infinite 1s;
+    }
+
+    /* Rotating ring */
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0,176,255,0.12);
+      pointer-events: none;
+    }
+    .ring-1 { width:600px; height:600px; top:50%; left:50%; transform:translate(-50%,-50%); animation:spin-slow 40s linear infinite; }
+    .ring-2 { width:450px; height:450px; top:50%; left:50%; transform:translate(-50%,-50%); animation:spin-slow 25s linear infinite reverse; border-style:dashed; }
+    .ring-3 { width:280px; height:280px; top:50%; left:50%; transform:translate(-50%,-50%); animation:spin-slow 18s linear infinite; }
+
+    /* Grid dots pattern */
+    .grid-dots {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+    }
+
+    /* Centre icon */
+    .visual-icon-wrap {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+      animation: fadeIn 1s ease 0.3s both;
+    }
+    .visual-icon-bg {
+      width: 120px; height: 120px;
+      background: linear-gradient(135deg, rgba(0,176,255,0.25), rgba(30,136,229,0.15));
+      border-radius: 32px;
+      border: 1px solid rgba(0,176,255,0.30);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 52px; color: var(--accent);
+      margin-bottom: 28px;
+      box-shadow: 0 0 60px rgba(0,176,255,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+      animation: float 5s ease-in-out infinite;
+    }
+    .visual-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 48px; font-weight: 800;
+      color: white; line-height: 1.05;
+      letter-spacing: -1px;
+      text-shadow: 0 2px 30px rgba(0,176,255,0.30);
+    }
+    .visual-title span { color: var(--accent); }
+    .visual-sub {
+      font-size: 15px; color: rgba(255,255,255,0.55);
+      margin-top: 12px; font-weight: 400; max-width: 320px;
+      line-height: 1.6;
+    }
+
+    /* Floating stat cards */
+    .float-stat {
+      position: absolute; z-index: 3;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      color: white;
+    }
+    .float-stat-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(0,176,255,0.20);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--accent); flex-shrink: 0;
+    }
+    .float-stat-val  { font-size: 17px; font-weight: 800; color: white; line-height: 1; }
+    .float-stat-lbl  { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+    .stat-a { bottom: 22%; right: 6%; animation: floatReverse 6s ease-in-out infinite; }
+    .stat-b { top: 22%;    right: 6%; animation: float 7s ease-in-out infinite 1s; }
+    .stat-c { bottom: 12%; left: 6%;  animation: float 5.5s ease-in-out infinite 0.5s; }
+
+    /* SVG court lines decoration */
+    .court-svg {
+      position: absolute; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 340px; opacity: 0.07; pointer-events: none;
+    }
+    .court-svg path {
+      stroke: white; fill: none; stroke-width: 1.5;
+      stroke-dasharray: 800;
+      animation: dash 4s ease forwards 1s;
+    }
+
+    /* ════════════════════════════════════
+       RIGHT PANEL — form
+    ════════════════════════════════════ */
+    .form-panel {
+      background: var(--white);
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 48px 44px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle background texture */
+    .form-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 0% 0%, rgba(21,101,192,0.05) 0%, transparent 60%),
+                  radial-gradient(ellipse at 100% 100%, rgba(0,176,255,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Form content */
+    .form-inner { position: relative; z-index: 1; }
+
+    /* Brand */
+    .form-brand {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .form-brand-icon {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue-main));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: white;
+      box-shadow: 0 4px 16px rgba(21,101,192,0.35);
+    }
+    .form-brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px; font-weight: 800;
+      color: var(--text-dark); letter-spacing: -0.5px;
+    }
+    .form-brand-sub { font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+
+    /* Heading */
+    .form-heading {
+      margin-bottom: 32px;
+      animation: fadeUp 0.5s ease 0.1s both;
+    }
+    .form-heading h1 {
+      font-size: 28px; font-weight: 900;
+      color: var(--text-dark); line-height: 1.15;
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+    .form-heading p { font-size: 13.5px; color: var(--text-muted); }
+
+    /* Flash messages */
+    .flash-msg {
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; gap: 9px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.3s ease both;
+    }
+    .flash-msg.error   { background: rgba(229,57,53,0.09); border:1px solid rgba(229,57,53,0.22); color:#C62828; }
+    .flash-msg.success { background: rgba(67,160,71,0.09); border:1px solid rgba(67,160,71,0.22); color:#2E7D32; }
+    .flash-msg.info    { background: var(--blue-soft); border:1px solid rgba(21,101,192,0.20); color:var(--blue-dark); }
+
+    /* Input group */
+    .input-group-z {
+      margin-bottom: 20px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .input-group-z label {
+      display: block; font-size: 13px; font-weight: 700;
+      color: var(--text-dark); margin-bottom: 8px;
+    }
+    .input-wrap {
+      position: relative; display: flex; align-items: center;
+    }
+    .input-icon {
+      position: absolute; right: 14px;
+      color: var(--text-muted); font-size: 15px;
+      pointer-events: none; transition: var(--transition);
+    }
+    .input-z {
+      width: 100%; padding: 13px 44px 13px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Cairo', sans-serif; font-size: 14px;
+      color: var(--text-dark); background: var(--off-white);
+      outline: none; transition: var(--transition);
+    }
+    .input-z:focus {
+      border-color: var(--blue-light);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(30,136,229,0.10);
+    }
+    .input-z:focus ~ .input-icon { color: var(--blue-light); }
+    .input-z::placeholder { color: #B8CCDF; }
+
+    /* Password toggle */
+    .pwd-toggle {
+      position: absolute; left: 14px;
+      color: var(--text-muted); font-size: 15px;
+      cursor: pointer; transition: var(--transition);
+      background: none; border: none; padding: 0;
+    }
+    .pwd-toggle:hover { color: var(--blue-light); }
+
+    /* Remember me row */
+    .remember-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+      animation: fadeUp 0.5s ease 0.25s both;
+    }
+    .remember-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-muted);
+      cursor: pointer; user-select: none;
+    }
+    .remember-label input[type=checkbox] {
+      accent-color: var(--blue-main);
+      width: 16px; height: 16px;
+    }
+    .forgot-link {
+      font-size: 13px; font-weight: 600;
+      color: var(--blue-light); text-decoration: none;
+      transition: var(--transition);
+    }
+    .forgot-link:hover { color: var(--blue-dark); text-decoration: underline; }
+
+    /* Submit button */
+    .btn-login {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue-main));
+      color: white; border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Cairo', sans-serif;
+      font-size: 15px; font-weight: 800;
+      cursor: pointer; transition: var(--transition);
+      position: relative; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(21,101,192,0.35);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      animation: fadeUp 0.5s ease 0.3s both;
+      letter-spacing: 0.3px;
+    }
+    .btn-login::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg,
+        transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s ease infinite;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(21,101,192,0.45);
+    }
+    .btn-login:active { transform: translateY(0); }
+
+    /* Ripple on click */
+    .btn-login .ripple {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.30);
+      width: 60px; height: 60px;
+      margin-top: -30px; margin-left: -30px;
+      animation: ripple 0.6s ease forwards;
+      pointer-events: none;
+    }
+
+    /* Loading state */
+    .btn-login.loading .btn-text { opacity: 0; }
+    .btn-login.loading::after {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin-slow 0.7s linear infinite;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0;
+      animation: fadeUp 0.5s ease 0.35s both;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .divider span { font-size: 12px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+
+    /* Back to site link */
+    .back-link {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      color: var(--text-muted); text-decoration: none;
+      font-size: 13px; font-weight: 600;
+      padding: 11px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      animation: fadeUp 0.5s ease 0.4s both;
+    }
+    .back-link:hover {
+      background: var(--blue-soft); border-color: var(--blue-light);
+      color: var(--blue-dark);
+    }
+
+    /* Footer */
+    .form-footer {
+      margin-top: 36px; text-align: center;
+      font-size: 12px; color: var(--text-muted);
+      animation: fadeUp 0.5s ease 0.45s both;
+    }
+    .form-footer a { color: var(--blue-light); text-decoration: none; font-weight: 600; }
+
+    /* ════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .login-wrap { grid-template-columns: 1fr; overflow-y:auto; }
+      .visual-panel { min-height: 260px; padding: 32px 24px; }
+      .visual-title { font-size: 32px; }
+      .visual-icon-bg { width:80px; height:80px; font-size:34px; margin-bottom:16px; }
+      .float-stat { display:none; }
+      .ring { display:none; }
+      .form-panel { padding: 36px 28px; }
+      html,body { overflow:auto; }
+    }
+    @media (max-width: 480px) {
+      .form-panel { padding: 28px 20px; }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5 col-sm-10">
-                <div class="login-card">
-                    <div class="text-center mb-4">
-                        <div class="brand">Z PADEL</div>
-                        <p class="text-secondary mt-1">لوحة الإدارة</p>
-                    </div>
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            <div class="alert alert-danger">{{ messages[0] }}</div>
-                        {% endif %}
-                    {% endwith %}
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label class="form-label">اسم المستخدم</label>
-                            <input type="text" name="username" class="form-control" required autofocus>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label">كلمة المرور</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-brand w-100">دخول</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="login-wrap">
+
+  <!-- ════ VISUAL PANEL ════ -->
+  <div class="visual-panel">
+    <div class="grid-dots"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+
+    <!-- SVG court decoration -->
+    <svg class="court-svg" viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10,10 L330,10 L330,190 L10,190 Z M10,100 L330,100 M170,10 L170,190 M60,10 L60,190 M280,10 L280,190 M10,55 L60,55 M280,55 L330,55 M10,145 L60,145 M280,145 L330,145"/>
+    </svg>
+
+    <!-- Main visual content -->
+    <div class="visual-icon-wrap">
+      <div class="visual-icon-bg">
+        <i class="fas fa-table-tennis-paddle-ball"></i>
+      </div>
+      <div class="visual-title">Z <span>Padel</span></div>
+      <div class="visual-sub">نظام إدارة متكامل للحجوزات والملاعب والمبيعات</div>
     </div>
+
+    <!-- Floating stat cards -->
+    <div class="float-stat stat-a">
+      <div class="float-stat-icon"><i class="fas fa-calendar-check"></i></div>
+      <div>
+        <div class="float-stat-val">{{ today_bookings|default('24') }}</div>
+        <div class="float-stat-lbl">حجز اليوم</div>
+      </div>
+    </div>
+
+    <div class="float-stat stat-b">
+      <div class="float-stat-icon"><i class="fas fa-shield-halved"></i></div>
+      <div>
+        <div class="float-stat-val">{{ courts_count|default('2') }}</div>
+        <div class="float-stat-lbl">ملعب نشط</div>
+      </div>
+    </div>
+
+    <div class="float-stat stat-c">
+      <div class="float-stat-icon"><i class="fas fa-coins"></i></div>
+      <div>
+        <div class="float-stat-val">{{ month_revenue_k|default('1.2M') }}</div>
+        <div class="float-stat-lbl">إيراد الشهر</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ FORM PANEL ════ -->
+  <div class="form-panel">
+    <div class="form-inner">
+
+      <!-- Brand -->
+      <div class="form-brand">
+        <div class="form-brand-icon">
+          <i class="fas fa-table-tennis-paddle-ball"></i>
+        </div>
+        <div>
+          <div class="form-brand-name">Z Padel</div>
+          <div class="form-brand-sub">لوحة إدارة النظام</div>
+        </div>
+      </div>
+
+      <!-- Heading -->
+      <div class="form-heading">
+        <h1>مرحباً بعودتك 👋</h1>
+        <p>أدخل بياناتك للوصول إلى لوحة الإدارة</p>
+      </div>
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash-msg {{ 'error' if category == 'danger' else category }}">
+              <i class="fas fa-{{ 'circle-xmark' if category == 'danger' else 'circle-check' if category == 'success' else 'circle-info' }}"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Login form -->
+      <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <!-- Username -->
+        <div class="input-group-z" style="animation-delay:0.15s;">
+          <label for="username">اسم المستخدم</label>
+          <div class="input-wrap">
+            <input type="text" name="username" id="username"
+                   class="input-z" required autocomplete="username"
+                   placeholder="أدخل اسم المستخدم"
+                   value="{{ request.form.get('username','') }}"/>
+            <i class="fas fa-user input-icon"></i>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="input-group-z" style="animation-delay:0.20s;">
+          <label for="password">كلمة المرور</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="password"
+                   class="input-z" required autocomplete="current-password"
+                   placeholder="••••••••"/>
+            <i class="fas fa-lock input-icon"></i>
+            <button type="button" class="pwd-toggle" id="pwdToggle"
+                    onclick="togglePwd()" title="إظهار / إخفاء">
+              <i class="fas fa-eye" id="pwdEyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember + Forgot -->
+        <div class="remember-row">
+          <label class="remember-label">
+            <input type="checkbox" name="remember" id="remember"/>
+            تذكرني
+          </label>
+          <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">نسيت كلمة المرور؟</a>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-login" id="loginBtn">
+          <i class="fas fa-arrow-right-to-bracket btn-text"></i>
+          <span class="btn-text">دخول إلى لوحة الإدارة</span>
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="divider"><span>أو</span></div>
+
+      <!-- Back to site -->
+      <a href="{{ url_for('main.index') }}" class="back-link">
+        <i class="fas fa-globe"></i>
+        العودة إلى الموقع الرئيسي
+      </a>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        Z Padel &copy; {{ 2025 }} — جميع الحقوق محفوظة
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end login-wrap -->
+
+<script>
+// ── Show/hide password ──
+function togglePwd() {
+  const input = document.getElementById('password');
+  const icon  = document.getElementById('pwdEyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+
+// ── Loading state + ripple on submit ──
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  const btn = document.getElementById('loginBtn');
+  // Ripple effect
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  const rect = btn.getBoundingClientRect();
+  ripple.style.left = (e.clientX - rect.left) + 'px';
+  ripple.style.top  = (e.clientY - rect.top)  + 'px';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 700);
+  // Loading state after short delay (let ripple show)
+  setTimeout(() => btn.classList.add('loading'), 200);
+});
+
+// ── Focus animation on inputs ──
+document.querySelectorAll('.input-z').forEach(input => {
+  input.addEventListener('focus', function() {
+    this.closest('.input-wrap').style.transform = 'scale(1.01)';
+    this.closest('.input-wrap').style.transition = 'transform 0.2s ease';
+  });
+  input.addEventListener('blur', function() {
+    this.closest('.input-wrap').style.transform = 'scale(1)';
+  });
+});
+
+// ── Auto-focus username ──
+document.getElementById('username').focus();
+</script>
+
 </body>
 </html>

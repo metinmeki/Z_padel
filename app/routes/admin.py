@@ -1,444 +1,974 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required
-from app.models import Court, Booking
-from app.models.store import Product, Order, OrderItem
-from app import db
-from datetime import date, datetime, time
-import os
+import os, uuid
+from datetime import datetime, date, timedelta
+from flask import (Blueprint, render_template, redirect, url_for,
+                   request, flash, current_app, send_file)
+from flask_login import login_required, current_user
+from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
+from sqlalchemy import func
+from app import db
+from app.models.main  import (Admin, Court, Booking, CancelRequest,
+                               Coach, TrainingRequest, SystemSetting)
+from app.models.store import (Category, Product, Order, OrderItem,
+                               Expense, ExpenseCategory)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+admin_bp = Blueprint('admin', __name__)
 
+# ── helpers ──
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return ('.' in filename and
+            filename.rsplit('.', 1)[1].lower()
+            in current_app.config['ALLOWED_EXTENSIONS'])
 
-admin = Blueprint('admin', __name__)
+def save_upload(file, folder_key='UPLOAD_FOLDER'):
+    if file and allowed_file(file.filename):
+        ext  = file.filename.rsplit('.', 1)[1].lower()
+        name = f"{uuid.uuid4().hex}.{ext}"
+        path = os.path.join(current_app.config[folder_key], name)
+        file.save(path)
+        return name
+    return None
+
+def admin_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_active:
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated
 
 
-# ─────────────────────────────────────────────
-#  DASHBOARD
-# ─────────────────────────────────────────────
-@admin.route('/')
+# ════════════════════════════════════════════
+# DASHBOARD
+# ════════════════════════════════════════════
+@admin_bp.route('/')
+@admin_bp.route('/dashboard')
 @login_required
 def dashboard():
-    total_courts       = Court.query.count()
-    total_bookings     = Booking.query.count()
-    confirmed_bookings = Booking.query.filter_by(status='confirmed').count()
-    pending_bookings   = Booking.query.filter_by(status='pending').count()
-    recent_bookings    = Booking.query.order_by(Booking.created_at.desc()).limit(10).all()
+    today = date.today()
+    now_h = datetime.now().hour
+
+    total_bookings   = Booking.query.count()
+    today_bookings   = Booking.query.filter_by(booking_date=today).count()
+    pending_count    = Booking.query.filter_by(status='pending').count()
+    confirmed_count  = Booking.query.filter_by(status='confirmed').count()
+    cancelled_count  = Booking.query.filter_by(status='cancelled').count()
+    total_orders     = Order.query.count()
+
+    today_revenue = (db.session.query(func.sum(Booking.total_price))
+                     .filter(Booking.booking_date == today,
+                             Booking.status == 'confirmed').scalar() or 0)
+
+    month_start   = today.replace(day=1)
+    month_revenue = (db.session.query(func.sum(Booking.total_price))
+                     .filter(Booking.booking_date >= month_start,
+                             Booking.status == 'confirmed').scalar() or 0)
+
+    week_start    = today - timedelta(days=6)
+    week_revenue  = (db.session.query(func.sum(Booking.total_price))
+                     .filter(Booking.booking_date >= week_start,
+                             Booking.status == 'confirmed').scalar() or 0)
+
+    store_revenue = (db.session.query(func.sum(Order.total_price))
+                     .filter_by(status='completed').scalar() or 0)
+
+    courts          = Court.query.filter_by(is_active=True).all()
+    recent_bookings = (Booking.query.order_by(Booking.created_at.desc())
+                       .limit(8).all())
+
+    # Chart data — last 7 days
+    week_labels, week_data, week_revenue_data = [], [], []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        week_labels.append(d.strftime('%a'))
+        cnt = Booking.query.filter_by(booking_date=d, status='confirmed').count()
+        rev = (db.session.query(func.sum(Booking.total_price))
+               .filter_by(booking_date=d, status='confirmed').scalar() or 0)
+        week_data.append(cnt)
+        week_revenue_data.append(int(rev))
+
     return render_template('admin/dashboard.html',
-        total_courts=total_courts,
-        total_bookings=total_bookings,
-        confirmed_bookings=confirmed_bookings,
-        pending_bookings=pending_bookings,
-        recent_bookings=recent_bookings
+        total_bookings=total_bookings, today_bookings=today_bookings,
+        pending_count=pending_count, confirmed_count=confirmed_count,
+        cancelled_count=cancelled_count, total_orders=total_orders,
+        today_revenue=today_revenue, month_revenue=month_revenue,
+        week_revenue=week_revenue, store_revenue=store_revenue,
+        courts=courts, recent_bookings=recent_bookings,
+        current_hour=now_h,
+        week_labels=week_labels, week_data=week_data,
+        week_revenue_data=week_revenue_data,
     )
 
 
-# Pending requests
-
-@admin.route('/requests')
+# ════════════════════════════════════════════
+# BOOKINGS
+# ════════════════════════════════════════════
+@admin_bp.route('/bookings')
 @login_required
-def pending_requests():
-    requests = Booking.query.filter_by(status='pending') \
-        .order_by(Booking.created_at.asc()).all()
-    return render_template('admin/pending_requests.html', requests=requests)
+def bookings():
+    q = Booking.query
+    if request.args.get('date'):
+        q = q.filter_by(booking_date=datetime.strptime(request.args['date'], '%Y-%m-%d').date())
+    if request.args.get('court_id'):
+        q = q.filter_by(court_id=request.args['court_id'])
+    if request.args.get('status'):
+        q = q.filter_by(status=request.args['status'])
 
-# ─────────────────────────────────────────────
-#  COURTS
-# ─────────────────────────────────────────────
-@admin.route('/courts')
+    page     = request.args.get('page', 1, type=int)
+    pag      = q.order_by(Booking.booking_date.desc(), Booking.start_time.asc()).paginate(page=page, per_page=20)
+    courts   = Court.query.filter_by(is_active=True).all()
+    today    = date.today().isoformat()
+    return render_template('admin/bookings.html',
+        bookings=pag.items, pagination=pag,
+        courts=courts, today=today, court_price=25000)
+
+
+@admin_bp.route('/bookings/add', methods=['POST'])
+@login_required
+def add_booking():
+    try:
+        court  = Court.query.get_or_404(request.form['court_id'])
+        b_date = datetime.strptime(request.form['booking_date'], '%Y-%m-%d').date()
+        s_time = datetime.strptime(request.form['start_time'], '%H:%M').time()
+        e_time = datetime.strptime(request.form['end_time'],   '%H:%M').time()
+
+        bk = Booking(
+            court_id=court.id,
+            customer_name=request.form['customer_name'],
+            customer_phone=request.form['customer_phone'],
+            booking_date=b_date,
+            start_time=s_time,
+            end_time=e_time,
+            status=request.form.get('status', 'confirmed'),
+            notes=request.form.get('notes', ''),
+        )
+        bk.total_price = bk.calc_price(court.price_per_hour)
+        db.session.add(bk)
+        db.session.commit()
+        flash('تم إضافة الحجز بنجاح.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'حدث خطأ: {e}', 'danger')
+    return redirect(url_for('admin.bookings'))
+
+
+@admin_bp.route('/bookings/<int:booking_id>')
+@login_required
+def booking_detail(booking_id):
+    b = Booking.query.get_or_404(booking_id)
+    return render_template('admin/booking_detail.html', booking=b)
+
+
+@admin_bp.route('/bookings/<int:booking_id>/edit', methods=['POST'])
+@login_required
+def edit_booking(booking_id):
+    b = Booking.query.get_or_404(booking_id)
+    try:
+        b.customer_name  = request.form.get('customer_name', b.customer_name)
+        b.customer_phone = request.form.get('customer_phone', b.customer_phone)
+        b.status         = request.form.get('status', b.status)
+        b.notes          = request.form.get('notes', b.notes)
+        db.session.commit()
+        flash('تم تحديث الحجز.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'danger')
+    return redirect(url_for('admin.bookings'))
+
+
+@admin_bp.route('/bookings/<int:booking_id>/confirm', methods=['POST'])
+@login_required
+def confirm_booking(booking_id):
+    b = Booking.query.get_or_404(booking_id)
+    b.status = 'confirmed'
+    db.session.commit()
+    flash('تم تأكيد الحجز.', 'success')
+    return redirect(url_for('admin.pending_bookings'))
+
+
+@admin_bp.route('/bookings/<int:booking_id>/reject', methods=['POST'])
+@login_required
+def reject_booking(booking_id):
+    b = Booking.query.get_or_404(booking_id)
+    b.status = 'cancelled'
+    db.session.commit()
+    flash('تم رفض الحجز.', 'success')
+    return redirect(url_for('admin.pending_bookings'))
+
+
+@admin_bp.route('/bookings/<int:booking_id>/cancel', methods=['POST'])
+@login_required
+def cancel_booking(booking_id):
+    b = Booking.query.get_or_404(booking_id)
+    b.status = 'cancelled'
+    db.session.commit()
+    flash('تم إلغاء الحجز.', 'success')
+    return redirect(url_for('admin.bookings'))
+
+
+@admin_bp.route('/bookings/confirm-all-pending')
+@login_required
+def confirm_all_pending():
+    Booking.query.filter_by(status='pending').update({'status': 'confirmed'})
+    db.session.commit()
+    flash('تم تأكيد جميع الحجوزات المعلقة.', 'success')
+    return redirect(url_for('admin.pending_bookings'))
+
+
+@admin_bp.route('/pending-bookings')
+@login_required
+def pending_bookings():
+    pending  = Booking.query.filter_by(status='pending').order_by(Booking.created_at.asc()).all()
+    courts   = Court.query.filter_by(is_active=True).all()
+    today    = date.today()
+    urgent   = sum(1 for b in pending if b.waiting_minutes > 120)
+    today_p  = sum(1 for b in pending if b.booking_date == today)
+    conf_t   = Booking.query.filter(
+        Booking.status == 'confirmed',
+        Booking.updated_at >= datetime.combine(today, datetime.min.time())
+    ).count()
+    return render_template('admin/pending_bookings.html',
+        pending_bookings=pending, courts=courts,
+        urgent_count=urgent, today_pending=today_p, confirmed_today=conf_t)
+
+
+# ════════════════════════════════════════════
+# CANCEL REQUESTS
+# ════════════════════════════════════════════
+@admin_bp.route('/cancel-requests')
+@login_required
+def cancel_requests():
+    reqs = CancelRequest.query.order_by(CancelRequest.created_at.desc()).all()
+    approved_count = CancelRequest.query.filter_by(status='approved').count()
+    rejected_count = CancelRequest.query.filter_by(status='rejected').count()
+    return render_template('admin/cancel_requests.html',
+        cancel_requests=reqs,
+        approved_count=approved_count,
+        rejected_count=rejected_count)
+
+
+@admin_bp.route('/cancel-requests/<int:req_id>/approve', methods=['POST'])
+@login_required
+def approve_cancel(req_id):
+    cr = CancelRequest.query.get_or_404(req_id)
+    cr.status = 'approved'
+    cr.booking.status = 'cancelled'
+    db.session.commit()
+    flash('تم قبول طلب الإلغاء.', 'success')
+    return redirect(url_for('admin.cancel_requests'))
+
+
+@admin_bp.route('/cancel-requests/<int:req_id>/reject', methods=['POST'])
+@login_required
+def reject_cancel(req_id):
+    cr = CancelRequest.query.get_or_404(req_id)
+    cr.status = 'rejected'
+    db.session.commit()
+    flash('تم رفض طلب الإلغاء.', 'success')
+    return redirect(url_for('admin.cancel_requests'))
+
+
+# ════════════════════════════════════════════
+# COURTS
+# ════════════════════════════════════════════
+@admin_bp.route('/courts')
 @login_required
 def courts():
     all_courts = Court.query.all()
-    return render_template('admin/courts.html', courts=all_courts)
+    total_today = sum(len(c.today_booked_slots) for c in all_courts)
+    total_slots = len(all_courts) * 18
+    occ = round(total_today / total_slots * 100) if total_slots else 0
+    return render_template('admin/courts.html',
+        courts=all_courts,
+        total_today_bookings=total_today,
+        occupancy_rate=occ,
+        current_hour=datetime.now().hour)
 
 
-@admin.route('/courts/add', methods=['GET', 'POST'])
+@admin_bp.route('/courts/add', methods=['POST'])
 @login_required
 def add_court():
-    if request.method == 'POST':
-        name           = request.form.get('name')
-        description    = request.form.get('description')
-        price          = request.form.get('price_per_hour')
-        image_filename = None
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and allowed_file(file.filename):
-                image_filename = secure_filename(file.filename)
-                file.save(os.path.join('app/static/images', image_filename))
-        court = Court(
-            name=name,
-            description=description,
-            price_per_hour=float(price),
-            image=image_filename
-        )
-        db.session.add(court)
-        db.session.commit()
-        flash('تم إضافة الملعب بنجاح')
-        return redirect(url_for('admin.courts'))
-    return render_template('admin/add_court.html')
-
-
-@admin.route('/courts/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-def edit_court(id):
-    court = Court.query.get_or_404(id)
-    if request.method == 'POST':
-        court.name           = request.form.get('name')
-        court.description    = request.form.get('description')
-        court.price_per_hour = float(request.form.get('price_per_hour'))
-        court.is_active      = 'is_active' in request.form
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and allowed_file(file.filename):
-                image_filename = secure_filename(file.filename)
-                file.save(os.path.join('app/static/images', image_filename))
-                court.image = image_filename
-        db.session.commit()
-        flash('تم تحديث الملعب بنجاح')
-        return redirect(url_for('admin.courts'))
-    return render_template('admin/edit_court.html', court=court)
-
-
-@admin.route('/courts/delete/<int:id>')
-@login_required
-def delete_court(id):
-    court = Court.query.get_or_404(id)
-    db.session.delete(court)
+    court = Court(
+        name=request.form['name'],
+        price_per_hour=float(request.form.get('price_per_hour', 25000)),
+        color=request.form.get('color', '#1565C0'),
+        description=request.form.get('description', ''),
+        capacity=request.form.get('capacity') or None,
+        surface_type=request.form.get('surface_type', ''),
+    )
+    db.session.add(court)
     db.session.commit()
-    flash('تم حذف الملعب')
+    flash('تم إضافة الملعب بنجاح.', 'success')
     return redirect(url_for('admin.courts'))
 
 
-# ─────────────────────────────────────────────
-#  ALL BOOKINGS
-# ─────────────────────────────────────────────
-@admin.route('/bookings')
+@admin_bp.route('/courts/<int:court_id>/edit', methods=['POST'])
 @login_required
-def bookings():
-    date_from_str   = request.args.get('date_from', '')
-    date_to_str     = request.args.get('date_to', '')
-    single_date_str = request.args.get('single_date', '')
-    court_filter    = request.args.get('court_id', 'all')
-    status_filter   = request.args.get('status', 'all')
-    search          = request.args.get('search', '').strip()
-    page            = request.args.get('page', 1, type=int)
-    per_page        = 25
-
-    query = Booking.query
-
-    if single_date_str:
-        try:
-            sd = datetime.strptime(single_date_str, '%Y-%m-%d').date()
-            query = query.filter(Booking.date == sd)
-        except ValueError:
-            pass
-    else:
-        if date_from_str:
-            try:
-                query = query.filter(Booking.date >= datetime.strptime(date_from_str, '%Y-%m-%d').date())
-            except ValueError:
-                pass
-        if date_to_str:
-            try:
-                query = query.filter(Booking.date <= datetime.strptime(date_to_str, '%Y-%m-%d').date())
-            except ValueError:
-                pass
-
-    if court_filter != 'all':
-        query = query.filter(Booking.court_id == int(court_filter))
-    if status_filter != 'all':
-        query = query.filter(Booking.status == status_filter)
-    if search:
-        query = query.filter(
-            db.or_(
-                Booking.customer_name.ilike(f'%{search}%'),
-                Booking.customer_phone.ilike(f'%{search}%'),
-            )
-        )
-
-    query      = query.order_by(Booking.date.desc(), Booking.start_time.asc())
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    all_filtered = query.all()
-    stats = {
-        'total':     pagination.total,
-        'confirmed': sum(1 for b in all_filtered if b.status == 'confirmed'),
-        'pending':   sum(1 for b in all_filtered if b.status == 'pending'),
-        'cancelled': sum(1 for b in all_filtered if b.status in ('cancelled', 'rejected')),
-    }
-    all_courts = Court.query.all()
-
-    return render_template(
-        'admin/bookings.html',
-        bookings=pagination.items,
-        pagination=pagination,
-        courts=all_courts,
-        stats=stats,
-        date_from=date_from_str,
-        date_to=date_to_str,
-        single_date=single_date_str,
-        court_filter=court_filter,
-        status_filter=status_filter,
-        search=search,
-    )
-
-
-@admin.route('/bookings/add', methods=['GET', 'POST'])
-@login_required
-def add_booking():
-    courts = Court.query.filter_by(is_active=True).all()
-    if request.method == 'POST':
-        court_id   = request.form.get('court_id')
-        court      = Court.query.get(court_id)
-        date_str   = request.form.get('date')
-        start_str  = request.form.get('start_time')
-        end_str    = request.form.get('end_time')
-        bdate      = datetime.strptime(date_str, '%Y-%m-%d').date()
-        start_time = datetime.strptime(start_str, '%H:%M').time()
-        end_time   = datetime.strptime(end_str, '%H:%M').time()
-        hours      = (datetime.combine(bdate, end_time) - datetime.combine(bdate, start_time)).seconds / 3600
-        total      = hours * court.price_per_hour
-        booking = Booking(
-            customer_name=request.form.get('customer_name'),
-            customer_phone=request.form.get('customer_phone'),
-            court_id=court_id,
-            date=bdate,
-            start_time=start_time,
-            end_time=end_time,
-            total_price=total,
-            status='confirmed',
-            notes=request.form.get('notes')
-        )
-        db.session.add(booking)
-        db.session.commit()
-        flash('تم إضافة الحجز بنجاح')
-        return redirect(url_for('admin.bookings'))
-    return render_template('admin/add_booking.html', courts=courts)
-
-
-@admin.route('/bookings/status/<int:id>/<status>')
-@login_required
-def update_booking_status(id, status):
-    booking = Booking.query.get_or_404(id)
-    booking.status = status
+def edit_court(court_id):
+    c = Court.query.get_or_404(court_id)
+    c.name           = request.form.get('name', c.name)
+    c.price_per_hour = float(request.form.get('price_per_hour', c.price_per_hour))
+    c.color          = request.form.get('color', c.color)
+    c.description    = request.form.get('description', c.description)
+    c.capacity       = request.form.get('capacity') or c.capacity
+    c.surface_type   = request.form.get('surface_type', c.surface_type)
     db.session.commit()
-    flash('تم تحديث حالة الحجز')
-    return redirect(url_for('admin.bookings'))
+    flash('تم تحديث الملعب.', 'success')
+    return redirect(url_for('admin.courts'))
 
 
-@admin.route('/bookings/<int:id>/approve', methods=['POST'])
+@admin_bp.route('/courts/<int:court_id>/toggle', methods=['POST'])
 @login_required
-def approve_booking(id):
-    booking = Booking.query.get_or_404(id)
-    booking.status = 'confirmed'
+def toggle_court(court_id):
+    c = Court.query.get_or_404(court_id)
+    c.is_active = not c.is_active
     db.session.commit()
-    return jsonify({'success': True})
+    return redirect(url_for('admin.courts'))
 
 
-@admin.route('/bookings/<int:id>/reject', methods=['POST'])
+@admin_bp.route('/courts/<int:court_id>/delete', methods=['POST'])
 @login_required
-def reject_booking(id):
-    data = request.get_json(silent=True) or {}
-    booking = Booking.query.get_or_404(id)
-    booking.status = 'rejected'
-    if hasattr(booking, 'rejection_reason'):
-        booking.rejection_reason = data.get('reason', '')
+def delete_court(court_id):
+    c = Court.query.get_or_404(court_id)
+    db.session.delete(c)
     db.session.commit()
-    return jsonify({'success': True})
+    flash('تم حذف الملعب.', 'success')
+    return redirect(url_for('admin.courts'))
 
 
-@admin.route('/bookings/<int:id>/delete', methods=['POST'])
-@login_required
-def delete_booking_ajax(id):
-    booking = Booking.query.get_or_404(id)
-    db.session.delete(booking)
-    db.session.commit()
-    return jsonify({'success': True})
-
-
-@admin.route('/bookings/delete/<int:id>')
-@login_required
-def delete_booking(id):
-    booking = Booking.query.get_or_404(id)
-    db.session.delete(booking)
-    db.session.commit()
-    flash('تم حذف الحجز')
-    return redirect(url_for('admin.bookings'))
-
-
-# ─────────────────────────────────────────────
-#  ORDERS (store)
-# ─────────────────────────────────────────────
-@admin.route('/orders')
-@login_required
-def orders():
-    status_filter = request.args.get('status', 'all')
-    query = Order.query
-    if status_filter != 'all':
-        query = query.filter(Order.status == status_filter)
-    all_orders = query.order_by(Order.created_at.desc()).all()
-    stats = {
-        'total':     Order.query.count(),
-        'pending':   Order.query.filter_by(status='pending').count(),
-        'ready':     Order.query.filter_by(status='ready').count(),
-        'done':      Order.query.filter_by(status='done').count(),
-        'cancelled': Order.query.filter_by(status='cancelled').count(),
-    }
-    return render_template('admin/orders.html', orders=all_orders, stats=stats, status_filter=status_filter)
-
-
-@admin.route('/orders/<int:order_id>/status', methods=['POST'])
-@login_required
-def update_order_status(order_id):
-    order  = Order.query.get_or_404(order_id)
-    data   = request.get_json(silent=True) or {}
-    status = data.get('status')
-    if status in ('pending', 'ready', 'done', 'cancelled'):
-        order.status = status
-        db.session.commit()
-        return jsonify({'success': True, 'status': status})
-    return jsonify({'success': False, 'message': 'Invalid status'})
-
-
-@admin.route('/orders/<int:order_id>/delete', methods=['POST'])
-@login_required
-def delete_order(order_id):
-    order = Order.query.get_or_404(order_id)
-    db.session.delete(order)
-    db.session.commit()
-    return jsonify({'success': True})
-
-
-# ─────────────────────────────────────────────
-#  PRODUCTS (store)
-# ─────────────────────────────────────────────
-PRODUCT_UPLOAD_FOLDER = 'app/static/images/products'
-
-def save_product_image(file):
-    if file and allowed_file(file.filename):
-        os.makedirs(PRODUCT_UPLOAD_FOLDER, exist_ok=True)
-        fname = secure_filename(file.filename)
-        file.save(os.path.join(PRODUCT_UPLOAD_FOLDER, fname))
-        return fname
-    return None
-
-
-@admin.route('/products')
+# ════════════════════════════════════════════
+# PRODUCTS
+# ════════════════════════════════════════════
+@admin_bp.route('/products')
 @login_required
 def products():
-    all_products = Product.query.order_by(Product.id.desc()).all()
-    return render_template('admin/products.html', products=all_products)
+    prods = Product.query.order_by(Product.created_at.desc()).all()
+    cats  = Category.query.all()
+    return render_template('admin/products.html', products=prods, categories=cats)
 
 
-@admin.route('/products/add', methods=['GET', 'POST'])
+@admin_bp.route('/products/add', methods=['POST'])
 @login_required
 def add_product():
-    if request.method == 'POST':
-        image = save_product_image(request.files.get('image'))
-        p = Product(
-            name        = request.form.get('name'),
-            description = request.form.get('description'),
-            price       = float(request.form.get('price', 0)),
-            stock       = int(request.form.get('stock', 0)),
-            is_active   = 'is_active' in request.form,
-            image       = image
-        )
-        db.session.add(p)
-        db.session.commit()
-        flash('تم إضافة المنتج')
-        return redirect(url_for('admin.products'))
-    return render_template('admin/product_form.html', product=None)
+    img = save_upload(request.files.get('image'))
+    p = Product(
+        name=request.form['name'],
+        category_id=request.form.get('category_id') or None,
+        price=float(request.form.get('price', 0)),
+        stock=int(request.form.get('stock', 0)),
+        description=request.form.get('description', ''),
+        barcode=request.form.get('barcode') or None,
+        image=img,
+    )
+    db.session.add(p)
+    db.session.commit()
+    flash('تم إضافة المنتج.', 'success')
+    return redirect(url_for('admin.products'))
 
 
-@admin.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+@admin_bp.route('/products/<int:product_id>/edit', methods=['POST'])
 @login_required
 def edit_product(product_id):
     p = Product.query.get_or_404(product_id)
-    if request.method == 'POST':
-        p.name        = request.form.get('name')
-        p.description = request.form.get('description')
-        p.price       = float(request.form.get('price', 0))
-        p.stock       = int(request.form.get('stock', 0))
-        p.is_active   = 'is_active' in request.form
-        new_image     = save_product_image(request.files.get('image'))
-        if new_image:
-            p.image = new_image
-        db.session.commit()
-        flash('تم تحديث المنتج')
-        return redirect(url_for('admin.products'))
-    return render_template('admin/product_form.html', product=p)
+    p.name        = request.form.get('name', p.name)
+    p.price       = float(request.form.get('price', p.price))
+    p.stock       = int(request.form.get('stock', p.stock))
+    p.description = request.form.get('description', p.description)
+    p.barcode     = request.form.get('barcode', p.barcode) or p.barcode
+    p.category_id = request.form.get('category_id') or p.category_id
+    new_img = save_upload(request.files.get('image'))
+    if new_img:
+        p.image = new_img
+    db.session.commit()
+    flash('تم تحديث المنتج.', 'success')
+    return redirect(url_for('admin.products'))
 
 
-@admin.route('/products/delete/<int:product_id>', methods=['POST'])
+@admin_bp.route('/products/<int:product_id>/delete', methods=['POST'])
 @login_required
 def delete_product(product_id):
     p = Product.query.get_or_404(product_id)
     db.session.delete(p)
     db.session.commit()
-    return jsonify({'success': True})
+    flash('تم حذف المنتج.', 'success')
+    return redirect(url_for('admin.products'))
 
 
-@admin.route('/products/toggle/<int:product_id>', methods=['POST'])
+# ════════════════════════════════════════════
+# CATEGORIES
+# ════════════════════════════════════════════
+@admin_bp.route('/categories')
 @login_required
-def toggle_product(product_id):
-    p = Product.query.get_or_404(product_id)
-    p.is_active = not p.is_active
+def categories():
+    cats = Category.query.all()
+    return render_template('admin/categories.html', categories=cats)
+
+
+@admin_bp.route('/categories/add', methods=['POST'])
+@login_required
+def add_category():
+    cat = Category(name=request.form['name'],
+                   color=request.form.get('color', '#1565C0'))
+    db.session.add(cat)
     db.session.commit()
-    return jsonify({'success': True, 'is_active': p.is_active})
+    flash('تم إضافة الفئة.', 'success')
+    return redirect(url_for('admin.categories'))
 
 
-@admin.route('/pos')
+@admin_bp.route('/categories/<int:cat_id>/delete', methods=['POST'])
 @login_required
-def pos():
-    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
-    return render_template('admin/pos.html', products=products)
+def delete_category(cat_id):
+    cat = Category.query.get_or_404(cat_id)
+    db.session.delete(cat)
+    db.session.commit()
+    flash('تم حذف الفئة.', 'success')
+    return redirect(url_for('admin.categories'))
 
 
-@admin.route('/pos/checkout', methods=['POST'])
+# ════════════════════════════════════════════
+# ORDERS
+# ════════════════════════════════════════════
+@admin_bp.route('/orders')
 @login_required
-def pos_checkout():
-    from app.models.store import Order, OrderItem
-    data = request.get_json(silent=True) or {}
+def orders():
+    q = Order.query
+    if request.args.get('status'):
+        q = q.filter_by(status=request.args['status'])
+    if request.args.get('date'):
+        d = datetime.strptime(request.args['date'], '%Y-%m-%d').date()
+        q = q.filter(func.date(Order.created_at) == d)
+    page = request.args.get('page', 1, type=int)
+    pag  = q.order_by(Order.created_at.desc()).paginate(page=page, per_page=20)
 
-    items = data.get('items', [])
-    total = data.get('total', 0)
-    cust_name = data.get('customer_name', 'زبون POS')
-    cust_phone = data.get('customer_phone', '—')
-    pay_method = data.get('pay_method', 'cash')
+    today      = date.today()
+    week_start = today - timedelta(days=6)
+    month_start = today.replace(day=1)
 
-    if not items:
-        return jsonify({'success': False, 'message': 'لا توجد منتجات'})
+    def rev(filter_):
+        return (db.session.query(func.sum(Order.total_price))
+                .filter(Order.status == 'completed', filter_).scalar() or 0)
 
-    try:
-        order = Order(
-            customer_name=cust_name,
-            customer_phone=cust_phone,
-            total_price=total,
-            status='done',  # POS orders are instant
-            source='pos',
-            notes=f'دفع: {pay_method}'
+    top_products = (db.session.query(Product.name,
+                    func.sum(OrderItem.quantity).label('sold'))
+                    .join(OrderItem).group_by(Product.id)
+                    .order_by(func.sum(OrderItem.quantity).desc())
+                    .limit(5).all())
+
+    week_labels, week_rev_data = [], []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        week_labels.append(d.strftime('%a'))
+        r = (db.session.query(func.sum(Order.total_price))
+             .filter(Order.status == 'completed',
+                     func.date(Order.created_at) == d).scalar() or 0)
+        week_rev_data.append(int(r))
+
+    return render_template('admin/orders.html',
+        orders=pag.items, pagination=pag,
+        total_revenue=rev(True),
+        today_revenue=rev(func.date(Order.created_at) == today),
+        week_revenue=rev(func.date(Order.created_at) >= week_start),
+        month_revenue=rev(func.date(Order.created_at) >= month_start),
+        top_products=[{'name': p.name, 'sold': p.sold} for p in top_products],
+        week_labels=week_labels, week_revenue_data=week_rev_data,
+    )
+
+
+@admin_bp.route('/orders/<int:order_id>/status', methods=['POST'])
+@login_required
+def update_order_status(order_id):
+    o = Order.query.get_or_404(order_id)
+    o.status = request.form.get('status', o.status)
+    db.session.commit()
+    flash('تم تحديث حالة الطلب.', 'success')
+    return redirect(url_for('admin.orders'))
+
+
+@admin_bp.route('/orders/<int:order_id>/delete', methods=['POST'])
+@login_required
+def delete_order(order_id):
+    o = Order.query.get_or_404(order_id)
+    db.session.delete(o)
+    db.session.commit()
+    flash('تم حذف الطلب.', 'success')
+    return redirect(url_for('admin.orders'))
+
+
+@admin_bp.route('/orders/export')
+@login_required
+def export_orders():
+    flash('ميزة التصدير قيد التطوير.', 'info')
+    return redirect(url_for('admin.orders'))
+
+
+# ════════════════════════════════════════════
+# EXPENSES
+# ════════════════════════════════════════════
+@admin_bp.route('/expenses')
+@login_required
+def expenses():
+    q = Expense.query
+    if request.args.get('month'):
+        y, m = map(int, request.args['month'].split('-'))
+        from calendar import monthrange
+        last_day = monthrange(y, m)[1]
+        q = q.filter(Expense.date >= date(y, m, 1),
+                     Expense.date <= date(y, m, last_day))
+    page = request.args.get('page', 1, type=int)
+    pag  = q.order_by(Expense.date.desc()).paginate(page=page, per_page=20)
+
+    today       = date.today()
+    month_start = today.replace(day=1)
+    cats        = ExpenseCategory.query.all()
+
+    total_exp = db.session.query(func.sum(Expense.amount)).scalar() or 0
+    today_exp = (db.session.query(func.sum(Expense.amount))
+                 .filter(Expense.date == today).scalar() or 0)
+    month_exp = (db.session.query(func.sum(Expense.amount))
+                 .filter(Expense.date >= month_start).scalar() or 0)
+    total_rev = (db.session.query(func.sum(Booking.total_price))
+                 .filter_by(status='confirmed').scalar() or 0)
+
+    # Monthly trend — last 6 months
+    monthly_trend = []
+    for i in range(5, -1, -1):
+        d = today.replace(day=1) - timedelta(days=i * 28)
+        d = d.replace(day=1)
+        nm = d.replace(day=28) + timedelta(days=4)
+        nm = nm.replace(day=1)
+        total = (db.session.query(func.sum(Expense.amount))
+                 .filter(Expense.date >= d, Expense.date < nm).scalar() or 0)
+        monthly_trend.append({'label': d.strftime('%b'), 'total': total})
+
+    budget = float(SystemSetting.get('monthly_budget', 1_000_000))
+
+    return render_template('admin/expenses.html',
+        expenses=pag.items, pagination=pag,
+        expense_categories=cats,
+        total_expenses=total_exp, today_expenses=today_exp,
+        month_expenses=month_exp, total_revenue=total_rev,
+        monthly_trend=monthly_trend, monthly_budget=budget,
+        today=today.isoformat(),
+    )
+
+
+@admin_bp.route('/expenses/add', methods=['POST'])
+@login_required
+def add_expense():
+    receipt = save_upload(request.files.get('receipt'), 'RECEIPTS_FOLDER')
+    e = Expense(
+        description=request.form['description'],
+        amount=float(request.form['amount']),
+        date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
+        category_id=request.form.get('category_id') or None,
+        notes=request.form.get('notes', ''),
+        receipt=receipt,
+        added_by=current_user.username,
+    )
+    db.session.add(e)
+    db.session.commit()
+    flash('تم إضافة المصروف.', 'success')
+    return redirect(url_for('admin.expenses'))
+
+
+@admin_bp.route('/expenses/<int:exp_id>/edit', methods=['POST'])
+@login_required
+def edit_expense(exp_id):
+    e = Expense.query.get_or_404(exp_id)
+    e.description = request.form.get('description', e.description)
+    e.amount      = float(request.form.get('amount', e.amount))
+    e.date        = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+    e.category_id = request.form.get('category_id') or e.category_id
+    e.notes       = request.form.get('notes', e.notes)
+    db.session.commit()
+    flash('تم تحديث المصروف.', 'success')
+    return redirect(url_for('admin.expenses'))
+
+
+@admin_bp.route('/expenses/<int:exp_id>/delete', methods=['POST'])
+@login_required
+def delete_expense(exp_id):
+    e = Expense.query.get_or_404(exp_id)
+    db.session.delete(e)
+    db.session.commit()
+    flash('تم حذف المصروف.', 'success')
+    return redirect(url_for('admin.expenses'))
+
+
+@admin_bp.route('/expenses/export')
+@login_required
+def export_expenses():
+    flash('ميزة التصدير قيد التطوير.', 'info')
+    return redirect(url_for('admin.expenses'))
+
+
+# ════════════════════════════════════════════
+# REPORTS
+# ════════════════════════════════════════════
+@admin_bp.route('/reports')
+@login_required
+def reports():
+    today  = date.today()
+    period = request.args.get('period', 'month')
+
+    if period == 'today':
+        start = today
+    elif period == 'week':
+        start = today - timedelta(days=6)
+    elif period == 'year':
+        start = today.replace(month=1, day=1)
+    else:
+        start = today.replace(day=1)
+
+    bks = Booking.query.filter(Booking.booking_date >= start).all()
+    total_rev  = sum(b.total_price or 0 for b in bks if b.status == 'confirmed')
+    total_bks  = len(bks)
+    conf_bks   = sum(1 for b in bks if b.status == 'confirmed')
+    pend_bks   = sum(1 for b in bks if b.status == 'pending')
+    canc_bks   = sum(1 for b in bks if b.status == 'cancelled')
+    avg_val    = round(total_rev / conf_bks) if conf_bks else 0
+    disc_bks   = sum(1 for b in bks if b.is_discount_slot and b.status == 'confirmed')
+    disc_rev   = sum(b.total_price or 0 for b in bks if b.is_discount_slot and b.status == 'confirmed')
+    disc_rate  = round(disc_bks / conf_bks * 100) if conf_bks else 0
+
+    courts     = Court.query.all()
+    court_names   = [c.name for c in courts]
+    court_counts  = [Booking.query.filter_by(court_id=c.id, status='confirmed').count() for c in courts]
+    court_colors  = [c.color for c in courts]
+
+    top_courts = sorted(
+        [{'name': c.name, 'revenue': sum(
+            b.total_price or 0 for b in c.bookings if b.status == 'confirmed'
+          )} for c in courts],
+        key=lambda x: x['revenue'], reverse=True
+    )[:5]
+
+    top_products = (db.session.query(Product.name,
+                    func.sum(OrderItem.quantity).label('sold'))
+                    .join(OrderItem).group_by(Product.id)
+                    .order_by(func.sum(OrderItem.quantity).desc())
+                    .limit(5).all())
+
+    # Chart labels/data
+    labels, bk_data, rev_data = [], [], []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        labels.append(d.strftime('%a'))
+        bk_data.append(Booking.query.filter_by(booking_date=d, status='confirmed').count())
+        rev_data.append(int(db.session.query(func.sum(Booking.total_price))
+                            .filter_by(booking_date=d, status='confirmed').scalar() or 0))
+
+    hourly = [Booking.query.filter(
+        Booking.start_time >= datetime.strptime(f'{h:02d}:00', '%H:%M').time(),
+        Booking.start_time <  datetime.strptime(f'{(h+1)%24:02d}:00', '%H:%M').time(),
+        Booking.status == 'confirmed').count()
+        for h in range(24)]
+
+    total_exp  = db.session.query(func.sum(Expense.amount)).scalar() or 0
+    total_ords = Order.query.count()
+    store_rev  = (db.session.query(func.sum(Order.total_price))
+                  .filter_by(status='completed').scalar() or 0)
+    total_slots = len(courts) * 18
+    booked_today = sum(len(c.today_booked_slots) for c in courts)
+    occ_rate = round(booked_today / total_slots * 100) if total_slots else 0
+
+    return render_template('admin/reports.html',
+        total_revenue=total_rev, total_bookings=total_bks,
+        confirmed_bookings=conf_bks, pending_bookings_count=pend_bks,
+        cancelled_bookings=canc_bks, avg_booking_value=avg_val,
+        total_orders=total_ords, store_revenue=store_rev,
+        total_expenses=total_exp, occupancy_rate=occ_rate,
+        discount_bookings=disc_bks, discount_revenue=disc_rev,
+        discount_rate=disc_rate,
+        chart_labels=labels, bookings_data=bk_data, revenue_data=rev_data,
+        hourly_data=hourly,
+        court_names=court_names, court_counts=court_counts, court_colors=court_colors,
+        top_courts=top_courts,
+        top_products=[{'name': p.name, 'sold': p.sold} for p in top_products],
+        current_period=period, courts=courts,
+    )
+
+
+@admin_bp.route('/reports/export')
+@login_required
+def export_report():
+    flash('ميزة التصدير قيد التطوير.', 'info')
+    return redirect(url_for('admin.reports'))
+
+
+# ════════════════════════════════════════════
+# USERS
+# ════════════════════════════════════════════
+@admin_bp.route('/users')
+@login_required
+def users():
+    all_users = Admin.query.all()
+    return render_template('admin/users.html', users=all_users)
+
+
+@admin_bp.route('/users/add', methods=['POST'])
+@login_required
+def add_user():
+    if Admin.query.filter_by(username=request.form['username']).first():
+        flash('اسم المستخدم مستخدم بالفعل.', 'danger')
+        return redirect(url_for('admin.users'))
+    u = Admin(
+        username=request.form['username'],
+        email=request.form.get('email') or None,
+        password=generate_password_hash(request.form['password']),
+        role=request.form.get('role', 'staff'),
+        is_active=bool(int(request.form.get('is_active', 1))),
+    )
+    db.session.add(u)
+    db.session.commit()
+    flash('تم إضافة المستخدم.', 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
+@login_required
+def edit_user(user_id):
+    u = Admin.query.get_or_404(user_id)
+    u.username  = request.form.get('username', u.username)
+    u.email     = request.form.get('email', u.email) or u.email
+    u.role      = request.form.get('role', u.role)
+    u.is_active = bool(int(request.form.get('is_active', 1)))
+    new_pwd = request.form.get('new_password', '').strip()
+    if new_pwd:
+        u.password = generate_password_hash(new_pwd)
+    db.session.commit()
+    flash('تم تحديث المستخدم.', 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/users/<int:user_id>/permissions', methods=['POST'])
+@login_required
+def edit_permissions(user_id):
+    u = Admin.query.get_or_404(user_id)
+    perm_keys = ['perm_bookings','perm_courts','perm_products','perm_orders',
+                 'perm_expenses','perm_reports','perm_users','perm_settings']
+    u.permissions = {k: (k in request.form) for k in perm_keys}
+    db.session.commit()
+    flash('تم تحديث الصلاحيات.', 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    if user_id == current_user.id:
+        flash('لا يمكنك حذف حسابك الخاص.', 'danger')
+        return redirect(url_for('admin.users'))
+    u = Admin.query.get_or_404(user_id)
+    db.session.delete(u)
+    db.session.commit()
+    flash('تم حذف المستخدم.', 'success')
+    return redirect(url_for('admin.users'))
+
+
+# ════════════════════════════════════════════
+# SETTINGS
+# ════════════════════════════════════════════
+@admin_bp.route('/settings')
+@login_required
+def settings():
+    keys = ['facility_name','phone','email','address','currency',
+            'open_time','close_time','allow_midnight_bookings','late_close_time',
+            'default_duration','max_advance_days','require_prepayment',
+            'auto_confirm','allow_self_cancel','cancel_window_hours',
+            'default_price','enable_discount','discount_percent',
+            'discount_start','discount_end','monthly_budget',
+            'store_enabled','min_order_amount','low_stock_alert','pos_enabled',
+            'notif_new_booking','notif_cancel_request','notif_new_order',
+            'notif_low_stock','notif_pending_review',
+            'brand_color','admin_panel_name','enable_animations',
+            'show_clock','session_timeout','log_failed_logins']
+    cfg = {k: SystemSetting.get(k) for k in keys}
+    return render_template('admin/settings.html', settings=cfg)
+
+
+@admin_bp.route('/settings/save/<section>', methods=['POST'])
+@login_required
+def save_settings(section):
+    for key, val in request.form.items():
+        if key == 'csrf_token':
+            continue
+        SystemSetting.set(key, val)
+    # Handle checkboxes (unchecked = not in form)
+    checkbox_keys = {
+        'general':       ['allow_midnight_bookings'],
+        'booking':       ['require_prepayment','auto_confirm','allow_self_cancel'],
+        'pricing':       ['enable_discount'],
+        'store':         ['store_enabled','pos_enabled'],
+        'notifications': ['notif_new_booking','notif_cancel_request',
+                          'notif_new_order','notif_low_stock','notif_pending_review'],
+        'appearance':    ['enable_animations','show_clock'],
+        'security':      ['log_failed_logins'],
+    }
+    for key in checkbox_keys.get(section, []):
+        SystemSetting.set(key, 'true' if key in request.form else 'false')
+    flash('تم حفظ الإعدادات.', 'success')
+    return redirect(url_for('admin.settings'))
+
+
+# ════════════════════════════════════════════
+# DANGER ZONE
+# ════════════════════════════════════════════
+@admin_bp.route('/danger/delete-cancelled', methods=['POST'])
+@login_required
+def danger_delete_cancelled():
+    Booking.query.filter_by(status='cancelled').delete()
+    db.session.commit()
+    flash('تم حذف جميع الحجوزات الملغية.', 'success')
+    return redirect(url_for('admin.settings'))
+
+
+@admin_bp.route('/danger/reset-settings', methods=['POST'])
+@login_required
+def danger_reset_settings():
+    SystemSetting.query.delete()
+    db.session.commit()
+    flash('تم إعادة تعيين الإعدادات.', 'success')
+    return redirect(url_for('admin.settings'))
+
+
+@admin_bp.route('/danger/export-backup')
+@login_required
+def export_backup():
+    flash('ميزة النسخ الاحتياطي قيد التطوير.', 'info')
+    return redirect(url_for('admin.settings'))
+
+
+# ════════════════════════════════════════════
+# MISC
+# ════════════════════════════════════════════
+@admin_bp.route('/print-barcodes')
+@login_required
+def print_barcodes():
+    products = Product.query.filter(Product.barcode.isnot(None)).all()
+    return render_template('admin/print_barcodes.html', products=products)
+
+
+
+@admin_bp.route('/coaches')
+@login_required
+def coaches():
+    from app.models.main import Coach
+    all_coaches = Coach.query.all()
+    return render_template('admin/coaches.html', coaches=all_coaches)
+
+
+@admin_bp.route('/training-requests')
+@login_required
+def training_requests():
+    from app.models.main import TrainingRequest, Coach
+    reqs   = TrainingRequest.query.order_by(TrainingRequest.created_at.desc()).all()
+    coaches = Coach.query.filter_by(is_active=True).all()
+    return render_template('admin/training_requests.html',
+        training_requests=reqs, coaches=coaches)
+
+
+@admin_bp.route('/coaches/add', methods=['POST'])
+@login_required
+def add_coach():
+    from app.models.main import Coach
+    c = Coach(
+        name=request.form['name'],
+        phone=request.form.get('phone',''),
+        specialty=request.form.get('specialty',''),
+        price_per_hour=float(request.form.get('price_per_hour',0)),
+        bio=request.form.get('bio',''),
+        is_active=bool(int(request.form.get('is_active',1))),
+    )
+    db.session.add(c)
+    db.session.commit()
+    flash('تم إضافة المدرب.', 'success')
+    return redirect(url_for('admin.coaches'))
+
+@admin_bp.route('/coaches/<int:coach_id>/edit', methods=['POST'])
+@login_required
+def edit_coach(coach_id):
+    from app.models.main import Coach
+    c = Coach.query.get_or_404(coach_id)
+    c.name           = request.form.get('name', c.name)
+    c.phone          = request.form.get('phone', c.phone)
+    c.specialty      = request.form.get('specialty', c.specialty)
+    c.price_per_hour = float(request.form.get('price_per_hour', c.price_per_hour))
+    c.bio            = request.form.get('bio', c.bio)
+    c.is_active      = bool(int(request.form.get('is_active', 1)))
+    db.session.commit()
+    flash('تم تحديث المدرب.', 'success')
+    return redirect(url_for('admin.coaches'))
+
+@admin_bp.route('/coaches/<int:coach_id>/delete', methods=['POST'])
+@login_required
+def delete_coach(coach_id):
+    from app.models.main import Coach
+    c = Coach.query.get_or_404(coach_id)
+    db.session.delete(c)
+    db.session.commit()
+    flash('تم حذف المدرب.', 'success')
+    return redirect(url_for('admin.coaches'))
+
+
+@admin_bp.route('/training-requests/add', methods=['POST'])
+@login_required
+def add_training_request():
+    from app.models.main import TrainingRequest
+    from datetime import datetime
+    tr = TrainingRequest(
+        customer_name=request.form['customer_name'],
+        customer_phone=request.form['customer_phone'],
+        coach_id=request.form.get('coach_id') or None,
+        preferred_date=datetime.strptime(request.form['preferred_date'], '%Y-%m-%d').date() if request.form.get('preferred_date') else None,
+        preferred_time=datetime.strptime(request.form['preferred_time'], '%H:%M').time() if request.form.get('preferred_time') else None,
+        status=request.form.get('status', 'pending'),
+        notes=request.form.get('notes', ''),
+    )
+    db.session.add(tr)
+    db.session.commit()
+    flash('تم إضافة طلب التدريب.', 'success')
+    return redirect(url_for('admin.training_requests'))
+
+
+@admin_bp.route('/training-requests/<int:req_id>/confirm', methods=['POST'])
+@login_required
+def confirm_training(req_id):
+    from app.models.main import TrainingRequest
+    tr = TrainingRequest.query.get_or_404(req_id)
+    tr.status = 'confirmed'
+    db.session.commit()
+    flash('تم تأكيد طلب التدريب.', 'success')
+    return redirect(url_for('admin.training_requests'))
+
+
+@admin_bp.route('/training-requests/<int:req_id>/cancel', methods=['POST'])
+@login_required
+def cancel_training(req_id):
+    from app.models.main import TrainingRequest
+    tr = TrainingRequest.query.get_or_404(req_id)
+    tr.status = 'cancelled'
+    db.session.commit()
+    flash('تم إلغاء طلب التدريب.', 'success')
+    return redirect(url_for('admin.training_requests'))
+
+
+
+@admin_bp.route('/courts/new', methods=['GET', 'POST'])
+@login_required
+def new_court():
+    if request.method == 'POST':
+        court = Court(
+            name=request.form['name'],
+            price_per_hour=float(request.form.get('price_per_hour', 25000)),
+            color=request.form.get('color', '#1565C0'),
+            description=request.form.get('description', ''),
+            capacity=request.form.get('capacity') or None,
+            surface_type=request.form.get('surface_type', ''),
         )
-        db.session.add(order)
-        db.session.flush()
-
-        for item in items:
-            p = Product.query.get(item['product_id'])
-            if not p:
-                continue
-            db.session.add(OrderItem(
-                order_id=order.id,
-                product_id=p.id,
-                quantity=item['qty'],
-                unit_price=item['unit_price']
-            ))
-            # Deduct stock
-            if p.stock > 0:
-                p.stock = max(0, p.stock - item['qty'])
-
+        db.session.add(court)
         db.session.commit()
-        return jsonify({'success': True, 'order_id': order.id})
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)})
+        flash('تم إضافة الملعب بنجاح.', 'success')
+        return redirect(url_for('admin.courts'))
+    return render_template('admin/add_court.html')

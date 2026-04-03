@@ -1,0 +1,363 @@
+/* ═══════════════════════════════════════════════
+   Z PADEL — RESPONSIVE CSS
+   Add this to all pages:
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}"/>
+═══════════════════════════════════════════════ */
+
+/* ══════════════════════════
+   GLOBAL MOBILE FIXES
+══════════════════════════ */
+* { box-sizing: border-box !important; }
+
+img { max-width: 100%; height: auto; }
+
+body { overflow-x: hidden !important; }
+
+/* ══════════════════════════
+   ADMIN — SIDEBAR + LAYOUT
+══════════════════════════ */
+@media (max-width: 992px) {
+
+  /* Sidebar hidden by default on mobile */
+  .sidebar {
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease !important;
+    z-index: 1050 !important;
+  }
+  .sidebar.open {
+    transform: translateX(0) !important;
+    box-shadow: -8px 0 32px rgba(13,71,161,0.35) !important;
+  }
+
+  /* Main takes full width */
+  .main-wrapper {
+    margin-right: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Topbar */
+  .topbar {
+    padding: 0 14px !important;
+  }
+  .page-title {
+    font-size: 15px !important;
+  }
+
+  /* Page content */
+  .page-content {
+    padding: 14px !important;
+  }
+
+  /* Stats grids */
+  .stats-grid,
+  .stats-strip,
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Stat card */
+  .stat-card {
+    padding: 14px !important;
+  }
+  .stat-value { font-size: 20px !important; }
+  .stat-icon  { width: 40px !important; height: 40px !important; font-size: 18px !important; }
+
+  /* Charts row */
+  .charts-row,
+  .charts-bottom,
+  .tables-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Bookings filter bar */
+  .filter-bar {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .filter-group {
+    min-width: unset !important;
+    width: 100% !important;
+  }
+  .filter-group select,
+  .filter-group input {
+    width: 100% !important;
+  }
+
+  /* Table */
+  .table-wrapper { overflow-x: auto !important; }
+  .table-z { font-size: 12px !important; }
+  .table-z thead th,
+  .table-z tbody td { padding: 9px 10px !important; }
+
+  /* Table toolbar */
+  .table-toolbar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+  .search-input-wrap input { width: 100% !important; }
+
+  /* Courts grid */
+  .courts-grid      { grid-template-columns: 1fr !important; }
+  .users-grid       { grid-template-columns: 1fr !important; }
+  .products-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+  .pending-grid     { grid-template-columns: 1fr !important; }
+  .requests-grid    { grid-template-columns: 1fr !important; }
+  .features-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+  .availability-grid{ grid-template-columns: 1fr !important; }
+
+  /* Expenses layout */
+  .expenses-layout,
+  .orders-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Settings layout */
+  .settings-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .settings-sidenav {
+    position: relative !important;
+    top: unset !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    padding: 10px !important;
+  }
+  .sidenav-header { display: none !important; }
+  .sidenav-item {
+    border-radius: 20px !important;
+    padding: 7px 14px !important;
+    font-size: 12px !important;
+    border: 1.5px solid var(--border-color) !important;
+    flex-shrink: 0 !important;
+  }
+  .sidenav-item.active {
+    background: var(--brand-blue) !important;
+    color: white !important;
+    border-color: var(--brand-blue) !important;
+  }
+  .sidenav-item.active i { color: white !important; }
+
+  /* Welcome banner */
+  .welcome-banner {
+    padding: 18px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .welcome-banner .welcome-icon { display: none !important; }
+  .welcome-date { font-size: 11px !important; }
+  .welcome-text h2 { font-size: 17px !important; }
+
+  /* Dashboard bottom row */
+  .quick-actions {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Reports period tabs */
+  .period-tabs {
+    flex-wrap: wrap !important;
+  }
+  .date-range-wrap {
+    width: 100% !important;
+    margin-right: 0 !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Modal fixes */
+  .modal-dialog {
+    margin: 10px !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+
+  /* Sidebar overlay */
+  .sidebar-overlay {
+    display: block !important;
+  }
+
+  /* Nav toggle button visible */
+  .topbar-btn.d-lg-none {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid,
+  .stats-strip,
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .products-grid { grid-template-columns: 1fr !important; }
+  .features-grid { grid-template-columns: 1fr !important; }
+  .quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+
+  .page-header-title { font-size: 17px !important; }
+  .stat-value { font-size: 22px !important; }
+}
+
+
+/* ══════════════════════════
+   BOOKING PAGE
+══════════════════════════ */
+@media (max-width: 860px) {
+  .booking-layout {
+    grid-template-columns: 1fr !important;
+    padding: 14px !important;
+  }
+
+  .slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .slot-btn {
+    padding: 8px 4px !important;
+  }
+  .slot-time  { font-size: 12px !important; }
+  .slot-price { font-size: 9px !important; }
+
+  .court-tabs { padding: 10px 12px 0 !important; gap: 6px !important; }
+  .court-tab  { padding: 6px 12px !important; font-size: 12px !important; }
+
+  .date-btn { min-width: 54px !important; padding: 7px 8px !important; }
+  .date-btn .dd { font-size: 15px !important; }
+
+  .page-header h1 { font-size: 20px !important; }
+  .page-header p  { font-size: 12px !important; }
+}
+
+
+/* ══════════════════════════
+   PUBLIC HOMEPAGE
+══════════════════════════ */
+@media (max-width: 992px) {
+
+  /* Navbar */
+  .navbar-z .nav-links { display: none !important; }
+  .nav-toggle { display: flex !important; }
+
+  /* Hero */
+  .hero {
+    padding: 90px 0 50px !important;
+    min-height: auto !important;
+  }
+  .hero-title { font-size: 34px !important; letter-spacing: -1px !important; }
+  .hero-subtitle { font-size: 14px !important; }
+  .hero-btns { flex-direction: column !important; }
+  .btn-hero-primary,
+  .btn-hero-outline { width: 100% !important; justify-content: center !important; }
+  .hero-stats { gap: 18px !important; }
+  .hero-stat-value { font-size: 24px !important; }
+  .hero-ring,
+  .hero-blob-1,
+  .hero-blob-2 { display: none !important; }
+
+  /* Courts grid */
+  .courts-grid { grid-template-columns: 1fr !important; }
+
+  /* Features */
+  .features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Steps */
+  .steps-wrap { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Pricing */
+  .pricing-grid { grid-template-columns: 1fr !important; }
+  .pricing-card.featured { transform: none !important; }
+
+  /* Footer */
+  .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
+
+  /* Contact */
+  .contact-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 600px) {
+  .hero-title    { font-size: 28px !important; }
+  .section-title { font-size: 24px !important; }
+  .features-grid { grid-template-columns: 1fr !important; }
+  .steps-wrap    { grid-template-columns: 1fr !important; }
+  .footer-grid   { grid-template-columns: 1fr !important; }
+  .hero-stats    { flex-wrap: wrap !important; gap: 14px !important; }
+
+  /* Section padding */
+  .section { padding: 56px 0 !important; }
+  .container-z { padding: 0 16px !important; }
+
+  /* CTA buttons */
+  .cta-section .btn-hero-primary,
+  .cta-section .btn-hero-outline {
+    width: 100% !important; justify-content: center !important;
+  }
+
+  /* Court card */
+  .court-card-img { height: 150px !important; }
+}
+
+
+/* ══════════════════════════
+   LOGIN PAGE
+══════════════════════════ */
+@media (max-width: 900px) {
+  .login-wrap {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+  .visual-panel {
+    min-height: 220px !important;
+    padding: 28px 20px !important;
+  }
+  .visual-title  { font-size: 30px !important; }
+  .visual-icon-bg{ width: 70px !important; height: 70px !important; font-size: 30px !important; margin-bottom: 12px !important; }
+  .float-stat    { display: none !important; }
+  .ring          { display: none !important; }
+  .form-panel    { padding: 28px 22px !important; }
+}
+
+@media (max-width: 480px) {
+  .form-panel { padding: 22px 16px !important; }
+  .form-heading h1 { font-size: 22px !important; }
+}
+
+
+/* ══════════════════════════
+   GENERAL UTILITIES
+══════════════════════════ */
+@media (max-width: 992px) {
+  /* Scrollable tables */
+  .table-responsive-x { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+
+  /* Row col fixes */
+  .row { margin: 0 !important; }
+  .row > [class*="col-"] { padding: 0 6px !important; }
+
+  /* Modals full screen on small devices */
+  .modal-dialog-centered { align-items: flex-end !important; }
+  .modal-content { border-radius: 16px 16px 0 0 !important; }
+  .modal-dialog {
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Smaller buttons */
+  .btn-z-primary,
+  .btn-z-outline,
+  .btn-z-danger {
+    font-size: 12.5px !important;
+    padding: 8px 14px !important;
+  }
+
+  /* Hide less important columns on mobile */
+  .hide-mobile { display: none !important; }
+
+  /* Full width forms */
+  .form-control-z,
+  .form-input { font-size: 14px !important; }
+}

@@ -1,42 +1,226 @@
-from app import db, login_manager
+from datetime import datetime, date, time
 from flask_login import UserMixin
-from datetime import datetime
+from app import db, login_manager
 
 
+# ── User loader ──
 @login_manager.user_loader
 def load_user(user_id):
     return Admin.query.get(int(user_id))
 
 
+# ═══════════════════════════════════════════
+# ADMIN (system users)
+# ═══════════════════════════════════════════
 class Admin(UserMixin, db.Model):
     __tablename__ = 'admins'
+
     id         = db.Column(db.Integer, primary_key=True)
-    username   = db.Column(db.String(50), unique=True, nullable=False)
-    password   = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    username   = db.Column(db.String(80),  unique=True, nullable=False)
+    password   = db.Column(db.String(256), nullable=False)
+    email      = db.Column(db.String(120), unique=True, nullable=True)
+    role       = db.Column(db.String(20),  default='staff')   # superadmin | admin | staff | viewer
+    is_active  = db.Column(db.Boolean,     default=True)
+    last_login = db.Column(db.DateTime,    nullable=True)
+    created_at = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    # Permissions JSON stored as Text (simple key:bool pairs)
+    _permissions = db.Column('permissions', db.Text, default='{}')
+
+    @property
+    def permissions(self):
+        import json
+        try:
+            return json.loads(self._permissions or '{}')
+        except Exception:
+            return {}
+
+    @permissions.setter
+    def permissions(self, val):
+        import json
+        self._permissions = json.dumps(val)
+
+    def has_perm(self, perm: str) -> bool:
+        if self.role in ('superadmin', 'admin'):
+            return True
+        return self.permissions.get(perm, False)
+
+    def __repr__(self):
+        return f'<Admin {self.username}>'
 
 
+# ═══════════════════════════════════════════
+# COURT
+# ═══════════════════════════════════════════
 class Court(db.Model):
     __tablename__ = 'courts'
-    id            = db.Column(db.Integer, primary_key=True)
-    name          = db.Column(db.String(100), nullable=False)
-    description   = db.Column(db.Text)
-    price_per_hour = db.Column(db.Float, nullable=False)
-    image         = db.Column(db.String(200))
-    is_active     = db.Column(db.Boolean, default=True)
-    bookings      = db.relationship('Booking', backref='court', lazy=True)
+
+    id             = db.Column(db.Integer, primary_key=True)
+    name           = db.Column(db.String(100), nullable=False)
+    description    = db.Column(db.Text,        nullable=True)
+    price_per_hour = db.Column(db.Float,       default=25000)
+    color          = db.Column(db.String(10),  default='#1565C0')
+    capacity       = db.Column(db.Integer,     nullable=True)
+    surface_type   = db.Column(db.String(50),  nullable=True)
+    is_active      = db.Column(db.Boolean,     default=True)
+    created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    bookings = db.relationship('Booking', backref='court', lazy=True,
+                               cascade='all, delete-orphan')
+
+    @property
+    def total_bookings(self):
+        return len(self.bookings)
+
+    @property
+    def today_booked_slots(self):
+        """Returns list of 'HH' strings for slots booked today."""
+        today = date.today()
+        slots = []
+        for b in self.bookings:
+            if b.booking_date == today and b.status != 'cancelled':
+                if b.start_time:
+                    slots.append(b.start_time.strftime('%H'))
+        return slots
+
+    def __repr__(self):
+        return f'<Court {self.name}>'
 
 
+# ═══════════════════════════════════════════
+# BOOKING
+# ═══════════════════════════════════════════
 class Booking(db.Model):
     __tablename__ = 'bookings'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    court_id        = db.Column(db.Integer, db.ForeignKey('courts.id'), nullable=False)
+    customer_name   = db.Column(db.String(100), nullable=False)
+    customer_phone  = db.Column(db.String(20),  nullable=False)
+    booking_date    = db.Column(db.Date,         nullable=False)
+    start_time      = db.Column(db.Time,         nullable=False)
+    end_time        = db.Column(db.Time,         nullable=False)
+    total_price     = db.Column(db.Float,        default=0)
+    status          = db.Column(db.String(20),   default='pending')
+    # pending | confirmed | cancelled
+    notes           = db.Column(db.Text,         nullable=True)
+    created_at      = db.Column(db.DateTime,     default=datetime.utcnow)
+    updated_at      = db.Column(db.DateTime,     default=datetime.utcnow,
+                                onupdate=datetime.utcnow)
+
+    cancel_request = db.relationship('CancelRequest', backref='booking',
+                                     uselist=False, cascade='all, delete-orphan')
+
+    @property
+    def waiting_minutes(self):
+        """Minutes since booking was created (for pending bookings)."""
+        if self.status != 'pending':
+            return 0
+        delta = datetime.utcnow() - self.created_at
+        return int(delta.total_seconds() / 60)
+
+    @property
+    def is_discount_slot(self):
+        """True if start time falls in discount window (12-16)."""
+        if self.start_time:
+            return 12 <= self.start_time.hour < 16
+        return False
+
+    def calc_price(self, base_price: float, discount_pct: int = 25) -> float:
+        if not self.start_time or not self.end_time:
+            return 0
+        start_m = self.start_time.hour * 60 + self.start_time.minute
+        end_m   = self.end_time.hour   * 60 + self.end_time.minute
+        hours   = (end_m - start_m) / 60
+        rate    = base_price * (1 - discount_pct / 100) if self.is_discount_slot else base_price
+        return round(hours * rate)
+
+    def __repr__(self):
+        return f'<Booking #{self.id} {self.customer_name}>'
+
+
+# ═══════════════════════════════════════════
+# CANCEL REQUEST
+# ═══════════════════════════════════════════
+class CancelRequest(db.Model):
+    __tablename__ = 'cancel_requests'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), nullable=False)
+    reason     = db.Column(db.String(200), nullable=True)
+    notes      = db.Column(db.Text,        nullable=True)
+    status     = db.Column(db.String(20),  default='pending')   # pending | approved | rejected
+    created_at = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CancelRequest booking#{self.booking_id}>'
+
+
+# ═══════════════════════════════════════════
+# COACH
+# ═══════════════════════════════════════════
+class Coach(db.Model):
+    __tablename__ = 'coaches'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(100), nullable=False)
+    phone       = db.Column(db.String(20),  nullable=True)
+    specialty   = db.Column(db.String(100), nullable=True)
+    price_per_hour = db.Column(db.Float,    default=0)
+    is_active   = db.Column(db.Boolean,     default=True)
+    bio         = db.Column(db.Text,        nullable=True)
+    created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    training_requests = db.relationship('TrainingRequest', backref='coach',
+                                        lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Coach {self.name}>'
+
+
+# ═══════════════════════════════════════════
+# TRAINING REQUEST
+# ═══════════════════════════════════════════
+class TrainingRequest(db.Model):
+    __tablename__ = 'training_requests'
+
     id             = db.Column(db.Integer, primary_key=True)
+    coach_id       = db.Column(db.Integer, db.ForeignKey('coaches.id'), nullable=False)
     customer_name  = db.Column(db.String(100), nullable=False)
-    customer_phone = db.Column(db.String(20), nullable=False)
-    court_id       = db.Column(db.Integer, db.ForeignKey('courts.id'), nullable=False)
-    date           = db.Column(db.Date, nullable=False)
-    start_time     = db.Column(db.Time, nullable=False)
-    end_time       = db.Column(db.Time, nullable=False)
-    total_price    = db.Column(db.Float, nullable=False)
-    status         = db.Column(db.String(20), default='pending')
-    notes          = db.Column(db.Text)
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    customer_phone = db.Column(db.String(20),  nullable=False)
+    preferred_date = db.Column(db.Date,        nullable=True)
+    preferred_time = db.Column(db.Time,        nullable=True)
+    status         = db.Column(db.String(20),  default='pending')
+    notes          = db.Column(db.Text,        nullable=True)
+    created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<TrainingRequest #{self.id}>'
+
+
+# ═══════════════════════════════════════════
+# SYSTEM SETTINGS
+# ═══════════════════════════════════════════
+class SystemSetting(db.Model):
+    __tablename__ = 'system_settings'
+
+    id    = db.Column(db.Integer, primary_key=True)
+    key   = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=True)
+
+    @staticmethod
+    def get(key, default=None):
+        row = SystemSetting.query.filter_by(key=key).first()
+        return row.value if row else default
+
+    @staticmethod
+    def set(key, value):
+        row = SystemSetting.query.filter_by(key=key).first()
+        if row:
+            row.value = str(value)
+        else:
+            db.session.add(SystemSetting(key=key, value=str(value)))
+        db.session.commit()
+
+    def __repr__(self):
+        return f'<Setting {self.key}={self.value}>'

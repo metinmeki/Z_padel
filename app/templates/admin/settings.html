@@ -1,0 +1,1059 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}الإعدادات — Z Padel{% endblock %}
+{% block page_icon %}fas fa-gear{% endblock %}
+{% block page_title %}الإعدادات{% endblock %}
+
+{% block extra_styles %}
+/* ── Settings layout ── */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) { .settings-layout { grid-template-columns: 1fr; } }
+
+/* ── Side nav ── */
+.settings-sidenav {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: sticky;
+  top: calc(var(--topbar-height) + 16px);
+  animation: fadeSlideIn 0.35s ease both;
+}
+.sidenav-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 11px; font-weight: 700;
+  color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;
+}
+.sidenav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 18px;
+  font-size: 13.5px; font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer; transition: var(--transition);
+  border-right: 3px solid transparent;
+  text-decoration: none;
+}
+.sidenav-item:hover {
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+}
+.sidenav-item.active {
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+  border-right-color: var(--brand-blue);
+  font-weight: 700;
+}
+.sidenav-item i { width: 18px; text-align: center; font-size: 14px; }
+.sidenav-item.active i { color: var(--brand-blue); }
+
+/* ── Settings panel ── */
+.settings-panel { display: none; animation: fadeSlideIn 0.3s ease both; }
+.settings-panel.active { display: block; }
+
+.settings-card {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 18px;
+  animation: fadeSlideIn 0.4s ease both;
+}
+.settings-card-header {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; gap: 12px;
+}
+.settings-card-icon {
+  width: 38px; height: 38px;
+  background: var(--brand-blue-soft);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--brand-blue);
+  flex-shrink: 0;
+}
+.settings-card-title {
+  font-size: 15px; font-weight: 700; color: var(--brand-blue-dark);
+}
+.settings-card-sub {
+  font-size: 12px; color: var(--text-muted); margin-top: 1px;
+}
+.settings-card-body { padding: 22px; }
+
+/* ── Form rows ── */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.setting-row:last-child { border-bottom: none; padding-bottom: 0; }
+.setting-row:first-child { padding-top: 0; }
+.setting-info { flex: 1; min-width: 180px; }
+.setting-label {
+  font-size: 13.5px; font-weight: 700; color: var(--text-dark);
+  margin-bottom: 2px;
+}
+.setting-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.setting-control { flex-shrink: 0; }
+
+/* Inline input */
+.setting-input {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  color: var(--text-dark); background: white;
+  outline: none; transition: var(--transition);
+  min-width: 180px;
+}
+.setting-input:focus {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
+}
+.setting-input-sm { min-width: 110px; }
+
+/* Toggle switch (reuse) */
+.toggle-switch {
+  position: relative; width: 48px; height: 26px; display: inline-block;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; border-radius: 26px;
+  cursor: pointer; transition: 0.3s ease; background: var(--border-color);
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: white; bottom: 3px; right: 3px;
+  transition: 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.20);
+}
+.toggle-switch input:checked + .toggle-slider { background: #43A047; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(-22px); }
+
+/* Time range inputs */
+.time-range {
+  display: flex; align-items: center; gap: 8px;
+}
+.time-range span { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+/* Color swatch picker */
+.brand-color-wrap {
+  display: flex; align-items: center; gap: 10px;
+}
+.color-preview {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border-color); cursor: pointer;
+  transition: var(--transition); flex-shrink: 0;
+}
+.color-preview:hover { transform: scale(1.1); }
+
+/* ── Danger zone ── */
+.danger-zone-card {
+  background: rgba(229,57,53,0.04);
+  border: 1.5px solid rgba(229,57,53,0.20);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+.danger-zone-title {
+  font-size: 14px; font-weight: 700; color: #C62828;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.danger-action-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid rgba(229,57,53,0.12);
+  flex-wrap: wrap; gap: 10px;
+}
+.danger-action-row:last-child { border-bottom: none; padding-bottom: 0; }
+.danger-action-label { font-size: 13.5px; font-weight: 700; color: var(--text-dark); }
+.danger-action-desc  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Save bar (sticky) ── */
+.save-bar {
+  position: sticky; bottom: 0; z-index: 100;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-color);
+  padding: 14px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  box-shadow: 0 -4px 20px rgba(21,101,192,0.08);
+  border-radius: 0 0 var(--radius) var(--radius);
+  margin-top: 6px;
+  animation: fadeSlideIn 0.3s ease both;
+}
+.save-bar-info {
+  font-size: 13px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.save-bar-info i { color: var(--brand-blue); }
+.unsaved-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #FB8C00;
+  display: none; animation: pulseGlow 1.5s infinite;
+}
+.unsaved-dot.visible { display: inline-block; }
+
+/* ── Password strength ── */
+.pwd-strength-bar {
+  height: 4px; border-radius: 2px; background: var(--border-color);
+  overflow: hidden; margin-top: 6px;
+}
+.pwd-strength-fill { height: 100%; border-radius: 2px; transition: width 0.4s, background 0.4s; }
+.pwd-strength-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── Notification toggles ── */
+.notif-group {
+  display: flex; flex-direction: column; gap: 0;
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="settings-layout">
+
+  <!-- Side Nav -->
+  <div class="settings-sidenav">
+    <div class="sidenav-header">الإعدادات</div>
+    <a class="sidenav-item active" onclick="showPanel('general', this)">
+      <i class="fas fa-sliders"></i> عام
+    </a>
+    <a class="sidenav-item" onclick="showPanel('booking', this)">
+      <i class="fas fa-calendar-check"></i> الحجوزات
+    </a>
+    <a class="sidenav-item" onclick="showPanel('pricing', this)">
+      <i class="fas fa-coins"></i> التسعير
+    </a>
+    <a class="sidenav-item" onclick="showPanel('store', this)">
+      <i class="fas fa-bag-shopping"></i> المتجر
+    </a>
+    <a class="sidenav-item" onclick="showPanel('notifications', this)">
+      <i class="fas fa-bell"></i> الإشعارات
+    </a>
+    <a class="sidenav-item" onclick="showPanel('security', this)">
+      <i class="fas fa-lock"></i> الأمان
+    </a>
+    <a class="sidenav-item" onclick="showPanel('appearance', this)">
+      <i class="fas fa-palette"></i> المظهر
+    </a>
+    <a class="sidenav-item" onclick="showPanel('danger', this)" style="color:#C62828;">
+      <i class="fas fa-triangle-exclamation" style="color:#E53935;"></i> منطقة الخطر
+    </a>
+  </div>
+
+  <!-- Panels -->
+  <div>
+
+    <!-- ═══ GENERAL ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='general') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel active" id="panel-general">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-building"></i></div>
+            <div>
+              <div class="settings-card-title">معلومات المنشأة</div>
+              <div class="settings-card-sub">البيانات الأساسية لـ Z Padel</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">اسم المنشأة</div>
+                <div class="setting-desc">يظهر في الفواتير وصفحة الحجز</div>
+              </div>
+              <div class="setting-control">
+                <input type="text" name="facility_name" class="setting-input"
+                       value="{{ settings.facility_name|default('Z Padel') }}"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">رقم الهاتف</div>
+                <div class="setting-desc">رقم التواصل الرئيسي</div>
+              </div>
+              <div class="setting-control">
+                <input type="tel" name="phone" class="setting-input setting-input-sm"
+                       dir="ltr" value="{{ settings.phone|default('') }}"
+                       placeholder="07xx xxx xxxx"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">البريد الإلكتروني</div>
+                <div class="setting-desc">للتواصل والإشعارات</div>
+              </div>
+              <div class="setting-control">
+                <input type="email" name="email" class="setting-input"
+                       dir="ltr" value="{{ settings.email|default('') }}"
+                       placeholder="info@zpadel.com"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">العنوان</div>
+                <div class="setting-desc">موقع المنشأة</div>
+              </div>
+              <div class="setting-control">
+                <input type="text" name="address" class="setting-input"
+                       value="{{ settings.address|default('') }}"
+                       placeholder="المدينة، الحي، الشارع"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">العملة</div>
+                <div class="setting-desc">وحدة العملة المستخدمة في الفواتير</div>
+              </div>
+              <div class="setting-control">
+                <select name="currency" class="setting-input setting-input-sm">
+                  <option value="IQD" {% if settings.currency|default('IQD')=='IQD' %}selected{% endif %}>دينار عراقي (د.ع)</option>
+                  <option value="USD" {% if settings.currency|default('')=='USD' %}selected{% endif %}>دولار أمريكي ($)</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <div class="settings-card-title">ساعات العمل</div>
+              <div class="settings-card-sub">أوقات فتح وإغلاق المنشأة</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">ساعات الدوام</div>
+                <div class="setting-desc">يمنع الحجوزات خارج هذا النطاق</div>
+              </div>
+              <div class="setting-control">
+                <div class="time-range">
+                  <input type="time" name="open_time" class="setting-input setting-input-sm"
+                         value="{{ settings.open_time|default('06:00') }}"/>
+                  <span>—</span>
+                  <input type="time" name="close_time" class="setting-input setting-input-sm"
+                         value="{{ settings.close_time|default('23:00') }}"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">قبول حجوزات ما بعد منتصف الليل</div>
+                <div class="setting-desc">يسمح بالحجز حتى 04:00 بعد منتصف الليل كيوم نفسه</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="allow_midnight_bookings"
+                         {{ 'checked' if settings.allow_midnight_bookings|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">وقت الإغلاق الفعلي (بعد منتصف الليل)</div>
+                <div class="setting-desc">آخر وقت يمكن فيه بدء حجز في اليوم التالي</div>
+              </div>
+              <div class="setting-control">
+                <input type="time" name="late_close_time" class="setting-input setting-input-sm"
+                       value="{{ settings.late_close_time|default('04:00') }}"/>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i>
+            <span class="unsaved-dot" id="dot-general"></span>
+            التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ الإعدادات العامة
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ BOOKING ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='booking') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel" id="panel-booking">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-calendar-check"></i></div>
+            <div>
+              <div class="settings-card-title">إعدادات الحجز</div>
+              <div class="settings-card-sub">قواعد وسلوك نظام الحجز</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">مدة الحجز الافتراضية</div>
+                <div class="setting-desc">بالدقائق (مثال: 60 = ساعة واحدة)</div>
+              </div>
+              <div class="setting-control">
+                <select name="default_duration" class="setting-input setting-input-sm">
+                  <option value="60"  {% if settings.default_duration|default(60)==60  %}selected{% endif %}>60 دقيقة</option>
+                  <option value="90"  {% if settings.default_duration|default(60)==90  %}selected{% endif %}>90 دقيقة</option>
+                  <option value="120" {% if settings.default_duration|default(60)==120 %}selected{% endif %}>120 دقيقة</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">الحجز المسبق الأقصى</div>
+                <div class="setting-desc">أقصى عدد أيام يمكن الحجز مسبقاً</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="max_advance_days" class="setting-input setting-input-sm"
+                       value="{{ settings.max_advance_days|default(30) }}" min="1" max="365"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">طلب دفع مسبق</div>
+                <div class="setting-desc">يطلب الدفع عند إنشاء الحجز</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="require_prepayment"
+                         {{ 'checked' if settings.require_prepayment|default(false) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تأكيد تلقائي للحجوزات</div>
+                <div class="setting-desc">تُؤكَّد الحجوزات فور إنشائها بدون مراجعة</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="auto_confirm"
+                         {{ 'checked' if settings.auto_confirm|default(false) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">السماح بالإلغاء الذاتي</div>
+                <div class="setting-desc">يمكن للعميل إلغاء حجزه من الموقع</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="allow_self_cancel"
+                         {{ 'checked' if settings.allow_self_cancel|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">مهلة الإلغاء (ساعات)</div>
+                <div class="setting-desc">الحد الأدنى قبل موعد الحجز للسماح بالإلغاء</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="cancel_window_hours" class="setting-input setting-input-sm"
+                       value="{{ settings.cancel_window_hours|default(2) }}" min="0" max="48"/>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ إعدادات الحجز
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ PRICING ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='pricing') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel" id="panel-pricing">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-coins"></i></div>
+            <div>
+              <div class="settings-card-title">التسعير والخصومات</div>
+              <div class="settings-card-sub">أسعار الملاعب وقواعد الخصم</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">السعر الافتراضي للساعة</div>
+                <div class="setting-desc">يُطبَّق على الملاعب التي لم يُحدَّد لها سعر خاص</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="default_price" class="setting-input setting-input-sm"
+                       value="{{ settings.default_price|default(25000) }}" min="0" step="500"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تفعيل خصم ساعات معينة</div>
+                <div class="setting-desc">تطبيق خصم تلقائي في نطاق زمني محدد</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="enable_discount"
+                         {{ 'checked' if settings.enable_discount|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">نسبة الخصم (%)</div>
+                <div class="setting-desc">النسبة المئوية للخصم في الساعات المحددة</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="discount_percent" class="setting-input setting-input-sm"
+                       value="{{ settings.discount_percent|default(25) }}" min="1" max="99"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">فترة الخصم</div>
+                <div class="setting-desc">الساعات التي تُطبَّق فيها نسبة الخصم</div>
+              </div>
+              <div class="setting-control">
+                <div class="time-range">
+                  <input type="time" name="discount_start" class="setting-input setting-input-sm"
+                         value="{{ settings.discount_start|default('12:00') }}"/>
+                  <span>—</span>
+                  <input type="time" name="discount_end" class="setting-input setting-input-sm"
+                         value="{{ settings.discount_end|default('16:00') }}"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">الميزانية الشهرية (للمصروفات)</div>
+                <div class="setting-desc">الحد الأقصى للمصروفات الشهرية (للتنبيه)</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="monthly_budget" class="setting-input setting-input-sm"
+                       value="{{ settings.monthly_budget|default(1000000) }}" min="0" step="10000"/>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ إعدادات التسعير
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ STORE ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='store') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel" id="panel-store">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-bag-shopping"></i></div>
+            <div>
+              <div class="settings-card-title">إعدادات المتجر</div>
+              <div class="settings-card-sub">خيارات المتجر والمبيعات</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تفعيل المتجر</div>
+                <div class="setting-desc">إظهار قسم المتجر في الموقع</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="store_enabled"
+                         {{ 'checked' if settings.store_enabled|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">الحد الأدنى للطلب (د.ع)</div>
+                <div class="setting-desc">أقل مبلغ لإتمام طلب من المتجر</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="min_order_amount" class="setting-input setting-input-sm"
+                       value="{{ settings.min_order_amount|default(0) }}" min="0" step="500"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تنبيه المخزون المنخفض</div>
+                <div class="setting-desc">إرسال تنبيه عند وصول المخزون لهذا العدد</div>
+              </div>
+              <div class="setting-control">
+                <input type="number" name="low_stock_alert" class="setting-input setting-input-sm"
+                       value="{{ settings.low_stock_alert|default(5) }}" min="1" max="50"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تفعيل نقطة البيع (POS)</div>
+                <div class="setting-desc">السماح بالبيع المباشر من لوحة الإدارة</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="pos_enabled"
+                         {{ 'checked' if settings.pos_enabled|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ إعدادات المتجر
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ NOTIFICATIONS ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='notifications') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel" id="panel-notifications">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-bell"></i></div>
+            <div>
+              <div class="settings-card-title">إعدادات الإشعارات</div>
+              <div class="settings-card-sub">تحكم في متى وكيف تصلك الإشعارات</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+            {% set notifs = [
+              ('notif_new_booking',    'حجز جديد',              'عند إنشاء حجز جديد'),
+              ('notif_cancel_request', 'طلب إلغاء',             'عند تقديم طلب إلغاء'),
+              ('notif_new_order',      'طلب متجر جديد',         'عند ورود طلب شراء جديد'),
+              ('notif_low_stock',      'تنبيه مخزون منخفض',     'عند انخفاض مخزون منتج'),
+              ('notif_pending_review', 'حجز بانتظار المراجعة',  'تذكير بالحجوزات المعلقة'),
+            ] %}
+            {% for name, label, desc in notifs %}
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">{{ label }}</div>
+                <div class="setting-desc">{{ desc }}</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="{{ name }}"
+                         {{ 'checked' if settings[name]|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ إعدادات الإشعارات
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ SECURITY ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='security') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel" id="panel-security">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-lock"></i></div>
+            <div>
+              <div class="settings-card-title">تغيير كلمة المرور</div>
+              <div class="settings-card-sub">تأكد من استخدام كلمة مرور قوية</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
+              <div class="setting-label">كلمة المرور الحالية</div>
+              <input type="password" name="current_password" class="setting-input"
+                     placeholder="••••••••" style="width:100%;max-width:340px;"/>
+            </div>
+
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+              <div class="setting-label">كلمة المرور الجديدة</div>
+              <input type="password" name="new_password" id="newPwd" class="setting-input"
+                     placeholder="••••••••" style="width:100%;max-width:340px;"
+                     oninput="checkStrength(this.value)"/>
+              <div style="width:100%;max-width:340px;">
+                <div class="pwd-strength-bar">
+                  <div class="pwd-strength-fill" id="pwdStrengthFill" style="width:0%;"></div>
+                </div>
+                <div class="pwd-strength-label" id="pwdStrengthLabel"></div>
+              </div>
+            </div>
+
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
+              <div class="setting-label">تأكيد كلمة المرور</div>
+              <input type="password" name="confirm_password" class="setting-input"
+                     placeholder="••••••••" style="width:100%;max-width:340px;"/>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-shield-halved"></i></div>
+            <div>
+              <div class="settings-card-title">إعدادات الجلسة</div>
+              <div class="settings-card-sub">التحكم في مدة الجلسة والوصول</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">مدة الجلسة (دقيقة)</div>
+                <div class="setting-desc">تسجيل الخروج تلقائياً بعد انتهاء المدة</div>
+              </div>
+              <div class="setting-control">
+                <select name="session_timeout" class="setting-input setting-input-sm">
+                  <option value="30"  {% if settings.session_timeout|default(60)==30  %}selected{% endif %}>30 دقيقة</option>
+                  <option value="60"  {% if settings.session_timeout|default(60)==60  %}selected{% endif %}>60 دقيقة</option>
+                  <option value="120" {% if settings.session_timeout|default(60)==120 %}selected{% endif %}>ساعتان</option>
+                  <option value="480" {% if settings.session_timeout|default(60)==480 %}selected{% endif %}>8 ساعات</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تسجيل محاولات الدخول الفاشلة</div>
+                <div class="setting-desc">تسجيل وقت وعنوان IP لكل محاولة فاشلة</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="log_failed_logins"
+                         {{ 'checked' if settings.log_failed_logins|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ إعدادات الأمان
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ APPEARANCE ═══ -->
+    <form method="POST" action="{{ url_for('admin.save_settings', section='appearance') }}" onchange="markUnsaved()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="settings-panel" id="panel-appearance">
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <div class="settings-card-icon"><i class="fas fa-palette"></i></div>
+            <div>
+              <div class="settings-card-title">المظهر والعلامة التجارية</div>
+              <div class="settings-card-sub">تخصيص ألوان وشكل لوحة الإدارة</div>
+            </div>
+          </div>
+          <div class="settings-card-body">
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">اللون الرئيسي</div>
+                <div class="setting-desc">يُطبَّق على الأزرار والشريط الجانبي</div>
+              </div>
+              <div class="setting-control">
+                <div class="brand-color-wrap">
+                  <div class="color-preview" id="brandColorPreview"
+                       style="background:{{ settings.brand_color|default('#1565C0') }};"
+                       onclick="document.getElementById('brandColorInput').click()"></div>
+                  <input type="color" name="brand_color" id="brandColorInput"
+                         value="{{ settings.brand_color|default('#1565C0') }}"
+                         style="opacity:0;width:0;height:0;position:absolute;"
+                         oninput="document.getElementById('brandColorPreview').style.background=this.value"/>
+                  <span style="font-size:13px;font-weight:600;color:var(--text-dark);" id="brandColorHex">
+                    {{ settings.brand_color|default('#1565C0') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">اسم لوحة الإدارة</div>
+                <div class="setting-desc">يظهر في تبويب المتصفح والشريط الجانبي</div>
+              </div>
+              <div class="setting-control">
+                <input type="text" name="admin_panel_name" class="setting-input"
+                       value="{{ settings.admin_panel_name|default('Z Padel') }}"/>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">تفعيل الرسوم المتحركة</div>
+                <div class="setting-desc">تأثيرات الانتقال والظهور في الواجهة</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="enable_animations"
+                         {{ 'checked' if settings.enable_animations|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">عرض الساعة في شريط التنقل</div>
+                <div class="setting-desc">ساعة حية في أعلى الصفحة</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" name="show_clock"
+                         {{ 'checked' if settings.show_clock|default(true) else '' }}/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-bar-info">
+            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+          </div>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-floppy-disk"></i> حفظ إعدادات المظهر
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+
+    <!-- ═══ DANGER ZONE ═══ -->
+    <div class="settings-panel" id="panel-danger">
+
+      <div class="danger-zone-card">
+        <div class="danger-zone-title">
+          <i class="fas fa-triangle-exclamation"></i> منطقة الخطر
+        </div>
+
+        <div class="danger-action-row">
+          <div>
+            <div class="danger-action-label">حذف جميع الحجوزات الملغية</div>
+            <div class="danger-action-desc">يحذف بشكل نهائي جميع الحجوزات بحالة "ملغي"</div>
+          </div>
+          <form method="POST" action="{{ url_for('admin.danger_delete_cancelled') }}"
+                onsubmit="return confirm('هل أنت متأكد؟ لا يمكن التراجع!')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-z-danger" style="padding:8px 18px;">
+              <i class="fas fa-trash"></i> حذف الملغية
+            </button>
+          </form>
+        </div>
+
+        <div class="danger-action-row">
+          <div>
+            <div class="danger-action-label">إعادة تعيين إعدادات النظام</div>
+            <div class="danger-action-desc">يعيد جميع الإعدادات إلى القيم الافتراضية</div>
+          </div>
+          <form method="POST" action="{{ url_for('admin.danger_reset_settings') }}"
+                onsubmit="return confirm('سيتم إعادة تعيين كل الإعدادات. هل أنت متأكد؟')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-z-danger" style="padding:8px 18px;">
+              <i class="fas fa-rotate-left"></i> إعادة تعيين
+            </button>
+          </form>
+        </div>
+
+        <div class="danger-action-row">
+          <div>
+            <div class="danger-action-label">تصدير نسخة احتياطية من قاعدة البيانات</div>
+            <div class="danger-action-desc">تحميل ملف قاعدة البيانات الكاملة</div>
+          </div>
+          <a href="{{ url_for('admin.export_backup') }}" class="btn-z-outline"
+             style="padding:8px 18px;font-size:13px;">
+            <i class="fas fa-download"></i> تحميل النسخة
+          </a>
+        </div>
+
+      </div>
+
+      <!-- System info -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-icon"><i class="fas fa-circle-info"></i></div>
+          <div>
+            <div class="settings-card-title">معلومات النظام</div>
+            <div class="settings-card-sub">إصدار التطبيق والبيئة</div>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          {% set sys_info = [
+            ('إصدار التطبيق', 'Z Padel v1.0'),
+            ('إطار العمل',    'Flask + SQLAlchemy'),
+            ('قاعدة البيانات','SQLite'),
+            ('الخادم',         'Gunicorn / Nginx'),
+            ('Python',         '3.13'),
+          ] %}
+          {% for label, val in sys_info %}
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">{{ label }}</div>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);
+                        direction:ltr;background:var(--off-white);
+                        border:1px solid var(--border-color);border-radius:var(--radius-sm);
+                        padding:4px 12px;">{{ val }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- end panels column -->
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+// ── Panel switching ──
+function showPanel(id, el) {
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidenav-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── Unsaved indicator ──
+function markUnsaved() {
+  document.querySelectorAll('.unsaved-dot').forEach(d => d.classList.add('visible'));
+}
+
+// ── Password strength ──
+function checkStrength(pwd) {
+  const fill  = document.getElementById('pwdStrengthFill');
+  const label = document.getElementById('pwdStrengthLabel');
+  if (!pwd) { fill.style.width = '0%'; label.textContent = ''; return; }
+  let score = 0;
+  if (pwd.length >= 8)  score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  const levels = [
+    { w: '25%',  bg: '#E53935', lbl: 'ضعيفة جداً' },
+    { w: '50%',  bg: '#FB8C00', lbl: 'ضعيفة' },
+    { w: '75%',  bg: '#FDD835', lbl: 'متوسطة' },
+    { w: '100%', bg: '#43A047', lbl: 'قوية ✓' },
+  ];
+  const l = levels[score - 1] || levels[0];
+  fill.style.width      = l.w;
+  fill.style.background = l.bg;
+  label.textContent     = l.lbl;
+  label.style.color     = l.bg;
+}
+
+// ── Brand color hex update ──
+document.getElementById('brandColorInput')?.addEventListener('input', function() {
+  document.getElementById('brandColorHex').textContent = this.value.toUpperCase();
+});
+</script>
+{% endblock %}

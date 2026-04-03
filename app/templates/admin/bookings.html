@@ -1,431 +1,641 @@
-{% extends 'admin/base.html' %}
-{% block title %}الحجوزات{% endblock %}
+{% extends "admin/base_admin.html" %}
+
+{% block title %}الحجوزات — Z Padel{% endblock %}
+{% block page_icon %}fas fa-calendar-check{% endblock %}
 {% block page_title %}الحجوزات{% endblock %}
 
-{% block extra_css %}
-<style>
-  /* ── Stats ── */
-  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
-  .stat-box {
-    background: #1e293b; border: 1px solid #334155;
-    border-radius: 14px; padding: 1.2rem 1.4rem;
-    position: relative; overflow: hidden;
-  }
-  .stat-box::before {
-    content: ''; position: absolute; top: 0; right: 0;
-    width: 4px; height: 100%; border-radius: 0 14px 14px 0;
-  }
-  .stat-box.t-all::before    { background: #0ea5e9; }
-  .stat-box.t-ok::before     { background: #22c55e; }
-  .stat-box.t-pend::before   { background: #f59e0b; }
-  .stat-box.t-cancel::before { background: #ef4444; }
-  .stat-box .s-num  { font-size: 2rem; font-weight: 800; line-height: 1; }
-  .stat-box .s-lbl  { font-size: 0.72rem; color: #64748b; margin-top: 5px; text-transform: uppercase; letter-spacing: .6px; font-weight: 600; }
-  .stat-box .s-icon { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: .06; }
-  .stat-box.t-all    .s-num { color: #38bdf8; }
-  .stat-box.t-ok     .s-num { color: #4ade80; }
-  .stat-box.t-pend   .s-num { color: #fbbf24; }
-  .stat-box.t-cancel .s-num { color: #f87171; }
-
-  /* ── Filter card ── */
-  .filter-card { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; }
-  .filter-card .form-label { font-size: .7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-  .filter-card .form-control,
-  .filter-card .form-select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; font-size: .82rem; border-radius: 8px; height: 36px; transition: border-color .15s; }
-  .filter-card .form-control:focus,
-  .filter-card .form-select:focus { background: #0f172a; border-color: #0ea5e9; color: #e2e8f0; box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
-  .filter-card .form-control::placeholder { color: #334155; }
-  .filter-card .input-group-text { background: #0f172a; border-color: #334155; color: #475569; border-radius: 8px 0 0 8px; }
-  .filter-card option { background: #1e293b; }
-  .btn-filter { height: 36px; border-radius: 8px; font-size: .82rem; font-weight: 600; padding: 0 1.2rem; background: #0ea5e9; border: none; color: #fff; transition: background .15s; }
-  .btn-filter:hover { background: #0284c7; color: #fff; }
-  .btn-reset { height: 36px; border-radius: 8px; font-size: .82rem; padding: 0 .9rem; background: transparent; border: 1px solid #334155; color: #64748b; transition: .15s; }
-  .btn-reset:hover { border-color: #475569; color: #e2e8f0; }
-
-  /* ── Filter pills ── */
-  .filter-pill { display: inline-flex; align-items: center; gap: 5px; background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.2); color: #38bdf8; border-radius: 20px; padding: 2px 10px; font-size: .72rem; font-weight: 600; }
-
-  /* ── Table card ── */
-  .table-card { background: #1e293b; border: 1px solid #334155; border-radius: 14px; overflow: hidden; }
-  .table-card .tc-header { display: flex; justify-content: space-between; align-items: center; padding: .9rem 1.3rem; border-bottom: 1px solid #334155; }
-  .tc-header .count { font-size: .78rem; color: #64748b; font-weight: 600; }
-  .btn-add { font-size: .78rem; background: #0ea5e9; color: #fff; border: none; border-radius: 8px; padding: 5px 14px; text-decoration: none; font-weight: 600; transition: background .15s; }
-  .btn-add:hover { background: #0284c7; color: #fff; }
-
-  /* ── Table ── */
-  .bk-table { font-size: .83rem; margin: 0; }
-  .bk-table thead th { background: #0f172a; color: #475569; font-size: .68rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; border-color: #1e293b; padding: 10px 14px; white-space: nowrap; }
-  .bk-table tbody td { padding: 12px 14px; border-color: #334155; vertical-align: middle; }
-  .bk-table tbody tr { transition: background .1s; }
-  .bk-table tbody tr:hover { background: rgba(14,165,233,.03); }
-  .bk-table tbody tr:last-child td { border-bottom: none; }
-
-  /* Court badges */
-  .cb { display: inline-flex; align-items: center; gap: 5px; font-size: .7rem; padding: 3px 10px; border-radius: 6px; font-weight: 600; white-space: nowrap; }
-  .cb-1 { background: rgba(251,146,60,.1);  border: 1px solid rgba(251,146,60,.2);  color: #fb923c; }
-  .cb-2 { background: rgba(56,189,248,.1);  border: 1px solid rgba(56,189,248,.2);  color: #38bdf8; }
-  .cb-3 { background: rgba(74,222,128,.1);  border: 1px solid rgba(74,222,128,.2);  color: #4ade80; }
-  .cb-4 { background: rgba(192,132,252,.1); border: 1px solid rgba(192,132,252,.2); color: #c084fc; }
-
-  /* Status badges */
-  .sb { display: inline-flex; align-items: center; gap: 5px; font-size: .7rem; padding: 3px 10px; border-radius: 6px; font-weight: 600; white-space: nowrap; }
-  .sb-confirmed      { background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.2);  color: #4ade80; }
-  .sb-pending        { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2); color: #fbbf24; }
-  .sb-cancelled,
-  .sb-rejected       { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.2);  color: #f87171; }
-  .sb-pending_cancel { background: rgba(168,85,247,.1); border: 1px solid rgba(168,85,247,.2); color: #c084fc; }
-
-  /* Table cell styles */
-  .row-id   { font-size: .68rem; color: #334155; font-weight: 700; font-family: monospace; }
-  .date-val { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
-  .time-val { font-weight: 600; color: #e2e8f0; }
-  .time-end { font-size: .72rem; color: #475569; }
-  .cust-name  { font-weight: 600; color: #f1f5f9; }
-  .cust-phone { font-size: .73rem; color: #475569; margin-top: 1px; }
-  .price-val  { font-weight: 700; color: #38bdf8; }
-
-  /* Action buttons */
-  .act-btn { width: 28px; height: 28px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: .68rem; border: 1px solid #334155; background: #0f172a; color: #475569; cursor: pointer; transition: .15s; text-decoration: none; }
-  .act-btn:hover         { background: rgba(14,165,233,.12); border-color: rgba(14,165,233,.4); color: #38bdf8; }
-  .act-btn.act-ok:hover  { background: rgba(34,197,94,.12);  border-color: rgba(34,197,94,.4);  color: #4ade80; }
-  .act-btn.act-rej:hover { background: rgba(239,68,68,.12);  border-color: rgba(239,68,68,.4);  color: #f87171; }
-  .act-btn.act-del:hover { background: rgba(239,68,68,.12);  border-color: rgba(239,68,68,.4);  color: #f87171; }
-
-  /* Pagination */
-  .pag-wrap { display: flex; justify-content: space-between; align-items: center; padding: .9rem 1.3rem; border-top: 1px solid #334155; }
-  .pag-info { font-size: .75rem; color: #475569; }
-  .pagination .page-link { background: #0f172a; border-color: #334155; color: #64748b; border-radius: 7px !important; margin: 0 2px; font-size: .78rem; padding: 4px 10px; transition: .15s; }
-  .pagination .page-link:hover { background: rgba(14,165,233,.1); border-color: rgba(14,165,233,.4); color: #38bdf8; }
-  .pagination .page-item.active .page-link { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
-  .pagination .page-item.disabled .page-link { background: #0f172a; color: #1e293b; border-color: #1e293b; }
-
-  /* Empty */
-  .empty-box { padding: 4rem 2rem; text-align: center; }
-  .empty-box i { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: .2; color: #64748b; }
-  .empty-box .e-title { font-size: .95rem; font-weight: 600; color: #475569; }
-  .empty-box .e-sub   { font-size: .82rem; color: #334155; margin-top: 4px; }
-
-  /* Modal dark */
-  .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 14px; color: #e2e8f0; }
-  .modal-header, .modal-footer { border-color: #334155; }
-  #rejectReason { background: #0f172a; border-color: #334155; color: #e2e8f0; border-radius: 8px; }
-  #rejectReason:focus { background: #0f172a; border-color: #0ea5e9; box-shadow: none; color: #e2e8f0; }
-
-  @media (max-width: 768px) {
-    .stat-grid { grid-template-columns: repeat(2, 1fr); }
-    .hide-sm { display: none !important; }
-  }
-</style>
+{% block extra_styles %}
+/* ── Availability color dots ── */
+.court-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+/* ── Filter bar ── */
+.filter-bar {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  box-shadow: var(--shadow-sm);
+  animation: fadeSlideIn 0.35s ease both;
+}
+.filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 150px; }
+.filter-group label { font-size: 11.5px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.3px; }
+.filter-group select,
+.filter-group input {
+  padding: 7px 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  color: var(--text-dark);
+  background: white;
+  outline: none;
+  transition: var(--transition);
+}
+.filter-group select:focus,
+.filter-group input:focus {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
+}
+/* ── Stats strip ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+/* ── Table wrapper ── */
+.table-wrapper {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: fadeSlideIn 0.4s ease 0.15s both;
+}
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.table-toolbar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--brand-blue-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.table-toolbar-title .count-pill {
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+}
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-input-wrap i {
+  position: absolute;
+  right: 11px;
+  color: var(--text-muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+.search-input-wrap input {
+  padding: 7px 34px 7px 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  width: 220px;
+  outline: none;
+  transition: var(--transition);
+  color: var(--text-dark);
+}
+.search-input-wrap input:focus {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
+  width: 260px;
+}
+/* ── Booking row hover detail ── */
+.booking-name {
+  font-weight: 700;
+  color: var(--text-dark);
+  font-size: 13.5px;
+}
+.booking-phone {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  direction: ltr;
+  display: inline-block;
+}
+.time-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-dark);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  direction: ltr;
+}
+.discount-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(251,140,0,0.12);
+  color: #E65100;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+/* ── Action buttons in table ── */
+.action-btns { display: flex; gap: 6px; }
+.action-btn {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+.action-btn.view   { background: var(--brand-blue-soft); color: var(--brand-blue); }
+.action-btn.cancel { background: rgba(229,57,53,0.10);   color: #C62828; }
+.action-btn.edit   { background: rgba(251,140,0,0.10);   color: #E65100; }
+.action-btn:hover  { transform: scale(1.12); }
+/* ── Pagination ── */
+.pagination-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info { font-size: 12.5px; color: var(--text-muted); }
+.pagination-btns { display: flex; gap: 4px; }
+.page-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color);
+  background: white;
+  color: var(--text-dark);
+  font-size: 13px;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+}
+.page-btn:hover, .page-btn.active {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+  color: white;
+}
+/* ── Add booking modal ── */
+.modal-z .modal-content {
+  border-radius: var(--radius);
+  border: none;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.modal-z .modal-header {
+  background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
+  color: white;
+  border: none;
+  padding: 16px 22px;
+}
+.modal-z .modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-z .btn-close { filter: invert(1); opacity: 0.8; }
+.modal-z .modal-body { padding: 22px; }
+.modal-z .modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 14px 22px;
+  gap: 8px;
+}
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.empty-state i {
+  font-size: 48px;
+  color: var(--brand-blue-mid);
+  margin-bottom: 14px;
+  display: block;
+}
+.empty-state p { font-size: 14px; font-weight: 500; }
+/* ── Discount indicator ── */
+.discount-hours-note {
+  background: rgba(251,140,0,0.08);
+  border: 1px solid rgba(251,140,0,0.20);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #E65100;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 {% endblock %}
 
 {% block content %}
-<div class="px-1 py-2">
 
-  <!-- Stats -->
-  <div class="stat-grid">
-    <div class="stat-box t-all">
-      <div class="s-num">{{ stats.total }}</div>
-      <div class="s-lbl">إجمالي</div>
-      <i class="fas fa-calendar s-icon"></i>
-    </div>
-    <div class="stat-box t-ok">
-      <div class="s-num">{{ stats.confirmed }}</div>
-      <div class="s-lbl">مؤكد</div>
-      <i class="fas fa-check-circle s-icon"></i>
-    </div>
-    <div class="stat-box t-pend">
-      <div class="s-num">{{ stats.pending }}</div>
-      <div class="s-lbl">معلق</div>
-      <i class="fas fa-clock s-icon"></i>
-    </div>
-    <div class="stat-box t-cancel">
-      <div class="s-num">{{ stats.cancelled }}</div>
-      <div class="s-lbl">ملغي / مرفوض</div>
-      <i class="fas fa-times-circle s-icon"></i>
+<!-- Stats Strip -->
+<div class="stats-strip">
+  <div class="stat-card blue" style="animation-delay:0s">
+    <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ bookings|length if bookings else 0 }}</div>
+      <div class="stat-label">إجمالي الحجوزات</div>
     </div>
   </div>
+  <div class="stat-card cyan" style="animation-delay:0.07s">
+    <div class="stat-icon cyan"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ bookings|selectattr('status','equalto','confirmed')|list|length if bookings else 0 }}</div>
+      <div class="stat-label">مؤكدة</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.14s; --card-color: orange;">
+    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ bookings|selectattr('status','equalto','pending')|list|length if bookings else 0 }}</div>
+      <div class="stat-label">معلقة</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.21s;">
+    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-ban"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ bookings|selectattr('status','equalto','cancelled')|list|length if bookings else 0 }}</div>
+      <div class="stat-label">ملغية</div>
+    </div>
+  </div>
+</div>
 
-  <!-- Filters -->
-  <div class="filter-card">
-    <form method="GET" action="{{ url_for('admin.bookings') }}">
-      <div class="row g-2 align-items-end">
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <form method="GET" action="{{ url_for('admin.bookings') }}" style="display:contents;">
 
-        <div class="col-12 col-md-3">
-          <label class="form-label">بحث</label>
-          <div class="input-group" style="height:36px;">
-            <span class="input-group-text" style="height:36px;"><i class="fas fa-search" style="font-size:.62rem;"></i></span>
-            <input type="text" name="search" class="form-control" style="border-radius:0 8px 8px 0; height:36px;"
-                   placeholder="الاسم أو الهاتف…" value="{{ search }}">
-          </div>
-        </div>
+    <div class="filter-group">
+      <label><i class="fas fa-calendar-days" style="margin-left:4px;"></i>التاريخ</label>
+      <input type="date" name="date" value="{{ request.args.get('date','') }}"/>
+    </div>
 
-        <div class="col-6 col-md-2">
-          <label class="form-label">تاريخ محدد</label>
-          <input type="date" name="single_date" class="form-control" value="{{ single_date }}"
-                 oninput="document.getElementById('dfrom').value='';document.getElementById('dto').value='';">
-        </div>
+    <div class="filter-group">
+      <label><i class="fas fa-shield-halved" style="margin-left:4px;"></i>الملعب</label>
+      <select name="court_id">
+        <option value="">كل الملاعب</option>
+        {% for court in courts %}
+          <option value="{{ court.id }}" {% if request.args.get('court_id')|string == court.id|string %}selected{% endif %}>
+            {{ court.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
 
-        <div class="col-6 col-md-2">
-          <label class="form-label">من</label>
-          <input type="date" name="date_from" id="dfrom" class="form-control" value="{{ date_from }}"
-                 oninput="document.querySelector('[name=single_date]').value='';">
-        </div>
-        <div class="col-6 col-md-2">
-          <label class="form-label">إلى</label>
-          <input type="date" name="date_to" id="dto" class="form-control" value="{{ date_to }}"
-                 oninput="document.querySelector('[name=single_date]').value='';">
-        </div>
+    <div class="filter-group">
+      <label><i class="fas fa-circle-half-stroke" style="margin-left:4px;"></i>الحالة</label>
+      <select name="status">
+        <option value="">كل الحالات</option>
+        <option value="confirmed"  {% if request.args.get('status')=='confirmed'  %}selected{% endif %}>مؤكدة</option>
+        <option value="pending"    {% if request.args.get('status')=='pending'    %}selected{% endif %}>معلقة</option>
+        <option value="cancelled"  {% if request.args.get('status')=='cancelled'  %}selected{% endif %}>ملغية</option>
+      </select>
+    </div>
 
-        <div class="col-6 col-md-1">
-          <label class="form-label">الملعب</label>
-          <select name="court_id" class="form-select">
-            <option value="all" {% if court_filter=='all' %}selected{% endif %}>الكل</option>
-            {% for c in courts %}
-            <option value="{{ c.id }}" {% if court_filter==c.id|string %}selected{% endif %}>{{ c.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="col-6 col-md-1">
-          <label class="form-label">الحالة</label>
-          <select name="status" class="form-select">
-            <option value="all"            {% if status_filter=='all' %}selected{% endif %}>الكل</option>
-            <option value="confirmed"      {% if status_filter=='confirmed' %}selected{% endif %}>مؤكد</option>
-            <option value="pending"        {% if status_filter=='pending' %}selected{% endif %}>معلق</option>
-            <option value="pending_cancel" {% if status_filter=='pending_cancel' %}selected{% endif %}>طلب إلغاء</option>
-            <option value="cancelled"      {% if status_filter=='cancelled' %}selected{% endif %}>ملغي</option>
-            <option value="rejected"       {% if status_filter=='rejected' %}selected{% endif %}>مرفوض</option>
-          </select>
-        </div>
-
-        <div class="col-12 col-md-1 d-flex gap-2">
-          <button type="submit" class="btn-filter flex-fill">
-            <i class="fas fa-search me-1"></i>بحث
-          </button>
-          <a href="{{ url_for('admin.bookings') }}" class="btn-reset">
-            <i class="fas fa-times"></i>
-          </a>
-        </div>
-
+    <div class="filter-group">
+      <label>&nbsp;</label>
+      <div style="display:flex;gap:8px;">
+        <button type="submit" class="btn-z-primary" style="padding:7px 18px;">
+          <i class="fas fa-filter"></i> تصفية
+        </button>
+        <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline" style="padding:7px 14px;">
+          <i class="fas fa-rotate-left"></i>
+        </a>
       </div>
-    </form>
-
-    {% if search or single_date or date_from or date_to or court_filter != 'all' or status_filter != 'all' %}
-    <div class="d-flex flex-wrap gap-2 mt-3 pt-3" style="border-top:1px solid #334155;">
-      <span style="font-size:.7rem; color:#475569; align-self:center;">فلاتر نشطة:</span>
-      {% if search %}<span class="filter-pill"><i class="fas fa-search" style="font-size:.55rem;"></i>{{ search }}</span>{% endif %}
-      {% if single_date %}<span class="filter-pill"><i class="fas fa-calendar" style="font-size:.55rem;"></i>{{ single_date }}</span>{% endif %}
-      {% if date_from %}<span class="filter-pill"><i class="fas fa-calendar" style="font-size:.55rem;"></i>من {{ date_from }}</span>{% endif %}
-      {% if date_to %}<span class="filter-pill"><i class="fas fa-calendar" style="font-size:.55rem;"></i>إلى {{ date_to }}</span>{% endif %}
-      {% if court_filter != 'all' %}{% for c in courts %}{% if c.id|string == court_filter %}<span class="filter-pill">{{ c.name }}</span>{% endif %}{% endfor %}{% endif %}
-      {% if status_filter != 'all' %}<span class="filter-pill">{{ status_filter|replace('_',' ')|title }}</span>{% endif %}
     </div>
-    {% endif %}
-  </div>
 
-  <!-- Table -->
-  <div class="table-card">
-    <div class="tc-header">
-      <span class="count"><i class="fas fa-list me-2" style="color:#0ea5e9;"></i>{{ stats.total }} حجز</span>
-      <a href="{{ url_for('admin.add_booking') }}" class="btn-add">
-        <i class="fas fa-plus me-1"></i>إضافة حجز
+    <div style="margin-right:auto; display:flex; align-items:flex-end;">
+      <div class="discount-hours-note">
+        <i class="fas fa-tag"></i> خصم 25% من 12:00 حتى 16:00
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<!-- Table -->
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="table-toolbar-title">
+      <i class="fas fa-list" style="color:var(--brand-blue);"></i>
+      قائمة الحجوزات
+      <span class="count-pill">{{ bookings|length if bookings else 0 }}</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="search-input-wrap">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..." oninput="filterTable()"/>
+      </div>
+      <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal">
+        <i class="fas fa-plus"></i> حجز جديد
+      </button>
+      <a href="{{ url_for('admin.bookings', export='csv', **request.args) }}" class="btn-z-outline">
+        <i class="fas fa-file-export"></i> تصدير
       </a>
     </div>
+  </div>
 
-    {% if bookings %}
-    <div class="table-responsive">
-      <table class="table bk-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>التاريخ</th>
-            <th>الوقت</th>
-            <th>الملعب</th>
-            <th>العميل</th>
-            <th class="hide-sm">المبلغ</th>
-            <th>الحالة</th>
-            <th style="text-align:center;">إجراء</th>
-          </tr>
-        </thead>
-        <tbody>
+  <div style="overflow-x:auto;">
+    <table class="table-z" id="bookingsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>العميل</th>
+          <th>الملعب</th>
+          <th>التاريخ</th>
+          <th>الوقت</th>
+          <th>المبلغ</th>
+          <th>الحالة</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsBody">
+        {% if bookings %}
           {% for b in bookings %}
-          <tr id="row-{{ b.id }}">
-
-            <td><span class="row-id">#{{ b.id }}</span></td>
-
-            <td><span class="date-val">{{ b.date.strftime('%d %b %Y') }}</span></td>
-
+          <tr>
+            <td style="color:var(--text-muted);font-size:12px;">{{ loop.index }}</td>
             <td>
-              <span class="time-val">{{ b.start_time.strftime('%H:%M') }}</span>
-              <span class="time-end"> → {{ b.end_time.strftime('%H:%M') }}</span>
+              <div class="booking-name">{{ b.customer_name }}</div>
+              <div class="booking-phone">{{ b.customer_phone }}</div>
             </td>
-
             <td>
-              <span class="cb cb-{{ b.court_id }}">
-                <i class="fas fa-circle" style="font-size:.35rem;"></i>
-                {{ b.court.name if b.court else 'Court '~b.court_id }}
-              </span>
-            </td>
-
-            <td>
-              <div class="cust-name">{{ b.customer_name or '—' }}</div>
-              <div class="cust-phone">{{ b.customer_phone or '' }}</div>
-            </td>
-
-            <td class="hide-sm">
-              {% if b.total_price %}
-                <span class="price-val">{{ "{:,.0f}".format(b.total_price) }}</span>
-                <span style="font-size:.65rem; color:#334155;"> IQD</span>
-              {% else %}—{% endif %}
-            </td>
-
-            <td>
-              {% set s = b.status %}
-              <span class="sb sb-{{ s }}">
-                {% if s == 'confirmed' %}<i class="fas fa-check-circle"></i>مؤكد
-                {% elif s == 'pending' %}<i class="fas fa-clock"></i>معلق
-                {% elif s == 'cancelled' %}<i class="fas fa-times-circle"></i>ملغي
-                {% elif s == 'rejected' %}<i class="fas fa-ban"></i>مرفوض
-                {% elif s == 'pending_cancel' %}<i class="fas fa-hourglass-half"></i>طلب إلغاء
-                {% else %}{{ s }}{% endif %}
-              </span>
-            </td>
-
-            <td>
-              <div class="d-flex gap-1 justify-content-center">
-                {% if b.status == 'pending' %}
-                <button class="act-btn act-ok" title="قبول" onclick="doApprove({{ b.id }})">
-                  <i class="fas fa-check"></i>
-                </button>
-                <button class="act-btn act-rej" title="رفض" onclick="doReject({{ b.id }})">
-                  <i class="fas fa-times"></i>
-                </button>
-                {% endif %}
-                <button class="act-btn act-del" title="حذف" onclick="doDelete({{ b.id }})">
-                  <i class="fas fa-trash"></i>
-                </button>
+              <div style="display:flex;align-items:center;">
+                <span class="court-dot"
+                  style="background:{{ b.court.color if b.court.color else 'var(--brand-blue)' }};"></span>
+                {{ b.court.name if b.court else '—' }}
               </div>
             </td>
-
+            <td style="font-size:13px;white-space:nowrap;">
+              <i class="fas fa-calendar-day" style="color:var(--text-muted);margin-left:5px;font-size:11px;"></i>
+              {{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}
+            </td>
+            <td>
+              <span class="time-slot">
+                <i class="fas fa-clock" style="font-size:10px;"></i>
+                {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }}
+                –
+                {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}
+              </span>
+              {% if b.start_time and b.start_time.hour >= 12 and b.start_time.hour < 16 %}
+                <div style="margin-top:3px;">
+                  <span class="discount-tag"><i class="fas fa-tag" style="font-size:9px;"></i>25%</span>
+                </div>
+              {% endif %}
+            </td>
+            <td style="font-weight:700;color:var(--brand-blue-dark);font-size:13.5px;">
+              {{ b.total_price|default('—') }}
+              {% if b.total_price %}<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> د.ع</span>{% endif %}
+            </td>
+            <td>
+              {% if b.status == 'confirmed' %}
+                <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مؤكد</span>
+              {% elif b.status == 'pending' %}
+                <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>معلق</span>
+              {% elif b.status == 'cancelled' %}
+                <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>ملغي</span>
+              {% else %}
+                <span class="badge-z blue">{{ b.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="action-btns">
+                <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
+                   class="action-btn view" title="عرض التفاصيل">
+                  <i class="fas fa-eye"></i>
+                </a>
+                <a href="{{ url_for('admin.edit_booking', booking_id=b.id) }}"
+                   class="action-btn edit" title="تعديل">
+                  <i class="fas fa-pen"></i>
+                </a>
+                {% if b.status != 'cancelled' %}
+                <form method="POST"
+                      action="{{ url_for('admin.cancel_booking', booking_id=b.id) }}"
+                      onsubmit="return confirm('هل تريد إلغاء هذا الحجز؟')"
+                      style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="action-btn cancel" title="إلغاء">
+                    <i class="fas fa-xmark"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
           </tr>
           {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    {% if pagination.pages > 1 %}
-    <div class="pag-wrap">
-      <span class="pag-info">
-        عرض {{ ((pagination.page-1)*25)+1 }}–{{ [pagination.page*25, stats.total]|min }}
-        من {{ stats.total }}
-      </span>
-      <ul class="pagination pagination-sm mb-0">
-        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-          <a class="page-link" href="?{{ request.query_string.decode()|replace('page='~pagination.page, 'page='~pagination.prev_num) }}">‹</a>
-        </li>
-        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-          {% if p %}
-            <li class="page-item {% if p == pagination.page %}active{% endif %}">
-              <a class="page-link" href="?{{ request.query_string.decode()|replace('page='~pagination.page, 'page='~p) }}">{{ p }}</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">…</span></li>
-          {% endif %}
-        {% endfor %}
-        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-          <a class="page-link" href="?{{ request.query_string.decode()|replace('page='~pagination.page, 'page='~pagination.next_num) }}">›</a>
-        </li>
-      </ul>
-    </div>
-    {% endif %}
-
-    {% else %}
-    <div class="empty-box">
-      <i class="fas fa-calendar-times"></i>
-      <div class="e-title">لا توجد حجوزات</div>
-      <div class="e-sub">
-        {% if search or single_date or date_from or date_to or court_filter != 'all' or status_filter != 'all' %}
-          جرّب إزالة بعض الفلاتر
         {% else %}
-          لم يتم تسجيل أي حجوزات بعد
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <i class="fas fa-calendar-xmark"></i>
+                <p>لا توجد حجوزات تطابق الفلتر المحدد</p>
+              </div>
+            </td>
+          </tr>
         {% endif %}
-      </div>
-    </div>
-    {% endif %}
+      </tbody>
+    </table>
   </div>
 
-</div>
+  <!-- Pagination -->
+  {% if pagination %}
+  <div class="pagination-wrap">
+    <div class="pagination-info">
+      عرض {{ pagination.per_page * (pagination.page - 1) + 1 }}
+      – {{ [pagination.per_page * pagination.page, pagination.total]|min }}
+      من {{ pagination.total }} حجز
+    </div>
+    <div class="pagination-btns">
+      {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.bookings', page=pagination.prev_num, **request.args) }}"
+           class="page-btn"><i class="fas fa-chevron-right"></i></a>
+      {% endif %}
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+          <a href="{{ url_for('admin.bookings', page=p, **request.args) }}"
+             class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+        {% else %}
+          <span class="page-btn" style="cursor:default;color:var(--text-muted);">…</span>
+        {% endif %}
+      {% endfor %}
+      {% if pagination.has_next %}
+        <a href="{{ url_for('admin.bookings', page=pagination.next_num, **request.args) }}"
+           class="page-btn"><i class="fas fa-chevron-left"></i></a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 
-<!-- Reject modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
+</div><!-- end table-wrapper -->
+
+
+<!-- ═══ ADD BOOKING MODAL ═══ -->
+<div class="modal fade modal-z" id="addBookingModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h6 class="modal-title"><i class="fas fa-times-circle text-danger me-2"></i>رفض الحجز</h6>
-        <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-plus"></i> إضافة حجز جديد
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <label class="form-label" style="font-size:.78rem; color:#64748b;">سبب الرفض (اختياري)</label>
-        <textarea id="rejectReason" class="form-control form-control-sm" rows="2" placeholder="اكتب السبب…"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">إلغاء</button>
-        <button class="btn btn-sm btn-danger rounded-pill px-3" id="confirmRejectBtn">رفض</button>
-      </div>
+      <form method="POST" action="{{ url_for('admin.add_booking') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label-z">اسم العميل <span style="color:#e53935;">*</span></label>
+              <input type="text" name="customer_name" class="form-control-z" required placeholder="الاسم الكامل"/>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">رقم الهاتف <span style="color:#e53935;">*</span></label>
+              <input type="tel" name="customer_phone" class="form-control-z" required placeholder="07xx xxx xxxx" dir="ltr"/>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">الملعب <span style="color:#e53935;">*</span></label>
+              <select name="court_id" class="form-control-z" required id="courtSelect">
+                <option value="">اختر الملعب</option>
+                {% for court in courts %}
+                  <option value="{{ court.id }}">{{ court.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">تاريخ الحجز <span style="color:#e53935;">*</span></label>
+              <input type="date" name="booking_date" class="form-control-z" required
+                     min="{{ today }}" id="bookingDate"/>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">وقت البداية <span style="color:#e53935;">*</span></label>
+              <select name="start_time" class="form-control-z" required id="startTime" onchange="calcPrice()">
+                <option value="">اختر الوقت</option>
+                {% for h in range(6, 24) %}
+                  <option value="{{ '%02d'|format(h) }}:00">{{ '%02d'|format(h) }}:00</option>
+                  <option value="{{ '%02d'|format(h) }}:30">{{ '%02d'|format(h) }}:30</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">وقت النهاية <span style="color:#e53935;">*</span></label>
+              <select name="end_time" class="form-control-z" required id="endTime" onchange="calcPrice()">
+                <option value="">اختر الوقت</option>
+                {% for h in range(6, 24) %}
+                  <option value="{{ '%02d'|format(h) }}:00">{{ '%02d'|format(h) }}:00</option>
+                  <option value="{{ '%02d'|format(h) }}:30">{{ '%02d'|format(h) }}:30</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">الحالة</label>
+              <select name="status" class="form-control-z">
+                <option value="confirmed">مؤكدة</option>
+                <option value="pending">معلقة</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-z">ملاحظات</label>
+              <input type="text" name="notes" class="form-control-z" placeholder="ملاحظات اختيارية"/>
+            </div>
+
+            <!-- Price preview -->
+            <div class="col-12" id="pricePreview" style="display:none;">
+              <div style="background:var(--brand-blue-soft);border:1px solid var(--brand-blue-mid);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;font-weight:600;color:var(--brand-blue-dark);">
+                  <i class="fas fa-calculator" style="margin-left:6px;"></i>المبلغ المحسوب
+                </span>
+                <span id="priceValue" style="font-size:18px;font-weight:900;color:var(--brand-blue);"></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn-z-primary">
+            <i class="fas fa-calendar-plus"></i> تأكيد الحجز
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
+
 {% endblock %}
 
-{% block extra_js %}
+
+{% block extra_scripts %}
 <script>
-let _rejectId = null;
-
-function doApprove(id) {
-  if (!confirm('قبول هذا الحجز؟')) return;
-  fetch(`/admin/bookings/${id}/approve`, { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-      if (d.success) {
-        const row = document.getElementById(`row-${id}`);
-        row.querySelector('.sb').className = 'sb sb-confirmed';
-        row.querySelector('.sb').innerHTML = '<i class="fas fa-check-circle"></i>مؤكد';
-        row.querySelectorAll('.act-ok, .act-rej').forEach(b => b.remove());
-      } else alert(d.message || 'خطأ');
-    });
-}
-
-function doReject(id) {
-  _rejectId = id;
-  document.getElementById('rejectReason').value = '';
-  new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
-
-document.getElementById('confirmRejectBtn').addEventListener('click', () => {
-  const reason = document.getElementById('rejectReason').value;
-  fetch(`/admin/bookings/${_rejectId}/reject`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reason })
-  }).then(r => r.json()).then(d => {
-    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-    if (d.success) {
-      const row = document.getElementById(`row-${_rejectId}`);
-      row.querySelector('.sb').className = 'sb sb-rejected';
-      row.querySelector('.sb').innerHTML = '<i class="fas fa-ban"></i>مرفوض';
-      row.querySelectorAll('.act-ok, .act-rej').forEach(b => b.remove());
-    } else alert(d.message || 'خطأ');
+// ── Live table search ──
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#bookingsBody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
-});
-
-function doDelete(id) {
-  if (!confirm('حذف هذا الحجز نهائياً؟')) return;
-  fetch(`/admin/bookings/${id}/delete`, { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-      if (d.success) document.getElementById(`row-${id}`).remove();
-      else alert(d.message || 'خطأ');
-    });
 }
+
+// ── Price calculator (discount 12:00–16:00) ──
+const HOURLY_RATE = {{ court_price|default(25000) }};
+
+function calcPrice() {
+  const start = document.getElementById('startTime').value;
+  const end   = document.getElementById('endTime').value;
+  if (!start || !end) return;
+
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const startMins = sh * 60 + sm;
+  const endMins   = eh * 60 + em;
+
+  if (endMins <= startMins) {
+    document.getElementById('pricePreview').style.display = 'none';
+    return;
+  }
+
+  const hours = (endMins - startMins) / 60;
+
+  // Discount if start hour is between 12 and 16
+  const isDiscount = sh >= 12 && sh < 16;
+  const rate   = isDiscount ? HOURLY_RATE * 0.75 : HOURLY_RATE;
+  const total  = Math.round(hours * rate);
+  const label  = isDiscount
+    ? `${total.toLocaleString()} د.ع <small style="color:#E65100;font-size:12px;margin-right:6px;">(خصم 25%)</small>`
+    : `${total.toLocaleString()} د.ع`;
+
+  document.getElementById('priceValue').innerHTML = label;
+  document.getElementById('pricePreview').style.display = '';
+}
+
+// ── Set today as default date in modal ──
+document.getElementById('bookingDate').value = new Date().toISOString().split('T')[0];
 </script>
 {% endblock %}

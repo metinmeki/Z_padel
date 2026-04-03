@@ -1,219 +1,833 @@
-﻿
-{% extends 'admin/base.html' %}
-{% block title %}الطلبات{% endblock %}
+{% extends "admin/base_admin.html" %}
+
+{% block title %}الطلبات — Z Padel{% endblock %}
+{% block page_icon %}fas fa-bag-shopping{% endblock %}
 {% block page_title %}طلبات المتجر{% endblock %}
 
-{% block extra_css %}
-<style>
-  .stat-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:1.4rem; }
-  .sb { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:.9rem 1rem; position:relative; overflow:hidden; }
-  .sb::before { content:''; position:absolute; top:0; right:0; width:3px; height:100%; }
-  .sb.s-all::before    { background:#64748b; }
-  .sb.s-pend::before   { background:#f59e0b; }
-  .sb.s-ready::before  { background:#0ea5e9; }
-  .sb.s-done::before   { background:#22c55e; }
-  .sb.s-cancel::before { background:#ef4444; }
-  .sb .n { font-size:1.6rem; font-weight:800; line-height:1; }
-  .sb .l { font-size:.68rem; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-top:4px; font-weight:600; }
-  .sb.s-all   .n { color:#94a3b8; }
-  .sb.s-pend  .n { color:#fbbf24; }
-  .sb.s-ready .n { color:#38bdf8; }
-  .sb.s-done  .n { color:#4ade80; }
-  .sb.s-cancel .n{ color:#f87171; }
+{% block extra_styles %}
+/* ── Stats strip ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 14px; margin-bottom: 22px;
+}
 
-  /* Filter tabs */
-  .tab-bar { display:flex; gap:6px; margin-bottom:1.2rem; flex-wrap:wrap; }
-  .tab { padding:5px 14px; border-radius:8px; font-size:.78rem; font-weight:600; border:1px solid #334155; background:#0f172a; color:#64748b; text-decoration:none; transition:.15s; }
-  .tab:hover, .tab.active { background:#0ea5e9; border-color:#0ea5e9; color:#fff; }
-  .tab.t-pend.active   { background:#f59e0b; border-color:#f59e0b; }
-  .tab.t-ready.active  { background:#0ea5e9; border-color:#0ea5e9; }
-  .tab.t-done.active   { background:#22c55e; border-color:#22c55e; }
-  .tab.t-cancel.active { background:#ef4444; border-color:#ef4444; }
+/* ── Toolbar ── */
+.orders-toolbar {
+  background: white; border: 1px solid var(--border-color);
+  border-radius: var(--radius); padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex; align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeSlideIn 0.35s ease both;
+}
+.toolbar-left  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
 
-  /* Orders grid */
-  .orders-grid { display:flex; flex-direction:column; gap:10px; }
+.search-wrap {
+  position: relative; display: flex; align-items: center;
+}
+.search-wrap i {
+  position: absolute; right: 11px;
+  color: var(--text-muted); font-size: 13px; pointer-events: none;
+}
+.search-wrap input {
+  padding: 8px 34px 8px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  width: 210px; outline: none; transition: var(--transition); color: var(--text-dark);
+}
+.search-wrap input:focus {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.12); width: 250px;
+}
+.filter-select {
+  padding: 8px 14px; border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm); font-family: 'Cairo', sans-serif;
+  font-size: 13px; outline: none; color: var(--text-dark);
+  background: white; cursor: pointer; transition: var(--transition);
+}
+.filter-select:focus { border-color: var(--brand-blue-light); }
 
-  .order-card { background:#1e293b; border:1px solid #334155; border-radius:13px; overflow:hidden; transition:border-color .15s; }
-  .order-card:hover { border-color:#475569; }
-  .order-card.st-pending  { border-right:3px solid #f59e0b; }
-  .order-card.st-ready    { border-right:3px solid #0ea5e9; }
-  .order-card.st-done     { border-right:3px solid #22c55e; }
-  .order-card.st-cancelled{ border-right:3px solid #ef4444; }
+/* ── Main layout ── */
+.orders-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 18px; align-items: start;
+}
+@media (max-width: 1100px) { .orders-layout { grid-template-columns: 1fr; } }
 
-  .order-head { display:flex; justify-content:space-between; align-items:center; padding:.85rem 1.2rem; border-bottom:1px solid #334155; flex-wrap:wrap; gap:8px; }
-  .order-id { font-family:monospace; font-size:.75rem; color:#334155; font-weight:700; }
-  .order-name { font-weight:700; color:#f1f5f9; font-size:.9rem; }
-  .order-phone { font-size:.75rem; color:#64748b; }
-  .order-time { font-size:.72rem; color:#475569; }
-  .order-total { font-weight:800; color:#0ea5e9; font-size:.95rem; }
+/* ── Table wrapper ── */
+.table-wrapper {
+  background: white; border-radius: var(--radius);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  overflow: hidden; animation: fadeSlideIn 0.4s ease 0.1s both;
+}
+.table-toolbar {
+  padding: 14px 20px; border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.table-title {
+  font-size: 15px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 8px;
+}
+.count-pill {
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px;
+}
 
-  .order-items { padding:.7rem 1.2rem; border-bottom:1px solid #334155; }
-  .oi-row { display:flex; justify-content:space-between; font-size:.8rem; padding:3px 0; color:#94a3b8; }
-  .oi-row .oi-name { color:#cbd5e1; }
-  .oi-row .oi-sub  { color:#475569; }
+/* ── Order row ── */
+.order-id {
+  font-size: 12px; font-weight: 700; color: var(--brand-blue);
+  background: var(--brand-blue-soft); padding: 2px 9px;
+  border-radius: 20px; display: inline-block; direction: ltr;
+}
+.customer-name { font-weight: 700; font-size: 13.5px; color: var(--text-dark); }
+.customer-phone { font-size: 11.5px; color: var(--text-muted); direction: ltr; display: inline-block; }
 
-  .order-foot { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.2rem; gap:8px; flex-wrap:wrap; }
+/* Items preview pills */
+.items-preview {
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.item-pill {
+  background: var(--off-white); border: 1px solid var(--border-color);
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; color: var(--text-dark);
+  white-space: nowrap;
+}
+.item-pill-more {
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  border: 1px solid var(--brand-blue-mid);
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
 
-  /* Status select */
-  .status-sel { background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:8px; font-size:.78rem; padding:4px 10px; cursor:pointer; transition:.15s; }
-  .status-sel:focus { border-color:#0ea5e9; box-shadow:none; outline:none; }
-  .status-sel option { background:#1e293b; }
+/* Total amount */
+.total-amount {
+  font-size: 14px; font-weight: 900; color: var(--brand-blue-dark);
+}
+.total-amount small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
 
-  /* Action btns */
-  .act-row { display:flex; gap:6px; }
-  .act-b { width:30px; height:30px; border-radius:7px; border:1px solid #334155; background:#0f172a; color:#475569; display:flex; align-items:center; justify-content:center; font-size:.7rem; cursor:pointer; transition:.15s; text-decoration:none; }
-  .act-b:hover { border-color:#0ea5e9; color:#38bdf8; background:rgba(14,165,233,.1); }
-  .act-b.del:hover { border-color:#ef4444; color:#f87171; background:rgba(239,68,68,.1); }
+/* Action btns */
+.action-btns { display: flex; gap: 6px; }
+.action-btn {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  border: none; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; transition: var(--transition); text-decoration: none;
+}
+.action-btn.view   { background: var(--brand-blue-soft); color: var(--brand-blue); }
+.action-btn.edit   { background: rgba(251,140,0,0.10); color: #E65100; }
+.action-btn.delete { background: rgba(229,57,53,0.10); color: #C62828; }
+.action-btn:hover  { transform: scale(1.12); }
 
-  /* Status badges */
-  .stbadge { font-size:.68rem; padding:2px 9px; border-radius:6px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
-  .stbadge.pending   { background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.2); color:#fbbf24; }
-  .stbadge.ready     { background:rgba(14,165,233,.1); border:1px solid rgba(14,165,233,.2); color:#38bdf8; }
-  .stbadge.done      { background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.2);  color:#4ade80; }
-  .stbadge.cancelled { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.2);  color:#f87171; }
+/* ── Pagination ── */
+.pagination-wrap {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 20px; border-top: 1px solid var(--border-color);
+  flex-wrap: wrap; gap: 10px;
+}
+.pagination-info { font-size: 12.5px; color: var(--text-muted); }
+.pagination-btns { display: flex; gap: 4px; }
+.page-btn {
+  width: 32px; height: 32px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color); background: white;
+  color: var(--text-dark); font-size: 13px; font-family: 'Cairo', sans-serif;
+  cursor: pointer; transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; text-decoration: none;
+}
+.page-btn:hover, .page-btn.active {
+  background: var(--brand-blue); border-color: var(--brand-blue); color: white;
+}
 
-  .notes-tag { font-size:.72rem; color:#64748b; font-style:italic; }
+/* ── Side panel ── */
+.side-panel { display: flex; flex-direction: column; gap: 16px; }
+.panel-card {
+  background: white; border-radius: var(--radius);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  overflow: hidden; animation: fadeSlideIn 0.45s ease 0.2s both;
+}
+.panel-card-header {
+  padding: 14px 18px; border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-card-title {
+  font-size: 14px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 7px; flex: 1;
+}
+.panel-card-title i { color: var(--brand-blue); font-size: 13px; }
+.panel-card-body { padding: 16px 18px; }
 
-  .empty-box { text-align:center; padding:3.5rem; background:#1e293b; border:1px solid #334155; border-radius:13px; color:#334155; }
-  .empty-box i { font-size:2.5rem; display:block; margin-bottom:1rem; opacity:.3; }
+/* Revenue rows */
+.rev-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid var(--border-color); font-size: 13px;
+}
+.rev-row:last-child { border-bottom: none; }
+.rev-label { color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+.rev-label i { color: var(--brand-blue-light); width: 16px; text-align: center; }
+.rev-value { font-weight: 800; color: var(--brand-blue-dark); }
 
-  @media(max-width:768px) {
-    .stat-grid { grid-template-columns:repeat(3,1fr); }
-    .order-head { flex-direction:column; align-items:flex-start; }
-  }
-</style>
+/* Top products mini list */
+.top-prod-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+.top-prod-row:last-child { border-bottom: none; }
+.top-prod-row:hover {
+  background: var(--brand-blue-soft);
+  margin: 0 -18px; padding: 8px 18px; border-radius: var(--radius-sm);
+}
+.prod-rank {
+  width: 22px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; flex-shrink: 0;
+}
+.prod-rank.gold   { background: rgba(255,193,7,0.20); color: #F57F17; }
+.prod-rank.silver { background: rgba(158,158,158,0.20); color: #616161; }
+.prod-rank.bronze { background: rgba(121,85,72,0.20); color: #4E342E; }
+.prod-rank.other  { background: var(--off-white); color: var(--text-muted); }
+.prod-name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--text-dark); }
+.prod-sold { font-size: 12px; font-weight: 800; color: var(--brand-blue-dark); }
+
+/* ── Order detail modal ── */
+.modal-z .modal-content {
+  border-radius: var(--radius); border: none;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.modal-z .modal-header {
+  background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
+  color: white; border: none; padding: 16px 22px;
+}
+.modal-z.delete-modal .modal-header { background: linear-gradient(135deg,#B71C1C,#E53935); }
+.modal-z .modal-title {
+  font-size: 16px; font-weight: 700; font-family: 'Cairo', sans-serif;
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-z .btn-close { filter: invert(1); opacity: 0.8; }
+.modal-z .modal-body   { padding: 22px; }
+.modal-z .modal-footer { border-top: 1px solid var(--border-color); padding: 14px 22px; gap: 8px; }
+
+/* Order items table inside modal */
+.order-items-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.order-items-table th {
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  padding: 9px 12px; font-weight: 700; font-size: 12px;
+  border-bottom: 2px solid var(--brand-blue-mid); text-align: right;
+}
+.order-items-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+.order-items-table tr:last-child td { border-bottom: none; }
+.order-items-table tfoot td {
+  padding: 11px 12px; font-weight: 800;
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  font-size: 14px;
+}
+
+/* Status select in modal */
+.status-update-wrap {
+  background: var(--off-white); border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+}
+.empty-state i { font-size: 44px; color: var(--brand-blue-mid); margin-bottom: 12px; display: block; }
+.empty-state p { font-size: 13.5px; color: var(--text-muted); font-weight: 500; }
 {% endblock %}
 
 {% block content %}
-<div class="px-1 py-2">
 
-  <!-- Stats -->
-  <div class="stat-grid">
-    <div class="sb s-all"><div class="n">{{ stats.total }}</div><div class="l">الكل</div></div>
-    <div class="sb s-pend"><div class="n">{{ stats.pending }}</div><div class="l">معلق</div></div>
-    <div class="sb s-ready"><div class="n">{{ stats.ready }}</div><div class="l">جاهز</div></div>
-    <div class="sb s-done"><div class="n">{{ stats.done }}</div><div class="l">تم</div></div>
-    <div class="sb s-cancel"><div class="n">{{ stats.cancelled }}</div><div class="l">ملغي</div></div>
+<!-- Stats -->
+<div class="stats-strip">
+  <div class="stat-card blue" style="animation-delay:0s;">
+    <div class="stat-icon blue"><i class="fas fa-bag-shopping"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|length if orders else 0 }}</div>
+      <div class="stat-label">إجمالي الطلبات</div>
+    </div>
   </div>
-
-  <!-- Filter tabs -->
-  <div class="tab-bar">
-    <a href="{{ url_for('admin.orders') }}"                          class="tab {% if status_filter=='all' %}active{% endif %}">الكل</a>
-    <a href="{{ url_for('admin.orders', status='pending') }}"        class="tab t-pend  {% if status_filter=='pending' %}active{% endif %}">معلق</a>
-    <a href="{{ url_for('admin.orders', status='ready') }}"          class="tab t-ready {% if status_filter=='ready' %}active{% endif %}">جاهز</a>
-    <a href="{{ url_for('admin.orders', status='done') }}"           class="tab t-done  {% if status_filter=='done' %}active{% endif %}">تم</a>
-    <a href="{{ url_for('admin.orders', status='cancelled') }}"      class="tab t-cancel {% if status_filter=='cancelled' %}active{% endif %}">ملغي</a>
+  <div class="stat-card cyan" style="animation-delay:0.07s;">
+    <div class="stat-icon cyan"><i class="fas fa-clock"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|selectattr('status','equalto','pending')|list|length if orders else 0 }}</div>
+      <div class="stat-label">قيد الانتظار</div>
+    </div>
   </div>
+  <div class="stat-card green" style="animation-delay:0.14s;">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|selectattr('status','equalto','completed')|list|length if orders else 0 }}</div>
+      <div class="stat-label">مكتملة</div>
+    </div>
+  </div>
+  <div class="stat-card orange" style="animation-delay:0.21s;">
+    <div class="stat-icon orange"><i class="fas fa-truck"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|selectattr('status','equalto','processing')|list|length if orders else 0 }}</div>
+      <div class="stat-label">قيد التجهيز</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.28s;">
+    <div class="stat-icon" style="background:rgba(123,31,162,0.10);color:#7B1FA2;">
+      <i class="fas fa-coins"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" style="font-size:20px;">{{ "{:,.0f}".format(total_revenue|default(0)) }}</div>
+      <div class="stat-label">إجمالي الإيراد (د.ع)</div>
+    </div>
+  </div>
+</div>
 
-  <!-- Orders -->
-  {% if orders %}
-  <div class="orders-grid">
-    {% for o in orders %}
-    <div class="order-card st-{{ o.status }}" id="oc-{{ o.id }}">
+<!-- Toolbar -->
+<div class="orders-toolbar">
+  <div class="toolbar-left">
+    <div class="search-wrap">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" id="searchInput"
+             placeholder="بحث باسم أو رقم طلب..." oninput="filterOrders()"/>
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="filterOrders()">
+      <option value="">كل الحالات</option>
+      <option value="pending"    {% if request.args.get('status')=='pending'    %}selected{% endif %}>قيد الانتظار</option>
+      <option value="processing" {% if request.args.get('status')=='processing' %}selected{% endif %}>قيد التجهيز</option>
+      <option value="completed"  {% if request.args.get('status')=='completed'  %}selected{% endif %}>مكتملة</option>
+      <option value="cancelled"  {% if request.args.get('status')=='cancelled'  %}selected{% endif %}>ملغية</option>
+    </select>
+    <input type="date" class="filter-select" id="dateFilter"
+           value="{{ request.args.get('date','') }}"
+           onchange="applyDateFilter()" title="فلتر بالتاريخ"/>
+  </div>
+  <div class="toolbar-right">
+    <a href="{{ url_for('admin.export_orders') }}" class="btn-z-outline">
+      <i class="fas fa-file-export"></i> تصدير
+    </a>
+  </div>
+</div>
 
-      <!-- Head -->
-      <div class="order-head">
-        <div>
-          <span class="order-id">#{{ o.id }}</span>
-          <div class="order-name">{{ o.customer_name }}</div>
-          <div class="order-phone"><i class="fas fa-phone" style="font-size:.6rem;"></i> {{ o.customer_phone }}</div>
-        </div>
-        <div style="text-align:left;">
-          <div class="order-total">{{ "{:,.0f}".format(o.total_price) }} IQD</div>
-          <div class="order-time">{{ o.created_at.strftime('%d %b %Y — %H:%M') }}</div>
+<!-- Layout -->
+<div class="orders-layout">
+
+  <!-- Orders Table -->
+  <div>
+    <div class="table-wrapper">
+      <div class="table-toolbar">
+        <div class="table-title">
+          <i class="fas fa-list" style="color:var(--brand-blue);"></i>
+          قائمة الطلبات
+          <span class="count-pill" id="orderCount">{{ orders|length if orders else 0 }}</span>
         </div>
       </div>
 
-      <!-- Items -->
-      <div class="order-items">
-        {% for item in o.items %}
-        <div class="oi-row">
-          <span class="oi-name">{{ item.product.name if item.product else 'منتج محذوف' }} <span style="color:#475569;">× {{ item.quantity }}</span></span>
-          <span class="oi-sub">{{ "{:,.0f}".format(item.subtotal) }} IQD</span>
-        </div>
-        {% endfor %}
-        {% if o.notes %}
-        <div class="notes-tag mt-1"><i class="fas fa-sticky-note me-1"></i>{{ o.notes }}</div>
-        {% endif %}
-      </div>
-
-      <!-- Footer -->
-      <div class="order-foot">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span class="stbadge {{ o.status }}" id="badge-{{ o.id }}">
-            {% if o.status=='pending'   %}<i class="fas fa-clock"></i>معلق
-            {% elif o.status=='ready'   %}<i class="fas fa-bell"></i>جاهز للاستلام
-            {% elif o.status=='done'    %}<i class="fas fa-check-circle"></i>تم التسليم
-            {% elif o.status=='cancelled'%}<i class="fas fa-times-circle"></i>ملغي
+      <div style="overflow-x:auto;">
+        <table class="table-z" id="ordersTable">
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>العميل</th>
+              <th>المنتجات</th>
+              <th>التاريخ</th>
+              <th>الإجمالي</th>
+              <th>الحالة</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            {% if orders %}
+              {% for o in orders %}
+              <tr data-name="{{ o.customer_name|lower if o.customer_name else '' }}"
+                  data-id="{{ o.id }}"
+                  data-status="{{ o.status|default('pending') }}">
+                <td>
+                  <span class="order-id">#{{ '%04d'|format(o.id) }}</span>
+                </td>
+                <td>
+                  <div class="customer-name">{{ o.customer_name|default('—') }}</div>
+                  {% if o.customer_phone %}
+                    <div class="customer-phone">{{ o.customer_phone }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="items-preview">
+                    {% if o.items %}
+                      {% for item in o.items[:2] %}
+                        <span class="item-pill">
+                          {{ item.product.name if item.product else '؟' }}
+                          {% if item.quantity > 1 %}×{{ item.quantity }}{% endif %}
+                        </span>
+                      {% endfor %}
+                      {% if o.items|length > 2 %}
+                        <span class="item-pill-more">+{{ o.items|length - 2 }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span style="color:var(--text-muted);font-size:12px;">—</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td style="font-size:13px;white-space:nowrap;color:var(--text-muted);">
+                  <i class="fas fa-calendar-day" style="margin-left:5px;font-size:10px;"></i>
+                  {{ o.created_at.strftime('%Y-%m-%d') if o.created_at else '—' }}
+                  <div style="font-size:11px;">{{ o.created_at.strftime('%H:%M') if o.created_at else '' }}</div>
+                </td>
+                <td>
+                  <div class="total-amount">
+                    {{ "{:,.0f}".format(o.total_price) if o.total_price else '—' }}
+                    {% if o.total_price %}<small> د.ع</small>{% endif %}
+                  </div>
+                </td>
+                <td>
+                  {% set s = o.status|default('pending') %}
+                  {% if s == 'completed' %}
+                    <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مكتمل</span>
+                  {% elif s == 'pending' %}
+                    <span class="badge-z active"><i class="fas fa-circle" style="font-size:7px;"></i>انتظار</span>
+                  {% elif s == 'processing' %}
+                    <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>تجهيز</span>
+                  {% elif s == 'cancelled' %}
+                    <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>ملغي</span>
+                  {% else %}
+                    <span class="badge-z blue">{{ s }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn view"
+                            onclick="openOrderModal({{ o.id }})"
+                            title="عرض التفاصيل">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn delete"
+                            onclick="openDeleteModal({{ o.id }}, '{{ '%04d'|format(o.id) }}')"
+                            title="حذف">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <i class="fas fa-bag-shopping"></i>
+                    <p>لا توجد طلبات بعد</p>
+                  </div>
+                </td>
+              </tr>
             {% endif %}
-          </span>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if pagination %}
+      <div class="pagination-wrap">
+        <div class="pagination-info">
+          عرض {{ pagination.per_page * (pagination.page-1) + 1 }}
+          – {{ [pagination.per_page * pagination.page, pagination.total]|min }}
+          من {{ pagination.total }} طلب
         </div>
-        <div class="act-row">
-          <!-- Status change -->
-          <select class="status-sel" onchange="changeStatus({{ o.id }}, this.value)" title="تغيير الحالة">
-            <option value="pending"   {% if o.status=='pending'   %}selected{% endif %}>معلق</option>
-            <option value="ready"     {% if o.status=='ready'     %}selected{% endif %}>جاهز</option>
-            <option value="done"      {% if o.status=='done'      %}selected{% endif %}>تم</option>
-            <option value="cancelled" {% if o.status=='cancelled' %}selected{% endif %}>ملغي</option>
-          </select>
-          <!-- Delete -->
-          <button class="act-b del" title="حذف" onclick="deleteOrder({{ o.id }})">
+        <div class="pagination-btns">
+          {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.orders', page=pagination.prev_num, **request.args) }}"
+               class="page-btn"><i class="fas fa-chevron-right"></i></a>
+          {% endif %}
+          {% for p in pagination.iter_pages(left_edge=1,right_edge=1,left_current=2,right_current=2) %}
+            {% if p %}
+              <a href="{{ url_for('admin.orders', page=p, **request.args) }}"
+                 class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+            {% else %}
+              <span class="page-btn" style="cursor:default;color:var(--text-muted);">…</span>
+            {% endif %}
+          {% endfor %}
+          {% if pagination.has_next %}
+            <a href="{{ url_for('admin.orders', page=pagination.next_num, **request.args) }}"
+               class="page-btn"><i class="fas fa-chevron-left"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="side-panel">
+
+    <!-- Revenue summary -->
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title">
+          <i class="fas fa-wallet"></i> ملخص الإيرادات
+        </div>
+      </div>
+      <div class="panel-card-body" style="padding:10px 18px;">
+        <div class="rev-row">
+          <div class="rev-label"><i class="fas fa-sun"></i> اليوم</div>
+          <div class="rev-value">{{ "{:,.0f}".format(today_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="rev-row">
+          <div class="rev-label"><i class="fas fa-calendar-week"></i> هذا الأسبوع</div>
+          <div class="rev-value">{{ "{:,.0f}".format(week_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="rev-row">
+          <div class="rev-label"><i class="fas fa-calendar"></i> هذا الشهر</div>
+          <div class="rev-value">{{ "{:,.0f}".format(month_revenue|default(0)) }} <small style="font-size:11px;color:var(--text-muted);">د.ع</small></div>
+        </div>
+        <div class="rev-row" style="padding-top:12px;border-top:2px solid var(--brand-blue-mid);border-bottom:none;margin-top:4px;">
+          <div class="rev-label" style="font-weight:700;color:var(--brand-blue-dark);font-size:14px;">
+            <i class="fas fa-sigma"></i> الإجمالي
+          </div>
+          <div class="rev-value" style="font-size:17px;color:var(--brand-blue);">
+            {{ "{:,.0f}".format(total_revenue|default(0)) }}
+            <small style="font-size:11px;color:var(--text-muted);"> د.ع</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status donut -->
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title"><i class="fas fa-chart-pie"></i> توزيع الحالات</div>
+      </div>
+      <div class="panel-card-body" style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <canvas id="statusChart" width="160" height="160"></canvas>
+        <div style="width:100%;display:flex;flex-direction:column;gap:8px;">
+          {% set statuses = [
+            ('انتظار',  orders|selectattr('status','equalto','pending')|list|length    if orders else 0, '#00B0FF'),
+            ('تجهيز',   orders|selectattr('status','equalto','processing')|list|length if orders else 0, '#FB8C00'),
+            ('مكتمل',   orders|selectattr('status','equalto','completed')|list|length  if orders else 0, '#43A047'),
+            ('ملغي',    orders|selectattr('status','equalto','cancelled')|list|length  if orders else 0, '#E53935'),
+          ] %}
+          {% for label, val, color in statuses %}
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <div style="width:10px;height:10px;border-radius:2px;background:{{ color }};flex-shrink:0;"></div>
+              <span style="color:var(--text-muted);">{{ label }}</span>
+            </div>
+            <strong style="color:var(--text-dark);">{{ val }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Top products -->
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title"><i class="fas fa-trophy"></i> أكثر المنتجات مبيعاً</div>
+      </div>
+      <div class="panel-card-body" style="padding:10px 18px;">
+        {% for p in top_products|default([]) %}
+        <div class="top-prod-row">
+          <div class="prod-rank {{ 'gold' if loop.index==1 else 'silver' if loop.index==2 else 'bronze' if loop.index==3 else 'other' }}">
+            {{ loop.index }}
+          </div>
+          <div class="prod-name">{{ p.name }}</div>
+          <div class="prod-sold">{{ p.sold }} قطعة</div>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">لا توجد بيانات</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Revenue mini chart -->
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title"><i class="fas fa-chart-line"></i> الإيرادات (7 أيام)</div>
+      </div>
+      <div class="panel-card-body">
+        <canvas id="revenueChart" height="110"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<div class="modal fade modal-z" id="orderDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderModalTitle">
+          <i class="fas fa-bag-shopping"></i> تفاصيل الطلب
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="orderModalBody">
+        <div style="text-align:center;padding:30px;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--brand-blue);display:block;margin-bottom:8px;"></i>
+          جاري التحميل...
+        </div>
+      </div>
+      <div class="modal-footer" id="orderModalFooter">
+        <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ DELETE MODAL ═══ -->
+<div class="modal fade modal-z delete-modal" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-trash"></i> حذف الطلب</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="deleteOrderForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body" style="text-align:center;padding:28px 22px;">
+          <div style="width:60px;height:60px;background:rgba(229,57,53,0.10);border-radius:50%;
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:26px;color:#E53935;margin:0 auto 14px;">
             <i class="fas fa-trash"></i>
+          </div>
+          <p style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:6px;">
+            هل تريد حذف هذا الطلب؟
+          </p>
+          <p style="font-size:13px;color:var(--text-muted);">
+            طلب رقم <strong id="deleteOrderId" style="color:#E53935;"></strong> — لا يمكن التراجع.
+          </p>
+        </div>
+        <div class="modal-footer" style="justify-content:center;">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal" style="min-width:100px;">إلغاء</button>
+          <button type="submit" class="btn-z-danger" style="min-width:120px;padding:9px 20px;">
+            <i class="fas fa-trash"></i> نعم، احذف
           </button>
         </div>
-      </div>
-
-    </div>
-    {% endfor %}
-  </div>
-
-  {% else %}
-  <div class="empty-box">
-    <i class="fas fa-shopping-bag"></i>
-    <div style="font-size:.95rem; font-weight:600; color:#475569;">لا توجد طلبات</div>
-    <div style="font-size:.82rem; color:#334155; margin-top:4px;">
-      {% if status_filter != 'all' %}جرّب تغيير الفلتر{% else %}لم يتم استلام أي طلبات بعد{% endif %}
+      </form>
     </div>
   </div>
-  {% endif %}
-
 </div>
+
+<!-- Inline order data for JS modal -->
+<script type="application/json" id="ordersData">
+[
+  {% if orders %}
+  {% for o in orders %}
+  {
+    "id": {{ o.id }},
+    "customer_name":  "{{ o.customer_name|default('—')|e }}",
+    "customer_phone": "{{ o.customer_phone|default('—')|e }}",
+    "created_at":     "{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '—' }}",
+    "status":         "{{ o.status|default('pending') }}",
+    "total_price":    {{ o.total_price|default(0) }},
+    "notes":          "{{ o.notes|default('')|e }}",
+    "items": [
+      {% for item in o.items %}
+      {
+        "name":     "{{ item.product.name if item.product else '؟' }}",
+        "quantity": {{ item.quantity|default(1) }},
+        "price":    {{ item.price|default(0) }},
+        "subtotal": {{ item.subtotal|default(0) }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+  {% endif %}
+]
+</script>
+
 {% endblock %}
 
-{% block extra_js %}
-<script>
-const statusLabels = {
-  pending:   '<i class="fas fa-clock"></i>معلق',
-  ready:     '<i class="fas fa-bell"></i>جاهز للاستلام',
-  done:      '<i class="fas fa-check-circle"></i>تم التسليم',
-  cancelled: '<i class="fas fa-times-circle"></i>ملغي'
-};
 
-function changeStatus(id, status) {
-  fetch(`/admin/orders/${id}/status`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (!d.success) return alert('خطأ');
-    const card  = document.getElementById(`oc-${id}`);
-    const badge = document.getElementById(`badge-${id}`);
-    card.className = `order-card st-${status}`;
-    badge.className = `stbadge ${status}`;
-    badge.innerHTML = statusLabels[status];
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Orders data ──
+const ordersData = JSON.parse(document.getElementById('ordersData').textContent);
+
+// ── Status donut ──
+new Chart(document.getElementById('statusChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['انتظار','تجهيز','مكتمل','ملغي'],
+    datasets: [{
+      data: [
+        {{ orders|selectattr('status','equalto','pending')|list|length    if orders else 0 }},
+        {{ orders|selectattr('status','equalto','processing')|list|length if orders else 0 }},
+        {{ orders|selectattr('status','equalto','completed')|list|length  if orders else 0 }},
+        {{ orders|selectattr('status','equalto','cancelled')|list|length  if orders else 0 }}
+      ],
+      backgroundColor: ['#00B0FF','#FB8C00','#43A047','#E53935'],
+      borderWidth: 0, hoverOffset: 6
+    }]
+  },
+  options: {
+    cutout: '68%',
+    plugins: { legend: { display: false } },
+    responsive: false
+  }
+});
+
+// ── 7-day revenue chart ──
+const revLabels = {{ week_labels | default(['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة']) | tojson }};
+const revData   = {{ week_revenue_data | default([0,0,0,0,0,0,0]) | tojson }};
+new Chart(document.getElementById('revenueChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: revLabels,
+    datasets: [{
+      data: revData,
+      backgroundColor: 'rgba(123,31,162,0.55)',
+      borderColor: '#7B1FA2', borderWidth: 1.5,
+      borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { font: { family:'Cairo', size:10 }, color:'#6B8BB5' }, grid: { display:false } },
+      y: { ticks: { font: { family:'Cairo', size:10 }, color:'#6B8BB5',
+                    callback: v => (v/1000).toFixed(0)+'k' },
+           grid: { color:'rgba(123,31,162,0.06)' } }
+    }
+  }
+});
+
+// ── Live filter ──
+function filterOrders() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  let visible = 0;
+  document.querySelectorAll('#ordersBody tr').forEach(row => {
+    const name   = row.dataset.name   || '';
+    const id     = row.dataset.id     || '';
+    const rowSt  = row.dataset.status || '';
+    const matchQ = !q      || name.includes(q) || id.includes(q);
+    const matchS = !status || rowSt === status;
+    const show = matchQ && matchS;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
+  document.getElementById('orderCount').textContent = visible;
 }
 
-function deleteOrder(id) {
-  if (!confirm('حذف هذا الطلب نهائياً؟')) return;
-  fetch(`/admin/orders/${id}/delete`, { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-      if (d.success) document.getElementById(`oc-${id}`).remove();
-      else alert('خطأ');
-    });
+function applyDateFilter() {
+  const d = document.getElementById('dateFilter').value;
+  if (!d) { window.location.href = "{{ url_for('admin.orders') }}"; return; }
+  window.location.href = `{{ url_for('admin.orders') }}?date=${d}`;
+}
+
+// ── Order detail modal ──
+const statusMap = {
+  pending:    '<span class="badge-z active"><i class="fas fa-circle" style="font-size:7px;"></i>انتظار</span>',
+  processing: '<span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>تجهيز</span>',
+  completed:  '<span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مكتمل</span>',
+  cancelled:  '<span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>ملغي</span>',
+};
+
+function openOrderModal(id) {
+  const order = ordersData.find(o => o.id === id);
+  if (!order) return;
+
+  document.getElementById('orderModalTitle').innerHTML =
+    `<i class="fas fa-bag-shopping"></i> طلب رقم #${String(id).padStart(4,'0')}`;
+
+  let itemsRows = order.items.map(item => `
+    <tr>
+      <td style="font-weight:600;">${item.name}</td>
+      <td style="text-align:center;">${item.quantity}</td>
+      <td style="direction:ltr;text-align:left;">${item.price.toLocaleString()} د.ع</td>
+      <td style="font-weight:700;direction:ltr;text-align:left;color:var(--brand-blue-dark);">
+        ${item.subtotal.toLocaleString()} د.ع
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('orderModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:4px;">العميل</div>
+        <div style="font-size:14px;font-weight:800;color:var(--text-dark);">${order.customer_name}</div>
+        <div style="font-size:12px;color:var(--text-muted);direction:ltr;display:inline-block;">${order.customer_phone}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:4px;">التاريخ</div>
+        <div style="font-size:13.5px;font-weight:600;">${order.created_at}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:4px;">الحالة</div>
+        ${statusMap[order.status] || order.status}
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:4px;">الإجمالي</div>
+        <div style="font-size:18px;font-weight:900;color:var(--brand-blue);">${order.total_price.toLocaleString()} <small style="font-size:12px;font-weight:400;color:var(--text-muted);">د.ع</small></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--brand-blue-dark);margin-bottom:8px;
+                  display:flex;align-items:center;gap:7px;">
+        <i class="fas fa-box-open" style="color:var(--brand-blue);font-size:12px;"></i> المنتجات المطلوبة
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="order-items-table">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th style="text-align:center;">الكمية</th>
+              <th>سعر الوحدة</th>
+              <th>المجموع</th>
+            </tr>
+          </thead>
+          <tbody>${itemsRows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="text-align:right;font-size:13px;">الإجمالي الكلي</td>
+              <td style="direction:ltr;">${order.total_price.toLocaleString()} د.ع</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    ${order.notes ? `<div style="background:var(--off-white);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text-muted);">
+      <i class="fas fa-note-sticky" style="margin-left:5px;color:var(--brand-blue-light);"></i>${order.notes}
+    </div>` : ''}
+
+    <div class="status-update-wrap">
+      <span style="font-size:13px;font-weight:700;color:var(--text-dark);">تغيير الحالة:</span>
+      <form method="POST" action="/admin/orders/${order.id}/status" style="display:flex;align-items:center;gap:8px;flex:1;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <select name="status" class="form-control-z" style="flex:1;padding:7px 12px;">
+          <option value="pending"    ${order.status==='pending'    ?'selected':''}>انتظار</option>
+          <option value="processing" ${order.status==='processing' ?'selected':''}>تجهيز</option>
+          <option value="completed"  ${order.status==='completed'  ?'selected':''}>مكتمل</option>
+          <option value="cancelled"  ${order.status==='cancelled'  ?'selected':''}>ملغي</option>
+        </select>
+        <button type="submit" class="btn-z-primary" style="padding:7px 16px;font-size:13px;">
+          <i class="fas fa-floppy-disk"></i> حفظ
+        </button>
+      </form>
+    </div>
+  `;
+
+  new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
+}
+
+// ── Delete modal ──
+function openDeleteModal(id, label) {
+  document.getElementById('deleteOrderForm').action = `/admin/orders/${id}/delete`;
+  document.getElementById('deleteOrderId').textContent = '#' + label;
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 </script>
 {% endblock %}

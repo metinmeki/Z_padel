@@ -1,626 +1,436 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Z Padel — احجز ملعبك</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>احجز ملعبك — Z Padel</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --brand:  #0ea5e9;
-      --brand2: #06b6d4;
-      --dk:     #0284c7;
-      --bg:     #060d18;
-      --bg2:    #0a1628;
-      --card:   #0d1e35;
-      --border: #132840;
-      --text:   #e8f4fd;
-      --muted:  #4a7a9b;
-      --glow:   rgba(14,165,233,.12);
-      --ok:     rgba(34,197,94,.9);
-      --bk:     rgba(239,68,68,.7);
+      --blue-deep:#0A1F4E; --blue-dark:#0D47A1; --blue-main:#1565C0;
+      --blue-light:#1E88E5; --blue-soft:#E3F0FF; --blue-mid:#BBDEFB;
+      --off-white:#F4F8FF; --text-dark:#0A1F4E; --text-muted:#6B8BB5;
+      --border:#D0E4F7; --radius:14px; --radius-sm:9px;
+      --shadow:0 4px 20px rgba(13,71,161,0.10);
+      --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--bg); color: var(--text);
-      min-height: 100vh;
-    }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 99px; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Cairo',sans-serif;background:var(--off-white);color:var(--text-dark);min-height:100vh;overflow-x:hidden;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes spin{to{transform:rotate(360deg);}}
 
-    /* ── Nav ── */
-    .top-nav {
-      background: rgba(6,13,24,.92);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
-      padding: .85rem 2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-brand {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.4rem; font-weight: 900;
-      color: var(--brand); text-decoration: none; letter-spacing: 2px;
-    }
-    .nav-back {
-      display: flex; align-items: center; gap: 6px;
-      color: var(--muted); text-decoration: none;
-      font-size: .85rem; font-weight: 600;
-      transition: color .2s;
-    }
-    .nav-back:hover { color: var(--brand); }
+    /* NAVBAR */
+    .navbar-z{background:linear-gradient(135deg,var(--blue-deep),var(--blue-dark));padding:12px 0;box-shadow:0 2px 16px rgba(13,71,161,0.25);position:sticky;top:0;z-index:200;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-brand-icon{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;color:white;}
+    .nav-brand-name{font-size:19px;font-weight:900;color:white;}
+    .nav-back{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,0.80);text-decoration:none;font-size:13px;font-weight:600;}
+    .nav-back:hover{color:white;}
 
-    /* ── Page wrap ── */
-    .page-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.2rem 5rem; }
+    /* PAGE HEADER */
+    .page-header{background:linear-gradient(135deg,var(--blue-deep),var(--blue-dark));padding:22px 0 18px;color:white;}
+    .page-header-inner{max-width:1200px;margin:0 auto;padding:0 16px;}
+    .page-header h1{font-size:22px;font-weight:900;margin-bottom:3px;}
+    .page-header p{font-size:13px;color:rgba(255,255,255,0.65);}
 
-    .page-header {
-      margin-bottom: 2rem;
-      animation: fadeDown .5s ease both;
-    }
-    .page-header h1 {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.7rem; font-weight: 900; margin-bottom: .2rem;
-    }
-    .page-header p { color: var(--muted); font-size: .88rem; }
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    /* LAYOUT */
+    .booking-layout{max-width:1200px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
+    @media(max-width:860px){.booking-layout{grid-template-columns:1fr;padding:12px;gap:12px;}}
 
-    /* ── Steps indicator ── */
-    .steps-bar {
-      display: flex; align-items: center;
-      gap: 0; margin-bottom: 2rem;
-      animation: fadeDown .5s .1s ease both;
-    }
-    .step-item {
-      display: flex; align-items: center; gap: 8px;
-      font-size: .78rem; font-weight: 700;
-      color: var(--muted);
-      transition: color .3s;
-    }
-    .step-item.active { color: var(--brand); }
-    .step-item.done   { color: #4ade80; }
-    .step-num {
-      width: 26px; height: 26px; border-radius: 50%;
-      background: var(--card); border: 1.5px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .68rem; font-weight: 800;
-      transition: all .3s;
-      flex-shrink: 0;
-    }
-    .step-item.active .step-num { background: var(--brand); border-color: var(--brand); color: #fff; }
-    .step-item.done   .step-num { background: #166534; border-color: #4ade80; color: #4ade80; }
-    .step-sep {
-      flex: 1; height: 1px;
-      background: var(--border); margin: 0 10px;
-      transition: background .3s;
-    }
-    .step-sep.done { background: rgba(74,222,128,.3); }
+    /* CARD */
+    .card-z{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;animation:fadeUp 0.4s ease both;}
+    .card-header-z{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .ch-icon{width:30px;height:30px;border-radius:var(--radius-sm);background:var(--blue-soft);color:var(--blue-main);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+    .ch-title{font-size:14px;font-weight:700;color:var(--blue-deep);}
+    .card-body-z{padding:16px;}
 
-    /* ── Step cards ── */
-    .step-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px; padding: 1.4rem 1.5rem;
-      margin-bottom: 1rem;
-      animation: slideUp .45s ease both;
-      transition: border-color .25s;
-    }
-    .step-card.active-card { border-color: rgba(14,165,233,.3); }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .step-card:nth-child(2) { animation-delay: .08s; }
-    .step-card:nth-child(3) { animation-delay: .16s; }
-    .step-card:nth-child(4) { animation-delay: .24s; }
+    /* DATE STRIP */
+    .date-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--blue-mid) transparent;}
+    .date-strip::-webkit-scrollbar{height:3px;}
+    .date-strip::-webkit-scrollbar-thumb{background:var(--blue-mid);border-radius:2px;}
+    .date-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;cursor:pointer;transition:var(--transition);min-width:56px;font-family:'Cairo',sans-serif;}
+    .date-btn:hover{border-color:var(--blue-mid);background:var(--blue-soft);}
+    .date-btn.active{background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));border-color:transparent;color:white;box-shadow:0 3px 10px rgba(21,101,192,0.28);}
+    .date-btn .dn{font-size:9px;font-weight:600;color:var(--text-muted);}
+    .date-btn .dd{font-size:16px;font-weight:900;color:var(--text-dark);margin:1px 0;}
+    .date-btn .dm{font-size:8px;font-weight:600;color:var(--text-muted);}
+    .date-btn.active .dn,.date-btn.active .dd,.date-btn.active .dm{color:white;}
+    .date-btn.today .dd{color:var(--blue-main);}
+    .date-btn.active.today .dd{color:white;}
 
-    .step-header {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 1.1rem;
-      font-size: .72rem; font-weight: 800;
-      color: var(--brand); text-transform: uppercase; letter-spacing: .8px;
-    }
-    .step-badge {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--brand); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .65rem; font-weight: 900; flex-shrink: 0;
-    }
+    /* COURT TABS */
+    .court-tabs{display:flex;gap:7px;flex-wrap:wrap;padding:12px 16px 0;}
+    .court-tab{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:30px;border:1.5px solid var(--border);background:white;font-family:'Cairo',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:var(--transition);}
+    .court-tab:hover{border-color:var(--blue-mid);color:var(--blue-dark);}
+    .court-tab.active{background:var(--blue-main);border-color:var(--blue-main);color:white;}
+    .court-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
-    /* ── Court options ── */
-    .court-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-    .court-opt {
-      background: var(--bg2);
-      border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 1rem;
-      cursor: pointer;
-      transition: all .2s;
-      position: relative; overflow: hidden;
-    }
-    .court-opt::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, var(--glow), transparent);
-      opacity: 0; transition: opacity .2s;
-    }
-    .court-opt:hover { border-color: rgba(14,165,233,.4); }
-    .court-opt:hover::before { opacity: 1; }
-    .court-opt.selected {
-      border-color: var(--brand);
-      background: rgba(14,165,233,.07);
-      box-shadow: 0 0 0 3px rgba(14,165,233,.1);
-    }
-    .court-opt.selected::before { opacity: 1; }
-    .co-check {
-      position: absolute; top: 8px; left: 8px;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: var(--brand);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .6rem; color: #fff;
-      opacity: 0; transform: scale(.5);
-      transition: all .2s;
-    }
-    .court-opt.selected .co-check { opacity: 1; transform: scale(1); }
-    .co-name  { font-weight: 800; font-size: .92rem; margin-bottom: 3px; }
-    .co-price { font-size: .78rem; color: var(--brand); font-weight: 700; }
-    .co-desc  { font-size: .72rem; color: var(--muted); margin-top: 3px; }
+    /* SLOTS SECTION */
+    .slots-section{padding:14px 16px;}
+    .discount-banner{background:rgba(251,140,0,0.08);border:1px solid rgba(251,140,0,0.22);border-radius:var(--radius-sm);padding:8px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12.5px;}
+    .discount-banner i{color:#FB8C00;flex-shrink:0;}
+    .discount-banner strong{color:#E65100;}
+    .discount-banner span{color:var(--text-muted);}
+    .slots-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-muted);}
+    .legend-dot{width:10px;height:10px;border-radius:3px;}
+    .legend-dot.free    {background:#E8F5E9;border:1px solid #A5D6A7;}
+    .legend-dot.booked  {background:#FFEBEE;border:1px solid #EF9A9A;}
+    .legend-dot.discount{background:#FFF8E1;border:1px solid #FFCC80;}
+    .legend-dot.selected{background:#1565C0;}
+    .legend-dot.past    {background:#F5F5F5;border:1px solid #E0E0E0;}
 
-    /* ── Date input ── */
-    .date-input {
-      background: var(--bg2); border: 1.5px solid var(--border);
-      color: var(--text); border-radius: 10px;
-      padding: .65rem 1rem; font-size: .9rem;
-      font-family: 'Cairo', sans-serif;
-      transition: border-color .15s;
-      width: 200px;
-    }
-    .date-input:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
+    /* SLOTS GRID */
+    .slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:6px;direction:ltr;}
+    .slot-btn{display:flex;flex-direction:column;align-items:center;padding:9px 4px;border-radius:var(--radius-sm);border:1.5px solid;cursor:pointer;transition:var(--transition);position:relative;font-family:'Cairo',sans-serif;user-select:none;}
+    .slot-btn.free    {background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32;}
+    .slot-btn.discount{background:#FFF8E1;border-color:#FFCC80;color:#E65100;}
+    .slot-btn.booked  {background:#FFEBEE;border-color:#EF9A9A;color:#C62828;cursor:not-allowed;}
+    .slot-btn.past    {background:#F5F5F5;border-color:#E0E0E0;color:#BDBDBD;cursor:not-allowed;opacity:.6;}
+    .slot-btn.free:hover    {background:#C8E6C9;border-color:#66BB6A;transform:translateY(-2px);}
+    .slot-btn.discount:hover{background:#FFE0B2;border-color:#FFA726;transform:translateY(-2px);}
+    .slot-btn.selected{background:#1565C0!important;border-color:#0D47A1!important;color:white!important;transform:translateY(-2px);box-shadow:0 4px 14px rgba(21,101,192,0.35)!important;}
+    .slot-btn.selected .slot-check{display:block;}
+    .slot-time {font-size:13px;font-weight:800;line-height:1;}
+    .slot-dur  {font-size:9px;font-weight:500;opacity:.75;margin-top:2px;}
+    .slot-price{font-size:10px;font-weight:700;margin-top:3px;}
+    .slot-tag  {position:absolute;top:-6px;left:50%;transform:translateX(-50%);background:#FB8C00;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:4px;white-space:nowrap;}
+    .slot-check{display:none;position:absolute;top:4px;right:4px;font-size:9px;}
+    .slots-loading{display:flex;align-items:center;justify-content:center;padding:32px;gap:10px;color:var(--text-muted);font-size:13px;}
+    .slots-loading i{animation:spin .8s linear infinite;color:var(--blue-main);font-size:18px;}
 
-    /* ── Slots ── */
-    .slots-legend { display: flex; gap: 1rem; margin-bottom: .7rem; flex-wrap: wrap; }
-    .leg-item { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--muted); }
-    .leg-dot  { width: 10px; height: 10px; border-radius: 3px; }
-    .leg-av   { background: rgba(34,197,94,.25); border: 1px solid rgba(34,197,94,.4); }
-    .leg-bk   { background: rgba(239,68,68,.18); border: 1px solid rgba(239,68,68,.3); }
-    .leg-sel  { background: var(--brand); }
+    /* SUMMARY */
+    .summary-empty{text-align:center;padding:24px 14px;color:var(--text-muted);}
+    .summary-empty i{font-size:28px;color:var(--blue-mid);margin-bottom:8px;display:block;}
+    .summary-empty p{font-size:12px;}
+    .summary-field{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+    .summary-field:last-of-type{border-bottom:none;}
+    .sf-label{color:var(--text-muted);display:flex;align-items:center;gap:6px;}
+    .sf-label i{color:var(--blue-light);width:14px;text-align:center;}
+    .sf-value{font-weight:700;color:var(--text-dark);}
+    .price-total{background:var(--blue-soft);border-radius:var(--radius-sm);padding:12px 14px;margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+    .price-total-label{font-size:13px;font-weight:700;color:var(--blue-deep);}
+    .price-total-value{font-size:22px;font-weight:900;color:var(--blue-main);}
+    .price-total-value small{font-size:11px;font-weight:400;color:var(--text-muted);}
+    .discount-applied{display:flex;align-items:center;gap:6px;background:rgba(251,140,0,0.10);border:1px solid rgba(251,140,0,0.25);border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:700;color:#E65100;margin-top:8px;}
 
-    .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 7px; }
-    .slot {
-      border-radius: 10px; padding: .55rem .3rem;
-      text-align: center; font-size: .76rem; font-weight: 700;
-      cursor: pointer; transition: all .18s;
-      border: 1.5px solid transparent; user-select: none;
-      position: relative; overflow: hidden;
-    }
-    .slot::after {
-      content: ''; position: absolute; inset: 0;
-      background: white; opacity: 0;
-      transition: opacity .15s;
-    }
-    .slot:active::after { opacity: .08; }
-    .slot.available {
-      background: rgba(34,197,94,.07);
-      border-color: rgba(34,197,94,.2);
-      color: #4ade80;
-    }
-    .slot.available:hover {
-      background: rgba(34,197,94,.15);
-      border-color: #4ade80;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(34,197,94,.15);
-    }
-    .slot.booked {
-      background: rgba(239,68,68,.06);
-      border-color: rgba(239,68,68,.15);
-      color: #f87171; cursor: not-allowed; opacity: .6;
-    }
-    .slot.sel-start {
-      background: var(--brand); border-color: var(--brand); color: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(14,165,233,.4);
-    }
-    .slot.sel-range {
-      background: rgba(14,165,233,.2);
-      border-color: rgba(14,165,233,.45); color: #7dd3fc;
-    }
-    .slot-time  { display: block; }
-    .slot-badge { display: block; font-size: .58rem; margin-top: 2px; opacity: .75; }
+    /* FORM */
+    .form-group{margin-bottom:12px;}
+    .form-label{display:block;font-size:12.5px;font-weight:700;color:var(--text-dark);margin-bottom:5px;}
+    .form-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:14px;color:var(--text-dark);background:white;outline:none;transition:var(--transition);}
+    .form-input:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(30,136,229,0.10);}
+    .duration-btns{display:flex;gap:7px;flex-wrap:wrap;}
+    .dur-btn{padding:7px 14px;border-radius:30px;border:1.5px solid var(--border);background:white;font-family:'Cairo',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:var(--transition);}
+    .dur-btn:hover{border-color:var(--blue-mid);color:var(--blue-dark);}
+    .dur-btn.active{background:var(--blue-main);border-color:var(--blue-main);color:white;}
+    .btn-confirm{width:100%;padding:13px;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;border:none;border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(21,101,192,0.28);margin-top:14px;}
+    .btn-confirm:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(21,101,192,0.38);}
+    .no-prepay-note{display:flex;align-items:center;gap:7px;background:rgba(67,160,71,0.08);border:1px solid rgba(67,160,71,0.20);border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:#2E7D32;font-weight:600;margin-top:10px;}
+    .alert-z{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+    .alert-z.success{background:rgba(67,160,71,0.10);border:1px solid rgba(67,160,71,0.25);color:#2E7D32;}
+    .alert-z.error  {background:rgba(229,57,53,0.10);border:1px solid rgba(229,57,53,0.25);color:#C62828;}
+    .alert-z.info   {background:var(--blue-soft);border:1px solid var(--blue-mid);color:var(--blue-deep);}
 
-    .slots-placeholder {
-      text-align: center; padding: 2rem;
-      color: var(--muted); font-size: .85rem;
+    /* ── MOBILE ── */
+    @media(max-width:600px){
+      .page-header h1{font-size:18px;}
+      .page-header p {font-size:11px;}
+      .slots-grid{grid-template-columns:repeat(4,1fr)!important;gap:5px;}
+      .slot-btn  {padding:7px 2px;}
+      .slot-time {font-size:11px;}
+      .slot-dur  {font-size:7px;}
+      .slot-price{font-size:8px;}
+      .date-btn  {min-width:48px;padding:6px 5px;}
+      .date-btn .dd{font-size:14px;}
+      .court-tab {padding:6px 10px;font-size:11px;}
+      .discount-banner{font-size:11px;padding:7px 10px;}
+      .slots-legend{gap:7px;}
+      .legend-item{font-size:9.5px;}
+      .summary-field{font-size:12px;}
+      .price-total-value{font-size:18px;}
     }
-    .slots-placeholder i { display: block; font-size: 1.8rem; margin-bottom: .5rem; opacity: .3; }
-
-    /* ── Selection summary ── */
-    .sel-box {
-      background: rgba(14,165,233,.07);
-      border: 1px solid rgba(14,165,233,.2);
-      border-radius: 11px; padding: .85rem 1.1rem;
-      margin-top: 1rem;
-      display: none; align-items: center;
-      justify-content: space-between; flex-wrap: wrap; gap: 8px;
-      animation: popIn .25s ease;
-    }
-    .sel-box.show { display: flex; }
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(.97); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-    .sel-info  { font-size: .85rem; color: #7dd3fc; font-weight: 700; }
-    .sel-price {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.15rem; font-weight: 900; color: var(--brand);
-    }
-    .btn-clr {
-      background: transparent; border: 1px solid var(--border);
-      color: var(--muted); border-radius: 7px; padding: 3px 10px;
-      font-size: .72rem; cursor: pointer; transition: .15s;
-    }
-    .btn-clr:hover { border-color: #ef4444; color: #f87171; }
-
-    /* ── Form fields ── */
-    .f-lbl {
-      font-size: .7rem; font-weight: 800;
-      color: var(--muted); text-transform: uppercase;
-      letter-spacing: .5px; margin-bottom: 5px; display: block;
-    }
-    .f-input {
-      background: var(--bg2); border: 1.5px solid var(--border);
-      color: var(--text); border-radius: 10px;
-      padding: .7rem 1rem; width: 100%;
-      font-size: .88rem; font-family: 'Cairo', sans-serif;
-      transition: border-color .15s, box-shadow .15s;
-    }
-    .f-input:focus {
-      border-color: var(--brand); outline: none;
-      box-shadow: 0 0 0 3px rgba(14,165,233,.12);
-      background: var(--bg2); color: var(--text);
-    }
-    .f-input::placeholder { color: var(--muted); }
-
-    /* ── Submit ── */
-    .btn-submit {
-      width: 100%; background: var(--brand); color: #fff;
-      border: none; border-radius: 12px; padding: 1rem;
-      font-size: 1rem; font-weight: 800; font-family: 'Cairo', sans-serif;
-      cursor: pointer; transition: all .2s;
-      margin-top: .5rem;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      box-shadow: 0 0 28px rgba(14,165,233,.3);
-      animation: slideUp .45s .3s ease both;
-    }
-    .btn-submit:hover:not(:disabled) {
-      background: var(--dk);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 36px rgba(14,165,233,.45);
-    }
-    .btn-submit:disabled {
-      background: var(--card); border: 1px solid var(--border);
-      color: var(--muted); cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    /* ── Flash ── */
-    .flash {
-      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2);
-      color: #f87171; border-radius: 10px;
-      padding: .8rem 1rem; margin-bottom: 1rem;
-      font-size: .85rem; display: flex; align-items: center; gap: 8px;
-    }
-
-    /* ── Discount tag ── */
-    .discount-tag {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(251,191,36,.1);
-      border: 1px solid rgba(251,191,36,.2);
-      color: #fbbf24;
-      font-size: .72rem; font-weight: 700;
-      padding: 3px 10px; border-radius: 20px;
-      margin-top: 6px;
-    }
-
-    @media (max-width: 480px) {
-      .slots-grid { grid-template-columns: repeat(4, 1fr); }
-      .court-grid { grid-template-columns: 1fr 1fr; }
+    @media(max-width:360px){
+      .slots-grid{grid-template-columns:repeat(3,1fr)!important;}
     }
   </style>
 </head>
 <body>
 
-<!-- Nav -->
-<nav class="top-nav">
-  <a href="/" class="nav-brand">Z PADEL</a>
-  <a href="/" class="nav-back">
-    <i class="fas fa-arrow-right"></i> العودة للرئيسية
-  </a>
+<nav class="navbar-z">
+  <div class="nav-inner">
+    <a href="{{ url_for('main.index') }}" class="nav-brand">
+      <div class="nav-brand-icon"><i class="fas fa-table-tennis-paddle-ball"></i></div>
+      <span class="nav-brand-name">Z Padel</span>
+    </a>
+    <a href="{{ url_for('main.index') }}" class="nav-back">
+      <i class="fas fa-arrow-right"></i> الرئيسية
+    </a>
+  </div>
 </nav>
 
-<div class="page-wrap">
-
-  <!-- Header -->
-  <div class="page-header">
-    <h1><i class="fas fa-calendar-check" style="color:var(--brand); margin-left:10px;"></i>احجز ملعبك</h1>
-    <p>اختر الملعب والتاريخ والوقت المناسب لك</p>
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1><i class="fas fa-calendar-plus" style="margin-left:9px;opacity:.75;"></i>احجز ملعبك</h1>
+    <p>اختر التاريخ، الملعب، والوقت — بدون دفع مسبق</p>
   </div>
+</div>
 
-  <!-- Steps bar -->
-  <div class="steps-bar" id="stepsBar">
-    <div class="step-item active" id="step-ind-1">
-      <div class="step-num">1</div><span>الملعب</span>
-    </div>
-    <div class="step-sep" id="sep-1"></div>
-    <div class="step-item" id="step-ind-2">
-      <div class="step-num">2</div><span>الوقت</span>
-    </div>
-    <div class="step-sep" id="sep-2"></div>
-    <div class="step-item" id="step-ind-3">
-      <div class="step-num">3</div><span>بياناتك</span>
-    </div>
-  </div>
-
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="flash"><i class="fas fa-exclamation-circle"></i>{{ messages[0] }}</div>
-    {% endif %}
-  {% endwith %}
-
-  <form method="POST" id="bookingForm">
-
-    <!-- Step 1: Court -->
-    <div class="step-card active-card" id="sc1">
-      <div class="step-header">
-        <div class="step-badge">1</div>
-        اختر الملعب
+<div style="max-width:1200px;margin:12px auto 0;padding:0 16px;">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for category, message in messages %}
+      <div class="alert-z {{ 'success' if category=='success' else 'error' if category=='danger' else 'info' }}">
+        <i class="fas fa-{{ 'check-circle' if category=='success' else 'exclamation-circle' if category=='danger' else 'info-circle' }}"></i>
+        {{ message }}
       </div>
-      <div class="court-grid">
+    {% endfor %}{% endif %}
+  {% endwith %}
+</div>
+
+<div class="booking-layout">
+
+  <!-- LEFT -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+
+    <div class="card-z">
+      <div class="card-header-z">
+        <div class="ch-icon"><i class="fas fa-calendar-days"></i></div>
+        <div class="ch-title">اختر التاريخ</div>
+      </div>
+      <div class="card-body-z">
+        <div class="date-strip" id="dateStrip"></div>
+      </div>
+    </div>
+
+    <div class="card-z">
+      <div class="court-tabs" id="courtTabs">
         {% for court in courts %}
-        <div class="court-opt {% if selected_court and selected_court.id == court.id %}selected{% endif %}"
-             onclick="selectCourt({{ court.id }}, {{ court.price_per_hour }}, this)">
-          <div class="co-check"><i class="fas fa-check"></i></div>
-          <div class="co-name">{{ court.name }}</div>
-          <div class="co-price">{{ "{:,.0f}".format(court.price_per_hour) }} د.ع / ساعة</div>
-          {% if court.description %}
-          <div class="co-desc">{{ court.description }}</div>
-          {% endif %}
-        </div>
+        <button class="court-tab {% if loop.first %}active{% endif %}"
+                data-court-id="{{ court.id }}"
+                data-court-name="{{ court.name }}"
+                data-court-price="{{ court.price_per_hour|default(25000) }}"
+                data-court-color="{{ court.color|default('#1565C0') }}"
+                onclick="selectCourt(this)">
+          <span class="court-dot" style="background:{{ court.color|default('#1565C0') }};"></span>
+          {{ court.name }}
+        </button>
         {% endfor %}
       </div>
-      <input type="hidden" name="court_id" id="courtId"
-             value="{{ selected_court.id if selected_court else '' }}">
-    </div>
-
-    <!-- Step 2: Date & Slots -->
-    <div class="step-card" id="sc2">
-      <div class="step-header">
-        <div class="step-badge">2</div>
-        اختر التاريخ والوقت
-      </div>
-
-      <div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
-        <div>
-          <label style="font-size:.7rem; font-weight:800; color:var(--muted); display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">التاريخ</label>
-          <input type="date" class="date-input" id="dateInput" onchange="loadSlots()">
+      <div class="slots-section">
+        <div class="discount-banner">
+          <i class="fas fa-tag"></i>
+          <div><strong>خصم 25%</strong><span> من </span><strong>12:00–16:00</strong><span> تلقائياً</span></div>
         </div>
-        <div class="discount-tag">
-          <i class="fas fa-bolt"></i>
-          خصم 25% من 12:00 — 16:00
+        <div class="slots-legend">
+          <div class="legend-item"><div class="legend-dot free"></div>متاح</div>
+          <div class="legend-item"><div class="legend-dot discount"></div>خصم</div>
+          <div class="legend-item"><div class="legend-dot booked"></div>محجوز</div>
+          <div class="legend-item"><div class="legend-dot selected"></div>مختار</div>
+          <div class="legend-item"><div class="legend-dot past"></div>منتهي</div>
         </div>
-      </div>
-
-      <div class="slots-legend">
-        <div class="leg-item"><div class="leg-dot leg-av"></div> متاح</div>
-        <div class="leg-item"><div class="leg-dot leg-bk"></div> محجوز</div>
-        <div class="leg-item"><div class="leg-dot leg-sel"></div> اختيارك</div>
-      </div>
-
-      <div id="slotsWrap">
-        <div class="slots-placeholder">
-          <i class="fas fa-calendar-alt"></i>
-          اختر ملعباً وتاريخاً لرؤية الأوقات المتاحة
-        </div>
-      </div>
-
-      <div class="sel-box" id="selBox">
-        <span class="sel-info" id="selInfo">—</span>
-        <span class="sel-price" id="selPrice">0 د.ع</span>
-        <button type="button" class="btn-clr" onclick="clearSelection()">
-          <i class="fas fa-times me-1"></i>إلغاء
-        </button>
-      </div>
-
-      <input type="hidden" name="start_time" id="startTime">
-      <input type="hidden" name="end_time"   id="endTime">
-      <input type="hidden" name="date"        id="dateHidden">
-    </div>
-
-    <!-- Step 3: Details -->
-    <div class="step-card" id="sc3">
-      <div class="step-header">
-        <div class="step-badge">3</div>
-        بياناتك الشخصية
-      </div>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="f-lbl">الاسم الكامل *</label>
-          <input type="text" name="customer_name" class="f-input" placeholder="محمد أحمد" required>
-        </div>
-        <div class="col-md-6">
-          <label class="f-lbl">رقم الهاتف *</label>
-          <input type="text" name="customer_phone" class="f-input" placeholder="07xx-xxx-xxxx" required>
-        </div>
-        <div class="col-12">
-          <label class="f-lbl">ملاحظات (اختياري)</label>
-          <textarea name="notes" class="f-input" rows="2" placeholder="أي طلبات أو ملاحظات إضافية..."></textarea>
+        <div id="slotsContainer">
+          <div class="slots-loading"><i class="fas fa-spinner"></i><span>جاري التحميل...</span></div>
         </div>
       </div>
     </div>
 
-    <button type="submit" class="btn-submit" id="submitBtn" disabled>
-      <i class="fas fa-check-circle"></i>
-      تأكيد الحجز
-    </button>
+  </div>
 
-  </form>
+  <!-- RIGHT -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+
+    <div class="card-z">
+      <div class="card-header-z">
+        <div class="ch-icon"><i class="fas fa-receipt"></i></div>
+        <div class="ch-title">ملخص الحجز</div>
+      </div>
+      <div class="card-body-z" id="summaryBody">
+        <div class="summary-empty">
+          <i class="fas fa-calendar-xmark"></i>
+          <p>اختر وقتاً لعرض التفاصيل</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-z" id="bookingFormCard" style="display:none;">
+      <div class="card-header-z">
+        <div class="ch-icon"><i class="fas fa-user"></i></div>
+        <div class="ch-title">بياناتك</div>
+      </div>
+      <div class="card-body-z">
+        <form method="POST" action="{{ url_for('booking.create') }}">
+          <input type="hidden" name="csrf_token"   value="{{ csrf_token() }}"/>
+          <input type="hidden" name="court_id"     id="f_court_id"/>
+          <input type="hidden" name="booking_date" id="f_booking_date"/>
+          <input type="hidden" name="start_time"   id="f_start_time"/>
+          <input type="hidden" name="end_time"     id="f_end_time"/>
+          <div class="form-group">
+            <label class="form-label">الاسم الكامل <span style="color:#e53935;">*</span></label>
+            <input type="text" name="customer_name" class="form-input" required placeholder="أدخل اسمك الكامل"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">رقم الهاتف <span style="color:#e53935;">*</span></label>
+            <input type="tel" name="customer_phone" class="form-input" required placeholder="07xx xxx xxxx" dir="ltr"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">المدة</label>
+            <div class="duration-btns">
+              <button type="button" class="dur-btn active" onclick="setDuration(1,this)">ساعة</button>
+              <button type="button" class="dur-btn" onclick="setDuration(1.5,this)">ساعة ونص</button>
+              <button type="button" class="dur-btn" onclick="setDuration(2,this)">ساعتان</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ملاحظات <small style="color:var(--text-muted);font-weight:400;">(اختياري)</small></label>
+            <input type="text" name="notes" class="form-input" placeholder="أي ملاحظات..."/>
+          </div>
+          <div class="no-prepay-note">
+            <i class="fas fa-circle-check"></i> بدون دفع مسبق — ادفع عند الحضور
+          </div>
+          <button type="submit" class="btn-confirm">
+            <i class="fas fa-calendar-check"></i> تأكيد الحجز
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-  const OPEN  = 12;
-  const CLOSE = 28; // 04:00 next day
+const COURTS       = {{ courts_data | tojson }};
+const BOOKED_SLOTS = {{ booked_slots | tojson }};
+const OPEN=6,CLOSE=23,DS=12,DE=16,DPCT=0.25;
+let selDate=null,selCourt=null,selPrice=25000,selStart=null,dur=1;
 
-  let courtId    = {{ selected_court.id if selected_court else 'null' }};
-  let courtPrice = {{ selected_court.price_per_hour if selected_court else 0 }};
-  let booked     = [];
-  let selStart   = null;
-  let selEnd     = null;
-
-  /* Default date = today */
-  window.addEventListener('DOMContentLoaded', () => {
-    const d   = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    const val = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    const inp = document.getElementById('dateInput');
-    inp.value = val;
-    inp.min   = val;
-    {% if selected_court %}loadSlots();{% endif %}
-    updateSteps();
-  });
-
-  function selectCourt(id, price, el) {
-    document.querySelectorAll('.court-opt').forEach(o => o.classList.remove('selected'));
-    el.classList.add('selected');
-    document.getElementById('courtId').value = id;
-    courtId    = id;
-    courtPrice = price;
-    clearSelection(false);
-    loadSlots();
-    updateSteps();
+function buildDateStrip(){
+  const s=document.getElementById('dateStrip');s.innerHTML='';
+  const t=new Date();
+  const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  for(let i=0;i<14;i++){
+    const d=new Date(t);d.setDate(t.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const b=document.createElement('button');
+    b.className='date-btn'+(i===0?' today active':'');
+    b.dataset.date=ds;
+    b.innerHTML=`<span class="dn">${DN[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dm">${MN[d.getMonth()]}</span>`;
+    b.onclick=()=>selectDate(b,ds);
+    s.appendChild(b);
+    if(i===0)selDate=ds;
   }
+}
 
-  function loadSlots() {
-    if (!courtId) return;
-    const date = document.getElementById('dateInput').value;
-    if (!date) return;
+function selectDate(btn,ds){
+  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');selDate=ds;selStart=null;
+  renderSlots();updateSummary();
+}
 
-    document.getElementById('slotsWrap').innerHTML =
-      `<div class="slots-placeholder"><i class="fas fa-spinner fa-spin"></i>جاري التحميل...</div>`;
-    clearSelection(false);
+function selectCourt(btn){
+  document.querySelectorAll('.court-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selCourt=btn.dataset.courtId;
+  selPrice=parseFloat(btn.dataset.courtPrice)||25000;
+  selStart=null;renderSlots();updateSummary();
+}
 
-    fetch(`/booking/availability?court_id=${courtId}&date=${date}`)
-      .then(r => r.json())
-      .then(data => { booked = data.booked_hours || []; renderSlots(); })
-      .catch(() => {
-        document.getElementById('slotsWrap').innerHTML =
-          `<div class="slots-placeholder" style="color:#f87171;"><i class="fas fa-exclamation-triangle"></i>تعذر تحميل الأوقات</div>`;
-      });
+window.addEventListener('DOMContentLoaded',()=>{
+  buildDateStrip();
+  const f=document.querySelector('.court-tab');
+  if(f){selCourt=f.dataset.courtId;selPrice=parseFloat(f.dataset.courtPrice)||25000;renderSlots();}
+  else document.getElementById('slotsContainer').innerHTML=
+    `<div style="text-align:center;padding:32px;color:var(--text-muted);">
+      <i class="fas fa-shield-halved" style="font-size:28px;color:#BBDEFB;display:block;margin-bottom:8px;"></i>
+      <p style="font-size:13px;">لا توجد ملاعب متاحة</p></div>`;
+});
+
+function renderSlots(){
+  if(!selDate||!selCourt)return;
+  const booked=(BOOKED_SLOTS[`${selCourt}:${selDate}`])||[];
+  const now=new Date();
+  const isToday=selDate===now.toISOString().split('T')[0];
+  let html='<div class="slots-grid">';
+  for(let h=OPEN;h<CLOSE;h++){
+    const ts=`${String(h).padStart(2,'0')}:00`;
+    const past=isToday&&h<=now.getHours();
+    const bkd=booked.includes(ts);
+    const disc=h>=DS&&h<DE;
+    const sel=selStart===ts;
+    let cls='slot-btn ';
+    if(sel)cls+='selected';
+    else if(past)cls+='past';
+    else if(bkd)cls+='booked';
+    else if(disc)cls+='discount';
+    else cls+='free';
+    const price=(disc?Math.round(selPrice*(1-DPCT)):selPrice).toLocaleString();
+    const ok=!past&&!bkd;
+    html+=`<div class="${cls}" ${ok?`onclick="selectSlot('${ts}',${disc})"`:''}>
+      ${disc&&!sel&&!past&&!bkd?'<span class="slot-tag">خصم</span>':''}
+      <i class="fas fa-check slot-check"></i>
+      <span class="slot-time">${ts}</span>
+      ${bkd?'<span class="slot-dur" style="color:#EF9A9A;font-size:8px;">محجوز</span>':'<span class="slot-dur">1س</span>'}
+      ${!bkd&&!past?`<span class="slot-price">${price}</span>`:''}
+    </div>`;
   }
+  html+='</div>';
+  document.getElementById('slotsContainer').innerHTML=html;
+}
 
-  function renderSlots() {
-    let html = '<div class="slots-grid">';
-    for (let h = OPEN; h < CLOSE; h++) {
-      const realH = h % 24;
-      const label = String(realH).padStart(2,'0') + ':00';
-      const isBk  = booked.includes(realH);
-      // 25% discount 12-16
-      const isDisc = realH >= 12 && realH < 16;
+function selectSlot(ts,disc){
+  selStart=ts;
+  const sh=parseInt(ts);
+  const em=sh*60+Math.round(dur*60);
+  const et=`${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
+  document.getElementById('f_court_id').value=selCourt;
+  document.getElementById('f_booking_date').value=selDate;
+  document.getElementById('f_start_time').value=ts;
+  document.getElementById('f_end_time').value=et;
+  renderSlots();updateSummary();
+  document.getElementById('bookingFormCard').style.display='block';
+  if(window.innerWidth<860)
+    document.getElementById('bookingFormCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
 
-      let cls   = isBk ? 'booked' : 'available';
-      let badge = isBk ? '🔴 محجوز' : (isDisc ? '⚡ -25%' : '🟢 متاح');
-      let click = isBk ? '' : `onclick="clickSlot(${h})"`;
-
-      if (!isBk && selStart !== null) {
-        if (h === selStart)                              { cls = 'sel-start'; badge = '✅ بداية'; }
-        else if (selEnd && h >= selStart && h < selEnd) { cls = 'sel-range'; badge = '✅'; }
-      }
-
-      html += `<div class="slot ${cls}" ${click}>
-                  <span class="slot-time">${label}</span>
-                  <span class="slot-badge">${badge}</span>
-               </div>`;
-    }
-    html += '</div>';
-    document.getElementById('slotsWrap').innerHTML = html;
+function setDuration(h,btn){
+  dur=h;
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(selStart){
+    const sh=parseInt(selStart);
+    const em=sh*60+Math.round(h*60);
+    document.getElementById('f_end_time').value=
+      `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
   }
+  updateSummary();renderSlots();
+}
 
-  function clickSlot(h) {
-    if (selStart === null) {
-      selStart = h; selEnd = h + 1;
-    } else if (h === selStart) {
-      clearSelection(); return;
-    } else if (h > selStart) {
-      selEnd = h + 1;
-      for (let i = selStart; i < selEnd; i++) {
-        if (booked.includes(i % 24)) { selEnd = i; break; }
-      }
-    } else {
-      selStart = h; selEnd = h + 1;
-    }
-    applySelection();
-    renderSlots();
+function updateSummary(){
+  const body=document.getElementById('summaryBody');
+  if(!selStart||!selCourt){
+    body.innerHTML=`<div class="summary-empty"><i class="fas fa-calendar-xmark"></i><p>اختر وقتاً لعرض التفاصيل</p></div>`;
+    return;
   }
-
-  function applySelection() {
-    const date   = document.getElementById('dateInput').value;
-    const startH = selStart % 24;
-    const endH   = selEnd   % 24;
-    const dur    = selEnd - selStart;
-
-    // Discount calculation
-    let total = 0;
-    for (let i = selStart; i < selEnd; i++) {
-      const h = i % 24;
-      const disc = (h >= 12 && h < 16) ? 0.75 : 1;
-      total += courtPrice * disc;
-    }
-
-    document.getElementById('startTime').value  = String(startH).padStart(2,'0') + ':00';
-    document.getElementById('endTime').value    = String(endH).padStart(2,'0')   + ':00';
-    document.getElementById('dateHidden').value = date;
-
-    const startLbl = String(startH).padStart(2,'0') + ':00';
-    const endLbl   = String(endH).padStart(2,'0')   + ':00';
-    document.getElementById('selInfo').textContent  = `${startLbl} ← ${endLbl}  (${dur} ساعة)`;
-    document.getElementById('selPrice').textContent = Math.round(total).toLocaleString() + ' د.ع';
-    document.getElementById('selBox').classList.add('show');
-    document.getElementById('submitBtn').disabled = false;
-    updateSteps();
-  }
-
-  function clearSelection(render = true) {
-    selStart = null; selEnd = null;
-    document.getElementById('startTime').value  = '';
-    document.getElementById('endTime').value    = '';
-    document.getElementById('dateHidden').value = '';
-    document.getElementById('selBox').classList.remove('show');
-    document.getElementById('submitBtn').disabled = true;
-    if (render) renderSlots();
-    updateSteps();
-  }
-
-  function updateSteps() {
-    const hasCourt = !!courtId;
-    const hasTime  = !!document.getElementById('startTime').value;
-
-    const s1 = document.getElementById('step-ind-1');
-    const s2 = document.getElementById('step-ind-2');
-    const s3 = document.getElementById('step-ind-3');
-    const sp1 = document.getElementById('sep-1');
-    const sp2 = document.getElementById('sep-2');
-
-    s1.className = 'step-item ' + (hasCourt ? 'done' : 'active');
-    s1.querySelector('.step-num').innerHTML = hasCourt ? '<i class="fas fa-check" style="font-size:.6rem;"></i>' : '1';
-    sp1.className = 'step-sep ' + (hasCourt ? 'done' : '');
-    s2.className = 'step-item ' + (hasCourt && hasTime ? 'done' : hasCourt ? 'active' : '');
-    s2.querySelector('.step-num').innerHTML = (hasCourt && hasTime) ? '<i class="fas fa-check" style="font-size:.6rem;"></i>' : '2';
-    sp2.className = 'step-sep ' + (hasCourt && hasTime ? 'done' : '');
-    s3.className = 'step-item ' + (hasCourt && hasTime ? 'active' : '');
-  }
+  const tab=document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
+  const name=tab?tab.dataset.courtName:'—';
+  const sh=parseInt(selStart);
+  const disc=sh>=DS&&sh<DE;
+  const total=Math.round((disc?selPrice*(1-DPCT):selPrice)*dur);
+  const em=sh*60+Math.round(dur*60);
+  const et=`${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
+  const d=new Date(selDate+'T00:00:00');
+  const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  body.innerHTML=`
+    <div class="summary-field"><div class="sf-label"><i class="fas fa-shield-halved"></i>الملعب</div><div class="sf-value">${name}</div></div>
+    <div class="summary-field"><div class="sf-label"><i class="fas fa-calendar-day"></i>التاريخ</div><div class="sf-value">${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</div></div>
+    <div class="summary-field"><div class="sf-label"><i class="fas fa-clock"></i>الوقت</div><div class="sf-value" style="direction:ltr;">${selStart} — ${et}</div></div>
+    <div class="summary-field"><div class="sf-label"><i class="fas fa-hourglass"></i>المدة</div><div class="sf-value">${dur===1?'ساعة':dur===1.5?'ساعة ونص':'ساعتان'}</div></div>
+    <div class="price-total"><div class="price-total-label">الإجمالي</div><div class="price-total-value">${total.toLocaleString()} <small>د.ع</small></div></div>
+    ${disc?'<div class="discount-applied"><i class="fas fa-tag"></i> خصم 25% مطبق (12–16)</div>':''}`;
+}
 </script>
 </body>
 </html>
