@@ -25,17 +25,18 @@ class Category(db.Model):
 class Product(db.Model):
     __tablename__ = 'products'
 
-    id          = db.Column(db.Integer, primary_key=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
-    name        = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text,        nullable=True)
-    price       = db.Column(db.Float,       nullable=False, default=0)
-    stock       = db.Column(db.Integer,     default=0)
-    max_stock   = db.Column(db.Integer,     default=50)
-    barcode     = db.Column(db.String(50),  unique=True, nullable=True)
-    image       = db.Column(db.String(200), nullable=True)
-    is_active   = db.Column(db.Boolean,     default=True)
-    created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
+    id              = db.Column(db.Integer, primary_key=True)
+    category_id     = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
+    name            = db.Column(db.String(120), nullable=False)
+    description     = db.Column(db.Text,        nullable=True)
+    price           = db.Column(db.Float,       nullable=False, default=0)
+    stock           = db.Column(db.Integer,     default=0)
+    max_stock       = db.Column(db.Integer,     default=50)
+    barcode         = db.Column(db.String(50),  unique=True, nullable=True)
+    image           = db.Column(db.String(200), nullable=True)
+    is_active       = db.Column(db.Boolean,     default=True)
+    show_on_website = db.Column(db.Boolean,     default=False)   # ← NEW
+    created_at      = db.Column(db.DateTime,    default=datetime.utcnow)
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
 

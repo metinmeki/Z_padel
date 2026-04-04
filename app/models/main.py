@@ -19,12 +19,11 @@ class Admin(UserMixin, db.Model):
     username   = db.Column(db.String(80),  unique=True, nullable=False)
     password   = db.Column(db.String(256), nullable=False)
     email      = db.Column(db.String(120), unique=True, nullable=True)
-    role       = db.Column(db.String(20),  default='staff')   # superadmin | admin | staff | viewer
+    role       = db.Column(db.String(20),  default='staff')
     is_active  = db.Column(db.Boolean,     default=True)
     last_login = db.Column(db.DateTime,    nullable=True)
     created_at = db.Column(db.DateTime,    default=datetime.utcnow)
 
-    # Permissions JSON stored as Text (simple key:bool pairs)
     _permissions = db.Column('permissions', db.Text, default='{}')
 
     @property
@@ -65,23 +64,30 @@ class Court(db.Model):
     is_active      = db.Column(db.Boolean,     default=True)
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
 
-    bookings = db.relationship('Booking', backref='court', lazy=True,
+    # lazy='select' prevents loading ALL bookings when court is accessed
+    bookings = db.relationship('Booking', backref='court',
+                               lazy='select',
                                cascade='all, delete-orphan')
 
     @property
     def total_bookings(self):
-        return len(self.bookings)
+        """Single COUNT query — no full row load."""
+        from sqlalchemy import func
+        return db.session.query(func.count(Booking.id)) \
+                   .filter(Booking.court_id == self.id).scalar() or 0
 
     @property
     def today_booked_slots(self):
-        """Returns list of 'HH' strings for slots booked today."""
-        today = date.today()
-        slots = []
-        for b in self.bookings:
-            if b.booking_date == today and b.status != 'cancelled':
-                if b.start_time:
-                    slots.append(b.start_time.strftime('%H'))
-        return slots
+        """Single targeted query — fixes N+1 problem."""
+        from sqlalchemy import and_
+        slots = db.session.query(Booking.start_time).filter(
+            and_(
+                Booking.court_id == self.id,
+                Booking.booking_date == date.today(),
+                Booking.status != 'cancelled'
+            )
+        ).all()
+        return [s.start_time.strftime('%H') for s in slots if s.start_time]
 
     def __repr__(self):
         return f'<Court {self.name}>'
@@ -93,27 +99,27 @@ class Court(db.Model):
 class Booking(db.Model):
     __tablename__ = 'bookings'
 
-    id              = db.Column(db.Integer, primary_key=True)
-    court_id        = db.Column(db.Integer, db.ForeignKey('courts.id'), nullable=False)
-    customer_name   = db.Column(db.String(100), nullable=False)
-    customer_phone  = db.Column(db.String(20),  nullable=False)
-    booking_date    = db.Column(db.Date,         nullable=False)
-    start_time      = db.Column(db.Time,         nullable=False)
-    end_time        = db.Column(db.Time,         nullable=False)
-    total_price     = db.Column(db.Float,        default=0)
-    status          = db.Column(db.String(20),   default='pending')
+    id             = db.Column(db.Integer, primary_key=True)
+    court_id       = db.Column(db.Integer, db.ForeignKey('courts.id'), nullable=False)
+    customer_name  = db.Column(db.String(100), nullable=False)
+    customer_phone = db.Column(db.String(20),  nullable=False)
+    booking_date   = db.Column(db.Date,        nullable=False)
+    start_time     = db.Column(db.Time,        nullable=False)
+    end_time       = db.Column(db.Time,        nullable=False)
+    total_price    = db.Column(db.Float,       default=0)
+    status         = db.Column(db.String(20),  default='pending')
     # pending | confirmed | cancelled
-    notes           = db.Column(db.Text,         nullable=True)
-    created_at      = db.Column(db.DateTime,     default=datetime.utcnow)
-    updated_at      = db.Column(db.DateTime,     default=datetime.utcnow,
-                                onupdate=datetime.utcnow)
+    notes          = db.Column(db.Text,        nullable=True)
+    created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
+    updated_at     = db.Column(db.DateTime,    default=datetime.utcnow,
+                               onupdate=datetime.utcnow)
 
     cancel_request = db.relationship('CancelRequest', backref='booking',
                                      uselist=False, cascade='all, delete-orphan')
 
     @property
     def waiting_minutes(self):
-        """Minutes since booking was created (for pending bookings)."""
+        """Minutes since booking was created (pending only)."""
         if self.status != 'pending':
             return 0
         delta = datetime.utcnow() - self.created_at
@@ -121,7 +127,7 @@ class Booking(db.Model):
 
     @property
     def is_discount_slot(self):
-        """True if start time falls in discount window (12-16)."""
+        """True if start time is in discount window (12:00–16:00)."""
         if self.start_time:
             return 12 <= self.start_time.hour < 16
         return False
@@ -149,7 +155,7 @@ class CancelRequest(db.Model):
     booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), nullable=False)
     reason     = db.Column(db.String(200), nullable=True)
     notes      = db.Column(db.Text,        nullable=True)
-    status     = db.Column(db.String(20),  default='pending')   # pending | approved | rejected
+    status     = db.Column(db.String(20),  default='pending')
     created_at = db.Column(db.DateTime,    default=datetime.utcnow)
 
     def __repr__(self):
@@ -162,14 +168,14 @@ class CancelRequest(db.Model):
 class Coach(db.Model):
     __tablename__ = 'coaches'
 
-    id          = db.Column(db.Integer, primary_key=True)
-    name        = db.Column(db.String(100), nullable=False)
-    phone       = db.Column(db.String(20),  nullable=True)
-    specialty   = db.Column(db.String(100), nullable=True)
-    price_per_hour = db.Column(db.Float,    default=0)
-    is_active   = db.Column(db.Boolean,     default=True)
-    bio         = db.Column(db.Text,        nullable=True)
-    created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
+    id             = db.Column(db.Integer, primary_key=True)
+    name           = db.Column(db.String(100), nullable=False)
+    phone          = db.Column(db.String(20),  nullable=True)
+    specialty      = db.Column(db.String(100), nullable=True)
+    price_per_hour = db.Column(db.Float,       default=0)
+    is_active      = db.Column(db.Boolean,     default=True)
+    bio            = db.Column(db.Text,        nullable=True)
+    created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
 
     training_requests = db.relationship('TrainingRequest', backref='coach',
                                         lazy=True, cascade='all, delete-orphan')

@@ -5,72 +5,40 @@
 {% block extra_css %}
 <style>
   .form-wrap { max-width: 660px; }
-  .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 13px; padding: 1.8rem; }
-  .f-label { font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; display: block; }
-  .f-ctrl { display: block; width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 9px; font-size: .85rem; padding: 8px 12px; font-family: 'Cairo', sans-serif; transition: border-color .15s, box-shadow .15s; }
-  .f-ctrl:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14,165,233,.12); background: var(--surface); color: var(--text); }
-  .f-ctrl::placeholder { color: var(--muted); }
-  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: .82rem; font-weight: 600; margin-bottom: 1.2rem; transition: color .15s; }
-  .back-link:hover { color: var(--brand); }
-  .img-preview { width: 100%; height: 140px; object-fit: cover; border-radius: 9px; margin-bottom: 10px; border: 1px solid var(--border); }
+  .form-card { background: white; border: 1px solid var(--border-color); border-radius: 13px; padding: 1.8rem; }
+  .f-label { font-size: .75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; display: block; }
+  .f-ctrl { display: block; width: 100%; background: white; border: 1.5px solid var(--border-color); color: var(--text-dark); border-radius: 9px; font-size: .9rem; padding: 9px 13px; font-family: 'Cairo', sans-serif; transition: border-color .15s, box-shadow .15s; outline: none; }
+  .f-ctrl:focus { border-color: var(--brand-blue-light); box-shadow: 0 0 0 3px rgba(30,136,229,.12); }
+  .f-ctrl::placeholder { color: var(--text-muted); }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-size: .82rem; font-weight: 600; margin-bottom: 1.2rem; transition: color .15s; }
+  .back-link:hover { color: var(--brand-blue); }
+  .img-preview { width: 100%; height: 140px; object-fit: cover; border-radius: 9px; margin-bottom: 10px; border: 1px solid var(--border-color); }
 
-  /* ── Visibility toggle ── */
-  .visibility-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.2rem 1.4rem;
-    margin-bottom: 1.2rem;
-  }
-  .vis-title {
-    font-size: .78rem; font-weight: 800;
-    color: var(--muted); text-transform: uppercase;
-    letter-spacing: .6px; margin-bottom: 1rem;
-    display: flex; align-items: center; gap: 7px;
-  }
-  .vis-option {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: .8rem 1rem;
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 8px;
-    transition: border-color .18s;
-    cursor: pointer;
-  }
+  .visibility-card { background: var(--off-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; }
+  .vis-title { font-size: .78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 1rem; display: flex; align-items: center; gap: 7px; }
+  .vis-option { display: flex; align-items: center; justify-content: space-between; padding: .8rem 1rem; background: white; border: 1.5px solid var(--border-color); border-radius: 10px; margin-bottom: 8px; }
   .vis-option:last-child { margin-bottom: 0; }
   .vis-option.always-on { border-color: rgba(34,197,94,.3); }
-  .vis-option:has(input:checked) { border-color: var(--brand); background: rgba(14,165,233,.06); }
-  .vis-left { display: flex; align-items: center; gap: 10px; }
+  .vis-option.web-option.active { border-color: var(--brand-blue-light); background: rgba(30,136,229,.04); }
+  .vis-left { display: flex; align-items: center; gap: 10px; pointer-events: none; }
   .vis-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
-  .vi-pos  { background: rgba(251,191,36,.1); color: #fbbf24; }
-  .vi-web  { background: rgba(14,165,233,.1); color: var(--brand); }
+  .vi-pos { background: rgba(251,191,36,.1); color: #fbbf24; }
+  .vi-web { background: rgba(30,136,229,.1); color: var(--brand-blue-light); }
   .vis-info .vi-name { font-size: .88rem; font-weight: 700; }
-  .vis-info .vi-desc { font-size: .72rem; color: var(--muted); margin-top: 1px; }
+  .vis-info .vi-desc { font-size: .72rem; color: var(--text-muted); margin-top: 1px; }
+  .always-badge { font-size: .65rem; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: #22c55e; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
 
-  /* Toggle switch */
-  .toggle-wrap { position: relative; }
+  .toggle-wrap { flex-shrink: 0; }
   .toggle-wrap input[type=checkbox] { display: none; }
-  .toggle-sw {
-    width: 42px; height: 24px;
-    background: var(--border);
-    border-radius: 12px;
-    display: block; cursor: pointer;
-    transition: background .2s;
-    position: relative;
-  }
-  .toggle-sw::after {
-    content: '';
-    position: absolute;
-    width: 18px; height: 18px;
-    background: #fff; border-radius: 50%;
-    top: 3px; left: 3px;
-    transition: transform .2s;
-  }
-  .toggle-wrap input:checked + .toggle-sw { background: var(--brand); }
+  .toggle-sw { width: 42px; height: 24px; background: var(--border-color); border-radius: 12px; display: block; cursor: pointer; transition: background .2s; position: relative; }
+  .toggle-sw::after { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .toggle-wrap input:checked + .toggle-sw { background: var(--brand-blue-light); }
   .toggle-wrap input:checked + .toggle-sw::after { transform: translateX(18px); }
 
-  .always-badge { font-size: .65rem; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: #4ade80; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+  .btn-z { background: linear-gradient(135deg, var(--brand-blue-light), var(--brand-blue)); color: white; border: none; border-radius: 9px; padding: 10px 22px; font-size: .9rem; font-weight: 700; font-family: 'Cairo',sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; transition: all .2s; }
+  .btn-z:hover { opacity: .9; transform: translateY(-1px); color: white; }
+  .btn-z-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border-color); border-radius: 9px; padding: 9px 20px; font-size: .9rem; font-weight: 600; font-family: 'Cairo',sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; transition: all .2s; }
+  .btn-z-ghost:hover { border-color: var(--brand-blue-light); color: var(--brand-blue); }
 </style>
 {% endblock %}
 
@@ -82,50 +50,72 @@
 
 <div class="form-wrap">
 
-  <!-- Visibility card -->
-  <div class="visibility-card">
-    <div class="vis-title">
-      <i class="fas fa-eye" style="color:var(--brand);"></i>
-      مكان عرض المنتج
-    </div>
+  <!-- ═══ EVERYTHING IS INSIDE ONE FORM ═══ -->
+  <form method="POST"
+        action="{{ url_for('admin.edit_product', product_id=product.id) if product else url_for('admin.new_product') }}"
+        enctype="multipart/form-data">
 
-    <!-- POS — always on -->
-    <div class="vis-option always-on">
-      <div class="vis-left">
-        <div class="vis-icon vi-pos"><i class="fas fa-cash-register"></i></div>
-        <div class="vis-info">
-          <div class="vi-name">نظام POS</div>
-          <div class="vi-desc">يظهر دائماً في نظام نقطة البيع</div>
+    <!-- CSRF token — correct way -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- Visibility card — INSIDE the form -->
+    <div class="visibility-card">
+      <div class="vis-title">
+        <i class="fas fa-eye" style="color:var(--brand-blue-light);"></i>
+        مكان عرض المنتج
+      </div>
+
+      <!-- POS — always on -->
+      <div class="vis-option always-on">
+        <div class="vis-left">
+          <div class="vis-icon vi-pos"><i class="fas fa-cash-register"></i></div>
+          <div class="vis-info">
+            <div class="vi-name">نظام POS</div>
+            <div class="vi-desc">يظهر دائماً في نظام نقطة البيع</div>
+          </div>
+        </div>
+        <span class="always-badge"><i class="fas fa-check me-1"></i>دائماً</span>
+      </div>
+
+      <!-- Website toggle — INSIDE the form so it submits -->
+      <div class="vis-option web-option {% if product and product.show_on_website %}active{% endif %}" id="webOption">
+        <div class="vis-left">
+          <div class="vis-icon vi-web"><i class="fas fa-globe"></i></div>
+          <div class="vis-info">
+            <div class="vi-name">متجر الموقع</div>
+            <div class="vi-desc">اعرض هذا المنتج للزوار على الموقع</div>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <input type="checkbox" name="show_on_website" id="showOnWebsite"
+                 value="1"
+                 {% if product and product.show_on_website %}checked{% endif %}>
+          <label class="toggle-sw" for="showOnWebsite"></label>
         </div>
       </div>
-      <span class="always-badge"><i class="fas fa-check me-1"></i>دائماً</span>
     </div>
 
-    <!-- Website — toggle -->
-    <label class="vis-option" for="showOnWebsite">
-      <div class="vis-left">
-        <div class="vis-icon vi-web"><i class="fas fa-globe"></i></div>
-        <div class="vis-info">
-          <div class="vi-name">متجر الموقع</div>
-          <div class="vi-desc">اعرض هذا المنتج للزوار على الموقع</div>
-        </div>
-      </div>
-      <div class="toggle-wrap">
-        <input type="checkbox" name="show_on_website" id="showOnWebsite"
-               {% if product and product.show_on_website %}checked{% endif %}>
-        <label class="toggle-sw" for="showOnWebsite"></label>
-      </div>
-    </label>
-  </div>
-
-  <!-- Product form -->
-  <div class="form-card">
-    <form method="POST" enctype="multipart/form-data">
+    <!-- Product fields card -->
+    <div class="form-card">
 
       <div class="mb-3">
         <label class="f-label">اسم المنتج *</label>
         <input type="text" name="name" class="f-ctrl" required
-               value="{{ product.name if product else '' }}" placeholder="مثال: Red Bull">
+               value="{{ product.name if product else '' }}"
+               placeholder="مثال: Red Bull">
+      </div>
+
+      <div class="mb-3">
+        <label class="f-label">الفئة</label>
+        <select name="category_id" class="f-ctrl">
+          <option value="">— بدون فئة —</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}"
+              {% if product and product.category_id == cat.id %}selected{% endif %}>
+              {{ cat.name }}
+            </option>
+          {% endfor %}
+        </select>
       </div>
 
       <div class="mb-3">
@@ -137,14 +127,23 @@
       <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="f-label">السعر (د.ع) *</label>
-          <input type="number" name="price" class="f-ctrl" required step="0.01"
-                 value="{{ product.price | int if product else '' }}" placeholder="2500">
+          <input type="number" name="price" class="f-ctrl" required step="0.01" min="0"
+                 value="{{ product.price|int if product else '' }}"
+                 placeholder="2500">
         </div>
         <div class="col-md-6">
           <label class="f-label">المخزون</label>
-          <input type="number" name="stock" class="f-ctrl"
-                 value="{{ product.stock if product else 0 }}" placeholder="0">
+          <input type="number" name="stock" class="f-ctrl" min="0"
+                 value="{{ product.stock if product else 0 }}"
+                 placeholder="0">
         </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="f-label">الباركود <small style="text-transform:none;font-weight:400;">(اختياري)</small></label>
+        <input type="text" name="barcode" class="f-ctrl" dir="ltr"
+               value="{{ product.barcode or '' if product else '' }}"
+               placeholder="123456789">
       </div>
 
       <div class="mb-3">
@@ -152,32 +151,42 @@
         {% if product and product.image %}
           <img src="{{ url_for('static', filename='images/products/' ~ product.image) }}"
                class="img-preview" alt="{{ product.name }}">
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:6px;">اتركه فارغاً للإبقاء على الصورة الحالية</div>
         {% endif %}
         <input type="file" name="image" class="f-ctrl" accept="image/*" style="padding:6px 12px;">
-        {% if product and product.image %}
-          <div style="font-size:.72rem; color:var(--muted); margin-top:4px;">اتركه فارغاً للإبقاء على الصورة الحالية</div>
-        {% endif %}
       </div>
 
       <div class="mb-4">
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
           <input type="checkbox" name="is_active" id="isActive"
                  {% if not product or product.is_active %}checked{% endif %}
-                 style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;">
-          <label for="isActive" style="font-size:.85rem;cursor:pointer;">المنتج نشط</label>
+                 style="width:16px;height:16px;accent-color:var(--brand-blue);cursor:pointer;">
+          <label for="isActive" style="font-size:.88rem;cursor:pointer;margin:0;">المنتج نشط</label>
         </div>
       </div>
 
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 flex-wrap">
         <button type="submit" class="btn-z">
           <i class="fas fa-save"></i>
           {{ 'حفظ التعديلات' if product else 'إضافة المنتج' }}
         </button>
-        <a href="{{ url_for('admin.products') }}" class="btn-z-ghost">إلغاء</a>
+        <a href="{{ url_for('admin.products') }}" class="btn-z-ghost">
+          <i class="fas fa-times"></i> إلغاء
+        </a>
       </div>
 
-    </form>
-  </div>
+    </div><!-- end form-card -->
+
+  </form><!-- end form -->
+
 </div>
+
+<script>
+  const toggle  = document.getElementById('showOnWebsite');
+  const webOpt  = document.getElementById('webOption');
+  toggle.addEventListener('change', () => {
+    webOpt.classList.toggle('active', toggle.checked);
+  });
+</script>
 
 {% endblock %}

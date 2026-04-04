@@ -1,10 +1,39 @@
-{% extends "admin/base_admin.html" %}
+{% extends "admin/base.html" %}
 
 {% block title %}الحجوزات المعلقة — Z Padel{% endblock %}
 {% block page_icon %}fas fa-clock{% endblock %}
 {% block page_title %}الحجوزات المعلقة{% endblock %}
 
 {% block extra_styles %}
+/* ── Fix modal to cover full screen including sidebar ── */
+.modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1040 !important;
+  margin: 0 !important;
+}
+.modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1050 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.modal-dialog {
+  position: relative;
+  z-index: 1051;
+  margin: auto !important;
+  top: 50%;
+  transform: translateY(-50%) !important;
+}
+.modal.show .modal-dialog {
+  transform: translateY(-50%) !important;
+}
+
 /* ── Alert banner ── */
 .pending-alert {
   background: linear-gradient(135deg, rgba(251,140,0,0.12), rgba(255,167,38,0.08));
@@ -15,7 +44,6 @@
   align-items: center;
   gap: 14px;
   margin-bottom: 22px;
-  animation: fadeSlideIn 0.35s ease both;
 }
 .pending-alert-icon {
   width: 44px; height: 44px;
@@ -24,13 +52,11 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 20px; color: #FB8C00;
   flex-shrink: 0;
-  animation: pulseGlow 2.5s ease-in-out infinite;
 }
 .pending-alert-text { flex: 1; }
 .pending-alert-text strong { font-size: 14px; color: #E65100; display: block; margin-bottom: 2px; }
 .pending-alert-text span   { font-size: 12.5px; color: #BF360C; }
 
-/* ── Stats strip ── */
 .stats-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -38,14 +64,12 @@
   margin-bottom: 22px;
 }
 
-/* ── Cards grid view ── */
 .pending-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 16px;
 }
 
-/* ── Pending booking card ── */
 .pending-card {
   background: white;
   border-radius: var(--radius);
@@ -53,7 +77,6 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: var(--transition);
-  animation: fadeSlideIn 0.4s ease both;
   position: relative;
 }
 .pending-card:hover {
@@ -70,8 +93,6 @@
 }
 .pending-card.urgent::before {
   background: linear-gradient(90deg, #E53935, #EF5350);
-  animation: shimmer 2s linear infinite;
-  background-size: 200% 100%;
 }
 
 .pc-header {
@@ -79,15 +100,8 @@
   display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
 }
 .pc-customer { flex: 1; }
-.pc-name {
-  font-size: 15px; font-weight: 800;
-  color: var(--text-dark); line-height: 1.2;
-}
-.pc-phone {
-  font-size: 12px; color: var(--text-muted);
-  direction: ltr; display: inline-block;
-  margin-top: 2px;
-}
+.pc-name { font-size: 15px; font-weight: 800; color: var(--text-dark); line-height: 1.2; }
+.pc-phone { font-size: 12px; color: var(--text-muted); direction: ltr; display: inline-block; margin-top: 2px; }
 .pc-id {
   font-size: 11px; color: var(--text-muted);
   background: var(--off-white);
@@ -102,47 +116,30 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-.pc-field {
-  display: flex; flex-direction: column; gap: 2px;
-}
-.pc-field-label {
-  font-size: 10.5px; font-weight: 700;
-  color: var(--text-muted); letter-spacing: 0.3px;
-  text-transform: uppercase;
-}
-.pc-field-value {
-  font-size: 13px; font-weight: 600; color: var(--text-dark);
-}
+.pc-field { display: flex; flex-direction: column; gap: 2px; }
+.pc-field-label { font-size: 10.5px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.3px; text-transform: uppercase; }
+.pc-field-value { font-size: 13px; font-weight: 600; color: var(--text-dark); }
 
 .court-pill {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 3px 10px; border-radius: 20px;
   font-size: 12px; font-weight: 700;
 }
-
 .time-pill {
   display: inline-flex; align-items: center; gap: 5px;
   background: var(--brand-blue-soft); color: var(--brand-blue-dark);
   padding: 3px 10px; border-radius: 20px;
   font-size: 12px; font-weight: 700; direction: ltr;
 }
-
 .discount-pill {
   display: inline-flex; align-items: center; gap: 4px;
   background: rgba(251,140,0,0.12); color: #E65100;
   padding: 2px 8px; border-radius: 20px;
   font-size: 11px; font-weight: 700;
 }
+.pc-divider { height: 1px; background: var(--border-color); margin: 0 16px 12px; }
 
-.pc-divider {
-  height: 1px; background: var(--border-color);
-  margin: 0 16px 12px;
-}
-
-/* Waiting time indicator */
-.waiting-bar-wrap {
-  padding: 0 16px 12px;
-}
+.waiting-bar-wrap { padding: 0 16px 12px; }
 .waiting-label {
   display: flex; align-items: center; justify-content: space-between;
   font-size: 11.5px; margin-bottom: 5px;
@@ -150,22 +147,17 @@
 .waiting-label span { color: var(--text-muted); font-weight: 600; }
 .waiting-label strong { color: #E65100; }
 .waiting-bar { height: 5px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
-.waiting-bar-fill {
-  height: 100%; border-radius: 3px;
-  transition: width 0.6s ease;
-}
-.waiting-bar-fill.low    { background: #43A047; }
-.waiting-bar-fill.mid    { background: #FB8C00; }
-.waiting-bar-fill.high   { background: #E53935; }
+.waiting-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.waiting-bar-fill.low  { background: #43A047; }
+.waiting-bar-fill.mid  { background: #FB8C00; }
+.waiting-bar-fill.high { background: #E53935; }
 
-/* ── Action footer ── */
 .pc-footer {
   padding: 12px 16px;
   background: var(--off-white);
   border-top: 1px solid var(--border-color);
   display: flex; gap: 8px; align-items: center;
 }
-
 .btn-confirm {
   flex: 1;
   background: linear-gradient(135deg, #43A047, #388E3C);
@@ -176,14 +168,8 @@
   font-family: 'Cairo', sans-serif;
   cursor: pointer; transition: var(--transition);
   display: flex; align-items: center; justify-content: center; gap: 7px;
-  text-decoration: none;
 }
-.btn-confirm:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(67,160,71,0.35);
-  color: white;
-}
-
+.btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(67,160,71,0.35); color: white; }
 .btn-reject {
   background: rgba(229,57,53,0.10);
   color: #C62828; border: 1.5px solid rgba(229,57,53,0.25);
@@ -193,13 +179,8 @@
   font-family: 'Cairo', sans-serif;
   cursor: pointer; transition: var(--transition);
   display: flex; align-items: center; justify-content: center; gap: 7px;
-  text-decoration: none;
 }
-.btn-reject:hover {
-  background: rgba(229,57,53,0.18);
-  color: #B71C1C;
-}
-
+.btn-reject:hover { background: rgba(229,57,53,0.18); color: #B71C1C; }
 .btn-view-detail {
   width: 36px; height: 36px;
   border-radius: var(--radius-sm);
@@ -211,18 +192,9 @@
   transition: var(--transition); text-decoration: none;
   flex-shrink: 0;
 }
-.btn-view-detail:hover {
-  background: var(--brand-blue-soft);
-  border-color: var(--brand-blue-mid);
-  color: var(--brand-blue);
-}
+.btn-view-detail:hover { background: var(--brand-blue-soft); border-color: var(--brand-blue-mid); color: var(--brand-blue); }
 
-/* ── Empty state ── */
-.empty-pending {
-  text-align: center;
-  padding: 80px 20px;
-  grid-column: 1 / -1;
-}
+.empty-pending { text-align: center; padding: 80px 20px; grid-column: 1 / -1; }
 .empty-pending .empty-icon {
   width: 80px; height: 80px;
   background: rgba(67,160,71,0.10);
@@ -234,7 +206,6 @@
 .empty-pending h4 { font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
 .empty-pending p  { font-size: 13px; color: var(--text-muted); }
 
-/* ── Table view (toggle) ── */
 .table-wrapper {
   background: white;
   border-radius: var(--radius);
@@ -246,7 +217,6 @@
 .table-wrapper.active { display: block; }
 .pending-grid.hidden  { display: none; }
 
-/* ── View toggle ── */
 .view-toggle { display: flex; gap: 4px; }
 .view-btn {
   width: 34px; height: 34px;
@@ -262,23 +232,10 @@
   color: var(--brand-blue);
 }
 
-/* ── Confirm modal ── */
-.modal-z .modal-content {
-  border-radius: var(--radius); border: none;
-  box-shadow: var(--shadow-lg); overflow: hidden;
-}
-.modal-z .modal-header {
-  background: linear-gradient(135deg, #2E7D32, #43A047);
-  color: white; border: none; padding: 16px 22px;
-}
-.modal-z.reject .modal-header {
-  background: linear-gradient(135deg, #B71C1C, #E53935);
-}
-.modal-z .modal-title {
-  font-size: 16px; font-weight: 700;
-  font-family: 'Cairo', sans-serif;
-  display: flex; align-items: center; gap: 10px;
-}
+.modal-z .modal-content { border-radius: var(--radius); border: none; box-shadow: var(--shadow-lg); overflow: hidden; }
+.modal-z .modal-header { background: linear-gradient(135deg, #2E7D32, #43A047); color: white; border: none; padding: 16px 22px; }
+.modal-z.reject .modal-header { background: linear-gradient(135deg, #B71C1C, #E53935); }
+.modal-z .modal-title { font-size: 16px; font-weight: 700; font-family: 'Cairo', sans-serif; display: flex; align-items: center; gap: 10px; }
 .modal-z .btn-close { filter: invert(1); opacity: 0.8; }
 .modal-z .modal-body { padding: 22px; }
 .modal-z .modal-footer { border-top: 1px solid var(--border-color); padding: 14px 22px; gap: 8px; }
@@ -290,22 +247,34 @@
   padding: 14px 16px;
   margin-bottom: 16px;
 }
-.confirm-summary-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 5px 0; font-size: 13px;
+
+.btn-modal-confirm {
+  background: linear-gradient(135deg, #43A047, #388E3C);
+  color: white; border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 24px;
+  font-size: 14px; font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
 }
-.confirm-summary-row span { color: var(--text-muted); }
-.confirm-summary-row strong { color: var(--text-dark); font-weight: 700; }
+.btn-modal-reject {
+  background: rgba(229,57,53,0.10);
+  color: #C62828; border: 1.5px solid rgba(229,57,53,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 24px;
+  font-size: 14px; font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+}
 {% endblock %}
 
 {% block content %}
 
-<!-- Alert banner (only if there are pending bookings) -->
 {% if pending_bookings %}
 <div class="pending-alert">
-  <div class="pending-alert-icon">
-    <i class="fas fa-hourglass-half"></i>
-  </div>
+  <div class="pending-alert-icon"><i class="fas fa-hourglass-half"></i></div>
   <div class="pending-alert-text">
     <strong>يوجد {{ pending_bookings|length }} حجز بانتظار المراجعة</strong>
     <span>يرجى مراجعة الحجوزات المعلقة وتأكيدها أو رفضها في أقرب وقت</span>
@@ -316,82 +285,41 @@
 </div>
 {% endif %}
 
-<!-- Stats Strip -->
 <div class="stats-strip">
-  <div class="stat-card orange" style="animation-delay:0s;">
-    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
-    <div class="stat-info">
-      <div class="stat-value">{{ pending_bookings|length if pending_bookings else 0 }}</div>
-      <div class="stat-label">إجمالي المعلقة</div>
-    </div>
-  </div>
-  <div class="stat-card" style="animation-delay:0.07s;">
-    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;">
-      <i class="fas fa-fire"></i>
-    </div>
-    <div class="stat-info">
-      <div class="stat-value">{{ urgent_count|default(0) }}</div>
-      <div class="stat-label">عاجلة (+2 ساعة)</div>
-    </div>
-  </div>
-  <div class="stat-card cyan" style="animation-delay:0.14s;">
-    <div class="stat-icon cyan"><i class="fas fa-calendar-day"></i></div>
-    <div class="stat-info">
-      <div class="stat-value">{{ today_pending|default(0) }}</div>
-      <div class="stat-label">حجوزات اليوم</div>
-    </div>
-  </div>
-  <div class="stat-card green" style="animation-delay:0.21s;">
-    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
-    <div class="stat-info">
-      <div class="stat-value">{{ confirmed_today|default(0) }}</div>
-      <div class="stat-label">تم تأكيدها اليوم</div>
-    </div>
-  </div>
+  <div class="stat-card orange"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-value">{{ pending_bookings|length if pending_bookings else 0 }}</div><div class="stat-label">إجمالي المعلقة</div></div></div>
+  <div class="stat-card" style="animation-delay:0.07s;"><div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-fire"></i></div><div class="stat-info"><div class="stat-value">{{ urgent_count|default(0) }}</div><div class="stat-label">عاجلة (+2 ساعة)</div></div></div>
+  <div class="stat-card cyan" style="animation-delay:0.14s;"><div class="stat-icon cyan"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><div class="stat-value">{{ today_pending|default(0) }}</div><div class="stat-label">حجوزات اليوم</div></div></div>
+  <div class="stat-card green" style="animation-delay:0.21s;"><div class="stat-icon green"><i class="fas fa-circle-check"></i></div><div class="stat-info"><div class="stat-value">{{ confirmed_today|default(0) }}</div><div class="stat-label">تم تأكيدها اليوم</div></div></div>
 </div>
 
-<!-- Toolbar -->
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <!-- Search -->
     <div style="position:relative;display:flex;align-items:center;">
       <i class="fas fa-magnifying-glass" style="position:absolute;right:11px;color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
-      <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..."
-             oninput="filterCards()"
-             style="padding:8px 34px 8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;width:220px;outline:none;transition:var(--transition);color:var(--text-dark);"
-             onfocus="this.style.borderColor='var(--brand-blue-light)';this.style.boxShadow='0 0 0 3px rgba(30,136,229,0.12)'"
-             onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"/>
+      <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..." oninput="filterCards()"
+             style="padding:8px 34px 8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;width:220px;outline:none;color:var(--text-dark);"
+             onfocus="this.style.borderColor='var(--brand-blue-light)'"
+             onblur="this.style.borderColor='var(--border-color)'"/>
     </div>
-    <!-- Filter by court -->
     <select id="courtFilter" onchange="filterCards()"
             style="padding:8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;outline:none;color:var(--text-dark);background:white;cursor:pointer;">
       <option value="">كل الملاعب</option>
-      {% for court in courts %}
-        <option value="{{ court.name }}">{{ court.name }}</option>
-      {% endfor %}
+      {% for court in courts %}<option value="{{ court.name }}">{{ court.name }}</option>{% endfor %}
     </select>
-    <!-- Confirm all -->
     {% if pending_bookings %}
     <button class="btn-z-primary" onclick="confirmAllPrompt()" style="padding:8px 16px;font-size:13px;">
       <i class="fas fa-check-double"></i> تأكيد الكل
     </button>
     {% endif %}
   </div>
-
-  <!-- View toggle -->
   <div class="view-toggle">
-    <button class="view-btn active" onclick="setView('card', this)" title="عرض بطاقات">
-      <i class="fas fa-grip"></i>
-    </button>
-    <button class="view-btn" onclick="setView('table', this)" title="عرض جدول">
-      <i class="fas fa-table-list"></i>
-    </button>
+    <button class="view-btn active" onclick="setView('card',this)" title="بطاقات"><i class="fas fa-grip"></i></button>
+    <button class="view-btn" onclick="setView('table',this)" title="جدول"><i class="fas fa-table-list"></i></button>
   </div>
 </div>
 
-<!-- ═══ CARD VIEW ═══ -->
+<!-- CARD VIEW -->
 <div class="pending-grid" id="cardView">
-
   {% if pending_bookings %}
     {% for b in pending_bookings %}
     {% set waiting_mins = b.waiting_minutes|default(0) %}
@@ -401,8 +329,6 @@
          data-phone="{{ b.customer_phone }}"
          data-court="{{ b.court.name if b.court else '' }}"
          style="animation-delay:{{ loop.index0 * 0.06 }}s;">
-
-      <!-- Header -->
       <div class="pc-header">
         <div class="pc-customer">
           <div class="pc-name">{{ b.customer_name }}</div>
@@ -410,46 +336,31 @@
         </div>
         <div class="pc-id">#{{ b.id }}</div>
       </div>
-
-      <!-- Body -->
       <div class="pc-body">
         <div class="pc-field">
           <div class="pc-field-label">الملعب</div>
           <div class="pc-field-value">
-            <span class="court-pill"
-              style="background:{{ (b.court.color ~ '22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};
-                     color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};">
-              <i class="fas fa-circle" style="font-size:7px;"></i>
-              {{ b.court.name if b.court else '—' }}
+            <span class="court-pill" style="background:{{ (b.court.color~'22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};">
+              <i class="fas fa-circle" style="font-size:7px;"></i>{{ b.court.name if b.court else '—' }}
             </span>
           </div>
         </div>
-
         <div class="pc-field">
           <div class="pc-field-label">التاريخ</div>
-          <div class="pc-field-value" style="font-size:12.5px;">
-            <i class="fas fa-calendar-day" style="color:var(--text-muted);margin-left:4px;font-size:11px;"></i>
-            {{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}
-          </div>
+          <div class="pc-field-value" style="font-size:12.5px;">{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}</div>
         </div>
-
         <div class="pc-field">
           <div class="pc-field-label">الوقت</div>
           <div class="pc-field-value">
             <span class="time-pill">
               <i class="fas fa-clock" style="font-size:10px;"></i>
-              {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }}
-              –
-              {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}
+              {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}
             </span>
-            {% if b.start_time and b.start_time.hour >= 12 and b.start_time.hour < 16 %}
-            <div style="margin-top:4px;">
-              <span class="discount-pill"><i class="fas fa-tag" style="font-size:9px;"></i>خصم 25%</span>
-            </div>
+            {% if b.start_time and 12 <= b.start_time.hour < 16 %}
+            <div style="margin-top:4px;"><span class="discount-pill"><i class="fas fa-tag" style="font-size:9px;"></i>خصم 25%</span></div>
             {% endif %}
           </div>
         </div>
-
         <div class="pc-field">
           <div class="pc-field-label">المبلغ</div>
           <div class="pc-field-value" style="color:var(--brand-blue);font-size:14px;font-weight:800;">
@@ -457,7 +368,6 @@
             {% if b.total_price %}<span style="font-size:11px;color:var(--text-muted);font-weight:400;"> د.ع</span>{% endif %}
           </div>
         </div>
-
         {% if b.notes %}
         <div class="pc-field" style="grid-column:1/-1;">
           <div class="pc-field-label">ملاحظات</div>
@@ -465,181 +375,110 @@
         </div>
         {% endif %}
       </div>
-
-      <!-- Waiting time bar -->
       <div class="waiting-bar-wrap">
         <div class="waiting-label">
           <span><i class="fas fa-hourglass" style="margin-left:4px;font-size:10px;"></i>وقت الانتظار</span>
-          <strong>
-            {% if waiting_mins >= 60 %}
-              {{ (waiting_mins // 60) }}س {{ (waiting_mins % 60) }}د
-            {% else %}
-              {{ waiting_mins }} دقيقة
-            {% endif %}
-            {% if is_urgent %} 🔴{% endif %}
-          </strong>
+          <strong>{% if waiting_mins >= 60 %}{{ waiting_mins//60 }}س {{ waiting_mins%60 }}د{% else %}{{ waiting_mins }} دقيقة{% endif %}{% if is_urgent %} 🔴{% endif %}</strong>
         </div>
         <div class="waiting-bar">
-          <div class="waiting-bar-fill {{ 'high' if waiting_mins > 120 else 'mid' if waiting_mins > 60 else 'low' }}"
-               style="width:{{ [waiting_mins / 180 * 100, 100]|min }}%;"></div>
+          <div class="waiting-bar-fill {{ 'high' if waiting_mins>120 else 'mid' if waiting_mins>60 else 'low' }}"
+               style="width:{{ [waiting_mins/180*100,100]|min }}%;"></div>
         </div>
       </div>
-
       <div class="pc-divider"></div>
-
-      <!-- Footer actions -->
       <div class="pc-footer">
-        <button class="btn-confirm"
-                onclick="openConfirmModal({{ b.id }}, '{{ b.customer_name }}', '{{ b.court.name if b.court else '' }}', '{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '' }}', '{{ b.start_time.strftime('%H:%M') if b.start_time else '' }}')">
-          <i class="fas fa-check"></i> تأكيد
-        </button>
-        <button class="btn-reject"
-                onclick="openRejectModal({{ b.id }}, '{{ b.customer_name }}')">
-          <i class="fas fa-xmark"></i> رفض
-        </button>
-        <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
-           class="btn-view-detail" title="عرض التفاصيل">
-          <i class="fas fa-eye"></i>
-        </a>
-      </div>
-
+  <form method="POST" action="{{ url_for('admin.confirm_booking', booking_id=b.id) }}" style="flex:1;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn-confirm" style="width:100%;"
+            onclick="return confirm('تأكيد حجز {{ b.customer_name }}؟')">
+      <i class="fas fa-check"></i> تأكيد
+    </button>
+  </form>
+  <form method="POST" action="{{ url_for('admin.reject_booking', booking_id=b.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn-reject"
+            onclick="return confirm('رفض حجز {{ b.customer_name }}؟')">
+      <i class="fas fa-xmark"></i> رفض
+    </button>
+  </form>
+  <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}" class="btn-view-detail">
+    <i class="fas fa-eye"></i>
+  </a>
+</div>
     </div>
     {% endfor %}
-
   {% else %}
-    <!-- Empty state -->
     <div class="empty-pending">
       <div class="empty-icon"><i class="fas fa-circle-check"></i></div>
       <h4>لا توجد حجوزات معلقة</h4>
       <p>جميع الحجوزات تمت مراجعتها. عمل رائع! ✅</p>
     </div>
   {% endif %}
+</div>
 
-</div><!-- end card view -->
-
-
-<!-- ═══ TABLE VIEW ═══ -->
+<!-- TABLE VIEW -->
 <div class="table-wrapper" id="tableView">
-  <div style="padding:14px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;">
-    <div style="font-size:15px;font-weight:700;color:var(--brand-blue-dark);display:flex;align-items:center;gap:8px;">
-      <i class="fas fa-clock" style="color:var(--brand-blue);"></i>
-      الحجوزات المعلقة
-      <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;">
-        {{ pending_bookings|length if pending_bookings else 0 }}
-      </span>
-    </div>
+  <div style="padding:14px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;">
+    <i class="fas fa-clock" style="color:var(--brand-blue);"></i>
+    <span style="font-size:15px;font-weight:700;color:var(--brand-blue-dark);">الحجوزات المعلقة</span>
+    <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;">{{ pending_bookings|length if pending_bookings else 0 }}</span>
   </div>
   <div style="overflow-x:auto;">
     <table class="table-z">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>العميل</th>
-          <th>الملعب</th>
-          <th>التاريخ</th>
-          <th>الوقت</th>
-          <th>المبلغ</th>
-          <th>وقت الانتظار</th>
-          <th>الإجراءات</th>
-        </tr>
-      </thead>
+      <thead><tr><th>#</th><th>العميل</th><th>الملعب</th><th>التاريخ</th><th>الوقت</th><th>المبلغ</th><th>وقت الانتظار</th><th>الإجراءات</th></tr></thead>
       <tbody>
-        {% if pending_bookings %}
-          {% for b in pending_bookings %}
-          {% set waiting_mins = b.waiting_minutes|default(0) %}
-          <tr>
-            <td style="color:var(--text-muted);font-size:12px;">#{{ b.id }}</td>
-            <td>
-              <div style="font-weight:700;font-size:13.5px;">{{ b.customer_name }}</div>
-              <div style="font-size:11.5px;color:var(--text-muted);direction:ltr;display:inline-block;">{{ b.customer_phone }}</div>
-            </td>
-            <td>
-              <span class="court-pill"
-                style="background:{{ (b.court.color ~ '22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};
-                       color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};">
-                <i class="fas fa-circle" style="font-size:7px;"></i>
-                {{ b.court.name if b.court else '—' }}
-              </span>
-            </td>
-            <td style="font-size:13px;white-space:nowrap;">
-              {{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}
-            </td>
-            <td>
-              <span class="time-pill">
-                {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }}
-                – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}
-              </span>
-            </td>
-            <td style="font-weight:700;color:var(--brand-blue-dark);">
-              {{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}
-              {% if b.total_price %}<small style="color:var(--text-muted);font-weight:400;"> د.ع</small>{% endif %}
-            </td>
-            <td>
-              <span style="font-size:12px;font-weight:600;color:{{ '#C62828' if waiting_mins > 120 else '#E65100' if waiting_mins > 60 else '#2E7D32' }};">
-                {% if waiting_mins >= 60 %}{{ waiting_mins // 60 }}س {{ waiting_mins % 60 }}د
-                {% else %}{{ waiting_mins }}د{% endif %}
-              </span>
-            </td>
-            <td>
-              <div style="display:flex;gap:6px;">
-                <button class="action-btn" style="background:rgba(67,160,71,0.12);color:#2E7D32;width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--transition);"
-                  onclick="openConfirmModal({{ b.id }},'{{ b.customer_name }}','{{ b.court.name if b.court else '' }}','{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '' }}','{{ b.start_time.strftime('%H:%M') if b.start_time else '' }}')"
-                  title="تأكيد">
-                  <i class="fas fa-check"></i>
-                </button>
-                <button class="action-btn" style="background:rgba(229,57,53,0.10);color:#C62828;width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--transition);"
-                  onclick="openRejectModal({{ b.id }},'{{ b.customer_name }}')"
-                  title="رفض">
-                  <i class="fas fa-xmark"></i>
-                </button>
-                <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
-                   style="background:var(--brand-blue-soft);color:var(--brand-blue);width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--transition);"
-                   title="تفاصيل">
-                  <i class="fas fa-eye"></i>
-                </a>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
-              <i class="fas fa-circle-check" style="color:#43A047;font-size:24px;display:block;margin-bottom:8px;"></i>
-              لا توجد حجوزات معلقة
-            </td>
-          </tr>
+        {% if pending_bookings %}{% for b in pending_bookings %}{% set waiting_mins = b.waiting_minutes|default(0) %}
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">#{{ b.id }}</td>
+          <td><div style="font-weight:700;font-size:13.5px;">{{ b.customer_name }}</div><div style="font-size:11.5px;color:var(--text-muted);direction:ltr;display:inline-block;">{{ b.customer_phone }}</div></td>
+          <td><span class="court-pill" style="background:{{ (b.court.color~'22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};"><i class="fas fa-circle" style="font-size:7px;"></i>{{ b.court.name if b.court else '—' }}</span></td>
+          <td style="font-size:13px;white-space:nowrap;">{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}</td>
+          <td><span class="time-pill">{{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}</span></td>
+          <td style="font-weight:700;color:var(--brand-blue-dark);">{{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}{% if b.total_price %}<small style="color:var(--text-muted);font-weight:400;"> د.ع</small>{% endif %}</td>
+          <td><span style="font-size:12px;font-weight:600;color:{{ '#C62828' if waiting_mins>120 else '#E65100' if waiting_mins>60 else '#2E7D32' }};">{% if waiting_mins>=60 %}{{ waiting_mins//60 }}س {{ waiting_mins%60 }}د{% else %}{{ waiting_mins }}د{% endif %}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button style="background:rgba(67,160,71,0.12);color:#2E7D32;width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;"
+                onclick="openConfirmModal({{ b.id }},'{{ b.customer_name|replace("'","\\'")|replace('"','\\"') }}','{{ (b.court.name if b.court else '')|replace("'","\\'")|replace('"','\\"') }}','{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '' }}','{{ b.start_time.strftime('%H:%M') if b.start_time else '' }}')"
+                title="تأكيد"><i class="fas fa-check"></i></button>
+              <button style="background:rgba(229,57,53,0.10);color:#C62828;width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;"
+                onclick="openRejectModal({{ b.id }},'{{ b.customer_name|replace("'","\\'")|replace('"','\\"') }}')"
+                title="رفض"><i class="fas fa-xmark"></i></button>
+              <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
+                 style="background:var(--brand-blue-soft);color:var(--brand-blue);width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;"
+                 title="تفاصيل"><i class="fas fa-eye"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}{% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;"><i class="fas fa-circle-check" style="color:#43A047;font-size:24px;display:block;margin-bottom:8px;"></i>لا توجد حجوزات معلقة</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
 
-
-<!-- ═══ CONFIRM MODAL ═══ -->
-<div class="modal fade modal-z" id="confirmModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- CONFIRM MODAL -->
+<div class="modal fade modal-z" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fas fa-circle-check"></i> تأكيد الحجز</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="POST" id="confirmForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-body">
-          <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px;">
-            هل تريد تأكيد الحجز التالي؟
-          </p>
+          <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px;">هل تريد تأكيد الحجز التالي؟</p>
           <div class="confirm-summary" id="confirmSummary"></div>
           <div>
             <label class="form-label-z">ملاحظة للعميل (اختياري)</label>
-            <textarea name="note" class="form-control-z" rows="2"
-                      placeholder="مثال: تم تأكيد حجزك، نراك قريباً..."
-                      style="resize:none;"></textarea>
+            <textarea name="note" class="form-control-z" rows="2" placeholder="مثال: تم تأكيد حجزك، نراك قريباً..." style="resize:none;"></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn-confirm" style="flex:unset;padding:9px 22px;">
+          <button type="submit" class="btn-modal-confirm">
             <i class="fas fa-circle-check"></i> تأكيد الحجز
           </button>
         </div>
@@ -648,14 +487,13 @@
   </div>
 </div>
 
-
-<!-- ═══ REJECT MODAL ═══ -->
-<div class="modal fade modal-z reject" id="rejectModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- REJECT MODAL -->
+<div class="modal fade modal-z reject" id="rejectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fas fa-circle-xmark"></i> رفض الحجز</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="POST" id="rejectForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -675,14 +513,12 @@
           </div>
           <div style="margin-top:12px;">
             <label class="form-label-z">ملاحظة إضافية</label>
-            <textarea name="note" class="form-control-z" rows="2"
-                      placeholder="تفاصيل إضافية..."
-                      style="resize:none;"></textarea>
+            <textarea name="note" class="form-control-z" rows="2" placeholder="تفاصيل إضافية..." style="resize:none;"></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn-reject" style="padding:9px 22px;">
+          <button type="submit" class="btn-modal-reject">
             <i class="fas fa-circle-xmark"></i> تأكيد الرفض
           </button>
         </div>
@@ -693,10 +529,8 @@
 
 {% endblock %}
 
-
 {% block extra_scripts %}
 <script>
-// ── View toggle ──
 function setView(view, btn) {
   document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -709,63 +543,60 @@ function setView(view, btn) {
   }
 }
 
-// ── Live filter ──
 function filterCards() {
-  const q      = document.getElementById('searchInput').value.toLowerCase();
-  const court  = document.getElementById('courtFilter').value.toLowerCase();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const court = document.getElementById('courtFilter').value.toLowerCase();
   document.querySelectorAll('.pending-card').forEach(card => {
-    const name  = card.dataset.name  || '';
-    const phone = card.dataset.phone || '';
-    const crt   = card.dataset.court.toLowerCase() || '';
-    const matchQ = !q || name.includes(q) || phone.includes(q);
-    const matchC = !court || crt.includes(court);
-    card.style.display = (matchQ && matchC) ? '' : 'none';
+    const match = (!q || (card.dataset.name||'').includes(q) || (card.dataset.phone||'').includes(q))
+                && (!court || (card.dataset.court||'').toLowerCase().includes(court));
+    card.style.display = match ? '' : 'none';
   });
-  // Also filter table rows
   document.querySelectorAll('#tableView tbody tr').forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(q) ? '' : 'none';
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
 
-// ── Confirm modal ──
 function openConfirmModal(id, name, court, date, time) {
   document.getElementById('confirmForm').action = `/admin/bookings/${id}/confirm`;
   document.getElementById('confirmSummary').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border-color);">
-        <span style="color:var(--text-muted);">العميل</span>
-        <strong>${name}</strong>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border-color);">
-        <span style="color:var(--text-muted);">الملعب</span>
-        <strong>${court}</strong>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border-color);">
-        <span style="color:var(--text-muted);">التاريخ</span>
-        <strong>${date}</strong>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;">
-        <span style="color:var(--text-muted);">الوقت</span>
-        <strong>${time}</strong>
-      </div>
-    </div>
-  `;
-  new bootstrap.Modal(document.getElementById('confirmModal')).show();
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">العميل</span><strong>${name}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">الملعب</span><strong>${court}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">التاريخ</span><strong>${date}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;"><span style="color:#6B8BB5;">الوقت</span><strong>${time}</strong></div>
+    </div>`;
+  const el = document.getElementById('confirmModal');
+  const existing = bootstrap.Modal.getInstance(el);
+  if (existing) existing.dispose();
+  bootstrap.Modal.getOrCreateInstance(el).show();
 }
 
-// ── Reject modal ──
 function openRejectModal(id, name) {
   document.getElementById('rejectForm').action = `/admin/bookings/${id}/reject`;
   document.getElementById('rejectCustomerName').textContent = name;
-  new bootstrap.Modal(document.getElementById('rejectModal')).show();
+  const el = document.getElementById('rejectModal');
+  const existing = bootstrap.Modal.getInstance(el);
+  if (existing) existing.dispose();
+  bootstrap.Modal.getOrCreateInstance(el).show();
 }
 
-// ── Confirm all ──
 function confirmAllPrompt() {
   if (confirm('هل تريد تأكيد جميع الحجوزات المعلقة؟ لا يمكن التراجع عن هذا الإجراء.')) {
     window.location.href = "{{ url_for('admin.confirm_all_pending') }}";
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  ['confirmModal', 'rejectModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('hidden.bs.modal', () => {
+      document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+    });
+  });
+});
 </script>
 {% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'admin/base.html' %}
+{% block title %}الفئات{% endblock %}
+{% block page_title %}الفئات{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <div class="page-header-title">فئات المنتجات</div>
+    <div class="page-header-sub">إدارة تصنيفات المتجر</div>
+  </div>
+  <button class="btn-z-primary" onclick="openAddModal()">
+    <i class="fas fa-plus"></i> إضافة فئة
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card blue">
+      <div class="stat-icon blue"><i class="fas fa-tags"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">{{ categories|length }}</div>
+        <div class="stat-label">إجمالي الفئات</div>
+      </div>
+    </div>
+  </div>
+<div class="col-6 col-md-3">
+    <div class="stat-card cyan">
+      <div class="stat-icon cyan"><i class="fas fa-box-open"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">
+          {% set total = namespace(count=0) %}
+          {% for cat in categories %}
+            {% set total.count = total.count + cat.products|length %}
+          {% endfor %}
+          {{ total.count }}
+        </div>
+        <div class="stat-label">إجمالي المنتجات</div>
+      </div>
+    </div>
+  </div>
+
+<!-- Categories grid -->
+{% if categories %}
+<div class="row g-3 mb-4">
+  {% for cat in categories %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card-z" style="padding:0;">
+      <div class="card-body-z" style="padding:1.2rem 1.4rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;border-radius:10px;background:{{ cat.color }}22;display:flex;align-items:center;justify-content:center;">
+              <i class="fas fa-tag" style="color:{{ cat.color }};font-size:16px;"></i>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.95rem;">{{ cat.name }}</div>
+              <div style="font-size:.75rem;color:var(--text-muted);">{{ cat.products|length }} منتج</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-z-outline" style="padding:5px 10px;font-size:.8rem;"
+                    onclick="openEditModal({{ cat.id }}, '{{ cat.name }}', '{{ cat.color }}')">
+              <i class="fas fa-pen"></i>
+            </button>
+            <form method="POST" action="{{ url_for('admin.delete_category', cat_id=cat.id) }}"
+                  onsubmit="return confirm('حذف فئة {{ cat.name }}؟ سيتم إلغاء ربط منتجاتها.')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-z-danger" style="padding:5px 10px;font-size:.8rem;">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        <!-- Color bar -->
+        <div style="height:4px;border-radius:4px;background:{{ cat.color }};opacity:.6;"></div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card-z">
+  <div style="text-align:center;padding:64px 24px;color:var(--text-muted);">
+    <i class="fas fa-tags" style="font-size:40px;display:block;margin-bottom:14px;opacity:.25;"></i>
+    <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">لا توجد فئات بعد</div>
+    <div style="font-size:.85rem;margin-bottom:20px;">أضف فئات لتنظيم منتجاتك</div>
+    <button class="btn-z-primary" onclick="openAddModal()">
+      <i class="fas fa-plus"></i> إضافة أول فئة
+    </button>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ ADD MODAL ═══ -->
+<div id="addModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
+  <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);" onclick="closeAddModal()"></div>
+  <div style="position:relative;background:white;border-radius:16px;padding:2rem;width:min(440px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;">
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);">
+        <i class="fas fa-plus me-2" style="color:var(--brand-blue);"></i> إضافة فئة جديدة
+      </h3>
+      <button onclick="closeAddModal()" style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form method="POST" action="{{ url_for('admin.add_category') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label-z">اسم الفئة *</label>
+        <input type="text" name="name" class="form-control-z" required placeholder="مثال: مشروبات">
+      </div>
+      <div class="mb-4">
+        <label class="form-label-z">اللون</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="color" name="color" id="addColorPicker" value="#1565C0"
+                 style="width:48px;height:38px;border:1.5px solid var(--border-color);border-radius:8px;cursor:pointer;padding:2px;">
+          <span id="addColorHex" style="font-size:.85rem;color:var(--text-muted);font-family:monospace;">#1565C0</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn-z-primary" style="flex:1;">
+          <i class="fas fa-save"></i> إضافة
+        </button>
+        <button type="button" class="btn-z-outline" onclick="closeAddModal()">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ EDIT MODAL ═══ -->
+<div id="editModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
+  <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);" onclick="closeEditModal()"></div>
+  <div style="position:relative;background:white;border-radius:16px;padding:2rem;width:min(440px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;">
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);">
+        <i class="fas fa-pen me-2" style="color:var(--brand-blue);"></i> تعديل الفئة
+      </h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form method="POST" id="editForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label-z">اسم الفئة *</label>
+        <input type="text" name="name" id="editName" class="form-control-z" required>
+      </div>
+      <div class="mb-4">
+        <label class="form-label-z">اللون</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="color" name="color" id="editColorPicker"
+                 style="width:48px;height:38px;border:1.5px solid var(--border-color);border-radius:8px;cursor:pointer;padding:2px;">
+          <span id="editColorHex" style="font-size:.85rem;color:var(--text-muted);font-family:monospace;"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn-z-primary" style="flex:1;">
+          <i class="fas fa-save"></i> حفظ
+        </button>
+        <button type="button" class="btn-z-outline" onclick="closeEditModal()">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ADD MODAL
+  function openAddModal() {
+    document.getElementById('addModal').style.display = 'flex';
+  }
+  function closeAddModal() {
+    document.getElementById('addModal').style.display = 'none';
+  }
+  document.getElementById('addColorPicker').addEventListener('input', function() {
+    document.getElementById('addColorHex').textContent = this.value;
+  });
+
+  // EDIT MODAL
+  function openEditModal(id, name, color) {
+    document.getElementById('editName').value        = name;
+    document.getElementById('editColorPicker').value = color;
+    document.getElementById('editColorHex').textContent = color;
+    document.getElementById('editForm').action = '/admin/categories/' + id + '/edit';
+    document.getElementById('editModal').style.display = 'flex';
+  }
+  function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+  }
+  document.getElementById('editColorPicker').addEventListener('input', function() {
+    document.getElementById('editColorHex').textContent = this.value;
+  });
+</script>
+
+{% endblock %}

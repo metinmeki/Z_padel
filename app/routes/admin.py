@@ -115,10 +115,10 @@ def bookings():
     if request.args.get('status'):
         q = q.filter_by(status=request.args['status'])
 
-    page     = request.args.get('page', 1, type=int)
-    pag      = q.order_by(Booking.booking_date.desc(), Booking.start_time.asc()).paginate(page=page, per_page=20)
-    courts   = Court.query.filter_by(is_active=True).all()
-    today    = date.today().isoformat()
+    page   = request.args.get('page', 1, type=int)
+    pag    = q.order_by(Booking.booking_date.desc(), Booking.start_time.asc()).paginate(page=page, per_page=20)
+    courts = Court.query.filter_by(is_active=True).all()
+    today  = date.today().isoformat()
     return render_template('admin/bookings.html',
         bookings=pag.items, pagination=pag,
         courts=courts, today=today, court_price=25000)
@@ -177,7 +177,7 @@ def edit_booking(booking_id):
     return redirect(url_for('admin.bookings'))
 
 
-@admin_bp.route('/bookings/<int:booking_id>/confirm', methods=['POST'])
+@admin_bp.route('/bookings/<int:booking_id>/confirm', methods=['GET', 'POST'])
 @login_required
 def confirm_booking(booking_id):
     b = Booking.query.get_or_404(booking_id)
@@ -187,7 +187,7 @@ def confirm_booking(booking_id):
     return redirect(url_for('admin.pending_bookings'))
 
 
-@admin_bp.route('/bookings/<int:booking_id>/reject', methods=['POST'])
+@admin_bp.route('/bookings/<int:booking_id>/reject', methods=['GET', 'POST'])
 @login_required
 def reject_booking(booking_id):
     b = Booking.query.get_or_404(booking_id)
@@ -219,19 +219,24 @@ def confirm_all_pending():
 @admin_bp.route('/pending-bookings')
 @login_required
 def pending_bookings():
-    pending  = Booking.query.filter_by(status='pending').order_by(Booking.created_at.asc()).all()
-    courts   = Court.query.filter_by(is_active=True).all()
-    today    = date.today()
-    urgent   = sum(1 for b in pending if b.waiting_minutes > 120)
-    today_p  = sum(1 for b in pending if b.booking_date == today)
-    conf_t   = Booking.query.filter(
+    pending = Booking.query.filter_by(status='pending').order_by(Booking.created_at.asc()).all()
+    courts  = Court.query.filter_by(is_active=True).all()
+    today   = date.today()
+    now     = datetime.utcnow()
+
+    urgent  = sum(1 for b in pending if (now - b.created_at).total_seconds() > 7200)
+    today_p = sum(1 for b in pending if b.booking_date == today)
+
+    # Fix: use datetime(today.year, today.month, today.day) instead of datetime.combine
+    today_start = datetime(today.year, today.month, today.day, 0, 0, 0)
+    conf_t = Booking.query.filter(
         Booking.status == 'confirmed',
-        Booking.updated_at >= datetime.combine(today, datetime.min.time())
+        Booking.updated_at >= today_start
     ).count()
+
     return render_template('admin/pending_bookings.html',
         pending_bookings=pending, courts=courts,
         urgent_count=urgent, today_pending=today_p, confirmed_today=conf_t)
-
 
 # ════════════════════════════════════════════
 # CANCEL REQUESTS
@@ -275,8 +280,12 @@ def reject_cancel(req_id):
 @admin_bp.route('/courts')
 @login_required
 def courts():
-    all_courts = Court.query.all()
-    total_today = sum(len(c.today_booked_slots) for c in all_courts)
+    from sqlalchemy import func
+    all_courts  = Court.query.all()
+    total_today = db.session.query(func.count(Booking.id)).filter(
+        Booking.booking_date == date.today(),
+        Booking.status != 'cancelled'
+    ).scalar() or 0
     total_slots = len(all_courts) * 18
     occ = round(total_today / total_slots * 100) if total_slots else 0
     return render_template('admin/courts.html',
@@ -348,42 +357,51 @@ def products():
     return render_template('admin/products.html', products=prods, categories=cats)
 
 
-@admin_bp.route('/products/add', methods=['POST'])
+@admin_bp.route('/products/new', methods=['GET', 'POST'])
 @login_required
-def add_product():
-    img = save_upload(request.files.get('image'))
-    p = Product(
-        name=request.form['name'],
-        category_id=request.form.get('category_id') or None,
-        price=float(request.form.get('price', 0)),
-        stock=int(request.form.get('stock', 0)),
-        description=request.form.get('description', ''),
-        barcode=request.form.get('barcode') or None,
-        image=img,
-    )
-    db.session.add(p)
-    db.session.commit()
-    flash('تم إضافة المنتج.', 'success')
-    return redirect(url_for('admin.products'))
+def new_product():
+    cats = Category.query.all()
+    if request.method == 'POST':
+        img = save_upload(request.files.get('image'))
+        p = Product(
+            name=request.form['name'],
+            category_id=request.form.get('category_id') or None,
+            price=float(request.form.get('price', 0)),
+            stock=int(request.form.get('stock', 0)),
+            description=request.form.get('description', ''),
+            barcode=request.form.get('barcode') or None,
+            show_on_website=request.form.get('show_on_website') == '1',
+            is_active='is_active' in request.form,
+            image=img,
+        )
+        db.session.add(p)
+        db.session.commit()
+        flash('تم إضافة المنتج بنجاح.', 'success')
+        return redirect(url_for('admin.products'))
+    return render_template('admin/product_form.html', product=None, categories=cats)
 
 
-@admin_bp.route('/products/<int:product_id>/edit', methods=['POST'])
+@admin_bp.route('/products/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_product(product_id):
-    p = Product.query.get_or_404(product_id)
-    p.name        = request.form.get('name', p.name)
-    p.price       = float(request.form.get('price', p.price))
-    p.stock       = int(request.form.get('stock', p.stock))
-    p.description = request.form.get('description', p.description)
-    p.barcode     = request.form.get('barcode', p.barcode) or p.barcode
-    p.category_id = request.form.get('category_id') or p.category_id
-    new_img = save_upload(request.files.get('image'))
-    if new_img:
-        p.image = new_img
-    db.session.commit()
-    flash('تم تحديث المنتج.', 'success')
-    return redirect(url_for('admin.products'))
-
+    p    = Product.query.get_or_404(product_id)
+    cats = Category.query.all()
+    if request.method == 'POST':
+        p.name            = request.form.get('name', p.name)
+        p.price           = float(request.form.get('price', p.price))
+        p.stock           = int(request.form.get('stock', p.stock))
+        p.description     = request.form.get('description', p.description)
+        p.barcode         = request.form.get('barcode') or p.barcode
+        p.category_id     = request.form.get('category_id') or p.category_id
+        p.show_on_website = request.form.get('show_on_website') == '1'
+        p.is_active       = 'is_active' in request.form
+        new_img = save_upload(request.files.get('image'))
+        if new_img:
+            p.image = new_img
+        db.session.commit()
+        flash('تم تحديث المنتج.', 'success')
+        return redirect(url_for('admin.products'))
+    return render_template('admin/product_form.html', product=p, categories=cats)
 
 @admin_bp.route('/products/<int:product_id>/delete', methods=['POST'])
 @login_required
@@ -959,6 +977,7 @@ def cancel_training(req_id):
 @login_required
 def new_court():
     if request.method == 'POST':
+        img = save_upload(request.files.get('image'))
         court = Court(
             name=request.form['name'],
             price_per_hour=float(request.form.get('price_per_hour', 25000)),
@@ -966,9 +985,21 @@ def new_court():
             description=request.form.get('description', ''),
             capacity=request.form.get('capacity') or None,
             surface_type=request.form.get('surface_type', ''),
+            is_active=True,
+            image=img,
         )
         db.session.add(court)
         db.session.commit()
         flash('تم إضافة الملعب بنجاح.', 'success')
         return redirect(url_for('admin.courts'))
     return render_template('admin/add_court.html')
+
+@admin_bp.route('/categories/<int:cat_id>/edit', methods=['POST'])
+@login_required
+def edit_category(cat_id):
+    cat = Category.query.get_or_404(cat_id)
+    cat.name  = request.form.get('name', cat.name)
+    cat.color = request.form.get('color', cat.color)
+    db.session.commit()
+    flash('تم تحديث الفئة.', 'success')
+    return redirect(url_for('admin.categories'))

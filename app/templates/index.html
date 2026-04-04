@@ -5,772 +5,267 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Z Padel — دهوك | ملاعب الباديل الاحترافية</title>
   <meta name="description" content="Z Padel دهوك — أفضل ملاعب الباديل في دهوك. احجز ملعبك الآن واستمتع بتجربة لعب احترافية."/>
-
-  <!-- Bootstrap 5 RTL -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}"/>
   <style>
-    /* ══════════════════════════════════
-       VARIABLES
-    ══════════════════════════════════ */
     :root {
-      --blue-deep:   #0A1F4E;
-      --blue-dark:   #0D47A1;
-      --blue-main:   #1565C0;
-      --blue-light:  #1E88E5;
-      --blue-soft:   #E3F0FF;
-      --blue-mid:    #BBDEFB;
-      --accent:      #00B0FF;
-      --accent2:     #00E5FF;
-      --white:       #FFFFFF;
-      --off-white:   #F4F8FF;
-      --text-dark:   #0A1F4E;
-      --text-muted:  #6B8BB5;
-      --border:      #D0E4F7;
-      --radius:      16px;
-      --radius-sm:   10px;
-      --shadow:      0 4px 24px rgba(13,71,161,0.12);
-      --shadow-lg:   0 8px 40px rgba(13,71,161,0.20);
-      --transition:  all 0.35s cubic-bezier(0.4,0,0.2,1);
+      --blue-deep:#0A1F4E; --blue-dark:#0D47A1; --blue-main:#1565C0;
+      --blue-light:#1E88E5; --blue-soft:#E3F0FF; --blue-mid:#BBDEFB;
+      --accent:#00B0FF; --accent2:#00E5FF;
+      --white:#FFFFFF; --off-white:#F4F8FF;
+      --text-dark:#0A1F4E; --text-muted:#6B8BB5; --border:#D0E4F7;
+      --radius:16px; --radius-sm:10px;
+      --shadow:0 4px 24px rgba(13,71,161,0.12);
+      --shadow-lg:0 8px 40px rgba(13,71,161,0.20);
+      --transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Cairo',sans-serif;background:var(--white);color:var(--text-dark);overflow-x:hidden;}
 
-    /* ══════════════════════════════════
-       BASE
-    ══════════════════════════════════ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--white);
-      color: var(--text-dark);
-      overflow-x: hidden;
-    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+    @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+    @keyframes pulse{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:1;transform:scale(1.05);}}
+    @keyframes spin-slow{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+    @keyframes dash{from{stroke-dashoffset:1000;}to{stroke-dashoffset:0;}}
 
-    /* ══════════════════════════════════
-       ANIMATIONS
-    ══════════════════════════════════ */
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(30px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-    @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
-    @keyframes float    { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-12px);} }
-    @keyframes pulse    { 0%,100%{opacity:.5;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);} }
-    @keyframes spin-slow{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-    @keyframes shimmer  { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
-    @keyframes bounceIn {
-      0%  { opacity:0; transform:scale(0.8) translateY(20px); }
-      60% { transform:scale(1.05) translateY(-4px); }
-      100%{ opacity:1; transform:scale(1) translateY(0); }
-    }
-    @keyframes dash {
-      from { stroke-dashoffset: 1000; }
-      to   { stroke-dashoffset: 0; }
-    }
+    .reveal{opacity:0;transform:translateY(40px);transition:opacity 0.7s ease,transform 0.7s ease;}
+    .reveal.visible{opacity:1;transform:translateY(0);}
 
-    .reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    /* NAVBAR */
+    .navbar-z{position:fixed;top:0;right:0;left:0;z-index:1000;padding:16px 0;transition:var(--transition);}
+    .navbar-z.scrolled{background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);box-shadow:var(--shadow);padding:10px 0;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-brand-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;box-shadow:0 4px 14px rgba(21,101,192,0.35);}
+    .nav-brand-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:white;letter-spacing:-0.5px;transition:var(--transition);}
+    .navbar-z.scrolled .nav-brand-name{color:var(--blue-deep);}
+    .nav-links{display:flex;align-items:center;gap:4px;}
+    .nav-link-item{padding:8px 14px;border-radius:30px;font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);text-decoration:none;transition:var(--transition);}
+    .navbar-z.scrolled .nav-link-item{color:var(--text-muted);}
+    .nav-link-item:hover{background:rgba(255,255,255,0.15);color:white;}
+    .navbar-z.scrolled .nav-link-item:hover{background:var(--blue-soft);color:var(--blue-dark);}
+    .nav-cta{padding:9px 22px;background:white;color:var(--blue-dark);border-radius:30px;font-size:14px;font-weight:700;text-decoration:none;transition:var(--transition);box-shadow:0 3px 12px rgba(255,255,255,0.25);display:flex;align-items:center;gap:7px;}
+    .navbar-z.scrolled .nav-cta{background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;box-shadow:0 3px 12px rgba(21,101,192,0.30);}
+    .nav-cta:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(21,101,192,0.35);color:inherit;}
+    .nav-toggle{display:none;width:38px;height:38px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.15);border:none;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+    .nav-toggle span{display:block;width:22px;height:2px;background:white;border-radius:2px;transition:var(--transition);}
+    .navbar-z.scrolled .nav-toggle{background:var(--blue-soft);}
+    .navbar-z.scrolled .nav-toggle span{background:var(--blue-dark);}
+    .mobile-menu{display:none;position:fixed;inset:0;z-index:999;background:rgba(10,31,78,0.97);flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+    .mobile-menu.open{display:flex;}
+    .mobile-menu a{font-size:22px;font-weight:700;color:white;text-decoration:none;padding:10px 30px;border-radius:30px;transition:var(--transition);}
+    .mobile-menu a:hover{background:rgba(255,255,255,0.10);}
+    .mobile-close{position:absolute;top:20px;left:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.10);border:none;color:white;font-size:20px;cursor:pointer;}
 
-    /* ══════════════════════════════════
-       NAVBAR
-    ══════════════════════════════════ */
-    .navbar-z {
-      position: fixed; top: 0; right: 0; left: 0; z-index: 1000;
-      padding: 16px 0;
-      transition: var(--transition);
-    }
-    .navbar-z.scrolled {
-      background: rgba(255,255,255,0.97);
-      backdrop-filter: blur(16px);
-      box-shadow: var(--shadow);
-      padding: 10px 0;
-    }
-    .nav-inner {
-      max-width: 1200px; margin: 0 auto;
-      padding: 0 24px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .nav-brand {
-      display: flex; align-items: center; gap: 10px;
-      text-decoration: none;
-    }
-    .nav-brand-icon {
-      width: 42px; height: 42px;
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      border-radius: 11px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; color: white;
-      box-shadow: 0 4px 14px rgba(21,101,192,0.35);
-    }
-    .nav-brand-name {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px; font-weight: 800;
-      color: white; letter-spacing: -0.5px;
-      transition: var(--transition);
-    }
-    .navbar-z.scrolled .nav-brand-name { color: var(--blue-deep); }
-    .nav-links {
-      display: flex; align-items: center; gap: 6px;
-    }
-    .nav-link-item {
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 14px; font-weight: 600;
-      color: rgba(255,255,255,0.85);
-      text-decoration: none;
-      transition: var(--transition);
-    }
-    .navbar-z.scrolled .nav-link-item { color: var(--text-muted); }
-    .nav-link-item:hover {
-      background: rgba(255,255,255,0.15);
-      color: white;
-    }
-    .navbar-z.scrolled .nav-link-item:hover {
-      background: var(--blue-soft);
-      color: var(--blue-dark);
-    }
-    .nav-cta {
-      padding: 9px 22px;
-      background: white;
-      color: var(--blue-dark);
-      border-radius: 30px;
-      font-size: 14px; font-weight: 700;
-      text-decoration: none;
-      transition: var(--transition);
-      box-shadow: 0 3px 12px rgba(255,255,255,0.25);
-      display: flex; align-items: center; gap: 7px;
-    }
-    .navbar-z.scrolled .nav-cta {
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      color: white;
-      box-shadow: 0 3px 12px rgba(21,101,192,0.30);
-    }
-    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(21,101,192,0.35); }
+    /* HERO */
+    .hero{min-height:100vh;background:linear-gradient(145deg,var(--blue-deep) 0%,var(--blue-dark) 55%,var(--blue-main) 100%);display:flex;align-items:center;position:relative;overflow:hidden;padding:120px 0 80px;}
+    .hero-bg-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+    .hero-blob-1{position:absolute;width:600px;height:600px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(0,176,255,0.18) 0%,transparent 70%);top:-150px;right:-150px;animation:pulse 7s ease-in-out infinite;}
+    .hero-blob-2{position:absolute;width:400px;height:400px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(30,136,229,0.15) 0%,transparent 70%);bottom:-100px;left:-100px;animation:pulse 9s ease-in-out infinite 2s;}
+    .hero-ring{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,0.06);pointer-events:none;}
+    .hero-ring-1{width:700px;height:700px;top:50%;left:50%;transform:translate(-50%,-50%);animation:spin-slow 50s linear infinite;}
+    .hero-ring-2{width:500px;height:500px;top:50%;left:50%;transform:translate(-50%,-50%);animation:spin-slow 35s linear infinite reverse;border-style:dashed;}
+    .court-deco{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:500px;opacity:0.05;pointer-events:none;}
+    .court-deco path{stroke:white;fill:none;stroke-width:1.5;stroke-dasharray:1000;animation:dash 5s ease forwards 0.5s;}
+    .hero-content{position:relative;z-index:2;}
+    .hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,176,255,0.18);border:1px solid rgba(0,176,255,0.30);color:var(--accent);padding:6px 16px;border-radius:30px;font-size:13px;font-weight:700;margin-bottom:20px;animation:fadeUp 0.6s ease both;}
+    .hero-title{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;color:white;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;animation:fadeUp 0.6s ease 0.1s both;}
+    .hero-title span{color:var(--accent);}
+    .hero-subtitle{font-size:17px;color:rgba(255,255,255,0.65);line-height:1.7;max-width:480px;margin-bottom:36px;animation:fadeUp 0.6s ease 0.2s both;}
+    .hero-btns{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp 0.6s ease 0.3s both;}
+    .btn-hero-primary{padding:14px 32px;background:linear-gradient(135deg,var(--accent),var(--blue-light));color:white;border:none;border-radius:50px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:9px;transition:var(--transition);box-shadow:0 6px 24px rgba(0,176,255,0.40);position:relative;overflow:hidden;}
+    .btn-hero-primary::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);background-size:200% 100%;animation:shimmer 3s ease infinite;}
+    .btn-hero-primary:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(0,176,255,0.50);color:white;}
+    .btn-hero-outline{padding:14px 28px;background:rgba(255,255,255,0.10);backdrop-filter:blur(8px);color:white;border:1.5px solid rgba(255,255,255,0.25);border-radius:50px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:9px;transition:var(--transition);}
+    .btn-hero-outline:hover{background:rgba(255,255,255,0.18);color:white;transform:translateY(-2px);}
+    .hero-stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:48px;animation:fadeUp 0.6s ease 0.4s both;}
+    .hero-stat{display:flex;flex-direction:column;gap:2px;}
+    .hero-stat-value{font-size:32px;font-weight:900;color:white;line-height:1;}
+    .hero-stat-value span{color:var(--accent);font-size:20px;}
+    .hero-stat-label{font-size:12px;color:rgba(255,255,255,0.55);font-weight:500;}
+    .hero-visual{position:relative;z-index:2;animation:fadeIn 1s ease 0.3s both;}
+    .hero-court-card{background:rgba(255,255,255,0.09);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:24px;max-width:360px;margin:0 auto;}
+    .hcc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .hcc-title{font-size:15px;font-weight:700;color:white;}
+    .hcc-date{font-size:12px;color:rgba(255,255,255,0.55);}
+    .hcc-slots{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:16px;}
+    .hcc-slot{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+    .hcc-slot.free{background:rgba(67,160,71,0.25);color:#81C784;}
+    .hcc-slot.booked{background:rgba(229,57,53,0.25);color:#EF9A9A;}
+    .hcc-slot.off{background:rgba(255,140,0,0.20);color:#FFB74D;}
+    .hcc-courts{display:flex;flex-direction:column;gap:8px;}
+    .hcc-court-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;}
+    .hcc-court-name{font-size:13px;font-weight:700;color:white;display:flex;align-items:center;gap:8px;}
+    .hcc-court-dot{width:8px;height:8px;border-radius:50%;}
+    .hcc-court-status{font-size:11px;font-weight:600;}
+    .hcc-book-btn{width:100%;margin-top:14px;padding:11px;background:linear-gradient(135deg,var(--accent),var(--blue-light));color:white;border:none;border-radius:12px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);text-decoration:none;display:block;text-align:center;}
+    .hcc-book-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,176,255,0.40);color:white;}
+    .hero-badge{position:absolute;z-index:3;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.18);border-radius:14px;padding:10px 16px;display:flex;align-items:center;gap:9px;color:white;}
+    .hero-badge-icon{width:32px;height:32px;border-radius:9px;background:rgba(0,176,255,0.25);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--accent);}
+    .hero-badge-val{font-size:16px;font-weight:800;color:white;line-height:1;}
+    .hero-badge-lbl{font-size:11px;color:rgba(255,255,255,0.6);}
+    .hb-1{top:10%;right:-20px;animation:float 5s ease-in-out infinite;}
+    .hb-2{bottom:15%;right:-20px;animation:float 6s ease-in-out infinite 1s;}
 
-    /* Mobile menu */
-    .nav-toggle {
-      display: none;
-      width: 38px; height: 38px;
-      border-radius: var(--radius-sm);
-      background: rgba(255,255,255,0.15);
-      border: none; cursor: pointer;
-      flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-    }
-    .nav-toggle span {
-      display: block; width: 22px; height: 2px;
-      background: white; border-radius: 2px; transition: var(--transition);
-    }
-    .navbar-z.scrolled .nav-toggle { background: var(--blue-soft); }
-    .navbar-z.scrolled .nav-toggle span { background: var(--blue-dark); }
-    .mobile-menu {
-      display: none;
-      position: fixed; inset: 0; z-index: 999;
-      background: rgba(10,31,78,0.97);
-      flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-    }
-    .mobile-menu.open { display: flex; }
-    .mobile-menu a {
-      font-size: 22px; font-weight: 700; color: white;
-      text-decoration: none; padding: 10px 30px; border-radius: 30px;
-      transition: var(--transition);
-    }
-    .mobile-menu a:hover { background: rgba(255,255,255,0.10); }
-    .mobile-close {
-      position: absolute; top: 20px; left: 20px;
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(255,255,255,0.10); border: none;
-      color: white; font-size: 20px; cursor: pointer;
-    }
+    /* SECTIONS */
+    .section{padding:90px 0;}
+    .section-alt{background:var(--off-white);}
+    .container-z{max-width:1200px;margin:0 auto;padding:0 24px;}
+    .section-tag{display:inline-flex;align-items:center;gap:7px;background:var(--blue-soft);color:var(--blue-dark);padding:5px 14px;border-radius:30px;font-size:12.5px;font-weight:700;margin-bottom:12px;}
+    .section-title{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:800;color:var(--blue-deep);line-height:1.15;letter-spacing:-1px;margin-bottom:14px;}
+    .section-title span{color:var(--blue-main);}
+    .section-sub{font-size:15.5px;color:var(--text-muted);line-height:1.7;max-width:520px;}
 
-    /* ══════════════════════════════════
-       HERO
-    ══════════════════════════════════ */
-    .hero {
-      min-height: 100vh;
-      background: linear-gradient(145deg, var(--blue-deep) 0%, var(--blue-dark) 55%, var(--blue-main) 100%);
-      display: flex; align-items: center;
-      position: relative; overflow: hidden;
-      padding: 120px 0 80px;
-    }
-    .hero-bg-dots {
-      position: absolute; inset: 0;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-    }
-    .hero-blob-1 {
-      position: absolute; width: 600px; height: 600px;
-      border-radius: 50%; pointer-events: none;
-      background: radial-gradient(circle, rgba(0,176,255,0.18) 0%, transparent 70%);
-      top: -150px; right: -150px;
-      animation: pulse 7s ease-in-out infinite;
-    }
-    .hero-blob-2 {
-      position: absolute; width: 400px; height: 400px;
-      border-radius: 50%; pointer-events: none;
-      background: radial-gradient(circle, rgba(30,136,229,0.15) 0%, transparent 70%);
-      bottom: -100px; left: -100px;
-      animation: pulse 9s ease-in-out infinite 2s;
-    }
-    .hero-ring {
-      position: absolute; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.06);
-      pointer-events: none;
-    }
-    .hero-ring-1 { width:700px;height:700px; top:50%;left:50%; transform:translate(-50%,-50%); animation:spin-slow 50s linear infinite; }
-    .hero-ring-2 { width:500px;height:500px; top:50%;left:50%; transform:translate(-50%,-50%); animation:spin-slow 35s linear infinite reverse; border-style:dashed; }
+    /* COURTS */
+    .courts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:48px;}
+    .court-card{background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:var(--transition);box-shadow:var(--shadow);}
+    .court-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--blue-mid);}
+    .court-card-img{height:180px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    .court-card-img .court-icon{position:relative;z-index:1;font-size:56px;color:rgba(255,255,255,0.90);animation:float 4s ease-in-out infinite;}
+    .court-card-img .court-num{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.20);backdrop-filter:blur(8px);color:white;font-size:12px;font-weight:800;padding:4px 12px;border-radius:20px;z-index:2;}
+    .court-card-img .court-tag{position:absolute;bottom:14px;left:14px;background:rgba(255,255,255,0.20);backdrop-filter:blur(8px);color:white;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;z-index:2;display:flex;align-items:center;gap:5px;}
+    .court-card-body{padding:20px;}
+    .court-card-name{font-size:18px;font-weight:800;color:var(--blue-deep);margin-bottom:6px;}
+    .court-card-desc{font-size:13.5px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;}
+    .court-features{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;}
+    .court-feature{display:inline-flex;align-items:center;gap:5px;background:var(--blue-soft);color:var(--blue-dark);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+    .court-feature i{font-size:10px;}
+    .court-price-row{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);}
+    .court-price{font-size:20px;font-weight:900;color:var(--blue-main);}
+    .court-price small{font-size:12px;font-weight:400;color:var(--text-muted);}
+    .btn-book-court{padding:9px 20px;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;border:none;border-radius:30px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:var(--transition);display:inline-flex;align-items:center;gap:6px;}
+    .btn-book-court:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(21,101,192,0.35);color:white;}
 
-    /* Court SVG decoration */
-    .court-deco {
-      position: absolute; bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 500px; opacity: 0.05; pointer-events: none;
-    }
-    .court-deco path { stroke:white; fill:none; stroke-width:1.5; stroke-dasharray:1000; animation:dash 5s ease forwards 0.5s; }
+    /* FEATURES */
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-top:48px;}
+    .feature-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:28px 24px;box-shadow:var(--shadow);transition:var(--transition);position:relative;overflow:hidden;}
+    .feature-card::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue-light),var(--accent));transform:scaleX(0);transition:transform 0.3s ease;}
+    .feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+    .feature-card:hover::before{transform:scaleX(1);}
+    .feature-icon{width:54px;height:54px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--blue-main);margin-bottom:16px;transition:var(--transition);}
+    .feature-card:hover .feature-icon{background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;}
+    .feature-title{font-size:16px;font-weight:800;color:var(--blue-deep);margin-bottom:8px;}
+    .feature-desc{font-size:13.5px;color:var(--text-muted);line-height:1.65;}
 
-    .hero-content { position: relative; z-index: 2; }
-    .hero-tag {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(0,176,255,0.18);
-      border: 1px solid rgba(0,176,255,0.30);
-      color: var(--accent);
-      padding: 6px 16px; border-radius: 30px;
-      font-size: 13px; font-weight: 700;
-      margin-bottom: 20px;
-      animation: fadeUp 0.6s ease both;
-    }
-    .hero-tag i { font-size: 11px; }
-    .hero-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(40px, 6vw, 72px);
-      font-weight: 800; color: white;
-      line-height: 1.05; letter-spacing: -2px;
-      margin-bottom: 20px;
-      animation: fadeUp 0.6s ease 0.1s both;
-    }
-    .hero-title span { color: var(--accent); }
-    .hero-subtitle {
-      font-size: 17px; color: rgba(255,255,255,0.65);
-      line-height: 1.7; max-width: 480px;
-      margin-bottom: 36px;
-      animation: fadeUp 0.6s ease 0.2s both;
-    }
-    .hero-btns {
-      display: flex; gap: 14px; flex-wrap: wrap;
-      animation: fadeUp 0.6s ease 0.3s both;
-    }
-    .btn-hero-primary {
-      padding: 14px 32px;
-      background: linear-gradient(135deg, var(--accent), var(--blue-light));
-      color: white; border: none; border-radius: 50px;
-      font-family: 'Cairo', sans-serif;
-      font-size: 15px; font-weight: 800;
-      cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; gap: 9px;
-      transition: var(--transition);
-      box-shadow: 0 6px 24px rgba(0,176,255,0.40);
-      position: relative; overflow: hidden;
-    }
-    .btn-hero-primary::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      background-size: 200% 100%;
-      animation: shimmer 3s ease infinite;
-    }
-    .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,176,255,0.50); color: white; }
-    .btn-hero-outline {
-      padding: 14px 28px;
-      background: rgba(255,255,255,0.10);
-      backdrop-filter: blur(8px);
-      color: white; border: 1.5px solid rgba(255,255,255,0.25);
-      border-radius: 50px;
-      font-family: 'Cairo', sans-serif;
-      font-size: 15px; font-weight: 700;
-      cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; gap: 9px;
-      transition: var(--transition);
-    }
-    .btn-hero-outline:hover { background: rgba(255,255,255,0.18); color: white; transform: translateY(-2px); }
+    /* STORE SECTION */
+    .store-products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:40px;}
+    .store-prod-card{background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:var(--transition);box-shadow:var(--shadow);text-decoration:none;color:inherit;display:flex;flex-direction:column;}
+    .store-prod-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue-mid);}
+    .store-prod-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--off-white);}
+    .store-prod-placeholder{width:100%;aspect-ratio:4/3;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;color:var(--blue-mid);font-size:2rem;}
+    .store-prod-body{padding:14px;flex:1;display:flex;flex-direction:column;justify-content:space-between;}
+    .store-prod-name{font-size:14px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;}
+    .store-prod-price{font-size:16px;font-weight:900;color:var(--blue-main);}
+    .store-prod-price small{font-size:11px;font-weight:400;color:var(--text-muted);}
+    .store-cta-row{display:flex;justify-content:center;margin-top:36px;}
 
-    /* Hero stats */
-    .hero-stats {
-      display: flex; gap: 32px; flex-wrap: wrap;
-      margin-top: 48px;
-      animation: fadeUp 0.6s ease 0.4s both;
-    }
-    .hero-stat { display: flex; flex-direction: column; gap: 2px; }
-    .hero-stat-value { font-size: 32px; font-weight: 900; color: white; line-height: 1; }
-    .hero-stat-value span { color: var(--accent); font-size: 20px; }
-    .hero-stat-label { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 500; }
+    /* PRICING */
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:48px;}
+    .pricing-card{background:white;border-radius:var(--radius);border:2px solid var(--border);padding:32px 28px;text-align:center;transition:var(--transition);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+    .pricing-card.featured{border-color:var(--blue-main);background:linear-gradient(145deg,var(--blue-deep),var(--blue-dark));color:white;transform:scale(1.03);}
+    .pricing-card.featured::before{content:'الأكثر طلباً';position:absolute;top:16px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;font-size:11px;font-weight:800;padding:4px 14px;border-radius:20px;}
+    .pricing-card:hover:not(.featured){transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue-mid);}
+    .pricing-name{font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
+    .pricing-card.featured .pricing-name{color:rgba(255,255,255,0.65);}
+    .pricing-price{font-size:42px;font-weight:900;color:var(--blue-dark);line-height:1;margin-bottom:4px;}
+    .pricing-card.featured .pricing-price{color:white;}
+    .pricing-price small{font-size:14px;font-weight:400;color:var(--text-muted);}
+    .pricing-card.featured .pricing-price small{color:rgba(255,255,255,0.6);}
+    .pricing-period{font-size:13px;color:var(--text-muted);margin-bottom:24px;}
+    .pricing-card.featured .pricing-period{color:rgba(255,255,255,0.55);}
+    .pricing-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px;text-align:right;}
+    .pricing-features li{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--text-dark);}
+    .pricing-card.featured .pricing-features li{color:rgba(255,255,255,0.85);}
+    .pricing-features li i{color:#43A047;font-size:13px;flex-shrink:0;}
+    .pricing-card.featured .pricing-features li i{color:var(--accent);}
+    .btn-pricing{width:100%;padding:12px;border-radius:30px;border:2px solid var(--blue-main);background:transparent;color:var(--blue-main);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);text-decoration:none;display:block;text-align:center;}
+    .btn-pricing:hover{background:var(--blue-main);color:white;}
+    .pricing-card.featured .btn-pricing{background:white;color:var(--blue-dark);border-color:white;}
+    .pricing-card.featured .btn-pricing:hover{background:var(--accent);border-color:var(--accent);color:white;}
 
-    /* Hero visual side */
-    .hero-visual {
-      position: relative; z-index: 2;
-      animation: fadeIn 1s ease 0.3s both;
-    }
-    .hero-court-card {
-      background: rgba(255,255,255,0.09);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 20px;
-      padding: 24px;
-      max-width: 360px;
-      margin: 0 auto;
-    }
-    .hcc-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .hcc-title { font-size: 15px; font-weight: 700; color: white; }
-    .hcc-date  { font-size: 12px; color: rgba(255,255,255,0.55); }
-    .hcc-slots {
-      display: grid; grid-template-columns: repeat(6,1fr); gap: 5px;
-      margin-bottom: 16px;
-    }
-    .hcc-slot {
-      aspect-ratio: 1; border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 700;
-    }
-    .hcc-slot.free    { background: rgba(67,160,71,0.25); color: #81C784; }
-    .hcc-slot.booked  { background: rgba(229,57,53,0.25); color: #EF9A9A; }
-    .hcc-slot.off     { background: rgba(255,140,0,0.20); color: #FFB74D; }
-    .hcc-courts { display: flex; flex-direction: column; gap: 8px; }
-    .hcc-court-row {
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(255,255,255,0.07);
-      border-radius: 10px; padding: 10px 14px;
-    }
-    .hcc-court-name { font-size: 13px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
-    .hcc-court-dot  { width: 8px; height: 8px; border-radius: 50%; }
-    .hcc-court-status { font-size: 11px; font-weight: 600; }
-    .hcc-book-btn {
-      width: 100%; margin-top: 14px; padding: 11px;
-      background: linear-gradient(135deg, var(--accent), var(--blue-light));
-      color: white; border: none; border-radius: 12px;
-      font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: var(--transition);
-      text-decoration: none; display: block; text-align: center;
-    }
-    .hcc-book-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,176,255,0.40); color: white; }
+    /* STEPS */
+    .steps-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:48px;}
+    .step-card{text-align:center;padding:32px 20px;background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);transition:var(--transition);}
+    .step-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+    .step-num{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 14px rgba(21,101,192,0.30);}
+    .step-icon{font-size:28px;color:var(--blue-main);margin-bottom:12px;display:block;}
+    .step-title{font-size:15px;font-weight:800;color:var(--blue-deep);margin-bottom:8px;}
+    .step-desc{font-size:13px;color:var(--text-muted);line-height:1.6;}
 
-    /* Floating badges on hero */
-    .hero-badge {
-      position: absolute; z-index: 3;
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 14px; padding: 10px 16px;
-      display: flex; align-items: center; gap: 9px; color: white;
-    }
-    .hero-badge-icon {
-      width: 32px; height: 32px; border-radius: 9px;
-      background: rgba(0,176,255,0.25);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; color: var(--accent);
-    }
-    .hero-badge-val  { font-size: 16px; font-weight: 800; color: white; line-height:1; }
-    .hero-badge-lbl  { font-size: 11px; color: rgba(255,255,255,0.6); }
-    .hb-1 { top: 10%; right: -20px; animation: float 5s ease-in-out infinite; }
-    .hb-2 { bottom: 15%; right: -20px; animation: float 6s ease-in-out infinite 1s; }
+    /* CTA */
+    .cta-section{background:linear-gradient(135deg,var(--blue-deep),var(--blue-dark));padding:90px 0;position:relative;overflow:hidden;}
+    .cta-section::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.05) 1px,transparent 1px);background-size:36px 36px;}
+    .cta-inner{position:relative;z-index:1;text-align:center;}
+    .cta-title{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,48px);font-weight:800;color:white;margin-bottom:16px;letter-spacing:-1px;}
+    .cta-title span{color:var(--accent);}
+    .cta-sub{font-size:16px;color:rgba(255,255,255,0.65);margin-bottom:36px;}
 
-    /* ══════════════════════════════════
-       SECTION SHARED
-    ══════════════════════════════════ */
-    .section { padding: 90px 0; }
-    .section-alt { background: var(--off-white); }
-    .container-z { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .section-tag {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: var(--blue-soft); color: var(--blue-dark);
-      padding: 5px 14px; border-radius: 30px;
-      font-size: 12.5px; font-weight: 700;
-      margin-bottom: 12px;
-    }
-    .section-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(28px, 4vw, 44px);
-      font-weight: 800; color: var(--blue-deep);
-      line-height: 1.15; letter-spacing: -1px;
-      margin-bottom: 14px;
-    }
-    .section-title span { color: var(--blue-main); }
-    .section-sub { font-size: 15.5px; color: var(--text-muted); line-height: 1.7; max-width: 520px; }
+    /* CONTACT */
+    .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:48px;align-items:start;}
+    @media(max-width:768px){.contact-grid{grid-template-columns:1fr;}}
+    .contact-info{display:flex;flex-direction:column;gap:16px;}
+    .contact-item{display:flex;align-items:center;gap:16px;padding:18px 20px;background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);transition:var(--transition);}
+    .contact-item:hover{transform:translateX(-4px);border-color:var(--blue-mid);}
+    .contact-item-icon{width:46px;height:46px;border-radius:12px;background:var(--blue-soft);color:var(--blue-main);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+    .contact-item-label{font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:2px;}
+    .contact-item-value{font-size:14px;font-weight:700;color:var(--blue-deep);}
+    .contact-form-card{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:28px;}
+    .contact-form-title{font-size:17px;font-weight:800;color:var(--blue-deep);margin-bottom:20px;display:flex;align-items:center;gap:9px;}
+    .contact-form-title i{color:var(--blue-main);}
+    .form-group{margin-bottom:16px;}
+    .form-group label{display:block;font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:7px;}
+    .form-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13.5px;color:var(--text-dark);background:var(--off-white);outline:none;transition:var(--transition);}
+    .form-input:focus{border-color:var(--blue-light);background:white;box-shadow:0 0 0 3px rgba(30,136,229,0.10);}
+    .btn-contact{width:100%;padding:12px;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;border:none;border-radius:30px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);}
+    .btn-contact:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(21,101,192,0.35);}
 
-    /* ══════════════════════════════════
-       COURTS SECTION
-    ══════════════════════════════════ */
-    .courts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px; margin-top: 48px;
-    }
-    .court-card {
-      background: white;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      transition: var(--transition);
-      box-shadow: var(--shadow);
-    }
-    .court-card:hover {
-      transform: translateY(-6px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--blue-mid);
-    }
-    .court-card-img {
-      height: 180px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 60px; position: relative; overflow: hidden;
-    }
-    .court-card-img::before {
-      content: '';
-      position: absolute; inset: 0;
-      opacity: 0.90;
-    }
-    .court-card-img .court-icon {
-      position: relative; z-index: 1;
-      font-size: 56px; color: rgba(255,255,255,0.90);
-      animation: float 4s ease-in-out infinite;
-    }
-    .court-card-img .court-num {
-      position: absolute; top: 14px; right: 14px;
-      background: rgba(255,255,255,0.20);
-      backdrop-filter: blur(8px);
-      color: white; font-size: 12px; font-weight: 800;
-      padding: 4px 12px; border-radius: 20px;
-      z-index: 2;
-    }
-    .court-card-img .court-tag {
-      position: absolute; bottom: 14px; left: 14px;
-      background: rgba(255,255,255,0.20);
-      backdrop-filter: blur(8px);
-      color: white; font-size: 11px; font-weight: 700;
-      padding: 4px 12px; border-radius: 20px;
-      z-index: 2; display: flex; align-items: center; gap: 5px;
-    }
-    .court-card-body { padding: 20px; }
-    .court-card-name { font-size: 18px; font-weight: 800; color: var(--blue-deep); margin-bottom: 6px; }
-    .court-card-desc { font-size: 13.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
-    .court-features { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
-    .court-feature {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: var(--blue-soft); color: var(--blue-dark);
-      padding: 4px 12px; border-radius: 20px;
-      font-size: 12px; font-weight: 600;
-    }
-    .court-feature i { font-size: 10px; }
-    .court-price-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-top: 14px; border-top: 1px solid var(--border);
-    }
-    .court-price { font-size: 20px; font-weight: 900; color: var(--blue-main); }
-    .court-price small { font-size: 12px; font-weight: 400; color: var(--text-muted); }
-    .court-price .discount-note {
-      font-size: 11px; background: rgba(251,140,0,0.12);
-      color: #E65100; padding: 2px 8px; border-radius: 10px;
-      font-weight: 700; margin-right: 6px;
-    }
-    .btn-book-court {
-      padding: 9px 20px;
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      color: white; border: none; border-radius: 30px;
-      font-family: 'Cairo', sans-serif;
-      font-size: 13px; font-weight: 700;
-      cursor: pointer; text-decoration: none;
-      transition: var(--transition);
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .btn-book-court:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(21,101,192,0.35); color: white; }
+    /* FOOTER */
+    .footer{background:var(--blue-deep);color:white;padding:60px 0 28px;}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+    @media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:560px){.footer-grid{grid-template-columns:1fr;}}
+    .footer-brand-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:white;margin-bottom:10px;}
+    .footer-brand-desc{font-size:13.5px;color:rgba(255,255,255,0.50);line-height:1.7;max-width:260px;}
+    .footer-social{display:flex;gap:10px;margin-top:18px;}
+    .footer-social a{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.65);font-size:15px;text-decoration:none;transition:var(--transition);}
+    .footer-social a:hover{background:var(--accent);color:white;transform:translateY(-2px);}
+    .footer-col-title{font-size:13px;font-weight:800;color:white;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:16px;}
+    .footer-links{list-style:none;display:flex;flex-direction:column;gap:9px;}
+    .footer-links a{font-size:13.5px;color:rgba(255,255,255,0.50);text-decoration:none;transition:var(--transition);}
+    .footer-links a:hover{color:var(--accent);padding-right:4px;}
+    .footer-bottom{border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:13px;color:rgba(255,255,255,0.35);}
+    .footer-bottom a{color:var(--accent);text-decoration:none;}
 
-    /* ══════════════════════════════════
-       FEATURES / WHY US
-    ══════════════════════════════════ */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 20px; margin-top: 48px;
-    }
-    .feature-card {
-      background: white;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 28px 24px;
-      box-shadow: var(--shadow);
-      transition: var(--transition);
-      position: relative; overflow: hidden;
-    }
-    .feature-card::before {
-      content: '';
-      position: absolute; top: 0; right: 0; left: 0; height: 3px;
-      background: linear-gradient(90deg, var(--blue-light), var(--accent));
-      transform: scaleX(0); transition: transform 0.3s ease;
-    }
-    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-    .feature-card:hover::before { transform: scaleX(1); }
-    .feature-icon {
-      width: 54px; height: 54px; border-radius: 14px;
-      background: var(--blue-soft);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; color: var(--blue-main);
-      margin-bottom: 16px; transition: var(--transition);
-    }
-    .feature-card:hover .feature-icon {
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      color: white;
-    }
-    .feature-title { font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 8px; }
-    .feature-desc  { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; }
+    /* SCROLL TOP */
+    .scroll-top{position:fixed;bottom:28px;left:28px;z-index:900;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px rgba(21,101,192,0.40);transition:var(--transition);opacity:0;pointer-events:none;}
+    .scroll-top.visible{opacity:1;pointer-events:all;}
+    .scroll-top:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(21,101,192,0.50);}
 
-    /* ══════════════════════════════════
-       PRICING
-    ══════════════════════════════════ */
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px; margin-top: 48px;
+    @media(max-width:992px){
+      .nav-links{display:none;}
+      .nav-toggle{display:flex;}
+      .hero{padding:100px 0 60px;}
+      .hero-visual{display:none;}
     }
-    .pricing-card {
-      background: white;
-      border-radius: var(--radius);
-      border: 2px solid var(--border);
-      padding: 32px 28px;
-      text-align: center;
-      transition: var(--transition);
-      box-shadow: var(--shadow);
-      position: relative; overflow: hidden;
-    }
-    .pricing-card.featured {
-      border-color: var(--blue-main);
-      background: linear-gradient(145deg, var(--blue-deep), var(--blue-dark));
-      color: white;
-      transform: scale(1.03);
-    }
-    .pricing-card.featured::before {
-      content: 'الأكثر طلباً';
-      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-      background: var(--accent); color: white;
-      font-size: 11px; font-weight: 800;
-      padding: 4px 14px; border-radius: 20px;
-    }
-    .pricing-card:hover:not(.featured) { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--blue-mid); }
-    .pricing-name { font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-    .pricing-card.featured .pricing-name { color: rgba(255,255,255,0.65); }
-    .pricing-price { font-size: 42px; font-weight: 900; color: var(--blue-dark); line-height: 1; margin-bottom: 4px; }
-    .pricing-card.featured .pricing-price { color: white; }
-    .pricing-price small { font-size: 14px; font-weight: 400; color: var(--text-muted); }
-    .pricing-card.featured .pricing-price small { color: rgba(255,255,255,0.6); }
-    .pricing-period { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
-    .pricing-card.featured .pricing-period { color: rgba(255,255,255,0.55); }
-    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; text-align: right; }
-    .pricing-features li { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--text-dark); }
-    .pricing-card.featured .pricing-features li { color: rgba(255,255,255,0.85); }
-    .pricing-features li i { color: #43A047; font-size: 13px; flex-shrink: 0; }
-    .pricing-card.featured .pricing-features li i { color: var(--accent); }
-    .btn-pricing {
-      width: 100%; padding: 12px;
-      border-radius: 30px; border: 2px solid var(--blue-main);
-      background: transparent; color: var(--blue-main);
-      font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: var(--transition); text-decoration: none;
-      display: block; text-align: center;
-    }
-    .btn-pricing:hover { background: var(--blue-main); color: white; }
-    .pricing-card.featured .btn-pricing {
-      background: white; color: var(--blue-dark); border-color: white;
-    }
-    .pricing-card.featured .btn-pricing:hover { background: var(--accent); border-color: var(--accent); color: white; }
-
-    /* ══════════════════════════════════
-       HOW IT WORKS
-    ══════════════════════════════════ */
-    .steps-wrap {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px; margin-top: 48px; position: relative;
-    }
-    .step-card {
-      text-align: center; padding: 32px 20px;
-      background: white; border-radius: var(--radius);
-      border: 1px solid var(--border); box-shadow: var(--shadow);
-      transition: var(--transition); position: relative;
-    }
-    .step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-    .step-num {
-      width: 52px; height: 52px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      color: white; font-size: 20px; font-weight: 900;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-      box-shadow: 0 4px 14px rgba(21,101,192,0.30);
-    }
-    .step-icon { font-size: 28px; color: var(--blue-main); margin-bottom: 12px; display: block; }
-    .step-title { font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-bottom: 8px; }
-    .step-desc  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-
-    /* ══════════════════════════════════
-       CTA SECTION
-    ══════════════════════════════════ */
-    .cta-section {
-      background: linear-gradient(135deg, var(--blue-deep), var(--blue-dark));
-      padding: 90px 0; position: relative; overflow: hidden;
-    }
-    .cta-section::before {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 36px 36px;
-    }
-    .cta-inner { position: relative; z-index: 1; text-align: center; }
-    .cta-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(28px, 4vw, 48px);
-      font-weight: 800; color: white; margin-bottom: 16px;
-      letter-spacing: -1px;
-    }
-    .cta-title span { color: var(--accent); }
-    .cta-sub { font-size: 16px; color: rgba(255,255,255,0.65); margin-bottom: 36px; }
-
-    /* ══════════════════════════════════
-       CONTACT
-    ══════════════════════════════════ */
-    .contact-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px; margin-top: 48px; align-items: start;
-    }
-    @media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr; } }
-    .contact-info { display: flex; flex-direction: column; gap: 16px; }
-    .contact-item {
-      display: flex; align-items: center; gap: 16px;
-      padding: 18px 20px; background: white;
-      border-radius: var(--radius); border: 1px solid var(--border);
-      box-shadow: var(--shadow); transition: var(--transition);
-    }
-    .contact-item:hover { transform: translateX(-4px); border-color: var(--blue-mid); }
-    .contact-item-icon {
-      width: 46px; height: 46px; border-radius: 12px;
-      background: var(--blue-soft); color: var(--blue-main);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
-    }
-    .contact-item-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; }
-    .contact-item-value { font-size: 14px; font-weight: 700; color: var(--blue-deep); }
-    .contact-form-card {
-      background: white; border-radius: var(--radius);
-      border: 1px solid var(--border); box-shadow: var(--shadow);
-      padding: 28px;
-    }
-    .contact-form-title { font-size: 17px; font-weight: 800; color: var(--blue-deep); margin-bottom: 20px; display: flex; align-items: center; gap: 9px; }
-    .contact-form-title i { color: var(--blue-main); }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 7px; }
-    .form-input {
-      width: 100%; padding: 10px 14px;
-      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-      font-family: 'Cairo', sans-serif; font-size: 13.5px;
-      color: var(--text-dark); background: var(--off-white);
-      outline: none; transition: var(--transition);
-    }
-    .form-input:focus { border-color: var(--blue-light); background: white; box-shadow: 0 0 0 3px rgba(30,136,229,0.10); }
-    .btn-contact {
-      width: 100%; padding: 12px;
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      color: white; border: none; border-radius: 30px;
-      font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: var(--transition);
-    }
-    .btn-contact:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(21,101,192,0.35); }
-
-    /* ══════════════════════════════════
-       FOOTER
-    ══════════════════════════════════ */
-    .footer {
-      background: var(--blue-deep); color: white; padding: 60px 0 28px;
-    }
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 40px; margin-bottom: 40px;
-    }
-    @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 560px) { .footer-grid { grid-template-columns: 1fr; } }
-    .footer-brand-name { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: white; margin-bottom: 10px; }
-    .footer-brand-desc { font-size: 13.5px; color: rgba(255,255,255,0.50); line-height: 1.7; max-width: 260px; }
-    .footer-social { display: flex; gap: 10px; margin-top: 18px; }
-    .footer-social a {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: rgba(255,255,255,0.08);
-      display: flex; align-items: center; justify-content: center;
-      color: rgba(255,255,255,0.65); font-size: 15px;
-      text-decoration: none; transition: var(--transition);
-    }
-    .footer-social a:hover { background: var(--accent); color: white; transform: translateY(-2px); }
-    .footer-col-title { font-size: 13px; font-weight: 800; color: white; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 16px; }
-    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-    .footer-links a { font-size: 13.5px; color: rgba(255,255,255,0.50); text-decoration: none; transition: var(--transition); }
-    .footer-links a:hover { color: var(--accent); padding-right: 4px; }
-    .footer-bottom {
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding-top: 24px;
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px;
-      font-size: 13px; color: rgba(255,255,255,0.35);
-    }
-    .footer-bottom a { color: var(--accent); text-decoration: none; }
-
-    /* ══════════════════════════════════
-       SCROLL TO TOP
-    ══════════════════════════════════ */
-    .scroll-top {
-      position: fixed; bottom: 28px; left: 28px; z-index: 900;
-      width: 46px; height: 46px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
-      color: white; border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; box-shadow: 0 4px 16px rgba(21,101,192,0.40);
-      transition: var(--transition);
-      opacity: 0; pointer-events: none;
-    }
-    .scroll-top.visible { opacity: 1; pointer-events: all; }
-    .scroll-top:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(21,101,192,0.50); }
-
-    /* ══════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════ */
-    @media (max-width: 992px) {
-      .nav-links { display: none; }
-      .nav-toggle { display: flex; }
-      .hero { padding: 100px 0 60px; }
-      .hero-visual { display: none; }
-    }
-    @media (max-width: 600px) {
-      .hero-stats { gap: 20px; }
-      .hero-stat-value { font-size: 26px; }
+    @media(max-width:600px){
+      .hero-stats{gap:20px;}
+      .hero-stat-value{font-size:26px;}
     }
   </style>
 </head>
-
 <body>
 
-<!-- ════ MOBILE MENU ════ -->
+<!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
   <a href="#courts"   onclick="closeMobileMenu()">الملاعب</a>
   <a href="#features" onclick="closeMobileMenu()">مميزاتنا</a>
   <a href="#pricing"  onclick="closeMobileMenu()">الأسعار</a>
+  <a href="#store"    onclick="closeMobileMenu()">المتجر</a>
   <a href="#contact"  onclick="closeMobileMenu()">تواصل معنا</a>
   <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()"
      style="background:linear-gradient(135deg,var(--accent),var(--blue-light));margin-top:10px;border-radius:30px;padding:14px 36px;">
@@ -778,13 +273,11 @@
   </a>
 </div>
 
-<!-- ════ NAVBAR ════ -->
+<!-- NAVBAR -->
 <nav class="navbar-z" id="navbar">
   <div class="nav-inner">
     <a href="{{ url_for('main.index') }}" class="nav-brand">
-      <div class="nav-brand-icon">
-        <i class="fas fa-table-tennis-paddle-ball"></i>
-      </div>
+      <div class="nav-brand-icon"><i class="fas fa-table-tennis-paddle-ball"></i></div>
       <span class="nav-brand-name">Z Padel</span>
     </a>
     <div class="nav-links">
@@ -792,6 +285,7 @@
       <a href="#features" class="nav-link-item">مميزاتنا</a>
       <a href="#pricing"  class="nav-link-item">الأسعار</a>
       <a href="#steps"    class="nav-link-item">كيف تحجز؟</a>
+      <a href="#store"    class="nav-link-item">المتجر</a>
       <a href="#contact"  class="nav-link-item">تواصل معنا</a>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
@@ -805,7 +299,7 @@
   </div>
 </nav>
 
-<!-- ════ HERO ════ -->
+<!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-bg-dots"></div>
   <div class="hero-blob-1"></div>
@@ -815,236 +309,104 @@
   <svg class="court-deco" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
     <path d="M20,20 L480,20 L480,280 L20,280 Z M20,150 L480,150 M250,20 L250,280 M80,20 L80,280 M420,20 L420,280 M20,80 L80,80 M420,80 L480,80 M20,220 L80,220 M420,220 L480,220"/>
   </svg>
-
   <div class="container-z" style="position:relative;z-index:2;">
     <div class="row align-items-center">
       <div class="col-lg-6">
         <div class="hero-content">
-          <div class="hero-tag">
-            <i class="fas fa-location-dot"></i>
-            دهوك، كردستان العراق
-          </div>
-          <h1 class="hero-title">
-            العب الباديل<br/>
-            بأعلى <span>مستوى</span>
-          </h1>
-          <p class="hero-subtitle">
-            Z Padel — وجهتك الأولى لرياضة الباديل في دهوك.
-            ملاعب احترافية، أجواء مميزة، وحجز سهل في دقائق.
-          </p>
+          <div class="hero-tag"><i class="fas fa-location-dot"></i> دهوك، كردستان العراق</div>
+          <h1 class="hero-title">العب الباديل<br/>بأعلى <span>مستوى</span></h1>
+          <p class="hero-subtitle">Z Padel — وجهتك الأولى لرياضة الباديل في دهوك. ملاعب احترافية، أجواء مميزة، وحجز سهل في دقائق.</p>
           <div class="hero-btns">
             <a href="{{ url_for('booking.index') }}" class="btn-hero-primary">
-              <i class="fas fa-calendar-plus"></i>
-              احجز ملعبك الآن
+              <i class="fas fa-calendar-plus"></i> احجز ملعبك الآن
             </a>
             <a href="#courts" class="btn-hero-outline">
-              <i class="fas fa-shield-halved"></i>
-              شاهد ملاعبنا
+              <i class="fas fa-shield-halved"></i> شاهد ملاعبنا
             </a>
           </div>
           <div class="hero-stats">
-            <div class="hero-stat">
-              <div class="hero-stat-value">3<span>+</span></div>
-              <div class="hero-stat-label">ملاعب احترافية</div>
-            </div>
-            <div class="hero-stat">
-              <div class="hero-stat-value">{{ total_bookings|default(0) }}<span>+</span></div>
-              <div class="hero-stat-label">حجز منجز</div>
-            </div>
-            <div class="hero-stat">
-              <div class="hero-stat-value">25<span>%</span></div>
-              <div class="hero-stat-label">خصم 12–16</div>
-            </div>
+            <div class="hero-stat"><div class="hero-stat-value">3<span>+</span></div><div class="hero-stat-label">ملاعب احترافية</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">{{ total_bookings|default(0) }}<span>+</span></div><div class="hero-stat-label">حجز منجز</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">25<span>%</span></div><div class="hero-stat-label">خصم 12–16</div></div>
           </div>
         </div>
       </div>
-
       <div class="col-lg-6 d-none d-lg-block">
         <div class="hero-visual" style="position:relative;">
-          <!-- Court availability card -->
           <div class="hero-court-card">
             <div class="hcc-header">
               <div class="hcc-title">توفر الملاعب — اليوم</div>
               <div class="hcc-date" id="heroDate"></div>
             </div>
             <div class="hcc-slots">
-              {% set sample_slots = [
-                ('06','free'),('07','free'),('08','free'),('09','booked'),('10','free'),('11','free'),
-                ('12','off'),('13','off'),('14','off'),('15','off'),('16','free'),('17','booked'),
-                ('18','booked'),('19','free'),('20','free'),('21','free'),('22','free'),('23','free'),
-              ] %}
-              {% for slot, status in sample_slots %}
-                <div class="hcc-slot {{ status }}" title="{{ slot }}:00">{{ slot }}</div>
-              {% endfor %}
+              {% set sample_slots = [('06','free'),('07','free'),('08','free'),('09','booked'),('10','free'),('11','free'),('12','off'),('13','off'),('14','off'),('15','off'),('16','free'),('17','booked'),('18','booked'),('19','free'),('20','free'),('21','free'),('22','free'),('23','free')] %}
+              {% for slot,status in sample_slots %}<div class="hcc-slot {{ status }}" title="{{ slot }}:00">{{ slot }}</div>{% endfor %}
             </div>
             <div class="hcc-courts">
               {% for court in courts %}
               <div class="hcc-court-row">
-                <div class="hcc-court-name">
-                  <div class="hcc-court-dot" style="background:{{ court.color|default('#1565C0') }};"></div>
-                  {{ court.name }}
-                </div>
-                <div class="hcc-court-status" style="color:{{ '#43A047' if court.is_active else '#9E9E9E' }};">
-                  {{ 'متاح' if court.is_active else 'مغلق' }}
-                </div>
+                <div class="hcc-court-name"><div class="hcc-court-dot" style="background:{{ court.color|default('#1565C0') }};"></div>{{ court.name }}</div>
+                <div class="hcc-court-status" style="color:{{ '#43A047' if court.is_active else '#9E9E9E' }};">{{ 'متاح' if court.is_active else 'مغلق' }}</div>
               </div>
               {% else %}
-              <div class="hcc-court-row">
-                <div class="hcc-court-name"><div class="hcc-court-dot" style="background:#1565C0;"></div>ملعب Z1</div>
-                <div class="hcc-court-status" style="color:#43A047;">متاح</div>
-              </div>
-              <div class="hcc-court-row">
-                <div class="hcc-court-name"><div class="hcc-court-dot" style="background:#00B0FF;"></div>ملعب Z2</div>
-                <div class="hcc-court-status" style="color:#43A047;">متاح</div>
-              </div>
-              <div class="hcc-court-row">
-                <div class="hcc-court-name"><div class="hcc-court-dot" style="background:#43A047;"></div>ملعب Z3 (1v1)</div>
-                <div class="hcc-court-status" style="color:#43A047;">متاح</div>
-              </div>
+              <div class="hcc-court-row"><div class="hcc-court-name"><div class="hcc-court-dot" style="background:#1565C0;"></div>ملعب Z1</div><div class="hcc-court-status" style="color:#43A047;">متاح</div></div>
+              <div class="hcc-court-row"><div class="hcc-court-name"><div class="hcc-court-dot" style="background:#00B0FF;"></div>ملعب Z2</div><div class="hcc-court-status" style="color:#43A047;">متاح</div></div>
               {% endfor %}
             </div>
-            <a href="{{ url_for('booking.index') }}" class="hcc-book-btn">
-              <i class="fas fa-calendar-plus"></i> احجز الآن
-            </a>
+            <a href="{{ url_for('booking.index') }}" class="hcc-book-btn"><i class="fas fa-calendar-plus"></i> احجز الآن</a>
           </div>
-
-          <!-- Floating badges -->
-          <div class="hero-badge hb-1">
-            <div class="hero-badge-icon"><i class="fas fa-tag"></i></div>
-            <div>
-              <div class="hero-badge-val">25%</div>
-              <div class="hero-badge-lbl">خصم 12–16</div>
-            </div>
-          </div>
-          <div class="hero-badge hb-2">
-            <div class="hero-badge-icon"><i class="fas fa-star"></i></div>
-            <div>
-              <div class="hero-badge-val">4.9 ★</div>
-              <div class="hero-badge-lbl">تقييم اللاعبين</div>
-            </div>
-          </div>
+          <div class="hero-badge hb-1"><div class="hero-badge-icon"><i class="fas fa-tag"></i></div><div><div class="hero-badge-val">25%</div><div class="hero-badge-lbl">خصم 12–16</div></div></div>
+          <div class="hero-badge hb-2"><div class="hero-badge-icon"><i class="fas fa-star"></i></div><div><div class="hero-badge-val">4.9 ★</div><div class="hero-badge-lbl">تقييم اللاعبين</div></div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ COURTS ════ -->
-<section class="section" id="courts">
-  <div class="container-z">
-    <div class="reveal">
-      <span class="section-tag"><i class="fas fa-shield-halved"></i> ملاعبنا</span>
-      <h2 class="section-title">ملاعب <span>احترافية</span> لكل المستويات</h2>
-      <p class="section-sub">3 ملاعب مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى</p>
-    </div>
-    <div class="courts-grid">
-
-      <!-- Court 1 -->
-      <div class="court-card reveal">
-        <div class="court-card-img" style="background:linear-gradient(145deg,#0D47A1,#1565C0);">
-          <i class="fas fa-table-tennis-paddle-ball court-icon"></i>
-          <span class="court-num">ملعب 1</span>
-          <span class="court-tag"><i class="fas fa-users"></i> 2 × 2</span>
-        </div>
-        <div class="court-card-body">
-          <div class="court-card-name">ملعب Z1</div>
-          <div class="court-card-desc">ملعب مزدوج بمساحة واسعة مجهز بأحدث المعدات وإضاءة احترافية.</div>
-          <div class="court-features">
-            <span class="court-feature"><i class="fas fa-lightbulb"></i> إضاءة LED</span>
-            <span class="court-feature"><i class="fas fa-wind"></i> مكيف</span>
-            <span class="court-feature"><i class="fas fa-layer-group"></i> عشب صناعي</span>
-          </div>
-          <div class="court-price-row">
-            <div>
-              <div class="court-price">
-                25,000 <small>د.ع / ساعة</small>
-              </div>
-              <div style="margin-top:4px;">
-                <span class="court-feature" style="background:rgba(251,140,0,0.10);color:#E65100;">
-                  <i class="fas fa-tag"></i> 18,750 د.ع (12–16)
-                </span>
-              </div>
-            </div>
-            <a href="{{ url_for('booking.index') }}" class="btn-book-court">
-              <i class="fas fa-calendar-plus"></i> احجز
-            </a>
-          </div>
-        </div>
+<!-- COURTS -->
+<div class="courts-grid">
+  {% for court in courts %}
+  <div class="court-card reveal">
+    <div class="court-card-img" style="background:linear-gradient(145deg,{{ court.color|default('#0D47A1') }},{{ court.color|default('#1565C0') }}cc);">
+  {% if court.image %}
+    <img src="{{ url_for('static', filename='images/uploads/' ~ court.image) }}"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.9;z-index:0;">
+  {% endif %}
+  <i class="fas fa-table-tennis-paddle-ball court-icon" style="{% if court.image %}opacity:0;{% endif %}z-index:1;"></i>
+  <span class="court-num" style="z-index:2;">{{ court.name }}</span>
+  <span class="court-tag" style="z-index:2;"><i class="fas fa-users"></i> 2 × 2</span>
+</div>
+    <div class="court-card-body">
+      <div class="court-card-name">{{ court.name }}</div>
+      <div class="court-card-desc">{{ court.description or 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة احترافية.' }}</div>
+      <div class="court-features">
+        <span class="court-feature"><i class="fas fa-lightbulb"></i> إضاءة LED</span>
+        <span class="court-feature"><i class="fas fa-wind"></i> مكيف</span>
+        <span class="court-feature"><i class="fas fa-layer-group"></i> عشب صناعي</span>
       </div>
-
-      <!-- Court 2 -->
-      <div class="court-card reveal">
-        <div class="court-card-img" style="background:linear-gradient(145deg,#006064,#00838F);">
-          <i class="fas fa-table-tennis-paddle-ball court-icon"></i>
-          <span class="court-num">ملعب 2</span>
-          <span class="court-tag"><i class="fas fa-users"></i> 2 × 2</span>
-        </div>
-        <div class="court-card-body">
-          <div class="court-card-name">ملعب Z2</div>
-          <div class="court-card-desc">ملعب مزدوج بتصميم حديث وأرضية عالية الجودة مناسب للمحترفين.</div>
-          <div class="court-features">
-            <span class="court-feature"><i class="fas fa-lightbulb"></i> إضاءة LED</span>
-            <span class="court-feature"><i class="fas fa-wind"></i> مكيف</span>
-            <span class="court-feature"><i class="fas fa-shield-halved"></i> زجاج بانورامي</span>
-          </div>
-          <div class="court-price-row">
-            <div>
-              <div class="court-price">
-                25,000 <small>د.ع / ساعة</small>
-              </div>
-              <div style="margin-top:4px;">
-                <span class="court-feature" style="background:rgba(251,140,0,0.10);color:#E65100;">
-                  <i class="fas fa-tag"></i> 18,750 د.ع (12–16)
-                </span>
-              </div>
-            </div>
-            <a href="{{ url_for('booking.index') }}" class="btn-book-court">
-              <i class="fas fa-calendar-plus"></i> احجز
-            </a>
+      <div class="court-price-row">
+        <div>
+          <div class="court-price">{{ "{:,.0f}".format(court.price_per_hour or 25000) }} <small>د.ع / ساعة</small></div>
+          <div style="margin-top:4px;">
+            <span class="court-feature" style="background:rgba(251,140,0,0.10);color:#E65100;">
+              <i class="fas fa-tag"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000) * 0.75) }} د.ع (12–16)
+            </span>
           </div>
         </div>
+        <a href="{{ url_for('booking.index') }}" class="btn-book-court">
+          <i class="fas fa-calendar-plus"></i> احجز
+        </a>
       </div>
-
-      <!-- Court 3 — 1v1 -->
-      <div class="court-card reveal">
-        <div class="court-card-img" style="background:linear-gradient(145deg,#1B5E20,#2E7D32);">
-          <i class="fas fa-table-tennis-paddle-ball court-icon"></i>
-          <span class="court-num">ملعب 3</span>
-          <span class="court-tag" style="background:rgba(255,193,7,0.25);color:#FFD54F;border:1px solid rgba(255,193,7,0.3);">
-            <i class="fas fa-star"></i> 1 × 1
-          </span>
-        </div>
-        <div class="court-card-body">
-          <div class="court-card-name">ملعب Z3 <span style="font-size:13px;color:var(--text-muted);font-weight:500;">(فردي)</span></div>
-          <div class="court-card-desc">الملعب الفردي الوحيد في دهوك! مثالي للتدريب الشخصي وتحسين المهارات.</div>
-          <div class="court-features">
-            <span class="court-feature"><i class="fas fa-person-running"></i> تدريب فردي</span>
-            <span class="court-feature"><i class="fas fa-lightbulb"></i> إضاءة LED</span>
-            <span class="court-feature"><i class="fas fa-star" style="color:#FFC107;"></i> حصري</span>
-          </div>
-          <div class="court-price-row">
-            <div>
-              <div class="court-price">
-                20,000 <small>د.ع / ساعة</small>
-              </div>
-              <div style="margin-top:4px;">
-                <span class="court-feature" style="background:rgba(251,140,0,0.10);color:#E65100;">
-                  <i class="fas fa-tag"></i> 15,000 د.ع (12–16)
-                </span>
-              </div>
-            </div>
-            <a href="{{ url_for('booking.index') }}" class="btn-book-court">
-              <i class="fas fa-calendar-plus"></i> احجز
-            </a>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
-</section>
+  {% else %}
+  <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
+    لا توجد ملاعب متاحة حالياً
+  </div>
+  {% endfor %}
+</div>
 
-<!-- ════ FEATURES ════ -->
+<!-- FEATURES -->
 <section class="section section-alt" id="features">
   <div class="container-z">
     <div class="reveal" style="text-align:center;">
@@ -1054,16 +416,16 @@
     </div>
     <div class="features-grid">
       {% set features = [
-        ('fa-calendar-check',  'حجز سهل وسريع',        'احجز ملعبك في دقائق عبر الموقع، بدون دفع مسبق.'),
-        ('fa-tag',             'خصم 25%',               'استمتع بخصم 25% على جميع الملاعب من 12:00 حتى 16:00.'),
-        ('fa-person-running',  'مدربون محترفون',        'فريق من المدربين المتخصصين لمساعدتك في تطوير مهاراتك.'),
-        ('fa-shield-halved',   '3 ملاعب متنوعة',        'ملعبان مزدوجان وملعب فردي فريد من نوعه في دهوك.'),
-        ('fa-wind',            'بيئة مريحة',            'مكيفات حديثة وإضاءة LED احترافية لأفضل تجربة لعب.'),
-        ('fa-clock',           'ساعات عمل مرنة',        'مفتوح من الساعة 6 صباحاً حتى منتصف الليل كل يوم.'),
-        ('fa-bag-shopping',    'متجر متكامل',            'معدات الباديل الأصلية وكل ما تحتاجه في مكان واحد.'),
-        ('fa-location-dot',   'موقع مميز بدهوك',       'في قلب دهوك، سهل الوصول مع مواقف سيارات مريحة.'),
+        ('fa-calendar-check','حجز سهل وسريع','احجز ملعبك في دقائق عبر الموقع، بدون دفع مسبق.'),
+        ('fa-tag','خصم 25%','استمتع بخصم 25% على جميع الملاعب من 12:00 حتى 16:00.'),
+        ('fa-person-running','مدربون محترفون','فريق من المدربين المتخصصين لمساعدتك في تطوير مهاراتك.'),
+        ('fa-shield-halved','ملاعب متنوعة','ملاعب مزدوجة مجهزة بأعلى المواصفات.'),
+        ('fa-wind','بيئة مريحة','مكيفات حديثة وإضاءة LED احترافية لأفضل تجربة لعب.'),
+        ('fa-clock','ساعات عمل مرنة','مفتوح من الساعة 8 صباحاً حتى 11 مساءً كل يوم.'),
+        ('fa-bag-shopping','متجر متكامل','معدات الباديل الأصلية وكل ما تحتاجه في مكان واحد.'),
+        ('fa-location-dot','موقع مميز بدهوك','في قلب دهوك، سهل الوصول مع مواقف سيارات مريحة.'),
       ] %}
-      {% for icon, title, desc in features %}
+      {% for icon,title,desc in features %}
       <div class="feature-card reveal">
         <div class="feature-icon"><i class="fas {{ icon }}"></i></div>
         <div class="feature-title">{{ title }}</div>
@@ -1074,7 +436,7 @@
   </div>
 </section>
 
-<!-- ════ HOW IT WORKS ════ -->
+<!-- HOW IT WORKS -->
 <section class="section" id="steps">
   <div class="container-z">
     <div class="reveal" style="text-align:center;">
@@ -1084,12 +446,12 @@
     </div>
     <div class="steps-wrap">
       {% set steps = [
-        ('1', 'fa-calendar-days',  'اختر التاريخ والوقت', 'حدد اليوم والساعة المناسبة لك من جدول المواعيد المتاحة.'),
-        ('2', 'fa-shield-halved',  'اختر الملعب',          'اختر من بين 3 ملاعب متنوعة حسب رغبتك وعدد اللاعبين.'),
-        ('3', 'fa-user',           'أدخل بياناتك',        'اسمك ورقم هاتفك فقط — بدون حساب أو دفع مسبق.'),
-        ('4', 'fa-circle-check',   'تأكيد الحجز',          'ستصلك رسالة تأكيد وتحضر في الموعد. بهذه البساطة!'),
+        ('1','fa-calendar-days','اختر التاريخ والوقت','حدد اليوم والساعة المناسبة لك من جدول المواعيد المتاحة.'),
+        ('2','fa-shield-halved','اختر الملعب','اختر من بين الملاعب المتاحة حسب رغبتك وعدد اللاعبين.'),
+        ('3','fa-user','أدخل بياناتك','اسمك ورقم هاتفك فقط — بدون حساب أو دفع مسبق.'),
+        ('4','fa-circle-check','تأكيد الحجز','تأكيد فوري وتحضر في الموعد. بهذه البساطة!'),
       ] %}
-      {% for num, icon, title, desc in steps %}
+      {% for num,icon,title,desc in steps %}
       <div class="step-card reveal">
         <div class="step-num">{{ num }}</div>
         <i class="fas {{ icon }} step-icon"></i>
@@ -1101,7 +463,7 @@
   </div>
 </section>
 
-<!-- ════ PRICING ════ -->
+<!-- PRICING -->
 <section class="section section-alt" id="pricing">
   <div class="container-z">
     <div class="reveal" style="text-align:center;">
@@ -1110,22 +472,8 @@
       <p class="section-sub" style="margin:0 auto;">خصم 25% تلقائي من 12:00 حتى 16:00 على جميع الملاعب</p>
     </div>
     <div class="pricing-grid">
-
-      <div class="pricing-card reveal">
-        <div class="pricing-name">ملعب Z3 — فردي</div>
-        <div class="pricing-price">20,000<small> د.ع</small></div>
-        <div class="pricing-period">في الساعة</div>
-        <ul class="pricing-features">
-          <li><i class="fas fa-check-circle"></i> ملعب 1 × 1 فردي</li>
-          <li><i class="fas fa-check-circle"></i> مناسب للتدريب الشخصي</li>
-          <li><i class="fas fa-check-circle"></i> إضاءة احترافية</li>
-          <li><i class="fas fa-check-circle"></i> خصم 25% (12–16)</li>
-        </ul>
-        <a href="{{ url_for('booking.index') }}" class="btn-pricing">احجز الآن</a>
-      </div>
-
       <div class="pricing-card featured reveal">
-        <div class="pricing-name">ملعب Z1 / Z2 — مزدوج</div>
+        <div class="pricing-name">ملعب مزدوج</div>
         <div class="pricing-price" style="margin-top:20px;">25,000<small> د.ع</small></div>
         <div class="pricing-period">في الساعة</div>
         <ul class="pricing-features">
@@ -1137,43 +485,88 @@
         </ul>
         <a href="{{ url_for('booking.index') }}" class="btn-pricing">احجز الآن</a>
       </div>
-
       <div class="pricing-card reveal">
         <div class="pricing-name">ساعات الخصم</div>
         <div class="pricing-price">-25<small>%</small></div>
         <div class="pricing-period">12:00 — 16:00 يومياً</div>
         <ul class="pricing-features">
           <li><i class="fas fa-check-circle"></i> خصم تلقائي بدون كود</li>
-          <li><i class="fas fa-check-circle"></i> Z1/Z2: 18,750 د.ع</li>
-          <li><i class="fas fa-check-circle"></i> Z3: 15,000 د.ع</li>
+          <li><i class="fas fa-check-circle"></i> 18,750 د.ع للملعب</li>
           <li><i class="fas fa-check-circle"></i> على جميع الملاعب</li>
+          <li><i class="fas fa-check-circle"></i> يومياً بدون استثناء</li>
         </ul>
         <a href="{{ url_for('booking.index') }}" class="btn-pricing">استفد من الخصم</a>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ════ CTA ════ -->
+<!-- STORE SECTION -->
+<section class="section" id="store">
+  <div class="container-z">
+    <div class="reveal" style="text-align:center;">
+      <span class="section-tag"><i class="fas fa-bag-shopping"></i> متجرنا</span>
+      <h2 class="section-title">تسوق <span>معنا</span></h2>
+      <p class="section-sub" style="margin:0 auto;">معدات الباديل الأصلية، مشروبات، وكل ما تحتاجه قبل وبعد المباراة</p>
+    </div>
+
+    <!-- Show up to 4 featured products if any -->
+    {% set store_products = [] %}
+    {# We try to get products marked show_on_website — passed from route or empty #}
+    {% if store_products %}
+    <div class="store-products-grid">
+      {% for p in store_products[:4] %}
+      <a href="{{ url_for('store.shop') }}" class="store-prod-card reveal">
+        {% if p.image %}
+          <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" class="store-prod-img" alt="{{ p.name }}">
+        {% else %}
+          <div class="store-prod-placeholder"><i class="fas fa-box"></i></div>
+        {% endif %}
+        <div class="store-prod-body">
+          <div class="store-prod-name">{{ p.name }}</div>
+          <div class="store-prod-price">{{ "{:,.0f}".format(p.price) }} <small>د.ع</small></div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Placeholder cards when no products yet -->
+    <div class="store-products-grid reveal">
+      {% for item in [('fa-table-tennis-paddle-ball','مضرب باديل احترافي','45,000'),('fa-baseball','كرات باديل (3 حبات)','12,000'),('fa-bottle-water','مشروب طاقة','3,500'),('fa-shirt','يونيفورم Z Padel','25,000')] %}
+      <a href="{{ url_for('store.shop') }}" class="store-prod-card">
+        <div class="store-prod-placeholder"><i class="fas {{ item[0] }}"></i></div>
+        <div class="store-prod-body">
+          <div class="store-prod-name">{{ item[1] }}</div>
+          <div class="store-prod-price">{{ item[2] }} <small>د.ع</small></div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="store-cta-row reveal">
+      <a href="{{ url_for('store.shop') }}" class="btn-hero-primary">
+        <i class="fas fa-bag-shopping"></i> تصفح المتجر كاملاً
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
 <section class="cta-section">
   <div class="container-z">
     <div class="cta-inner reveal">
       <h2 class="cta-title">جاهز للعب؟ <span>احجز الآن!</span></h2>
       <p class="cta-sub">لا تنتظر — ملاعبنا تمتلئ بسرعة. احجز مكانك اليوم.</p>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-        <a href="{{ url_for('booking.index') }}" class="btn-hero-primary">
-          <i class="fas fa-calendar-plus"></i> احجز ملعبك الآن
-        </a>
-        <a href="#contact" class="btn-hero-outline">
-          <i class="fas fa-phone"></i> تواصل معنا
-        </a>
+        <a href="{{ url_for('booking.index') }}" class="btn-hero-primary"><i class="fas fa-calendar-plus"></i> احجز ملعبك الآن</a>
+        <a href="#contact" class="btn-hero-outline"><i class="fas fa-phone"></i> تواصل معنا</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ CONTACT ════ -->
+<!-- CONTACT -->
 <section class="section" id="contact">
   <div class="container-z">
     <div class="reveal">
@@ -1183,57 +576,34 @@
     </div>
     <div class="contact-grid">
       <div class="contact-info">
-        {% set contacts = [
-          ('fa-location-dot', 'الموقع',        'دهوك، كردستان العراق'),
-          ('fa-phone',        'الهاتف',         '0750 000 0000'),
-          ('fa-clock',        'ساعات العمل',    '6:00 ص — 12:00 م'),
-          ('fa-instagram',    'إنستغرام',       '@zpadel_duhok'),
-        ] %}
-        {% for icon, label, value in contacts %}
+        {% set contacts = [('fa-location-dot','الموقع','دهوك، كردستان العراق'),('fa-phone','الهاتف','0750 000 0000'),('fa-clock','ساعات العمل','8:00 ص — 11:00 م'),('fa-instagram','إنستغرام','@zpadel_duhok')] %}
+        {% for icon,label,value in contacts %}
         <div class="contact-item reveal">
           <div class="contact-item-icon"><i class="fas {{ icon }}"></i></div>
-          <div>
-            <div class="contact-item-label">{{ label }}</div>
-            <div class="contact-item-value">{{ value }}</div>
-          </div>
+          <div><div class="contact-item-label">{{ label }}</div><div class="contact-item-value">{{ value }}</div></div>
         </div>
         {% endfor %}
       </div>
       <div class="contact-form-card reveal">
-        <div class="contact-form-title">
-          <i class="fas fa-paper-plane"></i> أرسل لنا رسالة
-        </div>
+        <div class="contact-form-title"><i class="fas fa-paper-plane"></i> أرسل لنا رسالة</div>
         <form>
-          <div class="form-group">
-            <label>الاسم</label>
-            <input type="text" class="form-input" placeholder="اسمك الكامل"/>
-          </div>
-          <div class="form-group">
-            <label>رقم الهاتف</label>
-            <input type="tel" class="form-input" placeholder="07xx xxx xxxx" dir="ltr"/>
-          </div>
-          <div class="form-group">
-            <label>الرسالة</label>
-            <textarea class="form-input" rows="4" style="resize:none;" placeholder="كيف يمكننا مساعدتك؟"></textarea>
-          </div>
-          <button type="submit" class="btn-contact">
-            <i class="fas fa-paper-plane"></i> إرسال الرسالة
-          </button>
+          <div class="form-group"><label>الاسم</label><input type="text" class="form-input" placeholder="اسمك الكامل"/></div>
+          <div class="form-group"><label>رقم الهاتف</label><input type="tel" class="form-input" placeholder="07xx xxx xxxx" dir="ltr"/></div>
+          <div class="form-group"><label>الرسالة</label><textarea class="form-input" rows="4" style="resize:none;" placeholder="كيف يمكننا مساعدتك؟"></textarea></div>
+          <button type="submit" class="btn-contact"><i class="fas fa-paper-plane"></i> إرسال الرسالة</button>
         </form>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ FOOTER ════ -->
+<!-- FOOTER -->
 <footer class="footer">
   <div class="container-z">
     <div class="footer-grid">
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-          <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;">
-            <i class="fas fa-table-tennis-paddle-ball"></i>
-          </div>
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--blue-light),var(--blue-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;"><i class="fas fa-table-tennis-paddle-ball"></i></div>
           <div class="footer-brand-name">Z Padel</div>
         </div>
         <div class="footer-brand-desc">وجهتك الأولى لرياضة الباديل في دهوك. ملاعب احترافية، أجواء رياضية مميزة.</div>
@@ -1249,7 +619,6 @@
         <ul class="footer-links">
           <li><a href="{{ url_for('booking.index') }}">ملعب Z1 (مزدوج)</a></li>
           <li><a href="{{ url_for('booking.index') }}">ملعب Z2 (مزدوج)</a></li>
-          <li><a href="{{ url_for('booking.index') }}">ملعب Z3 (فردي)</a></li>
           <li><a href="#pricing">الأسعار والخصومات</a></li>
         </ul>
       </div>
@@ -1265,66 +634,38 @@
       <div>
         <div class="footer-col-title">ساعات العمل</div>
         <ul class="footer-links">
-          <li><a href="#">السبت – الخميس</a></li>
-          <li><a href="#">6:00 ص — 12:00 م</a></li>
+          <li><a href="#">يومياً</a></li>
+          <li><a href="#">8:00 ص — 11:00 م</a></li>
           <li><a href="#" style="color:rgba(0,176,255,0.80);">خصم 25%: 12–16</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <div>© {{ 2025 }} Z Padel — جميع الحقوق محفوظة</div>
-      <div>
-        <a href="{{ url_for('auth.login') }}">لوحة الإدارة</a>
-      </div>
+      <div>© 2025 Z Padel — جميع الحقوق محفوظة</div>
+      <div><a href="{{ url_for('auth.login') }}">لوحة الإدارة</a></div>
     </div>
   </div>
 </footer>
 
-<!-- Scroll to top -->
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
   <i class="fas fa-chevron-up"></i>
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ── Navbar scroll ──
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 60);
-  document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 300);
-});
-
-// ── Mobile menu ──
-function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open'); document.body.style.overflow='hidden'; }
-function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); document.body.style.overflow=''; }
-
-// ── Reveal on scroll ──
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      entry.target.style.transitionDelay = `${i * 0.05}s`;
-      entry.target.classList.add('visible');
-      observer.unobserve(entry.target);
-    }
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll',()=>{
+    navbar.classList.toggle('scrolled',window.scrollY>60);
+    document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>300);
   });
-}, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// ── Hero date ──
-const d = new Date();
-document.getElementById('heroDate').textContent =
-  d.toLocaleDateString('ar-IQ', { weekday:'short', month:'short', day:'numeric' });
-
-// ── Active nav link on scroll ──
-const sections = document.querySelectorAll('section[id]');
-window.addEventListener('scroll', () => {
-  let current = '';
-  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
-  document.querySelectorAll('.nav-link-item').forEach(a => {
-    a.style.fontWeight = a.getAttribute('href') === `#${current}` ? '800' : '600';
-  });
-});
+  function openMobileMenu() { document.getElementById('mobileMenu').classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeMobileMenu(){ document.getElementById('mobileMenu').classList.remove('open'); document.body.style.overflow=''; }
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach((e,i)=>{ if(e.isIntersecting){ e.target.style.transitionDelay=`${i*0.05}s`; e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+  const d=new Date();
+  document.getElementById('heroDate').textContent=d.toLocaleDateString('ar-IQ',{weekday:'short',month:'short',day:'numeric'});
 </script>
-
 </body>
 </html>

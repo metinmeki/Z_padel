@@ -1,4 +1,4 @@
-{% extends "admin/base_admin.html" %}
+{% extends "admin/base.html" %}
 
 {% block title %}إضافة ملعب — Z Padel{% endblock %}
 {% block page_icon %}fas fa-plus-circle{% endblock %}
@@ -20,7 +20,8 @@
       </div>
     </div>
     <div class="card-body-z">
-      <form method="POST" action="{{ url_for('admin.new_court') }}">
+      <form method="POST" action="{{ url_for('admin.new_court') }}"
+            enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="color" id="colorValue" value="#1565C0"/>
 
@@ -60,6 +61,32 @@
             <textarea name="description" class="form-control-z" rows="2"
                       placeholder="معلومات إضافية عن الملعب..."
                       style="resize:none;"></textarea>
+          </div>
+
+          <!-- IMAGE UPLOAD -->
+          <div class="col-12">
+            <label class="form-label-z">صورة الملعب <small style="color:var(--text-muted);font-weight:400;">(اختياري)</small></label>
+            <div id="imageDropArea"
+                 style="border:2px dashed var(--border-color);border-radius:var(--radius-sm);
+                        padding:24px;text-align:center;cursor:pointer;transition:var(--transition);
+                        background:var(--off-white);"
+                 onclick="document.getElementById('courtImage').click()"
+                 ondragover="event.preventDefault();this.style.borderColor='var(--brand-blue-light)'"
+                 ondragleave="this.style.borderColor='var(--border-color)'"
+                 ondrop="handleDrop(event)">
+              <div id="imagePreviewWrap" style="display:none;margin-bottom:12px;">
+                <img id="imagePreview" src="" alt=""
+                     style="max-height:160px;border-radius:var(--radius-sm);object-fit:cover;max-width:100%;"/>
+              </div>
+              <div id="imageUploadPrompt">
+                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--brand-blue-mid);display:block;margin-bottom:8px;"></i>
+                <div style="font-size:13px;font-weight:600;color:var(--text-dark);">اضغط لرفع صورة أو اسحبها هنا</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">PNG, JPG, WEBP — حتى 5MB</div>
+              </div>
+              <input type="file" name="image" id="courtImage"
+                     accept="image/*" style="display:none;"
+                     onchange="previewImage(this)"/>
+            </div>
           </div>
 
           <div class="col-12">
@@ -103,6 +130,29 @@ function pickColor(color, el) {
   });
   el.style.border = '3px solid var(--brand-blue)';
   el.innerHTML = '<i class="fas fa-check" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;"></i>';
+}
+
+function previewImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('imagePreview').src = e.target.result;
+    document.getElementById('imagePreviewWrap').style.display = 'block';
+    document.getElementById('imageUploadPrompt').style.display = 'none';
+    document.getElementById('imageDropArea').style.borderColor = 'var(--brand-blue-light)';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('imageDropArea').style.borderColor = 'var(--border-color)';
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('courtImage').files = dt.files;
+  previewImage(document.getElementById('courtImage'));
 }
 </script>
 {% endblock %}
