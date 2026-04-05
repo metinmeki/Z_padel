@@ -21,13 +21,17 @@ def allowed_file(filename):
             in current_app.config['ALLOWED_EXTENSIONS'])
 
 def save_upload(file, folder_key='UPLOAD_FOLDER'):
-    if file and allowed_file(file.filename):
-        ext  = file.filename.rsplit('.', 1)[1].lower()
-        name = f"{uuid.uuid4().hex}.{ext}"
-        path = os.path.join(current_app.config[folder_key], name)
-        file.save(path)
-        return name
-    return None
+    if not file or file.filename == '':
+        return None
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    if ext not in ['jpg', 'jpeg', 'png', 'webp', 'gif']:
+        return None
+    name = f"{uuid.uuid4().hex}.{ext}"
+    # Always save to static/images/uploads/ so url_for('static') works
+    upload_dir = os.path.join(current_app.static_folder, 'images', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    file.save(os.path.join(upload_dir, name))
+    return name
 
 def admin_required(f):
     from functools import wraps
@@ -280,19 +284,8 @@ def reject_cancel(req_id):
 @admin_bp.route('/courts')
 @login_required
 def courts():
-    from sqlalchemy import func
-    all_courts  = Court.query.all()
-    total_today = db.session.query(func.count(Booking.id)).filter(
-        Booking.booking_date == date.today(),
-        Booking.status != 'cancelled'
-    ).scalar() or 0
-    total_slots = len(all_courts) * 18
-    occ = round(total_today / total_slots * 100) if total_slots else 0
-    return render_template('admin/courts.html',
-        courts=all_courts,
-        total_today_bookings=total_today,
-        occupancy_rate=occ,
-        current_hour=datetime.now().hour)
+    all_courts = Court.query.all()
+    return render_template('admin/courts.html', courts=all_courts)
 
 
 @admin_bp.route('/courts/add', methods=['POST'])
@@ -312,19 +305,27 @@ def add_court():
     return redirect(url_for('admin.courts'))
 
 
-@admin_bp.route('/courts/<int:court_id>/edit', methods=['POST'])
+@admin_bp.route('/courts/<int:court_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_court(court_id):
-    c = Court.query.get_or_404(court_id)
-    c.name           = request.form.get('name', c.name)
-    c.price_per_hour = float(request.form.get('price_per_hour', c.price_per_hour))
-    c.color          = request.form.get('color', c.color)
-    c.description    = request.form.get('description', c.description)
-    c.capacity       = request.form.get('capacity') or c.capacity
-    c.surface_type   = request.form.get('surface_type', c.surface_type)
-    db.session.commit()
-    flash('تم تحديث الملعب.', 'success')
-    return redirect(url_for('admin.courts'))
+    court = Court.query.get_or_404(court_id)
+    if request.method == 'POST':
+        court.name           = request.form.get('name', court.name)
+        court.price_per_hour = float(request.form.get('price_per_hour', court.price_per_hour or 25000))
+        court.color          = request.form.get('color', court.color)
+        court.description    = request.form.get('description', court.description)
+        court.capacity       = request.form.get('capacity') or None
+        court.surface_type   = request.form.get('surface_type', court.surface_type)
+        court.is_active      = request.form.get('is_active', '1') == '1'
+        if request.form.get('remove_image'):
+            court.image = None
+        new_img = save_upload(request.files.get('image'))
+        if new_img:
+            court.image = new_img
+        db.session.commit()
+        flash('تم تحديث الملعب بنجاح.', 'success')
+        return redirect(url_for('admin.courts'))
+    return render_template('admin/edit_court.html', court=court)
 
 
 @admin_bp.route('/courts/<int:court_id>/toggle', methods=['POST'])

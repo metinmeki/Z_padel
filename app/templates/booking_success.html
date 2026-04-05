@@ -1,14 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Z Padel — تم الحجز بنجاح</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --brand:  #0ea5e9;
@@ -18,6 +16,8 @@
       --border: #132840;
       --text:   #e8f4fd;
       --muted:  #4a7a9b;
+      --green:  #22c55e;
+      --orange: #fbbf24;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -26,11 +26,11 @@
       min-height: 100vh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 2rem 1rem;
-      position: relative; overflow: hidden;
+      padding: 24px 16px;
+      position: relative; overflow-x: hidden;
     }
 
-    /* ── Animated bg ── */
+    /* BG glow */
     .bg-glow {
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
     }
@@ -42,33 +42,27 @@
       animation: bgPulse 4s ease-in-out infinite;
     }
     @keyframes bgPulse {
-      0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
-      50%       { transform: translateX(-50%) scale(1.1); opacity: .7; }
+      0%,100% { transform: translateX(-50%) scale(1);   opacity:1; }
+      50%      { transform: translateX(-50%) scale(1.1); opacity:.7; }
     }
 
-    /* Confetti particles */
-    .confetti-wrap {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      overflow: hidden;
-    }
+    /* Confetti */
+    .confetti-wrap { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
     .confetti-p {
-      position: absolute;
-      width: 7px; height: 7px;
-      border-radius: 1px;
-      animation: confFall linear forwards;
-      opacity: 0;
+      position: absolute; border-radius: 1px;
+      animation: confFall linear forwards; opacity:0;
     }
     @keyframes confFall {
-      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+      0%   { transform: translateY(-20px) rotate(0deg); opacity:1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
     }
 
-    /* ── Card ── */
+    /* Card */
     .success-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 2.8rem 2.2rem;
+      border-radius: 24px;
+      padding: 40px 32px;
       max-width: 500px; width: 100%;
       text-align: center;
       position: relative; z-index: 1;
@@ -76,167 +70,183 @@
       animation: cardIn .7s cubic-bezier(.22,1,.36,1) both;
     }
     @keyframes cardIn {
-      from { opacity: 0; transform: translateY(40px) scale(.95); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity:0; transform: translateY(40px) scale(.95); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
     }
 
-    /* ── Check icon ── */
-    .check-wrap {
-      width: 86px; height: 86px;
-      margin: 0 auto 1.6rem;
-      position: relative;
-    }
+    /* Check icon */
+    .check-wrap { width:86px; height:86px; margin:0 auto 20px; position:relative; }
     .check-ring {
-      width: 86px; height: 86px;
-      border-radius: 50%;
+      width:86px; height:86px; border-radius:50%;
       border: 3px solid rgba(14,165,233,.2);
-      position: absolute; inset: 0;
+      position:absolute; inset:0;
       animation: ringPop .6s .3s cubic-bezier(.22,1,.36,1) both;
     }
     @keyframes ringPop {
-      from { transform: scale(0); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
+      from { transform:scale(0); opacity:0; }
+      to   { transform:scale(1); opacity:1; }
     }
     .check-circle {
-      width: 86px; height: 86px;
-      border-radius: 50%;
+      width:86px; height:86px; border-radius:50%;
       background: radial-gradient(circle, rgba(14,165,233,.2) 0%, rgba(14,165,233,.05) 70%);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2.2rem; color: var(--brand);
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.2rem; color:var(--brand);
       animation: checkPop .5s .5s cubic-bezier(.22,1,.36,1) both;
     }
     @keyframes checkPop {
-      from { transform: scale(0) rotate(-20deg); opacity: 0; }
-      to   { transform: scale(1) rotate(0deg); opacity: 1; }
+      from { transform:scale(0) rotate(-20deg); opacity:0; }
+      to   { transform:scale(1) rotate(0deg); opacity:1; }
     }
-    /* Orbiting dot */
     .orbit-dot {
-      position: absolute;
-      width: 8px; height: 8px;
-      background: var(--brand);
-      border-radius: 50%;
-      top: -4px; left: 50%; margin-left: -4px;
+      position:absolute; width:8px; height:8px;
+      background:var(--brand); border-radius:50%;
+      top:-4px; left:50%; margin-left:-4px;
       transform-origin: 4px 47px;
       animation: orbit 2.5s linear infinite;
-      animation-delay: .8s;
-      opacity: 0;
+      animation-delay:.8s; opacity:0;
     }
-    .orbit-dot:nth-child(2) { animation-delay: 1.6s; background: #06b6d4; }
+    .orbit-dot:nth-child(2) { animation-delay:1.6s; background:#06b6d4; }
     @keyframes orbit {
-      0%   { opacity: 0; transform: rotate(0deg); }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      100% { opacity: 0; transform: rotate(360deg); }
+      0%   { opacity:0; transform:rotate(0deg); }
+      10%  { opacity:1; }
+      90%  { opacity:1; }
+      100% { opacity:0; transform:rotate(360deg); }
     }
 
     h1 {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.7rem; font-weight: 900;
-      margin-bottom: .4rem;
+      font-family:'Tajawal',sans-serif;
+      font-size:1.75rem; font-weight:900;
+      margin-bottom:6px;
       animation: fadeUp .5s .7s ease both;
     }
     .sub-text {
-      color: var(--muted); font-size: .9rem;
-      margin-bottom: 1.5rem;
+      color:var(--muted); font-size:.9rem;
+      margin-bottom:18px;
       animation: fadeUp .5s .8s ease both;
     }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
     }
 
-    /* ── Status badge ── */
+    /* Status badge */
     .status-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(245,158,11,.1);
+      display:inline-flex; align-items:center; gap:6px;
+      background: rgba(245,158,11,.10);
       border: 1px solid rgba(245,158,11,.25);
-      color: #fbbf24;
-      padding: .4rem 1.1rem; border-radius: 20px;
-      font-size: .8rem; font-weight: 800;
-      margin-bottom: 1.8rem;
+      color: var(--orange);
+      padding:.4rem 1.1rem; border-radius:20px;
+      font-size:.8rem; font-weight:800;
+      margin-bottom:24px;
       animation: fadeUp .5s .9s ease both;
     }
     .status-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #fbbf24;
-      animation: pulse 1.5s ease-in-out infinite;
+      width:7px; height:7px; border-radius:50%;
+      background:var(--orange);
+      animation: blink 1.5s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: .3; transform: scale(.6); }
+    @keyframes blink {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.3; transform:scale(.6); }
     }
 
-    /* ── Info rows ── */
+    /* Info table */
     .info-table {
       background: rgba(14,165,233,.04);
       border: 1px solid var(--border);
-      border-radius: 13px; overflow: hidden;
-      margin-bottom: 1.2rem;
+      border-radius:14px; overflow:hidden;
+      margin-bottom:14px;
       animation: fadeUp .5s 1s ease both;
     }
     .info-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: .75rem 1.1rem;
-      border-bottom: 1px solid var(--border);
-      font-size: .88rem;
-      transition: background .15s;
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 18px;
+      border-bottom:1px solid var(--border);
+      font-size:.88rem;
+      transition:background .15s;
     }
-    .info-row:last-child { border-bottom: none; }
-    .info-row:hover { background: rgba(14,165,233,.04); }
-    .info-lbl { color: var(--muted); font-weight: 600; }
-    .info-val { font-weight: 800; }
+    .info-row:last-child { border-bottom:none; }
+    .info-row:hover { background:rgba(14,165,233,.04); }
+    .info-lbl {
+      color:var(--muted); font-weight:600;
+      display:flex; align-items:center; gap:7px;
+    }
+    .info-lbl i { width:14px; text-align:center; color:var(--brand); font-size:11px; }
+    .info-val { font-weight:800; }
 
-    /* ── Total ── */
+    /* Booking ID chip */
+    .booking-id {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(14,165,233,.08);
+      border:1px solid rgba(14,165,233,.15);
+      color:#38bdf8; font-size:.8rem; font-weight:800;
+      padding:3px 12px; border-radius:6px;
+      letter-spacing:1px;
+    }
+
+    /* Total box */
     .total-box {
-      background: linear-gradient(135deg, rgba(14,165,233,.1) 0%, rgba(6,182,212,.05) 100%);
-      border: 1px solid rgba(14,165,233,.2);
-      border-radius: 13px; padding: 1.1rem;
-      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, rgba(14,165,233,.10) 0%, rgba(6,182,212,.05) 100%);
+      border: 1px solid rgba(14,165,233,.20);
+      border-radius:14px; padding:18px;
+      margin-bottom:14px;
       animation: fadeUp .5s 1.1s ease both;
     }
-    .total-lbl { color: var(--muted); font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+    .total-lbl { color:var(--muted); font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; }
     .total-val {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 2rem; font-weight: 900;
-      color: var(--brand);
+      font-family:'Tajawal',sans-serif;
+      font-size:2.1rem; font-weight:900; color:var(--brand);
     }
 
-    /* ── Buttons ── */
-    .btn-home {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: var(--brand); color: #fff;
-      padding: .88rem; border-radius: 11px;
-      font-weight: 800; font-size: .96rem;
-      text-decoration: none;
-      transition: all .2s;
-      box-shadow: 0 0 24px rgba(14,165,233,.3);
+    /* No prepay note */
+    .no-prepay {
+      display:flex; align-items:center; justify-content:center; gap:7px;
+      background:rgba(34,197,94,.08);
+      border:1px solid rgba(34,197,94,.20);
+      border-radius:10px; padding:10px 16px;
+      font-size:.82rem; font-weight:700; color:var(--green);
+      margin-bottom:20px;
+      animation: fadeUp .5s 1.15s ease both;
+    }
+
+    /* Buttons */
+    .btn-primary-z {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      background:var(--brand); color:#fff;
+      padding:14px; border-radius:12px;
+      font-family:'Cairo',sans-serif; font-weight:800; font-size:.96rem;
+      text-decoration:none; transition:all .2s;
+      box-shadow:0 0 24px rgba(14,165,233,.30);
       animation: fadeUp .5s 1.2s ease both;
     }
-    .btn-home:hover {
-      background: var(--dk); color: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(14,165,233,.45);
-    }
-    .btn-book-again {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: transparent; color: var(--muted);
-      border: 1px solid var(--border);
-      padding: .75rem; border-radius: 11px;
-      font-weight: 700; font-size: .9rem;
-      text-decoration: none; margin-top: .7rem;
-      transition: all .2s;
+    .btn-primary-z:hover { background:var(--dk); color:#fff; transform:translateY(-2px); box-shadow:0 8px 30px rgba(14,165,233,.45); }
+
+    .btn-outline-z {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      background:transparent; color:var(--muted);
+      border:1px solid var(--border);
+      padding:12px; border-radius:12px;
+      font-family:'Cairo',sans-serif; font-weight:700; font-size:.9rem;
+      text-decoration:none; margin-top:10px;
+      transition:all .2s;
       animation: fadeUp .5s 1.3s ease both;
     }
-    .btn-book-again:hover { color: var(--brand); border-color: var(--brand); background: rgba(14,165,233,.06); }
+    .btn-outline-z:hover { color:var(--brand); border-color:var(--brand); background:rgba(14,165,233,.06); }
 
-    /* ── Booking ID chip ── */
-    .booking-id {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(14,165,233,.08);
-      border: 1px solid rgba(14,165,233,.15);
-      color: #38bdf8; font-size: .75rem; font-weight: 800;
-      padding: 2px 10px; border-radius: 6px;
-      font-family: monospace; letter-spacing: 1px;
+    /* Discount note */
+    .discount-note {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(251,140,0,.10);
+      border:1px solid rgba(251,140,0,.20);
+      color:#fb8c00; font-size:.75rem; font-weight:700;
+      padding:2px 9px; border-radius:20px;
+      margin-top:5px;
+    }
+
+    @media(max-width:480px) {
+      .success-card { padding:28px 16px; border-radius:18px; }
+      h1 { font-size:1.5rem; }
+      .total-val { font-size:1.8rem; }
     }
   </style>
 </head>
@@ -247,14 +257,11 @@
 
 <div class="success-card">
 
-  <!-- Check icon -->
   <div class="check-wrap">
     <div class="check-ring"></div>
     <div class="orbit-dot"></div>
     <div class="orbit-dot"></div>
-    <div class="check-circle">
-      <i class="fas fa-check"></i>
-    </div>
+    <div class="check-circle"><i class="fas fa-check"></i></div>
   </div>
 
   <h1>تم استلام حجزك!</h1>
@@ -265,76 +272,94 @@
     بانتظار التأكيد
   </div>
 
-  <!-- Info table -->
   <div class="info-table">
     <div class="info-row">
-      <span class="info-lbl">رقم الحجز</span>
+      <span class="info-lbl"><i class="fas fa-hashtag"></i>رقم الحجز</span>
       <span class="booking-id">#{{ booking.id }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl">الاسم</span>
+      <span class="info-lbl"><i class="fas fa-user"></i>الاسم</span>
       <span class="info-val">{{ booking.customer_name }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl">الملعب</span>
-      <span class="info-val">{{ booking.court.name }}</span>
+      <span class="info-lbl"><i class="fas fa-phone"></i>الهاتف</span>
+      <span class="info-val" style="direction:ltr;">{{ booking.customer_phone }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl">التاريخ</span>
-      <span class="info-val">{{ booking.booking_date.strftime('%d / %m / %Y') }}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-lbl">الوقت</span>
-      <span class="info-val">
-        {{ booking.start_time.strftime('%H:%M') }}
-        <span style="color:var(--muted); font-size:.8rem;"> ← </span>
-        {{ booking.end_time.strftime('%H:%M') }}
+      <span class="info-lbl"><i class="fas fa-shield-halved"></i>الملعب</span>
+      <span class="info-val" style="display:flex;align-items:center;gap:6px;">
+        {% if booking.court %}
+          <span style="width:9px;height:9px;border-radius:50%;background:{{ booking.court.color or '#0ea5e9' }};display:inline-block;"></span>
+          {{ booking.court.name }}
+        {% else %}—{% endif %}
       </span>
+    </div>
+    <div class="info-row">
+      <span class="info-lbl"><i class="fas fa-calendar-day"></i>التاريخ</span>
+      <span class="info-val">{{ booking.booking_date.strftime('%d / %m / %Y') if booking.booking_date else '—' }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-lbl"><i class="fas fa-clock"></i>الوقت</span>
+      <div style="text-align:left;">
+        <span class="info-val" style="direction:ltr;display:block;">
+          {{ booking.start_time.strftime('%H:%M') if booking.start_time else '—' }}
+          <span style="color:var(--muted);font-size:.8rem;margin:0 4px;">—</span>
+          {{ booking.end_time.strftime('%H:%M') if booking.end_time else '—' }}
+        </span>
+        {% if booking.start_time and 12 <= booking.start_time.hour < 16 %}
+        <span class="discount-note"><i class="fas fa-tag" style="font-size:9px;"></i>خصم 25% مطبق</span>
+        {% endif %}
+      </div>
     </div>
   </div>
 
-  <!-- Total -->
   {% if booking.total_price %}
   <div class="total-box">
     <div class="total-lbl">المبلغ الإجمالي</div>
-    <div class="total-val">{{ "{:,.0f}".format(booking.total_price) }} <span style="font-size:1rem; color:var(--muted);">د.ع</span></div>
+    <div class="total-val">
+      {{ "{:,.0f}".format(booking.total_price) }}
+      <span style="font-size:1rem;color:var(--muted);font-weight:400;"> د.ع</span>
+    </div>
   </div>
   {% endif %}
 
-  <a href="/" class="btn-home">
+  <div class="no-prepay">
+    <i class="fas fa-circle-check"></i>
+    بدون دفع مسبق — ادفع عند الحضور فقط
+  </div>
+
+  <a href="{{ url_for('main.index') }}" class="btn-primary-z">
     <i class="fas fa-house"></i> العودة للرئيسية
   </a>
-  <a href="/booking" class="btn-book-again">
+  <a href="{{ url_for('booking.index') }}" class="btn-outline-z">
     <i class="fas fa-plus-circle"></i> حجز جديد
   </a>
 
 </div>
 
 <script>
-  /* ── Confetti ── */
-  const colors = ['#0ea5e9','#06b6d4','#38bdf8','#7dd3fc','#fbbf24','#4ade80','#f472b6'];
-  const wrap   = document.getElementById('confettiWrap');
+const colors = ['#0ea5e9','#06b6d4','#38bdf8','#7dd3fc','#fbbf24','#4ade80','#f472b6'];
+const wrap   = document.getElementById('confettiWrap');
 
-  function spawnConfetti() {
-    for (let i = 0; i < 60; i++) {
-      const el = document.createElement('div');
-      el.className = 'confetti-p';
-      el.style.cssText = `
-        left: ${Math.random() * 100}%;
-        top: ${-10 - Math.random() * 30}px;
-        background: ${colors[Math.floor(Math.random() * colors.length)]};
-        width: ${4 + Math.random() * 7}px;
-        height: ${4 + Math.random() * 7}px;
-        border-radius: ${Math.random() > .5 ? '50%' : '1px'};
-        animation-duration: ${2 + Math.random() * 3}s;
-        animation-delay: ${Math.random() * 1.5}s;
-      `;
-      wrap.appendChild(el);
-    }
-    setTimeout(() => { wrap.innerHTML = ''; }, 5000);
+function spawnConfetti() {
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-p';
+    el.style.cssText = `
+      left:${Math.random()*100}%;
+      top:${-10-Math.random()*30}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${4+Math.random()*7}px;
+      height:${4+Math.random()*7}px;
+      border-radius:${Math.random()>.5?'50%':'1px'};
+      animation-duration:${2+Math.random()*3}s;
+      animation-delay:${Math.random()*1.5}s;
+    `;
+    wrap.appendChild(el);
   }
-
-  setTimeout(spawnConfetti, 600);
+  setTimeout(()=>{ wrap.innerHTML=''; }, 5000);
+}
+setTimeout(spawnConfetti, 600);
 </script>
 </body>
 </html>

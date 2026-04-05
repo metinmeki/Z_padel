@@ -63,6 +63,7 @@ class Court(db.Model):
     surface_type   = db.Column(db.String(50),  nullable=True)
     is_active      = db.Column(db.Boolean,     default=True)
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
+    image          = db.Column(db.String(200), nullable=True)
 
     # lazy='select' prevents loading ALL bookings when court is accessed
     bookings = db.relationship('Booking', backref='court',
@@ -119,7 +120,6 @@ class Booking(db.Model):
 
     @property
     def waiting_minutes(self):
-        """Minutes since booking was created (pending only)."""
         if self.status != 'pending':
             return 0
         delta = datetime.utcnow() - self.created_at
@@ -127,7 +127,6 @@ class Booking(db.Model):
 
     @property
     def is_discount_slot(self):
-        """True if start time is in discount window (12:00–16:00)."""
         if self.start_time:
             return 12 <= self.start_time.hour < 16
         return False

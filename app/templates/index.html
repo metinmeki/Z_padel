@@ -151,7 +151,7 @@
     .feature-title{font-size:16px;font-weight:800;color:var(--blue-deep);margin-bottom:8px;}
     .feature-desc{font-size:13.5px;color:var(--text-muted);line-height:1.65;}
 
-    /* STORE SECTION */
+    /* STORE */
     .store-products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:40px;}
     .store-prod-card{background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:var(--transition);box-shadow:var(--shadow);text-decoration:none;color:inherit;display:flex;flex-direction:column;}
     .store-prod-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue-mid);}
@@ -325,7 +325,7 @@
             </a>
           </div>
           <div class="hero-stats">
-            <div class="hero-stat"><div class="hero-stat-value">3<span>+</span></div><div class="hero-stat-label">ملاعب احترافية</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">{{ courts|length }}<span>+</span></div><div class="hero-stat-label">ملاعب احترافية</div></div>
             <div class="hero-stat"><div class="hero-stat-value">{{ total_bookings|default(0) }}<span>+</span></div><div class="hero-stat-label">حجز منجز</div></div>
             <div class="hero-stat"><div class="hero-stat-value">25<span>%</span></div><div class="hero-stat-label">خصم 12–16</div></div>
           </div>
@@ -364,47 +364,56 @@
 </section>
 
 <!-- COURTS -->
-<div class="courts-grid">
-  {% for court in courts %}
-  <div class="court-card reveal">
-    <div class="court-card-img" style="background:linear-gradient(145deg,{{ court.color|default('#0D47A1') }},{{ court.color|default('#1565C0') }}cc);">
-  {% if court.image %}
-    <img src="{{ url_for('static', filename='images/uploads/' ~ court.image) }}"
-         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.9;z-index:0;">
-  {% endif %}
-  <i class="fas fa-table-tennis-paddle-ball court-icon" style="{% if court.image %}opacity:0;{% endif %}z-index:1;"></i>
-  <span class="court-num" style="z-index:2;">{{ court.name }}</span>
-  <span class="court-tag" style="z-index:2;"><i class="fas fa-users"></i> 2 × 2</span>
-</div>
-    <div class="court-card-body">
-      <div class="court-card-name">{{ court.name }}</div>
-      <div class="court-card-desc">{{ court.description or 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة احترافية.' }}</div>
-      <div class="court-features">
-        <span class="court-feature"><i class="fas fa-lightbulb"></i> إضاءة LED</span>
-        <span class="court-feature"><i class="fas fa-wind"></i> مكيف</span>
-        <span class="court-feature"><i class="fas fa-layer-group"></i> عشب صناعي</span>
-      </div>
-      <div class="court-price-row">
-        <div>
-          <div class="court-price">{{ "{:,.0f}".format(court.price_per_hour or 25000) }} <small>د.ع / ساعة</small></div>
-          <div style="margin-top:4px;">
-            <span class="court-feature" style="background:rgba(251,140,0,0.10);color:#E65100;">
-              <i class="fas fa-tag"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000) * 0.75) }} د.ع (12–16)
-            </span>
+<section class="section" id="courts">
+  <div class="container-z">
+    <div class="reveal">
+      <span class="section-tag"><i class="fas fa-shield-halved"></i> ملاعبنا</span>
+      <h2 class="section-title">ملاعب <span>احترافية</span> لكل المستويات</h2>
+      <p class="section-sub">ملاعب مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى</p>
+    </div>
+    <div class="courts-grid">
+      {% for court in courts %}
+      <div class="court-card reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s;">
+        <div class="court-card-img" style="background:linear-gradient(145deg,{{ court.color|default('#0D47A1') }},{{ court.color|default('#1565C0') }}cc);position:relative;overflow:hidden;">
+          {% if court.image %}
+            <img src="{{ url_for('static', filename='images/uploads/' ~ court.image) }}"
+                 style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+          {% endif %}
+          <i class="fas fa-table-tennis-paddle-ball court-icon" style="position:relative;z-index:1;{% if court.image %}opacity:0;{% endif %}"></i>
+          <span class="court-num">{{ court.name }}</span>
+          <span class="court-tag"><i class="fas fa-users"></i> 2 × 2</span>
+        </div>
+        <div class="court-card-body">
+          <div class="court-card-name">{{ court.name }}</div>
+          <div class="court-card-desc">{{ court.description or 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة احترافية.' }}</div>
+          <div class="court-features">
+            <span class="court-feature"><i class="fas fa-lightbulb"></i> إضاءة LED</span>
+            <span class="court-feature"><i class="fas fa-wind"></i> مكيف</span>
+            <span class="court-feature"><i class="fas fa-layer-group"></i> عشب صناعي</span>
+          </div>
+          <div class="court-price-row">
+            <div>
+              <div class="court-price">{{ "{:,.0f}".format(court.price_per_hour or 25000) }} <small>د.ع / ساعة</small></div>
+              <div style="margin-top:4px;">
+                <span class="court-feature" style="background:rgba(251,140,0,0.10);color:#E65100;">
+                  <i class="fas fa-tag"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000) * 0.75) }} د.ع (12–16)
+                </span>
+              </div>
+            </div>
+            <a href="{{ url_for('booking.index') }}" class="btn-book-court">
+              <i class="fas fa-calendar-plus"></i> احجز
+            </a>
           </div>
         </div>
-        <a href="{{ url_for('booking.index') }}" class="btn-book-court">
-          <i class="fas fa-calendar-plus"></i> احجز
-        </a>
       </div>
+      {% else %}
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
+        لا توجد ملاعب متاحة حالياً
+      </div>
+      {% endfor %}
     </div>
   </div>
-  {% else %}
-  <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
-    لا توجد ملاعب متاحة حالياً
-  </div>
-  {% endfor %}
-</div>
+</section>
 
 <!-- FEATURES -->
 <section class="section section-alt" id="features">
@@ -501,7 +510,7 @@
   </div>
 </section>
 
-<!-- STORE SECTION -->
+<!-- STORE -->
 <section class="section" id="store">
   <div class="container-z">
     <div class="reveal" style="text-align:center;">
@@ -509,10 +518,7 @@
       <h2 class="section-title">تسوق <span>معنا</span></h2>
       <p class="section-sub" style="margin:0 auto;">معدات الباديل الأصلية، مشروبات، وكل ما تحتاجه قبل وبعد المباراة</p>
     </div>
-
-    <!-- Show up to 4 featured products if any -->
     {% set store_products = [] %}
-    {# We try to get products marked show_on_website — passed from route or empty #}
     {% if store_products %}
     <div class="store-products-grid">
       {% for p in store_products[:4] %}
@@ -530,7 +536,6 @@
       {% endfor %}
     </div>
     {% else %}
-    <!-- Placeholder cards when no products yet -->
     <div class="store-products-grid reveal">
       {% for item in [('fa-table-tennis-paddle-ball','مضرب باديل احترافي','45,000'),('fa-baseball','كرات باديل (3 حبات)','12,000'),('fa-bottle-water','مشروب طاقة','3,500'),('fa-shirt','يونيفورم Z Padel','25,000')] %}
       <a href="{{ url_for('store.shop') }}" class="store-prod-card">
@@ -543,7 +548,6 @@
       {% endfor %}
     </div>
     {% endif %}
-
     <div class="store-cta-row reveal">
       <a href="{{ url_for('store.shop') }}" class="btn-hero-primary">
         <i class="fas fa-bag-shopping"></i> تصفح المتجر كاملاً
@@ -617,8 +621,12 @@
       <div>
         <div class="footer-col-title">الملاعب</div>
         <ul class="footer-links">
-          <li><a href="{{ url_for('booking.index') }}">ملعب Z1 (مزدوج)</a></li>
-          <li><a href="{{ url_for('booking.index') }}">ملعب Z2 (مزدوج)</a></li>
+          {% for court in courts %}
+          <li><a href="{{ url_for('booking.index') }}">{{ court.name }}</a></li>
+          {% else %}
+          <li><a href="{{ url_for('booking.index') }}">ملعب Z1</a></li>
+          <li><a href="{{ url_for('booking.index') }}">ملعب Z2</a></li>
+          {% endfor %}
           <li><a href="#pricing">الأسعار والخصومات</a></li>
         </ul>
       </div>

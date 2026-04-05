@@ -1,158 +1,218 @@
 {% extends "admin/base.html" %}
 
-{% block title %}إضافة ملعب — Z Padel{% endblock %}
-{% block page_icon %}fas fa-plus-circle{% endblock %}
-{% block page_title %}إضافة ملعب جديد{% endblock %}
+{% block title %}الملاعب — Z Padel{% endblock %}
+{% block page_icon %}fas fa-shield-halved{% endblock %}
+{% block page_title %}إدارة الملاعب{% endblock %}
+
+{% block extra_styles %}
+.courts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+  margin-top: 8px;
+}
+.court-card-admin {
+  background: white;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: var(--transition);
+}
+.court-card-admin:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.court-img-wrap {
+  height: 140px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.court-img-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.court-img-icon {
+  font-size: 44px;
+  color: rgba(255,255,255,0.85);
+  position: relative;
+  z-index: 1;
+}
+.court-status-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.court-status-badge.active   { background: rgba(67,160,71,0.90); color: white; }
+.court-status-badge.inactive { background: rgba(229,57,53,0.85); color: white; }
+.court-card-body {
+  padding: 16px;
+}
+.court-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.court-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.court-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.court-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.court-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.court-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+{% endblock %}
 
 {% block content %}
-<div style="max-width:640px;">
 
-  <a href="{{ url_for('admin.courts') }}"
-     style="display:inline-flex;align-items:center;gap:7px;color:var(--text-muted);
-            text-decoration:none;font-size:13px;font-weight:600;margin-bottom:20px;">
-    <i class="fas fa-arrow-right"></i> العودة للملاعب
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div style="font-size:22px;font-weight:900;color:var(--brand-blue-dark);">الملاعب</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">إدارة ملاعب Z Padel — التفعيل والتعديل والصور</div>
+  </div>
+  <a href="{{ url_for('admin.new_court') }}" class="btn-z-primary">
+    <i class="fas fa-plus"></i> إضافة ملعب جديد
   </a>
+</div>
 
-  <div class="card-z">
-    <div class="card-header-z">
-      <div class="card-title-z">
-        <i class="fas fa-shield-halved"></i> بيانات الملعب
-      </div>
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;">
+  <div class="stat-card blue">
+    <div class="stat-icon blue"><i class="fas fa-shield-halved"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ courts|length }}</div>
+      <div class="stat-label">إجمالي الملاعب</div>
     </div>
-    <div class="card-body-z">
-      <form method="POST" action="{{ url_for('admin.new_court') }}"
-            enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <input type="hidden" name="color" id="colorValue" value="#1565C0"/>
-
-        <div class="row g-3">
-
-          <div class="col-md-8">
-            <label class="form-label-z">اسم الملعب <span style="color:#e53935;">*</span></label>
-            <input type="text" name="name" class="form-control-z" required
-                   placeholder="مثال: ملعب Z1"/>
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label-z">السعة (لاعب)</label>
-            <input type="number" name="capacity" class="form-control-z"
-                   placeholder="4" min="1" max="20"/>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label-z">سعر الساعة (د.ع) <span style="color:#e53935;">*</span></label>
-            <input type="number" name="price_per_hour" class="form-control-z" required
-                   placeholder="25000" min="0" step="500"/>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label-z">نوع السطح</label>
-            <select name="surface_type" class="form-control-z">
-              <option value="">اختر النوع</option>
-              <option value="Artificial Grass">عشب صناعي</option>
-              <option value="Hard Court">أرضية صلبة</option>
-              <option value="Clay">تراب مضغوط</option>
-              <option value="Carpet">سجادة</option>
-            </select>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label-z">الوصف</label>
-            <textarea name="description" class="form-control-z" rows="2"
-                      placeholder="معلومات إضافية عن الملعب..."
-                      style="resize:none;"></textarea>
-          </div>
-
-          <!-- IMAGE UPLOAD -->
-          <div class="col-12">
-            <label class="form-label-z">صورة الملعب <small style="color:var(--text-muted);font-weight:400;">(اختياري)</small></label>
-            <div id="imageDropArea"
-                 style="border:2px dashed var(--border-color);border-radius:var(--radius-sm);
-                        padding:24px;text-align:center;cursor:pointer;transition:var(--transition);
-                        background:var(--off-white);"
-                 onclick="document.getElementById('courtImage').click()"
-                 ondragover="event.preventDefault();this.style.borderColor='var(--brand-blue-light)'"
-                 ondragleave="this.style.borderColor='var(--border-color)'"
-                 ondrop="handleDrop(event)">
-              <div id="imagePreviewWrap" style="display:none;margin-bottom:12px;">
-                <img id="imagePreview" src="" alt=""
-                     style="max-height:160px;border-radius:var(--radius-sm);object-fit:cover;max-width:100%;"/>
-              </div>
-              <div id="imageUploadPrompt">
-                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--brand-blue-mid);display:block;margin-bottom:8px;"></i>
-                <div style="font-size:13px;font-weight:600;color:var(--text-dark);">اضغط لرفع صورة أو اسحبها هنا</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">PNG, JPG, WEBP — حتى 5MB</div>
-              </div>
-              <input type="file" name="image" id="courtImage"
-                     accept="image/*" style="display:none;"
-                     onchange="previewImage(this)"/>
-            </div>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label-z">لون الملعب</label>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;" id="colorPicker">
-              {% for c in ['#1565C0','#00B0FF','#43A047','#FB8C00','#E53935','#7B1FA2','#009688','#F57F17','#0D47A1','#1B5E20'] %}
-              <div onclick="pickColor('{{ c }}', this)"
-                   style="width:32px;height:32px;border-radius:50%;background:{{ c }};
-                          cursor:pointer;border:3px solid {{ 'var(--brand-blue)' if loop.first else 'transparent' }};
-                          transition:all 0.2s;position:relative;">
-                {% if loop.first %}
-                  <i class="fas fa-check" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;"></i>
-                {% endif %}
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-
-        </div>
-
-        <div style="display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-color);">
-          <button type="submit" class="btn-z-primary">
-            <i class="fas fa-plus-circle"></i> إضافة الملعب
-          </button>
-          <a href="{{ url_for('admin.courts') }}" class="btn-z-outline">إلغاء</a>
-        </div>
-
-      </form>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ courts|selectattr('is_active')|list|length }}</div>
+      <div class="stat-label">نشطة</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.14s;">
+    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-circle-xmark"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ courts|rejectattr('is_active')|list|length }}</div>
+      <div class="stat-label">غير نشطة</div>
     </div>
   </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
-<script>
-function pickColor(color, el) {
-  document.getElementById('colorValue').value = color;
-  document.querySelectorAll('#colorPicker div').forEach(d => {
-    d.style.border = '3px solid transparent';
-    d.innerHTML = '';
-  });
-  el.style.border = '3px solid var(--brand-blue)';
-  el.innerHTML = '<i class="fas fa-check" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;"></i>';
-}
+{% if courts %}
+<div class="courts-grid">
+  {% for court in courts %}
+  <div class="court-card-admin">
+    <div class="court-img-wrap" style="background:linear-gradient(145deg,{{ court.color or '#0D47A1' }},{{ court.color or '#1565C0' }}cc);">
+      {% if court.image %}
+        <img src="{{ url_for('static', filename='images/uploads/' ~ court.image) }}" alt="{{ court.name }}">
+      {% endif %}
+      <i class="fas fa-table-tennis-paddle-ball court-img-icon" {% if court.image %}style="opacity:0;"{% endif %}></i>
+      <span class="court-status-badge {{ 'active' if court.is_active else 'inactive' }}">
+        <i class="fas fa-circle" style="font-size:7px;margin-left:4px;"></i>
+        {{ 'نشط' if court.is_active else 'غير نشط' }}
+      </span>
+    </div>
+    <div class="court-card-body">
+      <div class="court-name-row">
+        <div class="court-name">
+          <div class="court-color-dot" style="background:{{ court.color or '#1565C0' }};"></div>
+          {{ court.name }}
+        </div>
+        <div style="font-size:16px;font-weight:900;color:var(--brand-blue);">
+          {{ "{:,.0f}".format(court.price_per_hour or 0) }}
+          <small style="font-size:11px;font-weight:400;color:var(--text-muted);"> د.ع</small>
+        </div>
+      </div>
+      <div class="court-meta">
+        {% if court.surface_type %}
+        <span class="court-meta-item"><i class="fas fa-layer-group"></i> {{ court.surface_type }}</span>
+        {% endif %}
+        {% if court.capacity %}
+        <span class="court-meta-item"><i class="fas fa-users"></i> {{ court.capacity }} لاعب</span>
+        {% endif %}
+        <span class="court-meta-item"><i class="fas fa-calendar-check"></i> {{ court.total_bookings }} حجز</span>
+      </div>
+      {% if court.description %}
+      <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">{{ court.description[:80] }}{% if court.description|length > 80 %}...{% endif %}</div>
+      {% endif %}
+      <div class="court-actions">
+        <a href="{{ url_for('admin.edit_court', court_id=court.id) }}" class="btn-z-outline" style="flex:1;padding:8px;font-size:13px;justify-content:center;">
+          <i class="fas fa-pen"></i> تعديل
+        </a>
+        <form method="POST" action="{{ url_for('admin.toggle_court', court_id=court.id) }}" style="flex:1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-z-outline" style="width:100%;padding:8px;font-size:13px;
+            {{ 'color:#C62828;border-color:rgba(229,57,53,0.3);' if court.is_active else 'color:#2E7D32;border-color:rgba(67,160,71,0.3);' }}">
+            {% if court.is_active %}
+              <i class="fas fa-eye-slash"></i> تعطيل
+            {% else %}
+              <i class="fas fa-eye"></i> تفعيل
+            {% endif %}
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.delete_court', court_id=court.id) }}"
+              onsubmit="return confirm('حذف ملعب {{ court.name }}؟ سيتم حذف جميع حجوزاته.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-z-danger" style="padding:8px 12px;">
+            <i class="fas fa-trash"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:80px 20px;">
+  <i class="fas fa-shield-halved" style="font-size:48px;color:var(--brand-blue-mid);display:block;margin-bottom:16px;"></i>
+  <div style="font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:8px;">لا توجد ملاعب بعد</div>
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">أضف أول ملعب الآن</div>
+  <a href="{{ url_for('admin.new_court') }}" class="btn-z-primary"><i class="fas fa-plus"></i> إضافة ملعب</a>
+</div>
+{% endif %}
 
-function previewImage(input) {
-  if (!input.files || !input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('imagePreview').src = e.target.result;
-    document.getElementById('imagePreviewWrap').style.display = 'block';
-    document.getElementById('imageUploadPrompt').style.display = 'none';
-    document.getElementById('imageDropArea').style.borderColor = 'var(--brand-blue-light)';
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('imageDropArea').style.borderColor = 'var(--border-color)';
-  const file = e.dataTransfer.files[0];
-  if (!file || !file.type.startsWith('image/')) return;
-  const dt = new DataTransfer();
-  dt.items.add(file);
-  document.getElementById('courtImage').files = dt.files;
-  previewImage(document.getElementById('courtImage'));
-}
-</script>
 {% endblock %}
