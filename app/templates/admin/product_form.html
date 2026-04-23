@@ -2,7 +2,7 @@
 {% block title %}{{ 'تعديل منتج' if product else 'إضافة منتج' }}{% endblock %}
 {% block page_title %}{{ 'تعديل منتج' if product else 'إضافة منتج جديد' }}{% endblock %}
 
-{% block extra_css %}
+{% block extra_styles %}
 <style>
   .form-wrap { max-width: 660px; }
   .form-card { background: white; border: 1px solid var(--border-color); border-radius: 13px; padding: 1.8rem; }
@@ -50,15 +50,13 @@
 
 <div class="form-wrap">
 
-  <!-- ═══ EVERYTHING IS INSIDE ONE FORM ═══ -->
   <form method="POST"
         action="{{ url_for('admin.edit_product', product_id=product.id) if product else url_for('admin.new_product') }}"
         enctype="multipart/form-data">
 
-    <!-- CSRF token — correct way -->
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <!-- Visibility card — INSIDE the form -->
+    <!-- Visibility card -->
     <div class="visibility-card">
       <div class="vis-title">
         <i class="fas fa-eye" style="color:var(--brand-blue-light);"></i>
@@ -77,7 +75,7 @@
         <span class="always-badge"><i class="fas fa-check me-1"></i>دائماً</span>
       </div>
 
-      <!-- Website toggle — INSIDE the form so it submits -->
+      <!-- Website toggle -->
       <div class="vis-option web-option {% if product and product.show_on_website %}active{% endif %}" id="webOption">
         <div class="vis-left">
           <div class="vis-icon vi-web"><i class="fas fa-globe"></i></div>
@@ -175,15 +173,15 @@
         </a>
       </div>
 
-    </div><!-- end form-card -->
+    </div>
 
-  </form><!-- end form -->
+  </form>
 
 </div>
 
 <script>
-  const toggle  = document.getElementById('showOnWebsite');
-  const webOpt  = document.getElementById('webOption');
+  const toggle = document.getElementById('showOnWebsite');
+  const webOpt = document.getElementById('webOption');
   toggle.addEventListener('change', () => {
     webOpt.classList.toggle('active', toggle.checked);
   });

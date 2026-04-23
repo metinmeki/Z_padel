@@ -1,5 +1,4 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -7,10 +6,22 @@
   <title>Z Padel - المتجر</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --brand: #0ea5e9; --dark: #0f172a; --card: #1e293b; --border: #334155; }
+    :root {
+      --gold:       #D6C3A1;
+      --gold-deep:  #C9B48E;
+      --slate:      #596770;
+      --slate-deep: #2C3539;
+      --slate-light:#6E7F89;
+      --bg:         #1E2528;
+      --card:       #262E32;
+      --border:     #344048;
+      --text:       #EEE8DF;
+      --muted:      #7A8A93;
+    }
     * { box-sizing: border-box; }
-    body { background: var(--dark); color: #f1f5f9; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+    body { background: var(--bg); color: var(--text); font-family: 'Almarai', sans-serif; min-height: 100vh; }
 
     /* Nav */
     .store-nav {
@@ -18,16 +29,15 @@
       padding: .9rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
       position: sticky; top: 0; z-index: 100;
     }
-    .store-nav .brand { font-size: 1.3rem; font-weight: 900; color: var(--brand); text-decoration: none; }
+    .store-nav .brand { font-family:'Montserrat',sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--gold); text-decoration: none; letter-spacing:-0.5px; }
     .cart-btn {
-      background: var(--brand); color: #fff; border: none; border-radius: 10px;
-      padding: .5rem 1.1rem; font-weight: 700; font-size: .88rem;
-      text-decoration: none; display: flex; align-items: center; gap: 8px;
-      transition: background .15s;
+      background: linear-gradient(135deg,var(--gold),var(--slate)); color: #fff; border: none; border-radius: 10px;
+      padding: .5rem 1.1rem; font-family:'Montserrat',sans-serif; font-weight: 700; font-size: .88rem;
+      text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all .2s;
     }
-    .cart-btn:hover { background: #0284c7; color: #fff; }
+    .cart-btn:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(214,195,161,.25); color: #fff; }
     .cart-count {
-      background: #fff; color: var(--brand);
+      background: #fff; color: var(--slate-deep);
       border-radius: 50%; width: 20px; height: 20px;
       display: inline-flex; align-items: center; justify-content: center;
       font-size: .7rem; font-weight: 800;
@@ -35,8 +45,8 @@
 
     /* Hero */
     .store-hero { padding: 2.5rem 1.5rem 1.5rem; text-align: center; }
-    .store-hero h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; }
-    .store-hero p  { color: #64748b; font-size: .9rem; }
+    .store-hero h1 { font-family:'Montserrat',sans-serif; font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; letter-spacing:-0.5px; }
+    .store-hero p  { color: var(--muted); font-size: .9rem; }
 
     /* Grid */
     .products-grid {
@@ -50,53 +60,52 @@
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; overflow: hidden;
       display: flex; flex-direction: column;
-      transition: transform .15s, border-color .15s;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
     }
-    .prod-card:hover { transform: translateY(-3px); border-color: #475569; }
-    .prod-img {
-      width: 100%; aspect-ratio: 4/3; object-fit: cover;
-      background: #0f172a;
-    }
+    .prod-card:hover { transform: translateY(-4px); border-color: var(--gold-deep); box-shadow:0 8px 24px rgba(214,195,161,.12); }
+    .prod-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--slate-deep); }
     .prod-img-placeholder {
       width: 100%; aspect-ratio: 4/3;
-      background: #0f172a; display: flex; align-items: center; justify-content: center;
-      color: #334155; font-size: 2.5rem;
+      background: var(--slate-deep); display: flex; align-items: center; justify-content: center;
+      color: var(--border); font-size: 2.5rem;
     }
     .prod-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
-    .prod-name { font-weight: 700; font-size: .95rem; color: #f1f5f9; margin-bottom: 4px; }
-    .prod-desc { font-size: .78rem; color: #64748b; flex: 1; margin-bottom: .8rem; line-height: 1.5; }
+    .prod-name { font-family:'Montserrat',sans-serif; font-weight: 700; font-size: .95rem; color: var(--text); margin-bottom: 4px; }
+    .prod-desc { font-size: .78rem; color: var(--muted); flex: 1; margin-bottom: .8rem; line-height: 1.5; }
     .prod-footer { display: flex; justify-content: space-between; align-items: center; }
-    .prod-price { font-size: 1rem; font-weight: 800; color: var(--brand); }
-    .prod-price small { font-size: .65rem; font-weight: 500; color: #475569; }
+    .prod-price { font-family:'Montserrat',sans-serif; font-size: 1rem; font-weight: 800; color: var(--gold); }
+    .prod-price small { font-size: .65rem; font-weight: 500; color: var(--muted); }
 
     /* Add button */
     .btn-add {
       width: 34px; height: 34px; border-radius: 9px;
-      background: var(--brand); border: none; color: #fff;
+      background: linear-gradient(135deg,var(--gold),var(--slate)); border: none; color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: .85rem; cursor: pointer; transition: .15s;
+      font-size: .85rem; cursor: pointer; transition: .2s;
       position: relative;
     }
-    .btn-add:hover { background: #0284c7; }
-    .btn-add.added { background: #22c55e; }
+    .btn-add:hover { transform:scale(1.08); box-shadow:0 4px 12px rgba(214,195,161,.3); }
+    .btn-add.added { background: #6DBF82; }
     .btn-add .qty-badge {
       position: absolute; top: -6px; right: -6px;
-      background: #f59e0b; color: #fff;
+      background: var(--gold-deep); color: #fff;
       border-radius: 50%; width: 16px; height: 16px;
       font-size: .6rem; font-weight: 800;
       display: none; align-items: center; justify-content: center;
+      font-family:'Montserrat',sans-serif;
     }
     .btn-add.has-qty .qty-badge { display: flex; }
 
-    .out-badge { font-size: .65rem; color: #ef4444; font-weight: 600; }
+    .out-badge { font-size: .65rem; color: #EF9A9A; font-weight: 600; font-family:'Montserrat',sans-serif; }
 
     /* Toast */
     .toast-box {
       position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-      background: #22c55e; color: #fff; border-radius: 10px;
+      background: #6DBF82; color: #fff; border-radius: 10px;
       padding: .6rem 1.4rem; font-size: .85rem; font-weight: 600;
       opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999;
       display: flex; align-items: center; gap: 8px;
+      font-family:'Montserrat',sans-serif;
     }
     .toast-box.show { opacity: 1; }
   </style>
@@ -104,7 +113,7 @@
 <body>
 
 <nav class="store-nav">
-  <a href="{{ url_for('store.shop') }}" class="brand">Z PADEL <span style="font-size:.7rem; color:#64748b; font-weight:400;">متجر</span></a>
+  <a href="{{ url_for('store.shop') }}" class="brand">Z PADEL <span style="font-size:.7rem; color:var(--muted); font-weight:400;">متجر</span></a>
   <a href="{{ url_for('store.cart') }}" class="cart-btn">
     <i class="fas fa-shopping-cart"></i>
     السلة
@@ -113,7 +122,7 @@
 </nav>
 
 <div class="store-hero">
-  <h1>🛒 تسوق معنا</h1>
+  <h1>تسوق معنا</h1>
   <p>منتجات Z Padel — استلام فوري عند الدفع</p>
 </div>
 
@@ -150,7 +159,7 @@
   {% endfor %}
 </div>
 {% else %}
-<div style="text-align:center; padding:4rem; color:#334155;">
+<div style="text-align:center; padding:4rem; color:var(--muted);">
   <i class="fas fa-box-open" style="font-size:3rem; display:block; margin-bottom:1rem; opacity:.3;"></i>
   <p>لا توجد منتجات حالياً</p>
 </div>
@@ -161,7 +170,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const cartQtys = {};
-
 function addToCart(id, btn) {
   fetch(`/store/cart/add/${id}`, { method: 'POST' })
     .then(r => r.json())
@@ -177,11 +185,10 @@ function addToCart(id, btn) {
       showToast('تمت الإضافة للسلة ✓');
     });
 }
-
 function showToast(msg, ok = true) {
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
-  t.style.background = ok ? '#22c55e' : '#ef4444';
+  t.style.background = ok ? '#6DBF82' : '#EF9A9A';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
