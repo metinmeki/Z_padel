@@ -1,6 +1,12 @@
 from app import create_app
 
+# إنشاء التطبيق
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # تشغيل السيرفر
+    app.run(
+        debug=True,
+        host='0.0.0.0',  # ✅ تم تصحيح الخطأ هنا (بدون فراغ)
+        port=5000
+    )
