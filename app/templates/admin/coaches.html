@@ -1,363 +1,77 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}المدربون — Z Padel{% endblock %}
-{% block page_icon %}fas fa-person-running{% endblock %}
-{% block page_title %}المدربون{% endblock %}
-
-{% block extra_styles %}
-.stats-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 14px; margin-bottom: 22px;
-}
-.coaches-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-.coach-card {
-  background: white;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  transition: var(--transition);
-  animation: fadeSlideIn 0.4s ease both;
-}
-.coach-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
-  border-color: var(--brand-blue-mid);
-}
-.coach-card-top {
-  background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
-  padding: 24px 20px 20px;
-  text-align: center;
-  position: relative;
-}
-.coach-avatar {
-  width: 70px; height: 70px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: 3px solid rgba(255,255,255,0.30);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 28px; font-weight: 900; color: white;
-  margin: 0 auto 12px;
-}
-.coach-name { font-size: 16px; font-weight: 800; color: white; margin-bottom: 4px; }
-.coach-specialty {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.90);
-  padding: 3px 12px; border-radius: 20px;
-  font-size: 12px; font-weight: 600;
-}
-.active-dot {
-  position: absolute; top: 14px; left: 14px;
-  width: 10px; height: 10px; border-radius: 50%;
-  border: 2px solid white;
-}
-.active-dot.active   { background: #43A047; }
-.active-dot.inactive { background: #9E9E9E; }
-.coach-body { padding: 16px; }
-.coach-info-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 0; border-bottom: 1px solid var(--border-color);
-  font-size: 13px;
-}
-.coach-info-row:last-child { border-bottom: none; }
-.coach-info-row i { color: var(--brand-blue); width: 16px; text-align: center; font-size: 13px; }
-.coach-info-label { color: var(--text-muted); flex: 1; }
-.coach-info-value { font-weight: 700; color: var(--text-dark); }
-.coach-footer {
-  padding: 10px 14px;
-  border-top: 1px solid var(--border-color);
-  background: var(--off-white);
-  display: flex; gap: 7px;
-}
-.cf-btn {
-  flex: 1; padding: 7px 10px;
-  border-radius: var(--radius-sm); border: none;
-  font-size: 12.5px; font-weight: 700;
-  font-family: 'Cairo', sans-serif;
-  cursor: pointer; transition: var(--transition);
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  text-decoration: none;
-}
-.cf-btn.edit   { background: var(--brand-blue-soft); color: var(--brand-blue-dark); }
-.cf-btn.delete { background: rgba(229,57,53,0.10); color: #C62828; }
-.cf-btn:hover  { filter: brightness(0.93); transform: translateY(-1px); }
-.empty-state {
-  text-align: center; padding: 80px 20px; grid-column: 1/-1;
-}
-.empty-state i { font-size: 48px; color: var(--brand-blue-mid); margin-bottom: 14px; display: block; }
-.empty-state p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
-.modal-z .modal-content { border-radius: var(--radius); border: none; box-shadow: var(--shadow-lg); overflow: hidden; }
-.modal-z .modal-header { background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue)); color: white; border: none; padding: 16px 22px; }
-.modal-z.delete-modal .modal-header { background: linear-gradient(135deg,#B71C1C,#E53935); }
-.modal-z .modal-title { font-size: 16px; font-weight: 700; font-family: 'Cairo', sans-serif; display: flex; align-items: center; gap: 10px; }
-.modal-z .btn-close { filter: invert(1); opacity: 0.8; }
-.modal-z .modal-body   { padding: 22px; }
-.modal-z .modal-footer { border-top: 1px solid var(--border-color); padding: 14px 22px; gap: 8px; }
-{% endblock %}
+{% block title %}Coaches Management{% endblock %}
 
 {% block content %}
 
-<!-- Stats -->
-<div class="stats-strip">
-  <div class="stat-card blue" style="animation-delay:0s;">
-    <div class="stat-icon blue"><i class="fas fa-person-running"></i></div>
-    <div class="stat-info">
-      <div class="stat-value">{{ coaches|length if coaches else 0 }}</div>
-      <div class="stat-label">إجمالي المدربين</div>
+<div class="container-fluid">
+
+<h3 class="mb-4">🏆 Coaches</h3>
+
+<!-- Add Coach -->
+<form method="POST" action="{{ url_for('admin.add_coach') }}" enctype="multipart/form-data" class="card p-3 mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  <!-- ✅ ADD THIS -->
+
+  <div class="row">
+    <div class="col-md-4">
+      <label>Name</label>
+      <input type="text" name="name" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+      <label>Status</label>
+      <select name="status" class="form-control">
+        <option value="available">Available</option>
+        <option value="coming_soon">Coming Soon</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label>Image</label>
+      <input type="file" name="image" class="form-control">
+    </div>
+    <div class="col-md-12 mt-3">
+      <label>Bio</label>
+      <textarea name="bio" class="form-control"></textarea>
+    </div>
+    <div class="col-md-12 mt-3">
+      <button class="btn btn-success">Add Coach</button>
     </div>
   </div>
-  <div class="stat-card green" style="animation-delay:0.07s;">
-    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
-    <div class="stat-info">
-      <div class="stat-value">{{ coaches|selectattr('is_active','eq',true)|list|length if coaches else 0 }}</div>
-      <div class="stat-label">نشطون</div>
-    </div>
-  </div>
-  <div class="stat-card cyan" style="animation-delay:0.14s;">
-    <div class="stat-icon cyan"><i class="fas fa-dumbbell"></i></div>
-    <div class="stat-info">
-      <div class="stat-value">{{ training_requests_count|default(0) }}</div>
-      <div class="stat-label">طلبات التدريب</div>
-    </div>
-  </div>
+</form>
+
+<!-- Coaches Table -->
+<div class="card p-3">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>ID</th><th>Image</th><th>Name</th><th>Status</th><th>Active</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coach in coaches %}
+      <tr>
+        <td>{{ coach.id }}</td>
+        <td>
+          {% if coach.image %}
+            <img src="{{ url_for('static', filename=coach.image) }}" width="70">
+          {% else %}
+            <img src="{{ url_for('static', filename='images/coming-soon.jpg') }}" width="70">
+          {% endif %}
+        </td>
+        <td>{{ coach.name }}</td>
+        <td>{{ coach.status }}</td>
+        <td>{{ "Yes" if coach.is_active else "No" }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('admin.delete_coach', coach_id=coach.id) }}"
+                onsubmit="return confirm('Delete this coach?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  <!-- ✅ ADD THIS -->
+            <button class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
-<!-- Header -->
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
-  <div>
-    <div style="font-size:18px;font-weight:900;color:var(--brand-blue-deep);">إدارة المدربين</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">{{ coaches|length if coaches else 0 }} مدرب مسجل</div>
-  </div>
-  <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addCoachModal">
-    <i class="fas fa-plus"></i> إضافة مدرب
-  </button>
 </div>
-
-<!-- Coaches Grid -->
-<div class="coaches-grid">
-  {% if coaches %}
-    {% for coach in coaches %}
-    <div class="coach-card" style="animation-delay:{{ loop.index0 * 0.08 }}s;">
-      <div class="coach-card-top">
-        <div class="active-dot {{ 'active' if coach.is_active else 'inactive' }}"></div>
-        <div class="coach-avatar">{{ coach.name[0]|upper }}</div>
-        <div class="coach-name">{{ coach.name }}</div>
-        {% if coach.specialty %}
-          <span class="coach-specialty">
-            <i class="fas fa-star" style="font-size:10px;"></i>
-            {{ coach.specialty }}
-          </span>
-        {% endif %}
-      </div>
-      <div class="coach-body">
-        {% if coach.phone %}
-        <div class="coach-info-row">
-          <i class="fas fa-phone"></i>
-          <span class="coach-info-label">الهاتف</span>
-          <span class="coach-info-value" style="direction:ltr;">{{ coach.phone }}</span>
-        </div>
-        {% endif %}
-        <div class="coach-info-row">
-          <i class="fas fa-coins"></i>
-          <span class="coach-info-label">سعر الساعة</span>
-          <span class="coach-info-value">{{ "{:,.0f}".format(coach.price_per_hour|default(0)) }} د.ع</span>
-        </div>
-        <div class="coach-info-row">
-          <i class="fas fa-circle"></i>
-          <span class="coach-info-label">الحالة</span>
-          <span class="coach-info-value">
-            {% if coach.is_active %}
-              <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>نشط</span>
-            {% else %}
-              <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>موقوف</span>
-            {% endif %}
-          </span>
-        </div>
-        {% if coach.bio %}
-        <div class="coach-info-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;">
-            <i class="fas fa-info-circle" style="color:var(--brand-blue);"></i>
-            <span>نبذة</span>
-          </div>
-          <div style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">{{ coach.bio }}</div>
-        </div>
-        {% endif %}
-      </div>
-      <div class="coach-footer">
-        <button class="cf-btn edit"
-                onclick="openEditModal({{ coach.id }},'{{ coach.name|replace("'","\\'")|e }}','{{ coach.phone|default('')|e }}','{{ coach.specialty|default('')|replace("'","\\'")|e }}',{{ coach.price_per_hour|default(0) }},'{{ coach.bio|default('')|replace("'","\\'")|e }}',{{ 'true' if coach.is_active else 'false' }})">
-          <i class="fas fa-pen"></i> تعديل
-        </button>
-        <button class="cf-btn delete"
-                onclick="openDeleteModal({{ coach.id }},'{{ coach.name|replace("'","\\'")|e }}')">
-          <i class="fas fa-trash"></i> حذف
-        </button>
-      </div>
-    </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty-state">
-      <i class="fas fa-person-running"></i>
-      <p>لا يوجد مدربون بعد. أضف أول مدرب!</p>
-    </div>
-  {% endif %}
-</div>
-
-
-<!-- ADD MODAL -->
-<div class="modal fade modal-z" id="addCoachModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> إضافة مدرب جديد</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="POST" action="{{ url_for('admin.add_coach') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label-z">الاسم <span style="color:#e53935;">*</span></label>
-              <input type="text" name="name" class="form-control-z" required placeholder="اسم المدرب"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">رقم الهاتف</label>
-              <input type="tel" name="phone" class="form-control-z" placeholder="07xx xxx xxxx" dir="ltr"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">التخصص</label>
-              <input type="text" name="specialty" class="form-control-z" placeholder="مثال: باديل، لياقة بدنية"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">سعر الساعة (د.ع)</label>
-              <input type="number" name="price_per_hour" class="form-control-z" placeholder="0" min="0" step="500"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">الحالة</label>
-              <select name="is_active" class="form-control-z">
-                <option value="1">نشط</option>
-                <option value="0">موقوف</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <label class="form-label-z">نبذة</label>
-              <textarea name="bio" class="form-control-z" rows="2" style="resize:none;" placeholder="معلومات إضافية عن المدرب..."></textarea>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn-z-primary"><i class="fas fa-plus-circle"></i> إضافة</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT MODAL -->
-<div class="modal fade modal-z" id="editCoachModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-pen"></i> تعديل المدرب</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="POST" id="editCoachForm">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label-z">الاسم</label>
-              <input type="text" name="name" id="editName" class="form-control-z" required/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">رقم الهاتف</label>
-              <input type="tel" name="phone" id="editPhone" class="form-control-z" dir="ltr"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">التخصص</label>
-              <input type="text" name="specialty" id="editSpecialty" class="form-control-z"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">سعر الساعة (د.ع)</label>
-              <input type="number" name="price_per_hour" id="editPrice" class="form-control-z" min="0" step="500"/>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-z">الحالة</label>
-              <select name="is_active" id="editActive" class="form-control-z">
-                <option value="1">نشط</option>
-                <option value="0">موقوف</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <label class="form-label-z">نبذة</label>
-              <textarea name="bio" id="editBio" class="form-control-z" rows="2" style="resize:none;"></textarea>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn-z-primary"><i class="fas fa-floppy-disk"></i> حفظ</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- DELETE MODAL -->
-<div class="modal fade modal-z delete-modal" id="deleteCoachModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-trash"></i> حذف المدرب</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="POST" id="deleteCoachForm">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div class="modal-body" style="text-align:center;padding:28px 22px;">
-          <div style="width:64px;height:64px;background:rgba(229,57,53,0.10);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#E53935;margin:0 auto 14px;">
-            <i class="fas fa-person-running"></i>
-          </div>
-          <p style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:6px;">هل تريد حذف هذا المدرب؟</p>
-          <p style="font-size:13px;color:var(--text-muted);">
-            <strong id="deleteCoachName" style="color:#E53935;"></strong> — لا يمكن التراجع.
-          </p>
-        </div>
-        <div class="modal-footer" style="justify-content:center;">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal" style="min-width:100px;">إلغاء</button>
-          <button type="submit" class="btn-z-danger" style="min-width:120px;padding:9px 20px;">
-            <i class="fas fa-trash"></i> نعم، احذف
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-function openEditModal(id, name, phone, specialty, price, bio, isActive) {
-  document.getElementById('editCoachForm').action = `/admin/coaches/${id}/edit`;
-  document.getElementById('editName').value      = name;
-  document.getElementById('editPhone').value     = phone;
-  document.getElementById('editSpecialty').value = specialty;
-  document.getElementById('editPrice').value     = price;
-  document.getElementById('editBio').value       = bio;
-  document.getElementById('editActive').value    = isActive ? '1' : '0';
-  new bootstrap.Modal(document.getElementById('editCoachModal')).show();
-}
-function openDeleteModal(id, name) {
-  document.getElementById('deleteCoachForm').action = `/admin/coaches/${id}/delete`;
-  document.getElementById('deleteCoachName').textContent = name;
-  new bootstrap.Modal(document.getElementById('deleteCoachModal')).show();
-}
-</script>
 {% endblock %}

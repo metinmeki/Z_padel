@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      /* ═══ Z PADEL BRAND ═══ */
       --slate-deep:  #2C3539;
       --slate-dark:  #596770;
       --slate-main:  #596770;
@@ -397,53 +396,62 @@
 <script>
 const COURTS       = {{ courts_data | tojson }};
 const BOOKED_SLOTS = {{ booked_slots | tojson }};
-const OPEN=8, CLOSE=23, DS=12, DE=16, DPCT=0.25;
-let selDate=null, selCourt=null, selPrice=25000, selStart=null, dur=1;
 
-function buildDateStrip(){
-  const s=document.getElementById('dateStrip');
-  s.innerHTML='';
-  const t=new Date();
-  const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  for(let i=0;i<14;i++){
-    const d=new Date(t); d.setDate(t.getDate()+i);
-    const ds=d.toISOString().split('T')[0];
-    const b=document.createElement('button');
-    b.className='date-btn'+(i===0?' today active':'');
-    b.dataset.date=ds;
-    b.innerHTML=`<span class="dn">${DN[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dm">${MN[d.getMonth()]}</span>`;
-    b.onclick=()=>selectDate(b,ds);
+// ── 24-hour operation, discount 12:00–16:00 ──
+const OPEN = 0, CLOSE = 24, DS = 12, DE = 16, DPCT = 0.25;
+
+let selDate = null, selCourt = null, selPrice = 25000, selStart = null, dur = 1;
+
+function buildDateStrip() {
+  const s  = document.getElementById('dateStrip');
+  s.innerHTML = '';
+  const t  = new Date();
+  const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const MN = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  // Show 30 days starting from today
+  for (let i = 0; i < 30; i++) {
+    const d  = new Date(t);
+    d.setDate(t.getDate() + i);
+    const ds = d.toISOString().split('T')[0];
+    const b  = document.createElement('button');
+    b.className  = 'date-btn' + (i === 0 ? ' today active' : '');
+    b.dataset.date = ds;
+    b.innerHTML  = `<span class="dn">${DN[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dm">${MN[d.getMonth()]}</span>`;
+    b.onclick    = () => selectDate(b, ds);
     s.appendChild(b);
-    if(i===0) selDate=ds;
+    if (i === 0) selDate = ds;
   }
 }
 
-function selectDate(btn,ds){
-  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+function selectDate(btn, ds) {
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  selDate=ds; selStart=null;
-  renderSlots(); updateSummary();
+  selDate  = ds;
+  selStart = null;
+  renderSlots();
+  updateSummary();
 }
 
-function selectCourt(btn){
-  document.querySelectorAll('.court-tab').forEach(b=>b.classList.remove('active'));
+function selectCourt(btn) {
+  document.querySelectorAll('.court-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  selCourt=btn.dataset.courtId;
-  selPrice=parseFloat(btn.dataset.courtPrice)||25000;
-  selStart=null;
-  renderSlots(); updateSummary();
+  selCourt = btn.dataset.courtId;
+  selPrice = parseFloat(btn.dataset.courtPrice) || 25000;
+  selStart = null;
+  renderSlots();
+  updateSummary();
 }
 
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded', () => {
   buildDateStrip();
-  const f=document.querySelector('.court-tab');
-  if(f){
-    selCourt=f.dataset.courtId;
-    selPrice=parseFloat(f.dataset.courtPrice)||25000;
+  const f = document.querySelector('.court-tab');
+  if (f) {
+    selCourt = f.dataset.courtId;
+    selPrice = parseFloat(f.dataset.courtPrice) || 25000;
     renderSlots();
   } else {
-    document.getElementById('slotsContainer').innerHTML=
+    document.getElementById('slotsContainer').innerHTML =
       `<div style="text-align:center;padding:32px;color:var(--text-muted);">
         <i class="fas fa-shield-halved" style="font-size:28px;color:var(--sand-mid);display:block;margin-bottom:8px;"></i>
         <p style="font-size:13px;">لا توجد ملاعب متاحة</p>
@@ -451,84 +459,102 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 });
 
-function renderSlots(){
-  if(!selDate||!selCourt) return;
-  const booked=(BOOKED_SLOTS[`${selCourt}:${selDate}`])||[];
-  const now=new Date();
-  const isToday=selDate===now.toISOString().split('T')[0];
-  const nowH=now.getHours(); const nowM=now.getMinutes();
-  let html='<div class="slots-grid">';
-  for(let h=OPEN;h<CLOSE;h++){
-    const ts=`${String(h).padStart(2,'0')}:00`;
-    const past=isToday&&(h<nowH||(h===nowH&&nowM>0));
-    const bkd=booked.includes(ts);
-    const disc=h>=DS&&h<DE;
-    const sel=selStart===ts;
-    let cls='slot-btn ';
-    if(sel)       cls+='selected';
-    else if(past) cls+='past';
-    else if(bkd)  cls+='booked';
-    else if(disc) cls+='discount';
-    else          cls+='free';
-    const price=(disc?Math.round(selPrice*(1-DPCT)):selPrice).toLocaleString();
-    const ok=!past&&!bkd;
-    html+=`<div class="${cls}"${ok?` onclick="selectSlot('${ts}',${disc})"`:''}>
-      ${disc&&!sel&&!past&&!bkd?'<span class="slot-tag">خصم</span>':''}
+function renderSlots() {
+  if (!selDate || !selCourt) return;
+
+  const booked  = (BOOKED_SLOTS[`${selCourt}:${selDate}`]) || [];
+  const now     = new Date();
+  const isToday = selDate === now.toISOString().split('T')[0];
+  const nowH    = now.getHours();
+  const nowM    = now.getMinutes();
+
+  let html = '<div class="slots-grid">';
+
+  for (let h = OPEN; h < CLOSE; h++) {
+    const ts   = `${String(h).padStart(2, '0')}:00`;
+    const past = isToday && (h < nowH || (h === nowH && nowM > 0));
+    const bkd  = booked.includes(ts);
+    const disc = h >= DS && h < DE;
+    const sel  = selStart === ts;
+
+    let cls = 'slot-btn ';
+    if (sel)        cls += 'selected';
+    else if (past)  cls += 'past';
+    else if (bkd)   cls += 'booked';
+    else if (disc)  cls += 'discount';
+    else            cls += 'free';
+
+    const price = (disc ? Math.round(selPrice * (1 - DPCT)) : selPrice).toLocaleString();
+    const ok    = !past && !bkd;
+
+    html += `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${disc})"` : ''}>
+      ${disc && !sel && !past && !bkd ? '<span class="slot-tag">خصم</span>' : ''}
       <i class="fas fa-check slot-check"></i>
       <span class="slot-time">${ts}</span>
-      ${bkd?'<span class="slot-dur" style="color:#EF9A9A;font-size:8px;">محجوز</span>':'<span class="slot-dur">1س</span>'}
-      ${!bkd&&!past?`<span class="slot-price">${price}</span>`:''}
+      ${bkd
+        ? '<span class="slot-dur" style="color:#EF9A9A;font-size:8px;">محجوز</span>'
+        : '<span class="slot-dur">1س</span>'}
+      ${!bkd && !past ? `<span class="slot-price">${price}</span>` : ''}
     </div>`;
   }
-  html+='</div>';
-  document.getElementById('slotsContainer').innerHTML=html;
+
+  html += '</div>';
+  document.getElementById('slotsContainer').innerHTML = html;
 }
 
-function selectSlot(ts,disc){
-  selStart=ts;
-  const sh=parseInt(ts);
-  const em=sh*60+Math.round(dur*60);
-  const et=`${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
-  document.getElementById('f_court_id').value=selCourt;
-  document.getElementById('f_booking_date').value=selDate;
-  document.getElementById('f_start_time').value=ts;
-  document.getElementById('f_end_time').value=et;
-  renderSlots(); updateSummary();
-  const fc=document.getElementById('bookingFormCard');
-  fc.style.display='block';
-  if(window.innerWidth<=860) fc.scrollIntoView({behavior:'smooth',block:'start'});
+function selectSlot(ts, disc) {
+  selStart = ts;
+  const sh  = parseInt(ts);
+  const em  = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60); // clamp at midnight
+  const et  = `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
+
+  document.getElementById('f_court_id').value    = selCourt;
+  document.getElementById('f_booking_date').value = selDate;
+  document.getElementById('f_start_time').value  = ts;
+  document.getElementById('f_end_time').value    = et;
+
+  renderSlots();
+  updateSummary();
+
+  const fc = document.getElementById('bookingFormCard');
+  fc.style.display = 'block';
+  if (window.innerWidth <= 860) fc.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function setDuration(h,btn){
-  dur=h;
-  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+function setDuration(h, btn) {
+  dur = h;
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  if(selStart){
-    const sh=parseInt(selStart);
-    const em=sh*60+Math.round(h*60);
-    document.getElementById('f_end_time').value=
-      `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
+  if (selStart) {
+    const sh = parseInt(selStart);
+    const em = Math.min(sh * 60 + Math.round(h * 60), 24 * 60);
+    document.getElementById('f_end_time').value =
+      `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
   }
-  updateSummary(); renderSlots();
+  updateSummary();
+  renderSlots();
 }
 
-function updateSummary(){
-  const body=document.getElementById('summaryBody');
-  if(!selStart||!selCourt){
-    body.innerHTML=`<div class="summary-empty"><i class="fas fa-calendar-xmark"></i><p>اختر وقتاً لعرض التفاصيل</p></div>`;
+function updateSummary() {
+  const body = document.getElementById('summaryBody');
+  if (!selStart || !selCourt) {
+    body.innerHTML = `<div class="summary-empty"><i class="fas fa-calendar-xmark"></i><p>اختر وقتاً لعرض التفاصيل</p></div>`;
     return;
   }
-  const tab=document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
-  const name=tab?tab.dataset.courtName:'—';
-  const sh=parseInt(selStart);
-  const disc=sh>=DS&&sh<DE;
-  const total=Math.round((disc?selPrice*(1-DPCT):selPrice)*dur);
-  const em=sh*60+Math.round(dur*60);
-  const et=`${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
-  const d=new Date(selDate+'T00:00:00');
-  const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  body.innerHTML=`
+
+  const tab  = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
+  const name = tab ? tab.dataset.courtName : '—';
+  const sh   = parseInt(selStart);
+  const disc = sh >= DS && sh < DE;
+  const total = Math.round((disc ? selPrice * (1 - DPCT) : selPrice) * dur);
+  const em   = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
+  const et   = `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
+
+  const d  = new Date(selDate + 'T00:00:00');
+  const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const MN = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  body.innerHTML = `
     <div class="summary-field">
       <div class="sf-label"><i class="fas fa-shield-halved"></i>الملعب</div>
       <div class="sf-value">${name}</div>
@@ -543,13 +569,13 @@ function updateSummary(){
     </div>
     <div class="summary-field">
       <div class="sf-label"><i class="fas fa-hourglass"></i>المدة</div>
-      <div class="sf-value">${dur===1?'ساعة':dur===1.5?'ساعة ونص':'ساعتان'}</div>
+      <div class="sf-value">${dur === 1 ? 'ساعة' : dur === 1.5 ? 'ساعة ونص' : 'ساعتان'}</div>
     </div>
     <div class="price-total">
       <div class="price-total-label">الإجمالي</div>
       <div class="price-total-value">${total.toLocaleString()} <small>د.ع</small></div>
     </div>
-    ${disc?'<div class="discount-applied"><i class="fas fa-tag"></i> خصم 25% مطبق (12–16)</div>':''}`;
+    ${disc ? '<div class="discount-applied"><i class="fas fa-tag"></i> خصم 25% مطبق (12–16)</div>' : ''}`;
 }
 </script>
 </body>

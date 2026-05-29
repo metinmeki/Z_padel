@@ -121,9 +121,10 @@
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <div class="search-wrap">
         <i class="fas fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..." oninput="filterTable()"/>
+        <!-- ✅ FIXED: removed oninput="filterTable()" — handled via debounced event listener below -->
+        <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..."/>
       </div>
-      <select id="statusFilter" onchange="filterTable()"
+      <select id="statusFilter"
               style="padding:8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;outline:none;color:var(--text-dark);background:white;">
         <option value="">كل الحالات</option>
         <option value="pending">معلقة</option>
@@ -298,17 +299,30 @@
 
 {% block extra_scripts %}
 <script>
-function filterTable() {
-  const q      = document.getElementById('searchInput').value.toLowerCase();
-  const status = document.getElementById('statusFilter').value;
-  document.querySelectorAll('#requestsBody tr').forEach(row => {
-    const name  = row.dataset.name  || '';
-    const phone = row.dataset.phone || '';
-    const st    = row.dataset.status || '';
-    const mQ = !q      || name.includes(q) || phone.includes(q);
-    const mS = !status || st === status;
-    row.style.display = (mQ && mS) ? '' : 'none';
+(function () {
+  // ── Filter function ────────────────────────────────────────────────
+  function filterTable() {
+    var q      = document.getElementById('searchInput').value.toLowerCase();
+    var status = document.getElementById('statusFilter').value;
+    document.querySelectorAll('#requestsBody tr').forEach(function (row) {
+      var name  = row.dataset.name  || '';
+      var phone = row.dataset.phone || '';
+      var st    = row.dataset.status || '';
+      var mQ = !q      || name.includes(q) || phone.includes(q);
+      var mS = !status || st === status;
+      row.style.display = (mQ && mS) ? '' : 'none';
+    });
+  }
+
+  // ── Debounced search (200 ms) — FIXES the typing lag ──────────────
+  var _searchTimer;
+  document.getElementById('searchInput').addEventListener('input', function () {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(filterTable, 200);
   });
-}
+
+  // ── Status dropdown fires instantly (single click, no lag) ─────────
+  document.getElementById('statusFilter').addEventListener('change', filterTable);
+})();
 </script>
 {% endblock %}

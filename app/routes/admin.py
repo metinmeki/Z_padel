@@ -892,34 +892,63 @@ def training_requests():
 @login_required
 def add_coach():
     from app.models.main import Coach
+    import os
+    from werkzeug.utils import secure_filename
+
+    # Handle image upload
+    image_path = None
+    if 'image' in request.files and request.files['image'].filename != '':
+        file = request.files['image']
+        if file:
+            filename = secure_filename(file.filename)
+            # Save to static/uploads/coaches/
+            upload_dir = os.path.join('app/static/uploads/coaches')
+            os.makedirs(upload_dir, exist_ok=True)
+            file.save(os.path.join(upload_dir, filename))
+            image_path = f'uploads/coaches/{filename}'  # ✅ Store relative path
+
     c = Coach(
         name=request.form['name'],
-        phone=request.form.get('phone',''),
-        specialty=request.form.get('specialty',''),
-        price_per_hour=float(request.form.get('price_per_hour',0)),
-        bio=request.form.get('bio',''),
-        is_active=bool(int(request.form.get('is_active',1))),
+        phone=request.form.get('phone', ''),
+        specialty=request.form.get('specialty', ''),
+        price_per_hour=float(request.form.get('price_per_hour', 0)),
+        bio=request.form.get('bio', ''),
+        image=image_path,  # ✅ ADD THIS
+        is_active=bool(int(request.form.get('is_active', 1))),
     )
     db.session.add(c)
     db.session.commit()
     flash('تم إضافة المدرب.', 'success')
     return redirect(url_for('admin.coaches'))
 
+
 @admin_bp.route('/coaches/<int:coach_id>/edit', methods=['POST'])
 @login_required
 def edit_coach(coach_id):
     from app.models.main import Coach
+    import os
+    from werkzeug.utils import secure_filename
+
     c = Coach.query.get_or_404(coach_id)
-    c.name           = request.form.get('name', c.name)
-    c.phone          = request.form.get('phone', c.phone)
-    c.specialty      = request.form.get('specialty', c.specialty)
+
+    # Handle new image if uploaded
+    if 'image' in request.files and request.files['image'].filename != '':
+        file = request.files['image']
+        filename = secure_filename(file.filename)
+        upload_dir = os.path.join('app/static/uploads/coaches')
+        os.makedirs(upload_dir, exist_ok=True)
+        file.save(os.path.join(upload_dir, filename))
+        c.image = f'uploads/coaches/{filename}'
+
+    c.name = request.form.get('name', c.name)
+    c.phone = request.form.get('phone', c.phone)
+    c.specialty = request.form.get('specialty', c.specialty)
     c.price_per_hour = float(request.form.get('price_per_hour', c.price_per_hour))
-    c.bio            = request.form.get('bio', c.bio)
-    c.is_active      = bool(int(request.form.get('is_active', 1)))
+    c.bio = request.form.get('bio', c.bio)
+    c.is_active = bool(int(request.form.get('is_active', 1)))
     db.session.commit()
     flash('تم تحديث المدرب.', 'success')
     return redirect(url_for('admin.coaches'))
-
 @admin_bp.route('/coaches/<int:coach_id>/delete', methods=['POST'])
 @login_required
 def delete_coach(coach_id):
@@ -932,27 +961,41 @@ def delete_coach(coach_id):
 
 
 @admin_bp.route('/training-requests/add', methods=['POST'])
-@login_required
-def add_training_request():
+def add_training_request():  # ✅ REMOVED @login_required (public form)
     from app.models.main import TrainingRequest
     from datetime import datetime
-    tr = TrainingRequest(
-        customer_name=request.form['customer_name'],
-        customer_phone=request.form['customer_phone'],
-        coach_id=request.form.get('coach_id') or None,
-        preferred_date=datetime.strptime(request.form['preferred_date'], '%Y-%m-%d').date() if request.form.get('preferred_date') else None,
-        preferred_time=datetime.strptime(request.form['preferred_time'], '%H:%M').time() if request.form.get('preferred_time') else None,
-        status=request.form.get('status', 'pending'),
-        notes=request.form.get('notes', ''),
-    )
-    db.session.add(tr)
-    db.session.commit()
-    flash('تم إضافة طلب التدريب.', 'success')
-    return redirect(url_for('admin.training_requests'))
+
+    # ✅ Validate coach_id is provided
+    coach_id = request.form.get('coach_id')
+    if not coach_id:
+        flash('يرجى اختيار مدرب.', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+
+    try:
+        tr = TrainingRequest(
+            customer_name=request.form['customer_name'],
+            customer_phone=request.form['customer_phone'],
+            coach_id=int(coach_id),  # ✅ Convert to int
+            preferred_date=datetime.strptime(request.form['preferred_date'], '%Y-%m-%d').date() if request.form.get(
+                'preferred_date') else None,
+            preferred_time=datetime.strptime(request.form['preferred_time'], '%H:%M').time() if request.form.get(
+                'preferred_time') else None,
+            status=request.form.get('status', 'pending'),
+            notes=request.form.get('notes', ''),
+        )
+        db.session.add(tr)
+        db.session.commit()
+        flash('تم إرسال طلب التدريب! سنتواصل معك قريباً.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('حدث خطأ أثناء إرسال الطلب.', 'error')
+
+    # ✅ Redirect back to main, not admin
+    return redirect(request.referrer or url_for('main.index'))
 
 
 @admin_bp.route('/training-requests/<int:req_id>/confirm', methods=['POST'])
-@login_required
+@login_required  # ✅ Keep this (admin only)
 def confirm_training(req_id):
     from app.models.main import TrainingRequest
     tr = TrainingRequest.query.get_or_404(req_id)
@@ -963,7 +1006,7 @@ def confirm_training(req_id):
 
 
 @admin_bp.route('/training-requests/<int:req_id>/cancel', methods=['POST'])
-@login_required
+@login_required  # ✅ Keep this (admin only)
 def cancel_training(req_id):
     from app.models.main import TrainingRequest
     tr = TrainingRequest.query.get_or_404(req_id)
@@ -971,7 +1014,6 @@ def cancel_training(req_id):
     db.session.commit()
     flash('تم إلغاء طلب التدريب.', 'success')
     return redirect(url_for('admin.training_requests'))
-
 
 
 @admin_bp.route('/courts/new', methods=['GET', 'POST'])

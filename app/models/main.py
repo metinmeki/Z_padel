@@ -174,14 +174,9 @@ class Coach(db.Model):
     price_per_hour = db.Column(db.Float,       default=0)
     is_active      = db.Column(db.Boolean,     default=True)
     bio            = db.Column(db.Text,        nullable=True)
+    image          = db.Column(db.String(255), nullable=True)  # ✅ ADD THIS
+    status         = db.Column(db.String(50),  default='available')  # ✅ ADD THIS
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
-
-    training_requests = db.relationship('TrainingRequest', backref='coach',
-                                        lazy=True, cascade='all, delete-orphan')
-
-    def __repr__(self):
-        return f'<Coach {self.name}>'
-
 
 # ═══════════════════════════════════════════
 # TRAINING REQUEST

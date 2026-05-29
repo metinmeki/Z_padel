@@ -3,10 +3,12 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate  # ✅ ADD THIS
 from config import config
 
 # ── Extensions (created here, initialised in create_app) ──
 db           = SQLAlchemy()
+migrate      = Migrate()  # ✅ ADD THIS
 login_manager = LoginManager()
 csrf         = CSRFProtect()
 
@@ -19,6 +21,7 @@ def create_app(config_name: str = None):
 
     # ── Init extensions ──
     db.init_app(app)
+    migrate.init_app(app, db)  # ✅ ADD THIS
     csrf.init_app(app)
 
     login_manager.init_app(app)

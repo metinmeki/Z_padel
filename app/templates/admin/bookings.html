@@ -115,7 +115,7 @@
   box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
   width: 260px;
 }
-/* ── Booking row hover detail ── */
+/* ── Booking row ── */
 .booking-name {
   font-weight: 700;
   color: var(--text-dark);
@@ -150,7 +150,7 @@
   font-size: 11px;
   font-weight: 700;
 }
-/* ── Action buttons in table ── */
+/* ── Action buttons ── */
 .action-btns { display: flex; gap: 6px; }
 .action-btn {
   width: 30px; height: 30px;
@@ -528,15 +528,14 @@
 
             <div class="col-md-6">
               <label class="form-label-z">تاريخ الحجز <span style="color:#e53935;">*</span></label>
-              <input type="date" name="booking_date" class="form-control-z" required
-                     min="{{ today }}" id="bookingDate"/>
+              <input type="date" name="booking_date" class="form-control-z" required id="bookingDate"/>
             </div>
 
             <div class="col-md-6">
               <label class="form-label-z">وقت البداية <span style="color:#e53935;">*</span></label>
               <select name="start_time" class="form-control-z" required id="startTime" onchange="calcPrice()">
                 <option value="">اختر الوقت</option>
-                {% for h in range(6, 24) %}
+                {% for h in range(0, 24) %}
                   <option value="{{ '%02d'|format(h) }}:00">{{ '%02d'|format(h) }}:00</option>
                   <option value="{{ '%02d'|format(h) }}:30">{{ '%02d'|format(h) }}:30</option>
                 {% endfor %}
@@ -547,10 +546,11 @@
               <label class="form-label-z">وقت النهاية <span style="color:#e53935;">*</span></label>
               <select name="end_time" class="form-control-z" required id="endTime" onchange="calcPrice()">
                 <option value="">اختر الوقت</option>
-                {% for h in range(6, 24) %}
+                {% for h in range(0, 24) %}
                   <option value="{{ '%02d'|format(h) }}:00">{{ '%02d'|format(h) }}:00</option>
                   <option value="{{ '%02d'|format(h) }}:30">{{ '%02d'|format(h) }}:30</option>
                 {% endfor %}
+                <option value="24:00">24:00</option>
               </select>
             </div>
 

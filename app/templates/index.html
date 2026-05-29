@@ -52,7 +52,8 @@
     </div>
   </div>
 </nav>
-<!----------------------------------------------------------- HERO ----------------------------------------------------------------------------------------------------------------------->
+
+<!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-video-wrap">
     <video autoplay muted loop playsinline poster="">
@@ -103,34 +104,24 @@
 <section class="section courts-section" id="courts">
   <div class="container-z">
 
-    <!-- Header -->
     <div class="courts-header reveal">
       <div>
         <span class="sec-eye"><i class="fas fa-shield-halved"></i> ملاعبنا</span>
         <h2 class="sec-ttl">ملاعب <span>احترافية</span> لكل المستويات</h2>
         <p class="sec-sub">مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى</p>
       </div>
-      <a href="{{ url_for('booking.index') }}" class="btn-blue" style="white-space:nowrap;">
-
-      </a>
+      <a href="{{ url_for('booking.index') }}" class="btn-blue" style="white-space:nowrap;"></a>
     </div>
 
-    <!-- Grid -->
     <div class="courts-grid">
       {% for court in courts %}
       <article class="court-card reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-
-        <!-- Image area -->
         <div class="cc-img">
           <div class="cc-img-bg"
             style="{% if court.image %}background:url('{{ url_for("static", filename="images/uploads/"+court.image) }}') center/cover no-repeat;{% else %}background:linear-gradient(145deg,var(--bdk),var(--bd));{% endif %}">
           </div>
           <div class="cc-img-shade"></div>
-
-          <!-- Court number watermark -->
           <div class="cc-num">0{{ loop.index }}</div>
-
-          <!-- Status badge -->
           <div class="cc-badge {{ 'available' if court.is_active else 'closed' }}">
             {% if court.is_active %}
               <span class="cc-badge-dot"></span> متاح الآن
@@ -138,14 +129,10 @@
               <i class="fas fa-lock" style="font-size:9px;"></i> مؤقتاً مغلق
             {% endif %}
           </div>
-
-          <!-- Discount ribbon -->
           <div class="cc-ribbon">
             <i class="fas fa-tag"></i> خصم 25%
             <span>12–16</span>
           </div>
-
-          <!-- Bottom info -->
           <div class="cc-img-bottom">
             <div class="cc-name">{{ court.name }}</div>
             <div class="cc-price-wrap">
@@ -159,66 +146,36 @@
               </div>
             </div>
           </div>
-
-          <!-- Hover overlay -->
           <div class="cc-hover-btn">
             <a href="{{ url_for('booking.index') }}" class="cc-hover-link">
               <i class="fas fa-calendar-plus"></i> احجز الآن
             </a>
           </div>
         </div>
-
-        <!-- Body -->
         <div class="cc-body">
           <p class="cc-desc">
             {{ court.description or 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة LED احترافية، مناسب لجميع المستويات.' }}
           </p>
-
-          <!-- Amenities -->
           <div class="cc-amenities">
-            <div class="cc-amenity">
-              <div class="cc-amenity-icon"><i class="fas fa-lightbulb"></i></div>
-              <span>إضاءة LED</span>
-            </div>
-            <div class="cc-amenity">
-              <div class="cc-amenity-icon"><i class="fas fa-wind"></i></div>
-              <span>مكيف مركزي</span>
-            </div>
-            <div class="cc-amenity">
-              <div class="cc-amenity-icon"><i class="fas fa-layer-group"></i></div>
-              <span>عشب صناعي</span>
-            </div>
-            <div class="cc-amenity">
-              <div class="cc-amenity-icon"><i class="fas fa-users"></i></div>
-              <span>مزدوج</span>
-            </div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-lightbulb"></i></div><span>إضاءة LED</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-wind"></i></div><span>مكيف مركزي</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-layer-group"></i></div><span>عشب صناعي</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-users"></i></div><span>مزدوج</span></div>
           </div>
-
-          <!-- Footer -->
           <div class="cc-footer">
             <div class="cc-pricing">
-              <div class="cc-price-full">
-                {{ "{:,.0f}".format(court.price_per_hour or 25000) }}
-                <small>د.ع / ساعة</small>
-              </div>
-              <div class="cc-price-off">
-                <i class="fas fa-clock"></i>
-                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} د.ع في ساعات الخصم
-              </div>
+              <div class="cc-price-full">{{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small>د.ع / ساعة</small></div>
+              <div class="cc-price-off"><i class="fas fa-clock"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} د.ع في ساعات الخصم</div>
             </div>
             <a href="{{ url_for('booking.index') }}" class="cc-book">
-              <i class="fas fa-calendar-plus"></i>
-              <span>احجز</span>
+              <i class="fas fa-calendar-plus"></i><span>احجز</span>
             </a>
           </div>
         </div>
-
       </article>
       {% else %}
       <div class="courts-empty">
-        <div class="courts-empty-icon">
-          <i class="fas fa-shield-halved"></i>
-        </div>
+        <div class="courts-empty-icon"><i class="fas fa-shield-halved"></i></div>
         <h3>لا توجد ملاعب متاحة حالياً</h3>
         <p>سيتم إضافة الملاعب قريباً، تابعونا!</p>
       </div>
@@ -230,28 +187,50 @@
 
 <!-- FEATURES -->
 <section class="section section-alt" id="features">
+  <style>
+    :root { --primary-color: #596770; --secondary-color: #D6C3A1; --bg-color: #f9f9f9; }
+    #features { background-color: var(--bg-color); padding: 60px 0; }
+    #features .container-z { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    #features .features-layout { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; }
+    #features .features-left { flex: 1; min-width: 300px; }
+    #features .features-grid { flex: 1.5; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    #features .feat-item { background: #fff; padding: 20px; border-radius: 12px; display: flex; align-items: flex-start; gap: 15px; border: 1px solid #eee; transition: 0.3s; }
+    #features .feat-item:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+    #features .fi-icon { font-size: 20px; color: var(--primary-color); background: rgba(255,153,0,.1); padding: 12px; border-radius: 50%; min-width: 45px; text-align: center; }
+    #features .fi-title { font-weight: bold; margin-bottom: 5px; color: var(--secondary-color); }
+    #features .fi-desc { font-size: 0.85rem; color: #666; line-height: 1.4; }
+    #features .sec-ttl { font-size: 2.5rem; margin: 15px 0; color: var(--secondary-color); }
+    #features .sec-ttl span { color: var(--primary-color); }
+    #features .btn-blue { display: inline-block; padding: 12px 25px; background: var(--primary-color); color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+    #features .btn-blue:hover { opacity: 0.9; }
+  </style>
   <div class="container-z">
     <div class="features-layout">
       <div class="features-left reveal">
-        <span class="sec-eye"><i class="fas fa-star"></i> لماذا Z Padel؟</span>
-        <h2 class="sec-ttl">تجربة لعب<br/><span>لا مثيل لها</span></h2>
-        <p class="sec-sub">نقدم لك أفضل تجربة باديل في دهوك بمرافق عالمية المستوى.</p>
-        <div style="margin-top:28px;"><a href="{{ url_for('booking.index') }}" class="btn-blue"><i class="fas fa-calendar-plus"></i> احجز الآن</a></div>
+        <span class="sec-eye" style="color:var(--primary-color);font-weight:bold;"><i class="fas fa-star"></i> لماذا Z Padel؟</span>
+        <h2 class="sec-ttl">تجربة باديل<br/><span>استثنائية في دهوك</span></h2>
+        <p class="sec-sub">ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.</p>
+        <div style="margin-top:28px;">
+          <a href="{{ url_for('booking.index') }}" class="btn-blue"><i class="fas fa-calendar-plus"></i> احجز ملعبك الآن</a>
+        </div>
       </div>
-      <div class="features-list">
+      <div class="features-grid">
         {% for icon,title,desc in [
-          ('fa-calendar-check','حجز سهل وسريع','احجز ملعبك في دقائق بدون دفع مسبق وبدون تسجيل.'),
-          ('fa-tag','خصم 25%','خصم تلقائي 25% من 12:00 حتى 16:00 يومياً على جميع الملاعب.'),
-          ('fa-person-running','مدربون محترفون','فريق من المدربين المتخصصين لتطوير مهاراتك.'),
-          ('fa-wind','بيئة مريحة','مكيفات حديثة وإضاءة LED احترافية لأفضل تجربة.'),
-          ('fa-clock','ساعات مرنة','مفتوح من 8 صباحاً حتى 11 مساءً كل يوم.'),
-          ('fa-bag-shopping','متجر متكامل','معدات الباديل الأصلية وكل ما تحتاجه.'),
-          ('fa-location-dot','موقع مميز','في قلب دهوك، سهل الوصول مع مواقف سيارات.'),
-          ('fa-shield-halved','ملاعب متنوعة','ملاعب مزدوجة بأعلى المعايير الدولية.'),
+          ('fa-calendar-check','حجز سهل','احجز ملعبك في دقائق بدون تسجيل مسبق.'),
+          ('fa-tag','خصم 25%','خصم يومي من 12:00 ظهراً حتى 4:00 عصراً.'),
+          ('fa-person-running','مدربون محترفون','فريق من المدربين لتطوير مهاراتك.'),
+          ('fa-wind','بيئة مريحة','تكييف حديث وإضاءة LED احترافية.'),
+          ('fa-clock','ساعات مرنة','مفتوح يومياً من 8 صباحاً حتى 11 مساءً.'),
+          ('fa-bag-shopping','متجر متكامل','معدات باديل أصلية لكل احتياجاتك.'),
+          ('fa-location-dot','موقع استراتيجي','في قلب دهوك مع توفر مواقف سيارات.'),
+          ('fa-shield-halved','ملاعب دولية','ملاعب مزدوجة بأعلى المعايير العالمية.')
         ] %}
         <div class="feat-item reveal">
           <div class="fi-icon"><i class="fas {{ icon }}"></i></div>
-          <div><div class="fi-title">{{ title }}</div><div class="fi-desc">{{ desc }}</div></div>
+          <div class="fi-content">
+            <div class="fi-title">{{ title }}</div>
+            <div class="fi-desc">{{ desc }}</div>
+          </div>
         </div>
         {% endfor %}
       </div>
@@ -259,10 +238,57 @@
   </div>
 </section>
 
-
-
-<!-- PRICING -->
+<!-- ============================================================
+     COACHES SECTION — dynamic: shows real coaches if any exist,
+     falls back to "Coming Soon" card if DB is empty
+     ============================================================ -->
 <section class="section coaches-section" id="coaches">
+  <style>
+    /* Real coach cards */
+    .coach-card-real {
+      background: var(--bsft);
+      border: 1px solid var(--bmid);
+      border-radius: var(--r, 16px);
+      padding: 32px 24px;
+      text-align: center;
+      transition: transform .3s, border-color .3s;
+    }
+    .coach-card-real:hover {
+      transform: translateY(-6px);
+      border-color: #D6C3A1;
+    }
+    .coach-avatar-img {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #D6C3A1;
+      margin: 0 auto 16px;
+      display: block;
+    }
+    .coach-avatar-fallback {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: var(--bdk, #596770);
+      border: 3px solid #D6C3A1;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .coach-avatar-fallback i { font-size: 2rem; color: #D6C3A1; }
+    .coach-name { font-size: 1.1rem; font-weight: 700; color: #D6C3A1; margin-bottom: 8px; }
+    .coach-status-badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      background: var(--bmid, rgba(255,255,255,.08));
+      color: var(--tm, #ccc);
+      margin-bottom: 12px;
+    }
+    .coach-status-badge.available { background: rgba(34,197,94,.15); color: #4ade80; }
+    .coach-status-badge.coming_soon { background: rgba(214,195,161,.15); color: #D6C3A1; }
+    .coach-bio { font-size: 13px; color: #aaa; line-height: 1.6; margin-top: 8px; }
+  </style>
+
   <div class="container-z">
 
     <!-- Header -->
@@ -276,97 +302,202 @@
       </p>
     </div>
 
-    <!-- Coming Soon Card -->
-    <div class="coaches-cs-wrap reveal">
+    {% if coaches %}
 
-      <!-- Background court pattern -->
-      <div class="coaches-cs-bg" aria-hidden="true">
-        <svg viewBox="0 0 900 500" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          <rect x="40" y="40" width="820" height="420" stroke="rgba(214,195,161,.12)" stroke-width="1.5"/>
-          <line x1="450" y1="40" x2="450" y2="460" stroke="rgba(214,195,161,.10)" stroke-width="1"/>
-          <line x1="40" y1="250" x2="860" y2="250" stroke="rgba(214,195,161,.14)" stroke-width="2"/>
-          <rect x="160" y="40" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
-          <rect x="160" y="250" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
-          <circle cx="450" cy="250" r="70" stroke="rgba(214,195,161,.10)" stroke-width="1.5"/>
-          <circle cx="450" cy="250" r="5" fill="rgba(214,195,161,.15)"/>
-        </svg>
+      <!-- ✅ Real coaches from DB -->
+      <div class="row g-4 justify-content-center">
+        {% for coach in coaches %}
+        <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
+          <div class="coach-card-real">
+
+            {% if coach.image %}
+              <img src="{{ url_for('static', filename=coach.image) }}"
+                   alt="{{ coach.name }}" class="coach-avatar-img">
+            {% else %}
+              <div class="coach-avatar-fallback">
+                <i class="fas fa-user"></i>
+              </div>
+            {% endif %}
+
+            <div class="coach-name">{{ coach.name }}</div>
+
+            <span class="coach-status-badge {{ coach.status }}">
+              {% if coach.status == 'available' %}
+                <i class="fas fa-circle" style="font-size:8px;margin-left:4px;"></i> متاح الآن
+              {% else %}
+                <i class="fas fa-clock" style="font-size:10px;margin-left:4px;"></i> قريباً
+              {% endif %}
+            </span>
+
+            {% if coach.bio %}
+              <p class="coach-bio">{{ coach.bio }}</p>
+            {% endif %}
+
+            {% if coach.status == 'available' %}
+            <div style="margin-top:16px;">
+              <a href="#contact" class="btn-blue" style="font-size:13px;padding:8px 20px;">
+                <i class="fas fa-calendar-plus"></i> احجز جلسة
+              </a>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+        {% endfor %}
       </div>
 
-      <!-- Glow -->
-      <div class="coaches-cs-glow"></div>
+    {% else %}
 
-      <!-- Placeholder avatars -->
-      <div class="coaches-avatars">
-        <div class="coach-avatar-ph" style="--d:0s">
-          <div class="cap-inner"><i class="fas fa-user"></i></div>
-          <div class="cap-ring"></div>
-        </div>
-        <div class="coach-avatar-ph featured" style="--d:.15s">
-          <div class="cap-inner"><i class="fas fa-user"></i></div>
-          <div class="cap-ring"></div>
-          <div class="cap-badge"><i class="fas fa-star"></i></div>
-        </div>
-        <div class="coach-avatar-ph" style="--d:.3s">
-          <div class="cap-inner"><i class="fas fa-user"></i></div>
-          <div class="cap-ring"></div>
-        </div>
-      </div>
+      <!-- ⏳ Coming Soon fallback (original design) -->
+      <div class="coaches-cs-wrap reveal">
 
-      <!-- Content -->
-      <div class="coaches-cs-content">
-
-        <div class="coaches-cs-label">
-          <span class="cs-dot"></span>
-          قريباً
+        <div class="coaches-cs-bg" aria-hidden="true">
+          <svg viewBox="0 0 900 500" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="40" width="820" height="420" stroke="rgba(214,195,161,.12)" stroke-width="1.5"/>
+            <line x1="450" y1="40" x2="450" y2="460" stroke="rgba(214,195,161,.10)" stroke-width="1"/>
+            <line x1="40" y1="250" x2="860" y2="250" stroke="rgba(214,195,161,.14)" stroke-width="2"/>
+            <rect x="160" y="40" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
+            <rect x="160" y="250" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
+            <circle cx="450" cy="250" r="70" stroke="rgba(214,195,161,.10)" stroke-width="1.5"/>
+            <circle cx="450" cy="250" r="5" fill="rgba(214,195,161,.15)"/>
+          </svg>
         </div>
 
-        <h3 class="coaches-cs-title">
-          نعمل على إحضار<br/>
-          <em>أفضل المدربين</em> لك
-        </h3>
+        <div class="coaches-cs-glow"></div>
 
-        <p class="coaches-cs-sub">
-          سيتمكن قريباً من حجز جلسات تدريبية خاصة مع مدربين معتمدين
-          لتطوير مهاراتك في الباديل من الصفر وحتى الاحتراف.
-        </p>
-
-        <!-- Features preview -->
-        <div class="coaches-cs-features">
-          <div class="csf-item">
-            <div class="csf-icon"><i class="fas fa-calendar-check"></i></div>
-            <span>حجز مباشر</span>
+        <div class="coaches-avatars">
+          <div class="coach-avatar-ph" style="--d:0s">
+            <div class="cap-inner"><i class="fas fa-user"></i></div>
+            <div class="cap-ring"></div>
           </div>
-          <div class="csf-item">
-            <div class="csf-icon"><i class="fas fa-medal"></i></div>
-            <span>مدربون معتمدون</span>
+          <div class="coach-avatar-ph featured" style="--d:.15s">
+            <div class="cap-inner"><i class="fas fa-user"></i></div>
+            <div class="cap-ring"></div>
+            <div class="cap-badge"><i class="fas fa-star"></i></div>
           </div>
-          <div class="csf-item">
-            <div class="csf-icon"><i class="fas fa-chart-line"></i></div>
-            <span>تتبع التقدم</span>
-          </div>
-          <div class="csf-item">
-            <div class="csf-icon"><i class="fas fa-clock"></i></div>
-            <span>جلسات مرنة</span>
+          <div class="coach-avatar-ph" style="--d:.3s">
+            <div class="cap-inner"><i class="fas fa-user"></i></div>
+            <div class="cap-ring"></div>
           </div>
         </div>
 
-        <!-- Notify CTA -->
-        <div class="coaches-cs-notify">
-          <a href="#contact" class="coaches-cs-btn">
-            <i class="fas fa-bell"></i>
-            <span>أبلغني عند الإطلاق</span>
-          </a>
-          <p class="coaches-cs-hint">
-            <i class="fas fa-circle-info"></i>
-            تواصل معنا لحجز جلسة تدريبية الآن
+        <div class="coaches-cs-content">
+          <div class="coaches-cs-label">
+            <span class="cs-dot"></span>
+            قريباً
+          </div>
+          <h3 class="coaches-cs-title">
+            نعمل على إحضار<br/>
+            <em>أفضل المدربين</em> لك
+          </h3>
+          <p class="coaches-cs-sub">
+            سيتمكن قريباً من حجز جلسات تدريبية خاصة مع مدربين معتمدين
+            لتطوير مهاراتك في الباديل من الصفر وحتى الاحتراف.
           </p>
+          <div class="coaches-cs-features">
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-calendar-check"></i></div><span>حجز مباشر</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-medal"></i></div><span>مدربون معتمدون</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-chart-line"></i></div><span>تتبع التقدم</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-clock"></i></div><span>جلسات مرنة</span></div>
+          </div>
+          <div class="coaches-cs-notify">
+            <a href="#contact" class="coaches-cs-btn">
+              <i class="fas fa-bell"></i>
+              <span>أبلغني عند الإطلاق</span>
+            </a>
+            <p class="coaches-cs-hint">
+              <i class="fas fa-circle-info"></i>
+              تواصل معنا لحجز جلسة تدريبية الآن
+            </p>
+          </div>
         </div>
 
       </div>
 
-    </div>
+    {% endif %}
+
   </div>
 </section>
+
+
+<!-- TRAINING REQUEST FORM (public) -->
+<section class="section" id="training-request" style="background:var(--bsft);padding:60px 20px;">
+  <div class="container-z" style="max-width:600px;">
+    <div class="reveal" style="text-align:center;margin-bottom:40px;">
+      <span class="sec-eye"><i class="fas fa-calendar-check"></i> احجز جلسة تدريب</span>
+      <h2 class="sec-ttl">احجز جلستك<br/><span>مع المدرب</span></h2>
+      <p class="sec-sub">اختر المدرب المناسب واحجز جلستك التدريبية</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.add_training_request') }}" class="reveal" style="background:white;padding:32px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">اسمك <span style="color:red;">*</span></label>
+        <input type="text" name="customer_name" required placeholder="الاسم الكامل"
+               style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
+               onFocus="this.style.borderColor='#D6C3A1'"
+               onBlur="this.style.borderColor='#ddd'">
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">رقم الهاتف <span style="color:red;">*</span></label>
+        <input type="tel" name="customer_phone" required placeholder="07xx xxx xxxx" dir="ltr"
+               style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
+               onFocus="this.style.borderColor='#D6C3A1'"
+               onBlur="this.style.borderColor='#ddd'">
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">اختر المدرب <span style="color:red;">*</span></label>
+        <select name="coach_id" required
+                style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;background:white;"
+                onFocus="this.style.borderColor='#D6C3A1'"
+                onBlur="this.style.borderColor='#ddd'">
+          <option value="">-- اختر المدرب --</option>
+          {% for coach in coaches %}
+            <option value="{{ coach.id }}">{{ coach.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="form-group">
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">التاريخ المفضل</label>
+          <input type="date" name="preferred_date"
+                 style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
+                 onFocus="this.style.borderColor='#D6C3A1'"
+                 onBlur="this.style.borderColor='#ddd'">
+        </div>
+        <div class="form-group">
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">الوقت المفضل</label>
+          <input type="time" name="preferred_time"
+                 style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
+                 onFocus="this.style.borderColor='#D6C3A1'"
+                 onBlur="this.style.borderColor='#ddd'">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:24px;">
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">ملاحظات إضافية</label>
+        <textarea name="notes" rows="3" placeholder="أخبرنا عن أهدافك وخبرتك..."
+                  style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;resize:none;"
+                  onFocus="this.style.borderColor='#D6C3A1'"
+                  onBlur="this.style.borderColor='#ddd'"></textarea>
+      </div>
+
+      <button type="submit" class="btn-main" style="width:100%;padding:12px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#D6C3A1,#596770);color:white;font-weight:700;font-size:14px;cursor:pointer;transition:0.3s;">
+        <i class="fas fa-paper-plane" style="margin-left:8px;"></i> أرسل طلبك
+      </button>
+    </form>
+  </div>
+</section>
+
+
+
+
+
+
 
 <!-- STORE -->
 <section class="section" id="store">
@@ -442,16 +573,9 @@
 
 <!-- FOOTER -->
 <footer class="footer-z">
-
-  <!-- Top accent line -->
   <div class="footer-top-line"></div>
-
   <div class="container-z">
-
-    <!-- Main grid -->
     <div class="footer-main">
-
-      <!-- Brand column -->
       <div class="footer-brand-col">
         <a href="{{ url_for('main.index') }}" class="footer-brand-link">
           <img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel" class="footer-logo"/>
@@ -460,51 +584,27 @@
             <span class="footer-bsub">دهوك · كردستان العراق</span>
           </div>
         </a>
-
         <p class="footer-desc">
           وجهتك الأولى لرياضة الباديل في دهوك —
           ملاعب احترافية بأعلى المواصفات، وأجواء رياضية لا تُنسى.
         </p>
-
-        <!-- Open status -->
         <div class="footer-status">
           <span class="footer-status-dot"></span>
           <span>مفتوح الآن</span>
           <span class="footer-status-sep">·</span>
           <span>8:00 ص — 11:00 م</span>
         </div>
-
-        <!-- Social -->
         <div class="footer-social">
-          <a href="#" class="fs-btn" aria-label="Instagram">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="#" class="fs-btn" aria-label="Facebook">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a href="#" class="fs-btn fs-btn-wa" aria-label="WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-          </a>
-          <a href="#" class="fs-btn" aria-label="TikTok">
-            <i class="fab fa-tiktok"></i>
-          </a>
+          <a href="#" class="fs-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="fs-btn" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="fs-btn fs-btn-wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          <a href="#" class="fs-btn" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
         </div>
       </div>
-
-      <!-- Courts column -->
-
     </div>
-
-    <!-- Divider -->
     <div class="footer-divider"></div>
-
-    <!-- Bottom bar -->
     <div class="footer-bottom">
-      <div class="footer-copy">
-        © 2025 <strong>Z Padel</strong> — جميع الحقوق محفوظة
-      </div>
-
-      <!-- Coda credit -->
+      <div class="footer-copy">© 2025 <strong>Z Padel</strong> — جميع الحقوق محفوظة</div>
       <a href="https://coda-agency.net" target="_blank" rel="noopener" class="footer-powered">
         <span>Powered & Developed by</span>
         <div class="footer-coda">
@@ -512,13 +612,11 @@
           <span>CODA Agency</span>
         </div>
       </a>
-
       <div class="footer-live">
         <span class="footer-live-dot"></span>
         مفتوح الآن
       </div>
     </div>
-
   </div>
 </footer>
 
