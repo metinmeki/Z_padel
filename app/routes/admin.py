@@ -11,7 +11,7 @@ from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory)
-
+from sqlalchemy import func, case
 admin_bp = Blueprint('admin', __name__)
 
 # ── helpers ──
@@ -527,29 +527,49 @@ def export_orders():
 @admin_bp.route('/expenses')
 @login_required
 def expenses():
+    from sqlalchemy import func
+    from calendar import monthrange
+
     q = Expense.query
     if request.args.get('month'):
         y, m = map(int, request.args['month'].split('-'))
-        from calendar import monthrange
         last_day = monthrange(y, m)[1]
         q = q.filter(Expense.date >= date(y, m, 1),
                      Expense.date <= date(y, m, last_day))
+
     page = request.args.get('page', 1, type=int)
-    pag  = q.order_by(Expense.date.desc()).paginate(page=page, per_page=20)
+    pag = q.order_by(Expense.date.desc()).paginate(page=page, per_page=20)
 
-    today       = date.today()
+    today = date.today()
     month_start = today.replace(day=1)
-    cats        = ExpenseCategory.query.all()
 
-    total_exp = db.session.query(func.sum(Expense.amount)).scalar() or 0
-    today_exp = (db.session.query(func.sum(Expense.amount))
-                 .filter(Expense.date == today).scalar() or 0)
-    month_exp = (db.session.query(func.sum(Expense.amount))
-                 .filter(Expense.date >= month_start).scalar() or 0)
+    # ✅ Get categories WITH their totals in single query
+    cats = db.session.query(
+        ExpenseCategory,
+        func.sum(Expense.amount).label('total')
+    ).outerjoin(Expense).group_by(ExpenseCategory.id).all()
+
+    # Convert to list of dicts for template
+    cats_with_totals = [
+        {'id': c[0].id, 'name': c[0].name, 'color': c[0].color, 'total': c[1] or 0}
+        for c in cats
+    ]
+
+    # ✅ Use single aggregation query instead of multiple
+    totals = db.session.query(
+        func.sum(Expense.amount).label('total'),
+        func.sum(case((Expense.date == today, Expense.amount), else_=0)).label('today'),
+        func.sum(case((Expense.date >= month_start, Expense.amount), else_=0)).label('month')
+    ).first()
+
+    total_exp = totals.total or 0
+    today_exp = totals.today or 0
+    month_exp = totals.month or 0
+
     total_rev = (db.session.query(func.sum(Booking.total_price))
                  .filter_by(status='confirmed').scalar() or 0)
 
-    # Monthly trend — last 6 months
+    # ✅ Monthly trend — optimized
     monthly_trend = []
     for i in range(5, -1, -1):
         d = today.replace(day=1) - timedelta(days=i * 28)
@@ -563,15 +583,13 @@ def expenses():
     budget = float(SystemSetting.get('monthly_budget', 1_000_000))
 
     return render_template('admin/expenses.html',
-        expenses=pag.items, pagination=pag,
-        expense_categories=cats,
-        total_expenses=total_exp, today_expenses=today_exp,
-        month_expenses=month_exp, total_revenue=total_rev,
-        monthly_trend=monthly_trend, monthly_budget=budget,
-        today=today.isoformat(),
-    )
-
-
+                           expenses=pag.items, pagination=pag,
+                           expense_categories=cats_with_totals,
+                           total_expenses=total_exp, today_expenses=today_exp,
+                           month_expenses=month_exp, total_revenue=total_rev,
+                           monthly_trend=monthly_trend, monthly_budget=budget,
+                           today=today.isoformat(),
+                           )
 @admin_bp.route('/expenses/add', methods=['POST'])
 @login_required
 def add_expense():

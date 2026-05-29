@@ -275,9 +275,10 @@
   <div class="toolbar-left">
     <div class="search-wrap">
       <i class="fas fa-magnifying-glass"></i>
-      <input type="text" id="searchInput" placeholder="بحث بالوصف أو الفئة..." oninput="filterExpenses()"/>
+      <!-- ✅ FIXED: removed oninput — handled via debounced listener below -->
+      <input type="text" id="searchInput" placeholder="بحث بالوصف أو الفئة..."/>
     </div>
-    <select class="filter-select" id="categoryFilter" onchange="filterExpenses()">
+    <select class="filter-select" id="categoryFilter">
       <option value="">كل الفئات</option>
       {% for cat in expense_categories %}
         <option value="{{ cat.id }}">{{ cat.name }}</option>
@@ -535,7 +536,6 @@
             <span>من {{ "{:,.0f}".format(budget) }} د.ع</span>
           </div>
         </div>
-        <!-- Remaining -->
         <div style="background:{{ 'rgba(229,57,53,0.08)' if used_pct > 90 else 'rgba(67,160,71,0.08)' }};
                     border:1px solid {{ 'rgba(229,57,53,0.20)' if used_pct > 90 else 'rgba(67,160,71,0.20)' }};
                     border-radius:var(--radius-sm);padding:10px 14px;
@@ -581,29 +581,24 @@
         <h5 class="modal-title"><i class="fas fa-plus-circle"></i> إضافة مصروف جديد</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form method="POST" action="{{ url_for('admin.add_expense') }}" enctype="multipart/form-data">
+      <form method="POST" action="{{ url_for('admin.add_expense') }}" enctype="multipart/form-data" id="addExpenseForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-body">
           <div class="row g-3">
-
             <div class="col-md-8">
               <label class="form-label-z">الوصف <span style="color:#e53935;">*</span></label>
               <input type="text" name="description" class="form-control-z" required
                      placeholder="مثال: فاتورة كهرباء، صيانة ملعب..."/>
             </div>
-
             <div class="col-md-4">
               <label class="form-label-z">التاريخ <span style="color:#e53935;">*</span></label>
-              <input type="date" name="date" class="form-control-z" required
-                     value="{{ today }}"/>
+              <input type="date" name="date" id="addDateInput" class="form-control-z" required/>
             </div>
-
             <div class="col-md-5">
               <label class="form-label-z">المبلغ (د.ع) <span style="color:#e53935;">*</span></label>
               <input type="number" name="amount" class="form-control-z" required
                      placeholder="0" min="0" step="500"/>
             </div>
-
             <div class="col-md-7">
               <label class="form-label-z">الفئة <span style="color:#e53935;">*</span></label>
               <select name="category_id" class="form-control-z" required>
@@ -613,13 +608,11 @@
                 {% endfor %}
               </select>
             </div>
-
             <div class="col-12">
               <label class="form-label-z">ملاحظات</label>
               <textarea name="notes" class="form-control-z" rows="2"
                         placeholder="تفاصيل إضافية..." style="resize:none;"></textarea>
             </div>
-
             <div class="col-12">
               <label class="form-label-z">إيصال (صورة — اختياري)</label>
               <div class="receipt-upload">
@@ -629,7 +622,6 @@
                 <p style="font-size:11px;margin-top:3px;">JPG, PNG, PDF</p>
               </div>
             </div>
-
           </div>
         </div>
         <div class="modal-footer">
@@ -785,50 +777,110 @@ new Chart(document.getElementById('trendChart').getContext('2d'), {
   }
 });
 
-// ── Live filter ──
-function filterExpenses() {
+// ✅ ── FIXED: shared filter function ──
+function runFilter() {
   const q   = document.getElementById('searchInput').value.toLowerCase();
   const cat = document.getElementById('categoryFilter').value;
   let visible = 0;
-  document.querySelectorAll('#expensesBody tr').forEach(row => {
+  document.querySelectorAll('#expensesBody tr').forEach(function(row) {
     const desc   = row.dataset.desc || '';
     const rowCat = row.dataset.cat  || '';
-    const matchQ = !q   || desc.includes(q);
-    const matchC = !cat || rowCat === cat;
-    const show = matchQ && matchC;
+    const show   = (!q || desc.includes(q)) && (!cat || rowCat === cat);
     row.style.display = show ? '' : 'none';
     if (show) visible++;
   });
   document.getElementById('expenseCount').textContent = visible;
 }
 
+// ✅ Debounced search — 300ms delay stops typing lag
+var _searchTimer;
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(runFilter, 300);
+});
+
+// ✅ Category filter fires instantly
+document.getElementById('categoryFilter').addEventListener('change', runFilter);
+
+// ── Month filter ──
 function applyMonthFilter() {
   const month = document.getElementById('monthFilter').value;
   if (!month) { window.location.href = "{{ url_for('admin.expenses') }}"; return; }
-  window.location.href = `{{ url_for('admin.expenses') }}?month=${month}`;
+  window.location.href = "{{ url_for('admin.expenses') }}?month=" + month;
 }
 
 // ── Edit modal ──
 function openEditModal(id, desc, amount, date, catId, notes) {
-  document.getElementById('editExpenseForm').action = `/admin/expenses/${id}/edit`;
+  document.getElementById('editExpenseForm').action = '/admin/expenses/' + id + '/edit';
   document.getElementById('editDesc').value   = desc;
   document.getElementById('editAmount').value = amount;
   document.getElementById('editDate').value   = date;
   document.getElementById('editNotes').value  = notes;
-  const sel = document.getElementById('editCat');
-  sel.value = catId || '';
+  document.getElementById('editCat').value    = catId || '';
   new bootstrap.Modal(document.getElementById('editExpenseModal')).show();
 }
 
 // ── Delete modal ──
 function openDeleteModal(id, desc) {
-  document.getElementById('deleteExpenseForm').action = `/admin/expenses/${id}/delete`;
+  document.getElementById('deleteExpenseForm').action = '/admin/expenses/' + id + '/delete';
   document.getElementById('deleteExpenseName').textContent = desc;
   new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
-// ── Set today in add form ──
-document.querySelector('#addExpenseModal input[name="date"]').value =
-  new Date().toISOString().split('T')[0];
+// ✅ Set today's date safely via JS (avoids template value= lag issue)
+document.getElementById('addDateInput').value = new Date().toISOString().split('T')[0];
+    // ✅ AJAX submit — no full page reload
+document.getElementById('addExpenseForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type="submit"]');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+  fetch(this.action, {
+    method: 'POST',
+    body: new FormData(this)
+  }).then(function(res) {
+    if (res.ok || res.redirected) {
+      // Close modal
+      bootstrap.Modal.getInstance(document.getElementById('addExpenseModal')).hide();
+      // Show toast
+      showToast('✅ تم إضافة المصروف بنجاح');
+      // Reset form
+      document.getElementById('addExpenseForm').reset();
+      document.getElementById('addDateInput').value = new Date().toISOString().split('T')[0];
+      // Reload page after short delay
+      setTimeout(function() { location.reload(); }, 900);
+    }
+  }).catch(function() {
+    showToast('حدث خطأ، حاول مرة أخرى', 'error');
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  });
+});
+
+// ✅ Toast notification
+function showToast(msg, type) {
+  var t = document.createElement('div');
+  t.style.cssText = [
+    'position:fixed',
+    'bottom:24px',
+    'left:50%',
+    'transform:translateX(-50%)',
+    'background:' + (type === 'error' ? '#C62828' : '#2E7D32'),
+    'color:white',
+    'padding:12px 28px',
+    'border-radius:8px',
+    'font-size:14px',
+    'font-weight:600',
+    'z-index:9999',
+    'box-shadow:0 4px 16px rgba(0,0,0,0.2)',
+    'font-family:Cairo,sans-serif',
+    'white-space:nowrap'
+  ].join(';');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
 </script>
 {% endblock %}

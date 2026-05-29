@@ -239,12 +239,10 @@
 </section>
 
 <!-- ============================================================
-     COACHES SECTION — dynamic: shows real coaches if any exist,
-     falls back to "Coming Soon" card if DB is empty
+     COACHES SECTION
      ============================================================ -->
 <section class="section coaches-section" id="coaches">
   <style>
-    /* Real coach cards */
     .coach-card-real {
       background: var(--bsft);
       border: 1px solid var(--bmid);
@@ -252,6 +250,7 @@
       padding: 32px 24px;
       text-align: center;
       transition: transform .3s, border-color .3s;
+      cursor: pointer;
     }
     .coach-card-real:hover {
       transform: translateY(-6px);
@@ -308,7 +307,7 @@
       <div class="row g-4 justify-content-center">
         {% for coach in coaches %}
         <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-          <div class="coach-card-real">
+          <div class="coach-card-real" onclick="openCoachBooking({{ coach.id }}, '{{ coach.name }}')">
 
             {% if coach.image %}
               <img src="{{ url_for('static', filename=coach.image) }}"
@@ -335,9 +334,9 @@
 
             {% if coach.status == 'available' %}
             <div style="margin-top:16px;">
-              <a href="#contact" class="btn-blue" style="font-size:13px;padding:8px 20px;">
+              <button type="button" class="btn-blue" style="font-size:13px;padding:8px 20px;border:none;cursor:pointer;width:100%;">
                 <i class="fas fa-calendar-plus"></i> احجز جلسة
-              </a>
+              </button>
             </div>
             {% endif %}
 
@@ -419,85 +418,78 @@
   </div>
 </section>
 
+<!-- ✅ BOOKING MODAL (opens when clicking coach card) -->
+<div class="modal fade" id="bookCoachModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 10px 40px rgba(0,0,0,0.15);">
+      <div class="modal-header" style="background:linear-gradient(135deg,#596770,#D6C3A1);color:white;border:none;padding:20px;">
+        <h5 class="modal-title" style="font-size:16px;font-weight:700;font-family:'Almarai',sans-serif;">
+          <i class="fas fa-calendar-check" style="margin-left:10px;"></i>احجز جلسة تدريب
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin.add_training_request') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body" style="padding:24px;">
 
-<!-- TRAINING REQUEST FORM (public) -->
-<section class="section" id="training-request" style="background:var(--bsft);padding:60px 20px;">
-  <div class="container-z" style="max-width:600px;">
-    <div class="reveal" style="text-align:center;margin-bottom:40px;">
-      <span class="sec-eye"><i class="fas fa-calendar-check"></i> احجز جلسة تدريب</span>
-      <h2 class="sec-ttl">احجز جلستك<br/><span>مع المدرب</span></h2>
-      <p class="sec-sub">اختر المدرب المناسب واحجز جلستك التدريبية</p>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">اسمك <span style="color:red;">*</span></label>
+            <input type="text" name="customer_name" required placeholder="الاسم الكامل"
+                   style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
+                   onFocus="this.style.borderColor='#D6C3A1'"
+                   onBlur="this.style.borderColor='#ddd'">
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">رقم الهاتف <span style="color:red;">*</span></label>
+            <input type="tel" name="customer_phone" required placeholder="07xx xxx xxxx" dir="ltr"
+                   style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
+                   onFocus="this.style.borderColor='#D6C3A1'"
+                   onBlur="this.style.borderColor='#ddd'">
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">المدرب <span style="color:red;">*</span></label>
+            <input type="text" id="coachNameDisplay" readonly
+                   style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;background:#f5f5f5;color:#666;font-family:inherit;">
+            <input type="hidden" name="coach_id" id="coachIdInput" required>
+          </div>
+
+          <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div class="form-group">
+              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">التاريخ المفضل</label>
+              <input type="date" name="preferred_date"
+                     style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
+                     onFocus="this.style.borderColor='#D6C3A1'"
+                     onBlur="this.style.borderColor='#ddd'">
+            </div>
+            <div class="form-group">
+              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">الوقت المفضل</label>
+              <input type="time" name="preferred_time"
+                     style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
+                     onFocus="this.style.borderColor='#D6C3A1'"
+                     onBlur="this.style.borderColor='#ddd'">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:24px;">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">ملاحظات إضافية</label>
+            <textarea name="notes" rows="3" placeholder="أخبرنا عن أهدافك وخبرتك..."
+                      style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;resize:none;font-family:inherit;"
+                      onFocus="this.style.borderColor='#D6C3A1'"
+                      onBlur="this.style.borderColor='#ddd'"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid #eee;padding:16px 24px;gap:8px;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn-main" style="padding:10px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#D6C3A1,#596770);color:white;font-weight:700;cursor:pointer;font-family:inherit;">
+            <i class="fas fa-paper-plane" style="margin-left:8px;"></i>أرسل الطلب
+          </button>
+        </div>
+      </form>
     </div>
-
-    <form method="POST" action="{{ url_for('admin.add_training_request') }}" class="reveal" style="background:white;padding:32px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-      <div class="form-group" style="margin-bottom:16px;">
-        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">اسمك <span style="color:red;">*</span></label>
-        <input type="text" name="customer_name" required placeholder="الاسم الكامل"
-               style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
-               onFocus="this.style.borderColor='#D6C3A1'"
-               onBlur="this.style.borderColor='#ddd'">
-      </div>
-
-      <div class="form-group" style="margin-bottom:16px;">
-        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">رقم الهاتف <span style="color:red;">*</span></label>
-        <input type="tel" name="customer_phone" required placeholder="07xx xxx xxxx" dir="ltr"
-               style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
-               onFocus="this.style.borderColor='#D6C3A1'"
-               onBlur="this.style.borderColor='#ddd'">
-      </div>
-
-      <div class="form-group" style="margin-bottom:16px;">
-        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">اختر المدرب <span style="color:red;">*</span></label>
-        <select name="coach_id" required
-                style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;background:white;"
-                onFocus="this.style.borderColor='#D6C3A1'"
-                onBlur="this.style.borderColor='#ddd'">
-          <option value="">-- اختر المدرب --</option>
-          {% for coach in coaches %}
-            <option value="{{ coach.id }}">{{ coach.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="form-group">
-          <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">التاريخ المفضل</label>
-          <input type="date" name="preferred_date"
-                 style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
-                 onFocus="this.style.borderColor='#D6C3A1'"
-                 onBlur="this.style.borderColor='#ddd'">
-        </div>
-        <div class="form-group">
-          <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">الوقت المفضل</label>
-          <input type="time" name="preferred_time"
-                 style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;"
-                 onFocus="this.style.borderColor='#D6C3A1'"
-                 onBlur="this.style.borderColor='#ddd'">
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-bottom:24px;">
-        <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">ملاحظات إضافية</label>
-        <textarea name="notes" rows="3" placeholder="أخبرنا عن أهدافك وخبرتك..."
-                  style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:0.3s;resize:none;"
-                  onFocus="this.style.borderColor='#D6C3A1'"
-                  onBlur="this.style.borderColor='#ddd'"></textarea>
-      </div>
-
-      <button type="submit" class="btn-main" style="width:100%;padding:12px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#D6C3A1,#596770);color:white;font-weight:700;font-size:14px;cursor:pointer;transition:0.3s;">
-        <i class="fas fa-paper-plane" style="margin-left:8px;"></i> أرسل طلبك
-      </button>
-    </form>
   </div>
-</section>
-
-
-
-
-
-
+</div>
 
 <!-- STORE -->
 <section class="section" id="store">
@@ -626,6 +618,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // ✅ Open coach booking modal with pre-selected coach
+  function openCoachBooking(coachId, coachName) {
+    document.getElementById('coachIdInput').value = coachId;
+    document.getElementById('coachNameDisplay').value = coachName;
+    var modal = new bootstrap.Modal(document.getElementById('bookCoachModal'));
+    modal.show();
+  }
+
   window.addEventListener('scroll', () => {
     const s = document.documentElement;
     document.getElementById('scrollBar').style.transform = `scaleX(${s.scrollTop/(s.scrollHeight-s.clientHeight)})`;
