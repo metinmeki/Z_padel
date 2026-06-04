@@ -499,14 +499,27 @@
       <h2 class="sec-ttl" style="text-align:center;">تسوق <span>معنا</span></h2>
       <p class="sec-sub" style="margin:0 auto;text-align:center;">معدات الباديل الأصلية وكل ما تحتاجه</p>
     </div>
+
     <div class="store-grid">
-      {% for icon,name,price in [('fa-table-tennis-paddle-ball','مضرب باديل احترافي','45,000'),('fa-baseball','كرات باديل (3 حبات)','12,000'),('fa-bottle-water','مشروب طاقة','3,500'),('fa-shirt','يونيفورم Z Padel','25,000')] %}
+      {% for p in products %}
       <a href="{{ url_for('store.shop') }}" class="store-card reveal">
-        <div class="store-img"><i class="fas {{ icon }}"></i></div>
-        <div class="store-body"><div class="store-name">{{ name }}</div><div class="store-price">{{ price }} <small>د.ع</small></div></div>
+        <div class="store-img">
+          {% if p.image %}
+            <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+          {% else %}
+            <i class="fas fa-box"></i>
+          {% endif %}
+        </div>
+        <div class="store-body">
+          <div class="store-name">{{ p.name }}</div>
+          <div class="store-price">{{ "{:,.0f}".format(p.price) }} <small>د.ع</small></div>
+        </div>
       </a>
+      {% else %}
+      <p style="text-align:center; color:#999; grid-column: 1/-1;">لا توجد منتجات متاحة حالياً.</p>
       {% endfor %}
     </div>
+
     <div style="display:flex;justify-content:center;margin-top:40px;" class="reveal">
       <a href="{{ url_for('store.shop') }}" class="btn-blue"><i class="fas fa-bag-shopping"></i> تصفح المتجر كاملاً</a>
     </div>
@@ -532,37 +545,19 @@
 <!-- CONTACT -->
 <section class="section" id="contact">
   <div class="container-z">
-    <div class="reveal">
-      <span class="sec-eye"><i class="fas fa-phone"></i> تواصل معنا</span>
-      <h2 class="sec-ttl">نحن هنا <span>لمساعدتك</span></h2>
-      <p class="sec-sub">لأي استفسار، تواصل معنا عبر أي قناة</p>
+    <div class="reveal" style="text-align: center; margin-bottom: 2rem;">
+      <span class="sec-eye"><i class="fas fa-location-dot"></i> موقعنا</span>
+      <h2 class="sec-ttl">تفضل <span>بزيارتنا</span></h2>
     </div>
-    <div class="contact-grid">
-      <div class="contact-items">
-        {% for icon,lbl,val in [('fa-location-dot','الموقع','دهوك، كردستان العراق'),('fa-phone','الهاتف','0750 000 0000'),('fa-clock','ساعات العمل','8:00 ص — 11:00 م'),('fa-instagram','إنستغرام','@zpadel_duhok')] %}
-        <div class="ci reveal">
-          <div class="ci-icon"><i class="fas {{ icon }}"></i></div>
-          <div><div class="ci-lbl">{{ lbl }}</div><div class="ci-val">{{ val }}</div></div>
-        </div>
-        {% endfor %}
-        <div style="background:var(--bsft);border:1px solid var(--bmid);border-radius:var(--r);height:150px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;" class="reveal">
-          <i class="fas fa-map-location-dot" style="font-size:2rem;color:var(--bdk);"></i>
-          <span style="font-size:13px;font-weight:700;color:var(--tm);font-family:'Montserrat',sans-serif;">دهوك، كردستان العراق</span>
-        </div>
-      </div>
-      <div class="contact-form reveal">
-        <div class="cf-title"><i class="fas fa-paper-plane"></i> أرسل لنا رسالة</div>
-        <form>
-          <div class="form-group"><label class="form-lbl">الاسم</label><input type="text" class="form-ctrl" placeholder="اسمك الكامل"/></div>
-          <div class="form-group"><label class="form-lbl">رقم الهاتف</label><input type="tel" class="form-ctrl" placeholder="07xx xxx xxxx" dir="ltr"/></div>
-          <div class="form-group"><label class="form-lbl">الرسالة</label><textarea class="form-ctrl" rows="4" style="resize:none;" placeholder="كيف يمكننا مساعدتك؟"></textarea></div>
-          <button type="submit" class="btn-send"><i class="fas fa-paper-plane"></i> إرسال الرسالة</button>
-        </form>
-      </div>
+
+    <div class="reveal" style="border-radius: var(--r); overflow: hidden; border: 1px solid var(--bmid); height: 450px; width: 100%;">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3215.3564756598375!2d42.9845778757962!3d36.8576404722485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40074744d0f1a4ed%3A0x67825d4806a0904!2sDuhok!5e0!3m2!1sen!2siq!4v1717500000000!5m2!1sen!2siq"
+        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
+      </iframe>
     </div>
   </div>
 </section>
-
 <!-- FOOTER -->
 <footer class="footer-z">
   <div class="footer-top-line"></div>

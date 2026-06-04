@@ -1227,3 +1227,31 @@ body {
   .footer-brand-col { flex-direction: column; align-items: flex-end; }
   .footer-bottom { flex-direction: column; align-items: center; text-align: center; }
 }
+/* ═══════════════════════════════════════════
+   MOBILE RESPONSIVE FIXES
+═══════════════════════════════════════════ */
+@media (max-width: 991px) {
+  /* 1. Hide the desktop links on mobile */
+  .nav-links {
+    display: none !important;
+  }
+
+  /* 2. Show the hamburger toggle button */
+  .nav-toggle {
+    display: flex !important;
+  }
+
+  /* 3. Adjust logo spacing for mobile */
+  .nav-inner {
+    padding: 0 16px;
+  }
+
+  .nav-brand-name {
+    font-size: 18px; /* Slightly smaller logo text for mobile */
+  }
+
+  /* 4. Fix Hero Content positioning so it doesn't get covered by nav */
+  .hero-content {
+    padding-top: 120px;
+  }
+}

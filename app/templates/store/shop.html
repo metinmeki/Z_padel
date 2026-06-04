@@ -9,188 +9,98 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --gold:       #D6C3A1;
-      --gold-deep:  #C9B48E;
-      --slate:      #596770;
-      --slate-deep: #2C3539;
-      --slate-light:#6E7F89;
-      --bg:         #1E2528;
-      --card:       #262E32;
-      --border:     #344048;
-      --text:       #EEE8DF;
-      --muted:      #7A8A93;
+      --gold: #D6C3A1; --slate: #596770; --bg: #FFFFFF;
+      --card: #FFFFFF; --border: #EEEEEE; --text: #333333;
     }
-    * { box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: 'Almarai', sans-serif; min-height: 100vh; }
+    body { background: var(--bg); color: var(--text); font-family: 'Almarai', sans-serif; }
 
-    /* Nav */
     .store-nav {
       background: var(--card); border-bottom: 1px solid var(--border);
       padding: .9rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
       position: sticky; top: 0; z-index: 100;
     }
-    .store-nav .brand { font-family:'Montserrat',sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--gold); text-decoration: none; letter-spacing:-0.5px; }
-    .cart-btn {
-      background: linear-gradient(135deg,var(--gold),var(--slate)); color: #fff; border: none; border-radius: 10px;
-      padding: .5rem 1.1rem; font-family:'Montserrat',sans-serif; font-weight: 700; font-size: .88rem;
-      text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all .2s;
-    }
-    .cart-btn:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(214,195,161,.25); color: #fff; }
-    .cart-count {
-      background: #fff; color: var(--slate-deep);
-      border-radius: 50%; width: 20px; height: 20px;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: .7rem; font-weight: 800;
-    }
+    .brand { font-family:'Montserrat',sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--gold); text-decoration: none; }
 
-    /* Hero */
-    .store-hero { padding: 2.5rem 1.5rem 1.5rem; text-align: center; }
-    .store-hero h1 { font-family:'Montserrat',sans-serif; font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; letter-spacing:-0.5px; }
-    .store-hero p  { color: var(--muted); font-size: .9rem; }
-
-    /* Grid */
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px; padding: 0 1.5rem 3rem;
+      gap: 20px; padding: 2rem 1.5rem;
     }
-
-    /* Product card */
     .prod-card {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 14px; overflow: hidden;
-      display: flex; flex-direction: column;
-      transition: transform .2s, border-color .2s, box-shadow .2s;
+      border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-    .prod-card:hover { transform: translateY(-4px); border-color: var(--gold-deep); box-shadow:0 8px 24px rgba(214,195,161,.12); }
-    .prod-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--slate-deep); }
-    .prod-img-placeholder {
-      width: 100%; aspect-ratio: 4/3;
-      background: var(--slate-deep); display: flex; align-items: center; justify-content: center;
-      color: var(--border); font-size: 2.5rem;
-    }
-    .prod-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
-    .prod-name { font-family:'Montserrat',sans-serif; font-weight: 700; font-size: .95rem; color: var(--text); margin-bottom: 4px; }
-    .prod-desc { font-size: .78rem; color: var(--muted); flex: 1; margin-bottom: .8rem; line-height: 1.5; }
-    .prod-footer { display: flex; justify-content: space-between; align-items: center; }
-    .prod-price { font-family:'Montserrat',sans-serif; font-size: 1rem; font-weight: 800; color: var(--gold); }
-    .prod-price small { font-size: .65rem; font-weight: 500; color: var(--muted); }
-
-    /* Add button */
+    .prod-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .prod-body { padding: 1rem; }
+    .prod-name { font-weight: 700; margin-bottom: 5px; }
+    .prod-price { font-weight: 800; color: var(--gold); }
     .btn-add {
       width: 34px; height: 34px; border-radius: 9px;
       background: linear-gradient(135deg,var(--gold),var(--slate)); border: none; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .85rem; cursor: pointer; transition: .2s;
-      position: relative;
     }
-    .btn-add:hover { transform:scale(1.08); box-shadow:0 4px 12px rgba(214,195,161,.3); }
-    .btn-add.added { background: #6DBF82; }
-    .btn-add .qty-badge {
-      position: absolute; top: -6px; right: -6px;
-      background: var(--gold-deep); color: #fff;
-      border-radius: 50%; width: 16px; height: 16px;
-      font-size: .6rem; font-weight: 800;
-      display: none; align-items: center; justify-content: center;
-      font-family:'Montserrat',sans-serif;
-    }
-    .btn-add.has-qty .qty-badge { display: flex; }
-
-    .out-badge { font-size: .65rem; color: #EF9A9A; font-weight: 600; font-family:'Montserrat',sans-serif; }
-
-    /* Toast */
-    .toast-box {
-      position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-      background: #6DBF82; color: #fff; border-radius: 10px;
-      padding: .6rem 1.4rem; font-size: .85rem; font-weight: 600;
-      opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999;
-      display: flex; align-items: center; gap: 8px;
-      font-family:'Montserrat',sans-serif;
-    }
-    .toast-box.show { opacity: 1; }
   </style>
 </head>
 <body>
 
 <nav class="store-nav">
-  <a href="{{ url_for('store.shop') }}" class="brand">Z PADEL <span style="font-size:.7rem; color:var(--muted); font-weight:400;">متجر</span></a>
-  <a href="{{ url_for('store.cart') }}" class="cart-btn">
-    <i class="fas fa-shopping-cart"></i>
-    السلة
-    <span class="cart-count" id="cartCount">{{ cart_count }}</span>
+  <!-- FIXED: Linked to main.index -->
+  <a href="{{ url_for('main.index') }}" class="brand">Z PADEL</a>
+
+  <!-- FIXED: Added id="cartCount" for real-time updates -->
+  <a href="{{ url_for('store.cart') }}" class="btn btn-outline-dark">
+    <i class="fas fa-shopping-cart"></i> السلة (<span id="cartCount">{{ cart_count }}</span>)
   </a>
 </nav>
 
-<div class="store-hero">
-  <h1>تسوق معنا</h1>
-  <p>منتجات Z Padel — استلام فوري عند الدفع</p>
+<div class="container mt-4">
+    <div class="d-flex justify-content-center gap-2 mb-4">
+        <a href="{{ url_for('store.shop') }}" class="btn btn-outline-dark">الكل</a>
+        {% for cat in categories %}
+        <a href="{{ url_for('store.shop', cat=cat.id) }}" class="btn btn-outline-dark">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
 </div>
 
-{% if products %}
 <div class="products-grid">
   {% for p in products %}
   <div class="prod-card">
     {% if p.image %}
-      <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" class="prod-img" alt="{{ p.name }}">
+      <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}" class="prod-img" alt="{{ p.name }}">
     {% else %}
-      <div class="prod-img-placeholder"><i class="fas fa-box"></i></div>
+      <div style="aspect-ratio:4/3; background:#eee; display:flex; align-items:center; justify-content:center;">
+        <i class="fas fa-box"></i>
+      </div>
     {% endif %}
     <div class="prod-body">
       <div class="prod-name">{{ p.name }}</div>
-      {% if p.description %}
-      <div class="prod-desc">{{ p.description }}</div>
-      {% endif %}
-      <div class="prod-footer">
-        <div class="prod-price">
-          {{ "{:,.0f}".format(p.price) }}
-          <small>IQD</small>
-        </div>
-        {% if p.stock == 0 %}
-          <span class="out-badge"><i class="fas fa-times-circle me-1"></i>نفذ</span>
-        {% else %}
-          <button class="btn-add" id="btn-{{ p.id }}" onclick="addToCart({{ p.id }}, this)" title="أضف للسلة">
-            <i class="fas fa-plus"></i>
-            <span class="qty-badge" id="qty-{{ p.id }}">0</span>
-          </button>
-        {% endif %}
-      </div>
+      <div class="prod-price">{{ "{:,.0f}".format(p.price) }} <small>IQD</small></div>
+      <button class="btn-add" onclick="addToCart({{ p.id }}, this)">
+        <i class="fas fa-plus"></i>
+      </button>
     </div>
   </div>
   {% endfor %}
 </div>
-{% else %}
-<div style="text-align:center; padding:4rem; color:var(--muted);">
-  <i class="fas fa-box-open" style="font-size:3rem; display:block; margin-bottom:1rem; opacity:.3;"></i>
-  <p>لا توجد منتجات حالياً</p>
-</div>
-{% endif %}
 
-<div class="toast-box" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">تمت الإضافة</span></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const cartQtys = {};
 function addToCart(id, btn) {
-  fetch(`/store/cart/add/${id}`, { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-      if (!d.success) { showToast(d.message || 'خطأ', false); return; }
+  fetch(`/store/cart/add/${id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      // Updates the count dynamically in the navbar
       document.getElementById('cartCount').textContent = d.cart_count;
-      cartQtys[id] = d.qty;
-      const qtyEl = document.getElementById(`qty-${id}`);
-      qtyEl.textContent = d.qty;
-      btn.classList.add('has-qty');
-      btn.classList.add('added');
-      setTimeout(() => btn.classList.remove('added'), 500);
-      showToast('تمت الإضافة للسلة ✓');
-    });
-}
-function showToast(msg, ok = true) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  t.style.background = ok ? '#6DBF82' : '#EF9A9A';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+    } else {
+      alert(d.message);
+    }
+  })
+  .catch(e => console.error('Error:', e));
 }
 </script>
 </body>

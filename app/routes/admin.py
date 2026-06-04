@@ -543,19 +543,16 @@ def expenses():
     today = date.today()
     month_start = today.replace(day=1)
 
-    # ✅ Get categories WITH their totals in single query
     cats = db.session.query(
         ExpenseCategory,
         func.sum(Expense.amount).label('total')
     ).outerjoin(Expense).group_by(ExpenseCategory.id).all()
 
-    # Convert to list of dicts for template
     cats_with_totals = [
         {'id': c[0].id, 'name': c[0].name, 'color': c[0].color, 'total': c[1] or 0}
         for c in cats
     ]
 
-    # ✅ Use single aggregation query instead of multiple
     totals = db.session.query(
         func.sum(Expense.amount).label('total'),
         func.sum(case((Expense.date == today, Expense.amount), else_=0)).label('today'),
@@ -569,7 +566,6 @@ def expenses():
     total_rev = (db.session.query(func.sum(Booking.total_price))
                  .filter_by(status='confirmed').scalar() or 0)
 
-    # ✅ Monthly trend — optimized
     monthly_trend = []
     for i in range(5, -1, -1):
         d = today.replace(day=1) - timedelta(days=i * 28)
@@ -590,46 +586,68 @@ def expenses():
                            monthly_trend=monthly_trend, monthly_budget=budget,
                            today=today.isoformat(),
                            )
+
+
 @admin_bp.route('/expenses/add', methods=['POST'])
 @login_required
 def add_expense():
-    receipt = save_upload(request.files.get('receipt'), 'RECEIPTS_FOLDER')
-    e = Expense(
-        description=request.form['description'],
-        amount=float(request.form['amount']),
-        date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
-        category_id=request.form.get('category_id') or None,
-        notes=request.form.get('notes', ''),
-        receipt=receipt,
-        added_by=current_user.username,
-    )
-    db.session.add(e)
-    db.session.commit()
-    flash('تم إضافة المصروف.', 'success')
+    try:
+        # ✅ receipt is optional — only save if a file was actually uploaded
+        receipt = None
+        file = request.files.get('receipt')
+        if file and file.filename:
+            receipt = save_upload(file, 'RECEIPTS_FOLDER')
+
+        e = Expense(
+            description=request.form['description'],
+            amount=float(request.form['amount']),
+            date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
+            category_id=request.form.get('category_id') or None,
+            notes=request.form.get('notes', ''),
+            receipt=receipt,
+            added_by=current_user.username,
+        )
+        db.session.add(e)
+        db.session.commit()
+        flash('تم إضافة المصروف.', 'success')
+    except Exception as ex:
+        db.session.rollback()
+        flash(f'خطأ أثناء الإضافة: {ex}', 'danger')
+
     return redirect(url_for('admin.expenses'))
 
 
 @admin_bp.route('/expenses/<int:exp_id>/edit', methods=['POST'])
 @login_required
 def edit_expense(exp_id):
-    e = Expense.query.get_or_404(exp_id)
-    e.description = request.form.get('description', e.description)
-    e.amount      = float(request.form.get('amount', e.amount))
-    e.date        = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
-    e.category_id = request.form.get('category_id') or e.category_id
-    e.notes       = request.form.get('notes', e.notes)
-    db.session.commit()
-    flash('تم تحديث المصروف.', 'success')
+    try:
+        e = Expense.query.get_or_404(exp_id)
+        e.description = request.form.get('description', e.description)
+        e.amount      = float(request.form.get('amount', e.amount))
+        e.date        = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+        e.category_id = request.form.get('category_id') or e.category_id
+        e.notes       = request.form.get('notes', e.notes)
+        db.session.commit()
+        flash('تم تحديث المصروف.', 'success')
+    except Exception as ex:
+        db.session.rollback()
+        flash(f'خطأ أثناء التعديل: {ex}', 'danger')
+
     return redirect(url_for('admin.expenses'))
 
 
 @admin_bp.route('/expenses/<int:exp_id>/delete', methods=['POST'])
 @login_required
 def delete_expense(exp_id):
-    e = Expense.query.get_or_404(exp_id)
-    db.session.delete(e)
-    db.session.commit()
-    flash('تم حذف المصروف.', 'success')
+    try:
+        e = Expense.query.get_or_404(exp_id)
+        db.session.delete(e)
+        db.session.commit()
+        flash('تم حذف المصروف.', 'success')
+    except Exception as ex:
+        db.session.rollback()
+        flash(f'خطأ أثناء الحذف: {ex}', 'danger')
+
     return redirect(url_for('admin.expenses'))
 
 
@@ -638,8 +656,6 @@ def delete_expense(exp_id):
 def export_expenses():
     flash('ميزة التصدير قيد التطوير.', 'info')
     return redirect(url_for('admin.expenses'))
-
-
 # ════════════════════════════════════════════
 # REPORTS
 # ════════════════════════════════════════════
