@@ -448,60 +448,38 @@ def delete_category(cat_id):
 # ════════════════════════════════════════════
 # ORDERS
 # ════════════════════════════════════════════
+from flask import jsonify, request
+
+from flask import jsonify, request, render_template
+from sqlalchemy.orm import joinedload  # Ensure this is imported
+
+
 @admin_bp.route('/orders')
 @login_required
 def orders():
-    q = Order.query
+    # .options(joinedload(Order.items)) loads everything in 1 query, not 20+ queries
+    q = Order.query.options(joinedload(Order.items))
+
     if request.args.get('status'):
         q = q.filter_by(status=request.args['status'])
     if request.args.get('date'):
         d = datetime.strptime(request.args['date'], '%Y-%m-%d').date()
         q = q.filter(func.date(Order.created_at) == d)
+
     page = request.args.get('page', 1, type=int)
-    pag  = q.order_by(Order.created_at.desc()).paginate(page=page, per_page=20)
+    pag = q.order_by(Order.created_at.desc()).paginate(page=page, per_page=20)
 
-    today      = date.today()
-    week_start = today - timedelta(days=6)
-    month_start = today.replace(day=1)
-
-    def rev(filter_):
-        return (db.session.query(func.sum(Order.total_price))
-                .filter(Order.status == 'completed', filter_).scalar() or 0)
-
-    top_products = (db.session.query(Product.name,
-                    func.sum(OrderItem.quantity).label('sold'))
-                    .join(OrderItem).group_by(Product.id)
-                    .order_by(func.sum(OrderItem.quantity).desc())
-                    .limit(5).all())
-
-    week_labels, week_rev_data = [], []
-    for i in range(6, -1, -1):
-        d = today - timedelta(days=i)
-        week_labels.append(d.strftime('%a'))
-        r = (db.session.query(func.sum(Order.total_price))
-             .filter(Order.status == 'completed',
-                     func.date(Order.created_at) == d).scalar() or 0)
-        week_rev_data.append(int(r))
-
-    return render_template('admin/orders.html',
-        orders=pag.items, pagination=pag,
-        total_revenue=rev(True),
-        today_revenue=rev(func.date(Order.created_at) == today),
-        week_revenue=rev(func.date(Order.created_at) >= week_start),
-        month_revenue=rev(func.date(Order.created_at) >= month_start),
-        top_products=[{'name': p.name, 'sold': p.sold} for p in top_products],
-        week_labels=week_labels, week_revenue_data=week_rev_data,
-    )
+    return render_template('admin/orders.html', orders=pag.items, pagination=pag)
 
 
 @admin_bp.route('/orders/<int:order_id>/status', methods=['POST'])
 @login_required
 def update_order_status(order_id):
     o = Order.query.get_or_404(order_id)
-    o.status = request.form.get('status', o.status)
+    # Get status from the form
+    o.status = request.form.get('status')
     db.session.commit()
-    flash('تم تحديث حالة الطلب.', 'success')
-    return redirect(url_for('admin.orders'))
+    return jsonify({"success": True, "new_status": o.status})
 
 
 @admin_bp.route('/orders/<int:order_id>/delete', methods=['POST'])
@@ -510,17 +488,7 @@ def delete_order(order_id):
     o = Order.query.get_or_404(order_id)
     db.session.delete(o)
     db.session.commit()
-    flash('تم حذف الطلب.', 'success')
-    return redirect(url_for('admin.orders'))
-
-
-@admin_bp.route('/orders/export')
-@login_required
-def export_orders():
-    flash('ميزة التصدير قيد التطوير.', 'info')
-    return redirect(url_for('admin.orders'))
-
-
+    return jsonify({"success": True})
 # ════════════════════════════════════════════
 # EXPENSES
 # ════════════════════════════════════════════
