@@ -772,3 +772,17 @@ html, body {
   .stats-strip { grid-template-columns: 1fr; }
   .filter-bar { flex-direction: column; }
 }
+/* Optimize modal rendering */
+.modal.fade .modal-dialog {
+  transition: transform 0.2s ease-out;
+  transform: translate(0, -25%); /* Faster initial state */
+}
+.modal.show .modal-dialog {
+  transform: translate(0, 0);
+}
+
+/* Force hardware acceleration for the table to prevent repaints */
+.table-wrapper {
+  will-change: transform;
+  backface-visibility: hidden;
+}
