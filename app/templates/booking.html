@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>احجز ملعبك — Z Padel</title>
+  <title>{% if lang == 'en' %}Book Your Court — Z Padel{% else %}احجز ملعبك — Z Padel{% endif %}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet"/>
@@ -260,15 +260,15 @@
       <span class="nav-brand-name">Z Padel</span>
     </a>
     <a href="{{ url_for('main.index') }}" class="nav-back">
-      <i class="fas fa-arrow-right"></i> الرئيسية
+      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i> {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
     </a>
   </div>
 </nav>
 
 <div class="page-header">
   <div class="page-header-inner">
-    <h1><i class="fas fa-calendar-plus" style="margin-left:9px;opacity:.75;"></i>احجز ملعبك</h1>
-    <p>اختر التاريخ، الملعب، والوقت — بدون دفع مسبق</p>
+    <h1><i class="fas fa-calendar-plus" style="margin-left:9px;opacity:.75;"></i>{% if lang == 'en' %}Book Your Court{% else %}احجز ملعبك{% endif %}</h1>
+    <p>{% if lang == 'en' %}Choose date, court, and time — no upfront payment{% else %}اختر التاريخ، الملعب، والوقت — بدون دفع مسبق{% endif %}</p>
   </div>
 </div>
 
@@ -291,7 +291,7 @@
     <div class="card-z">
       <div class="card-header-z">
         <div class="ch-icon"><i class="fas fa-calendar-days"></i></div>
-        <div class="ch-title">اختر التاريخ</div>
+        <div class="ch-title">{% if lang == 'en' %}Select Date{% else %}اختر التاريخ{% endif %}</div>
       </div>
       <div class="card-body-z">
         <div class="date-strip" id="dateStrip"></div>
@@ -315,17 +315,17 @@
       <div class="slots-section">
         <div class="discount-banner">
           <i class="fas fa-tag"></i>
-          <div><strong>خصم 25%</strong><span> من </span><strong>12:00–16:00</strong><span> تلقائياً</span></div>
+          <div>{% if lang == 'en' %}<strong>25% Discount</strong><span> from </span><strong>12:00–16:00</strong><span> automatically applied</span>{% else %}<strong>خصم 25%</strong><span> من </span><strong>12:00–16:00</strong><span> تلقائياً</span>{% endif %}</div>
         </div>
         <div class="slots-legend">
-          <div class="legend-item"><div class="legend-dot free"></div>متاح</div>
-          <div class="legend-item"><div class="legend-dot discount"></div>خصم</div>
-          <div class="legend-item"><div class="legend-dot booked"></div>محجوز</div>
-          <div class="legend-item"><div class="legend-dot selected"></div>مختار</div>
-          <div class="legend-item"><div class="legend-dot past"></div>منتهي</div>
+          <div class="legend-item"><div class="legend-dot free"></div>{% if lang == 'en' %}Available{% else %}متاح{% endif %}</div>
+          <div class="legend-item"><div class="legend-dot discount"></div>{% if lang == 'en' %}Discount{% else %}خصم{% endif %}</div>
+          <div class="legend-item"><div class="legend-dot booked"></div>{% if lang == 'en' %}Booked{% else %}محجوز{% endif %}</div>
+          <div class="legend-item"><div class="legend-dot selected"></div>{% if lang == 'en' %}Selected{% else %}مختار{% endif %}</div>
+          <div class="legend-item"><div class="legend-dot past"></div>{% if lang == 'en' %}Past{% else %}منتهي{% endif %}</div>
         </div>
         <div id="slotsContainer">
-          <div class="slots-loading"><i class="fas fa-spinner"></i><span>جاري التحميل...</span></div>
+          <div class="slots-loading"><i class="fas fa-spinner"></i><span>{% if lang == 'en' %}Loading...{% else %}جاري التحميل...{% endif %}</span></div>
         </div>
       </div>
     </div>
@@ -338,12 +338,12 @@
     <div class="card-z">
       <div class="card-header-z">
         <div class="ch-icon"><i class="fas fa-receipt"></i></div>
-        <div class="ch-title">ملخص الحجز</div>
+        <div class="ch-title">{% if lang == 'en' %}Booking Summary{% else %}ملخص الحجز{% endif %}</div>
       </div>
       <div class="card-body-z" id="summaryBody">
         <div class="summary-empty">
           <i class="fas fa-calendar-xmark"></i>
-          <p>اختر وقتاً لعرض التفاصيل</p>
+          <p>{% if lang == 'en' %}Select a time to view details{% else %}اختر وقتاً لعرض التفاصيل{% endif %}</p>
         </div>
       </div>
     </div>
@@ -351,7 +351,7 @@
     <div class="card-z" id="bookingFormCard" style="display:none;">
       <div class="card-header-z">
         <div class="ch-icon"><i class="fas fa-user"></i></div>
-        <div class="ch-title">بياناتك</div>
+        <div class="ch-title">{% if lang == 'en' %}Your Details{% else %}بياناتك{% endif %}</div>
       </div>
       <div class="card-body-z">
         <form method="POST" action="{{ url_for('booking.create') }}">
@@ -361,30 +361,30 @@
           <input type="hidden" name="start_time"   id="f_start_time"/>
           <input type="hidden" name="end_time"     id="f_end_time"/>
           <div class="form-group">
-            <label class="form-label">الاسم الكامل <span style="color:#e53935;">*</span></label>
-            <input type="text" name="customer_name" class="form-input" required placeholder="أدخل اسمك الكامل"/>
+            <label class="form-label">{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %} <span style="color:#e53935;">*</span></label>
+            <input type="text" name="customer_name" class="form-input" required placeholder="{% if lang == 'en' %}Enter your full name{% else %}أدخل اسمك الكامل{% endif %}"/>
           </div>
           <div class="form-group">
-            <label class="form-label">رقم الهاتف <span style="color:#e53935;">*</span></label>
+            <label class="form-label">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:#e53935;">*</span></label>
             <input type="tel" name="customer_phone" class="form-input" required placeholder="07xx xxx xxxx" dir="ltr"/>
           </div>
           <div class="form-group">
-            <label class="form-label">المدة</label>
+            <label class="form-label">{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</label>
             <div class="duration-btns">
-              <button type="button" class="dur-btn active" onclick="setDuration(1,this)">ساعة</button>
-              <button type="button" class="dur-btn" onclick="setDuration(1.5,this)">ساعة ونص</button>
-              <button type="button" class="dur-btn" onclick="setDuration(2,this)">ساعتان</button>
+              <button type="button" class="dur-btn active" onclick="setDuration(1,this)">{% if lang == 'en' %}1 Hour{% else %}ساعة{% endif %}</button>
+              <button type="button" class="dur-btn" onclick="setDuration(1.5,this)">{% if lang == 'en' %}1.5 Hours{% else %}ساعة ونص{% endif %}</button>
+              <button type="button" class="dur-btn" onclick="setDuration(2,this)">{% if lang == 'en' %}2 Hours{% else %}ساعتان{% endif %}</button>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">ملاحظات <small style="color:var(--text-muted);font-weight:400;">(اختياري)</small></label>
-            <input type="text" name="notes" class="form-input" placeholder="أي ملاحظات..."/>
+            <label class="form-label">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %} <small style="color:var(--text-muted);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</small></label>
+            <input type="text" name="notes" class="form-input" placeholder="{% if lang == 'en' %}Any notes...{% else %}أي ملاحظات...{% endif %}"/>
           </div>
           <div class="no-prepay-note">
-            <i class="fas fa-circle-check"></i> بدون دفع مسبق — ادفع عند الحضور
+            <i class="fas fa-circle-check"></i> {% if lang == 'en' %}No upfront payment — pay on arrival{% else %}بدون دفع مسبق — ادفع عند الحضور{% endif %}
           </div>
           <button type="submit" class="btn-confirm">
-            <i class="fas fa-calendar-check"></i> تأكيد الحجز
+            <i class="fas fa-calendar-check"></i> {% if lang == 'en' %}Confirm Booking{% else %}تأكيد الحجز{% endif %}
           </button>
         </form>
       </div>
@@ -406,8 +406,13 @@ function buildDateStrip() {
   const s  = document.getElementById('dateStrip');
   s.innerHTML = '';
   const t  = new Date();
+  {% if lang == 'en' %}
+  const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  {% else %}
   const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
   const MN = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  {% endif %}
 
   // Show 30 days starting from today
   for (let i = 0; i < 30; i++) {
@@ -454,7 +459,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('slotsContainer').innerHTML =
       `<div style="text-align:center;padding:32px;color:var(--text-muted);">
         <i class="fas fa-shield-halved" style="font-size:28px;color:var(--sand-mid);display:block;margin-bottom:8px;"></i>
-        <p style="font-size:13px;">لا توجد ملاعب متاحة</p>
+        <p style="font-size:13px;">{% if lang == 'en' %}No courts available{% else %}لا توجد ملاعب متاحة{% endif %}</p>
       </div>`;
   }
 });
@@ -488,12 +493,12 @@ function renderSlots() {
     const ok    = !past && !bkd;
 
     html += `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${disc})"` : ''}>
-      ${disc && !sel && !past && !bkd ? '<span class="slot-tag">خصم</span>' : ''}
+      ${disc && !sel && !past && !bkd ? '<span class="slot-tag">{% if lang == "en" %}DISC{% else %}خصم{% endif %}</span>' : ''}
       <i class="fas fa-check slot-check"></i>
       <span class="slot-time">${ts}</span>
       ${bkd
-        ? '<span class="slot-dur" style="color:#EF9A9A;font-size:8px;">محجوز</span>'
-        : '<span class="slot-dur">1س</span>'}
+        ? '<span class="slot-dur" style="color:#EF9A9A;font-size:8px;">{% if lang == "en" %}Booked{% else %}محجوز{% endif %}</span>'
+        : '<span class="slot-dur">{% if lang == "en" %}1h{% else %}1س{% endif %}</span>'}
       ${!bkd && !past ? `<span class="slot-price">${price}</span>` : ''}
     </div>`;
   }
@@ -538,7 +543,7 @@ function setDuration(h, btn) {
 function updateSummary() {
   const body = document.getElementById('summaryBody');
   if (!selStart || !selCourt) {
-    body.innerHTML = `<div class="summary-empty"><i class="fas fa-calendar-xmark"></i><p>اختر وقتاً لعرض التفاصيل</p></div>`;
+    body.innerHTML = `<div class="summary-empty"><i class="fas fa-calendar-xmark"></i><p>{% if lang == 'en' %}Select a time to view details{% else %}اختر وقتاً لعرض التفاصيل{% endif %}</p></div>`;
     return;
   }
 
@@ -551,31 +556,36 @@ function updateSummary() {
   const et   = `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
 
   const d  = new Date(selDate + 'T00:00:00');
+  {% if lang == 'en' %}
+  const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  {% else %}
   const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
   const MN = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  {% endif %}
 
   body.innerHTML = `
     <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-shield-halved"></i>الملعب</div>
+      <div class="sf-label"><i class="fas fa-shield-halved"></i>{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</div>
       <div class="sf-value">${name}</div>
     </div>
     <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-calendar-day"></i>التاريخ</div>
+      <div class="sf-label"><i class="fas fa-calendar-day"></i>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</div>
       <div class="sf-value">${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</div>
     </div>
     <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-clock"></i>الوقت</div>
+      <div class="sf-label"><i class="fas fa-clock"></i>{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</div>
       <div class="sf-value" style="direction:ltr;">${selStart} — ${et}</div>
     </div>
     <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-hourglass"></i>المدة</div>
-      <div class="sf-value">${dur === 1 ? 'ساعة' : dur === 1.5 ? 'ساعة ونص' : 'ساعتان'}</div>
+      <div class="sf-label"><i class="fas fa-hourglass"></i>{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</div>
+      <div class="sf-value">${dur === 1 ? '{% if lang == "en" %}1 Hour{% else %}ساعة{% endif %}' : dur === 1.5 ? '{% if lang == "en" %}1.5 Hours{% else %}ساعة ونص{% endif %}' : '{% if lang == "en" %}2 Hours{% else %}ساعتان{% endif %}'}</div>
     </div>
     <div class="price-total">
-      <div class="price-total-label">الإجمالي</div>
-      <div class="price-total-value">${total.toLocaleString()} <small>د.ع</small></div>
+      <div class="price-total-label">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div>
+      <div class="price-total-value">${total.toLocaleString()} <small>{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small></div>
     </div>
-    ${disc ? '<div class="discount-applied"><i class="fas fa-tag"></i> خصم 25% مطبق (12–16)</div>' : ''}`;
+    ${disc ? '<div class="discount-applied"><i class="fas fa-tag"></i> {% if lang == "en" %}25% discount applied (12–16){% else %}خصم 25% مطبق (12–16){% endif %}</div>' : ''}`;
 }
 </script>
 </body>

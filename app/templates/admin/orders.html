@@ -1,12 +1,12 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}الطلبات — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Orders — Z Padel{% else %}الطلبات — Z Padel{% endif %}{% endblock %}
 
 {% block content %}
 <div class="orders-toolbar">
   <div class="toolbar-right">
     <a href="{{ url_for('admin.export_report') }}" class="btn-z-outline">
-      <i class="fas fa-file-export"></i> تصدير
+      <i class="fas fa-file-export"></i> {% if lang == 'en' %}Export{% else %}تصدير{% endif %}
     </a>
   </div>
 </div>
@@ -22,8 +22,8 @@
                     <span class="status-badge">{{ o.status|default('pending') }}</span>
                 </td>
                 <td>
-                    <button class="action-btn view" onclick="openOrderModal({{ o.id }})">عرض</button>
-                    <button class="action-btn delete" onclick="openDeleteModal({{ o.id }}, '{{ '%04d'|format(o.id) }}')">حذف</button>
+                    <button class="action-btn view" onclick="openOrderModal({{ o.id }})">{% if lang == 'en' %}View{% else %}عرض{% endif %}</button>
+                    <button class="action-btn delete" onclick="openDeleteModal({{ o.id }}, '{{ '%04d'|format(o.id) }}')">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>
                 </td>
             </tr>
             {% endfor %}
@@ -42,8 +42,8 @@
         <form id="deleteOrderForm" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="modal-content" style="padding: 20px; text-align: center;">
-                <p>هل أنت متأكد من الحذف؟</p>
-                <button type="submit" class="btn-z-danger">نعم، احذف</button>
+                <p>{% if lang == 'en' %}Are you sure you want to delete this order?{% else %}هل أنت متأكد من الحذف؟{% endif %}</p>
+                <button type="submit" class="btn-z-danger">{% if lang == 'en' %}Yes, Delete{% else %}نعم، احذف{% endif %}</button>
             </div>
         </form>
     </div>
@@ -59,24 +59,25 @@
   {% endfor %}
 ]
 </script>
+
+<script type="application/json" id="langData">"{{ lang }}"</script>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 const ordersData = JSON.parse(document.getElementById('ordersData').textContent);
+const currentLang = JSON.parse(document.getElementById('langData').textContent);
+const isEn = currentLang === 'en';
 
-// Optimized AJAX: Updates row locally instead of reloading the page
 async function submitStatusUpdate(url, formData, id) {
     const response = await fetch(url, { method: 'POST', body: formData });
     if (response.ok) {
         const result = await response.json();
-        // Update UI locally
         const row = document.querySelector(`tr[data-id="${id}"] .status-badge`);
         if (row) row.textContent = result.new_status;
-        // Close modal
         bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();
     } else {
-        alert('حدث خطأ أثناء التحديث');
+        alert(isEn ? 'An error occurred during the update' : 'حدث خطأ أثناء التحديث');
     }
 }
 
@@ -84,18 +85,24 @@ function openOrderModal(id) {
     const order = ordersData.find(o => o.id === id);
     const modalBody = document.getElementById('orderModalBody');
 
+    const optPending    = isEn ? 'Pending'    : 'انتظار';
+    const optProcessing = isEn ? 'Processing' : 'تجهيز';
+    const optCompleted  = isEn ? 'Completed'  : 'مكتمل';
+    const optDelivered  = isEn ? 'Delivered'  : 'تم التوصيل';
+    const btnSave       = isEn ? 'Save'        : 'حفظ';
+
     modalBody.innerHTML = `
         <div class="modal-body">
             <form onsubmit="event.preventDefault(); submitStatusUpdate(this.action, new FormData(this), ${id});"
                   action="/orders/${id}/status" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <select name="status" class="form-control">
-                    <option value="pending" ${order.status==='pending'?'selected':''}>انتظار</option>
-                    <option value="processing" ${order.status==='processing'?'selected':''}>تجهيز</option>
-                    <option value="completed" ${order.status==='completed'?'selected':''}>مكتمل</option>
-                    <option value="delivered" ${order.status==='delivered'?'selected':''}>تم التوصيل</option>
+                    <option value="pending"    ${order.status==='pending'   ?'selected':''}>${optPending}</option>
+                    <option value="processing" ${order.status==='processing'?'selected':''}>${optProcessing}</option>
+                    <option value="completed"  ${order.status==='completed' ?'selected':''}>${optCompleted}</option>
+                    <option value="delivered"  ${order.status==='delivered' ?'selected':''}>${optDelivered}</option>
                 </select>
-                <button type="submit" class="btn btn-primary mt-2">حفظ</button>
+                <button type="submit" class="btn btn-primary mt-2">${btnSave}</button>
             </form>
         </div>
     `;

@@ -1,8 +1,8 @@
-{% extends "admin/base.html" %}
+{% extends "admin/base_admin.html" %}
 
-{% block title %}الملاعب — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Courts — Z Padel{% else %}الملاعب — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-shield-halved{% endblock %}
-{% block page_title %}إدارة الملاعب{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Manage Courts{% else %}إدارة الملاعب{% endif %}{% endblock %}
 
 {% block extra_styles %}
 .courts-grid {
@@ -109,11 +109,11 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <div>
-    <div style="font-size:22px;font-weight:900;color:var(--brand-blue-dark);">الملاعب</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">إدارة ملاعب Z Padel — التفعيل والتعديل والصور</div>
+    <div style="font-size:22px;font-weight:900;color:var(--brand-blue-dark);">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">{% if lang == 'en' %}Manage Z Padel courts — activate, edit, and upload images{% else %}إدارة ملاعب Z Padel — التفعيل والتعديل والصور{% endif %}</div>
   </div>
   <a href="{{ url_for('admin.new_court') }}" class="btn-z-primary">
-    <i class="fas fa-plus"></i> إضافة ملعب جديد
+    <i class="fas fa-plus"></i> {% if lang == 'en' %}Add New Court{% else %}إضافة ملعب جديد{% endif %}
   </a>
 </div>
 
@@ -123,21 +123,21 @@
     <div class="stat-icon blue"><i class="fas fa-shield-halved"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ courts|length }}</div>
-      <div class="stat-label">إجمالي الملاعب</div>
+      <div class="stat-label">{% if lang == 'en' %}Total Courts{% else %}إجمالي الملاعب{% endif %}</div>
     </div>
   </div>
   <div class="stat-card green">
     <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ courts|selectattr('is_active')|list|length }}</div>
-      <div class="stat-label">نشطة</div>
+      <div class="stat-label">{% if lang == 'en' %}Active{% else %}نشطة{% endif %}</div>
     </div>
   </div>
   <div class="stat-card" style="animation-delay:0.14s;">
     <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-circle-xmark"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ courts|rejectattr('is_active')|list|length }}</div>
-      <div class="stat-label">غير نشطة</div>
+      <div class="stat-label">{% if lang == 'en' %}Inactive{% else %}غير نشطة{% endif %}</div>
     </div>
   </div>
 </div>
@@ -153,7 +153,7 @@
       <i class="fas fa-table-tennis-paddle-ball court-img-icon" {% if court.image %}style="opacity:0;"{% endif %}></i>
       <span class="court-status-badge {{ 'active' if court.is_active else 'inactive' }}">
         <i class="fas fa-circle" style="font-size:7px;margin-left:4px;"></i>
-        {{ 'نشط' if court.is_active else 'غير نشط' }}
+        {% if court.is_active %}{% if lang == 'en' %}Active{% else %}نشط{% endif %}{% else %}{% if lang == 'en' %}Inactive{% else %}غير نشط{% endif %}{% endif %}
       </span>
     </div>
     <div class="court-card-body">
@@ -164,7 +164,7 @@
         </div>
         <div style="font-size:16px;font-weight:900;color:var(--brand-blue);">
           {{ "{:,.0f}".format(court.price_per_hour or 0) }}
-          <small style="font-size:11px;font-weight:400;color:var(--text-muted);"> د.ع</small>
+          <small style="font-size:11px;font-weight:400;color:var(--text-muted);"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
         </div>
       </div>
       <div class="court-meta">
@@ -172,30 +172,30 @@
         <span class="court-meta-item"><i class="fas fa-layer-group"></i> {{ court.surface_type }}</span>
         {% endif %}
         {% if court.capacity %}
-        <span class="court-meta-item"><i class="fas fa-users"></i> {{ court.capacity }} لاعب</span>
+        <span class="court-meta-item"><i class="fas fa-users"></i> {{ court.capacity }} {% if lang == 'en' %}players{% else %}لاعب{% endif %}</span>
         {% endif %}
-        <span class="court-meta-item"><i class="fas fa-calendar-check"></i> {{ court.total_bookings }} حجز</span>
+        <span class="court-meta-item"><i class="fas fa-calendar-check"></i> {{ court.total_bookings }} {% if lang == 'en' %}bookings{% else %}حجز{% endif %}</span>
       </div>
       {% if court.description %}
       <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">{{ court.description[:80] }}{% if court.description|length > 80 %}...{% endif %}</div>
       {% endif %}
       <div class="court-actions">
         <a href="{{ url_for('admin.edit_court', court_id=court.id) }}" class="btn-z-outline" style="flex:1;padding:8px;font-size:13px;justify-content:center;">
-          <i class="fas fa-pen"></i> تعديل
+          <i class="fas fa-pen"></i> {% if lang == 'en' %}Edit{% else %}تعديل{% endif %}
         </a>
         <form method="POST" action="{{ url_for('admin.toggle_court', court_id=court.id) }}" style="flex:1;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-z-outline" style="width:100%;padding:8px;font-size:13px;
             {{ 'color:#C62828;border-color:rgba(229,57,53,0.3);' if court.is_active else 'color:#2E7D32;border-color:rgba(67,160,71,0.3);' }}">
             {% if court.is_active %}
-              <i class="fas fa-eye-slash"></i> تعطيل
+              <i class="fas fa-eye-slash"></i> {% if lang == 'en' %}Deactivate{% else %}تعطيل{% endif %}
             {% else %}
-              <i class="fas fa-eye"></i> تفعيل
+              <i class="fas fa-eye"></i> {% if lang == 'en' %}Activate{% else %}تفعيل{% endif %}
             {% endif %}
           </button>
         </form>
         <form method="POST" action="{{ url_for('admin.delete_court', court_id=court.id) }}"
-              onsubmit="return confirm('حذف ملعب {{ court.name }}؟ سيتم حذف جميع حجوزاته.')">
+              onsubmit="return confirm('{% if lang == 'en' %}Delete court {{ court.name }}? All its bookings will be deleted.{% else %}حذف ملعب {{ court.name }}؟ سيتم حذف جميع حجوزاته.{% endif %}')">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-z-danger" style="padding:8px 12px;">
             <i class="fas fa-trash"></i>
@@ -209,9 +209,9 @@
 {% else %}
 <div style="text-align:center;padding:80px 20px;">
   <i class="fas fa-shield-halved" style="font-size:48px;color:var(--brand-blue-mid);display:block;margin-bottom:16px;"></i>
-  <div style="font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:8px;">لا توجد ملاعب بعد</div>
-  <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">أضف أول ملعب الآن</div>
-  <a href="{{ url_for('admin.new_court') }}" class="btn-z-primary"><i class="fas fa-plus"></i> إضافة ملعب</a>
+  <div style="font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:8px;">{% if lang == 'en' %}No courts yet{% else %}لا توجد ملاعب بعد{% endif %}</div>
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">{% if lang == 'en' %}Add your first court now{% else %}أضف أول ملعب الآن{% endif %}</div>
+  <a href="{{ url_for('admin.new_court') }}" class="btn-z-primary"><i class="fas fa-plus"></i> {% if lang == 'en' %}Add Court{% else %}إضافة ملعب{% endif %}</a>
 </div>
 {% endif %}
 

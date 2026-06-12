@@ -1,8 +1,8 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}إضافة ملعب — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Add Court — Z Padel{% else %}إضافة ملعب — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-plus-circle{% endblock %}
-{% block page_title %}إضافة ملعب جديد{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Add New Court{% else %}إضافة ملعب جديد{% endif %}{% endblock %}
 
 {% block content %}
 <div style="max-width:640px;">
@@ -10,13 +10,13 @@
   <a href="{{ url_for('admin.courts') }}"
      style="display:inline-flex;align-items:center;gap:7px;color:var(--text-muted);
             text-decoration:none;font-size:13px;font-weight:600;margin-bottom:20px;">
-    <i class="fas fa-arrow-right"></i> العودة للملاعب
+    <i class="fas fa-arrow-right"></i> {% if lang == 'en' %}Back to Courts{% else %}العودة للملاعب{% endif %}
   </a>
 
   <div class="card-z">
     <div class="card-header-z">
       <div class="card-title-z">
-        <i class="fas fa-shield-halved"></i> بيانات الملعب
+        <i class="fas fa-shield-halved"></i> {% if lang == 'en' %}Court Details{% else %}بيانات الملعب{% endif %}
       </div>
     </div>
     <div class="card-body-z">
@@ -27,43 +27,43 @@
         <div class="row g-3">
 
           <div class="col-md-8">
-            <label class="form-label-z">اسم الملعب <span style="color:#e53935;">*</span></label>
+            <label class="form-label-z">{% if lang == 'en' %}Court Name{% else %}اسم الملعب{% endif %} <span style="color:#e53935;">*</span></label>
             <input type="text" name="name" class="form-control-z" required
-                   placeholder="مثال: ملعب Z1"/>
+                   placeholder="{% if lang == 'en' %}e.g. Court Z1{% else %}مثال: ملعب Z1{% endif %}"/>
           </div>
 
           <div class="col-md-4">
-            <label class="form-label-z">السعة (لاعب)</label>
+            <label class="form-label-z">{% if lang == 'en' %}Capacity (players){% else %}السعة (لاعب){% endif %}</label>
             <input type="number" name="capacity" class="form-control-z"
                    placeholder="4" min="1" max="20"/>
           </div>
 
           <div class="col-md-6">
-            <label class="form-label-z">سعر الساعة (د.ع) <span style="color:#e53935;">*</span></label>
+            <label class="form-label-z">{% if lang == 'en' %}Price per Hour (IQD){% else %}سعر الساعة (د.ع){% endif %} <span style="color:#e53935;">*</span></label>
             <input type="number" name="price_per_hour" class="form-control-z" required
                    placeholder="25000" min="0" step="500"/>
           </div>
 
           <div class="col-md-6">
-            <label class="form-label-z">نوع السطح</label>
+            <label class="form-label-z">{% if lang == 'en' %}Surface Type{% else %}نوع السطح{% endif %}</label>
             <select name="surface_type" class="form-control-z">
-              <option value="">اختر النوع</option>
-              <option value="Artificial Grass">عشب صناعي</option>
-              <option value="Hard Court">أرضية صلبة</option>
-              <option value="Clay">تراب مضغوط</option>
-              <option value="Carpet">سجادة</option>
+              <option value="">{% if lang == 'en' %}Select Type{% else %}اختر النوع{% endif %}</option>
+              <option value="Artificial Grass">{% if lang == 'en' %}Artificial Grass{% else %}عشب صناعي{% endif %}</option>
+              <option value="Hard Court">{% if lang == 'en' %}Hard Court{% else %}أرضية صلبة{% endif %}</option>
+              <option value="Clay">{% if lang == 'en' %}Clay{% else %}تراب مضغوط{% endif %}</option>
+              <option value="Carpet">{% if lang == 'en' %}Carpet{% else %}سجادة{% endif %}</option>
             </select>
           </div>
 
           <div class="col-12">
-            <label class="form-label-z">الوصف</label>
+            <label class="form-label-z">{% if lang == 'en' %}Description{% else %}الوصف{% endif %}</label>
             <textarea name="description" class="form-control-z" rows="2"
-                      placeholder="معلومات إضافية عن الملعب..."
+                      placeholder="{% if lang == 'en' %}Additional info about the court...{% else %}معلومات إضافية عن الملعب...{% endif %}"
                       style="resize:none;"></textarea>
           </div>
 
           <div class="col-12">
-            <label class="form-label-z">لون الملعب</label>
+            <label class="form-label-z">{% if lang == 'en' %}Court Color{% else %}لون الملعب{% endif %}</label>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;" id="colorPicker">
               {% for c in ['#1565C0','#00B0FF','#43A047','#FB8C00','#E53935','#7B1FA2','#009688','#F57F17','#0D47A1','#1B5E20'] %}
               <div onclick="pickColor('{{ c }}', this)"
@@ -82,9 +82,9 @@
 
         <div style="display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-color);">
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-plus-circle"></i> إضافة الملعب
+            <i class="fas fa-plus-circle"></i> {% if lang == 'en' %}Add Court{% else %}إضافة الملعب{% endif %}
           </button>
-          <a href="{{ url_for('admin.courts') }}" class="btn-z-outline">إلغاء</a>
+          <a href="{{ url_for('admin.courts') }}" class="btn-z-outline">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</a>
         </div>
 
       </form>

@@ -1,6 +1,6 @@
 {% extends 'admin/base_admin.html' %}
 
-{% block title %}إدارة المصاريف{% endblock %}
+{% block title %}{% if lang == 'en' %}Expenses Management{% else %}إدارة المصاريف{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -10,7 +10,7 @@
     <div class="col-12">
       <h2>
         <i class="fas fa-wallet me-2"></i>
-        إدارة المصاريف
+        {% if lang == 'en' %}Expenses Management{% else %}إدارة المصاريف{% endif %}
       </h2>
     </div>
   </div>
@@ -19,25 +19,25 @@
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="stat-card text-center" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;">
-        <h6 class="mb-1">إجمالي المصاريف</h6>
+        <h6 class="mb-1">{% if lang == 'en' %}Total Expenses{% else %}إجمالي المصاريف{% endif %}</h6>
         <h3 class="mb-0">{{ '{:,.0f}'.format(total_expenses) }} IQD</h3>
       </div>
     </div>
     <div class="col-md-3">
       <div class="stat-card text-center" style="background: linear-gradient(135deg, #fd7e14, #e8690a); color: white;">
-        <h6 class="mb-1">مصاريف اليوم</h6>
+        <h6 class="mb-1">{% if lang == 'en' %}Today's Expenses{% else %}مصاريف اليوم{% endif %}</h6>
         <h3 class="mb-0">{{ '{:,.0f}'.format(today_expenses) }} IQD</h3>
       </div>
     </div>
     <div class="col-md-3">
       <div class="stat-card text-center" style="background: linear-gradient(135deg, #6f42c1, #5a32a3); color: white;">
-        <h6 class="mb-1">مصاريف الشهر</h6>
+        <h6 class="mb-1">{% if lang == 'en' %}Month's Expenses{% else %}مصاريف الشهر{% endif %}</h6>
         <h3 class="mb-0">{{ '{:,.0f}'.format(month_expenses) }} IQD</h3>
       </div>
     </div>
     <div class="col-md-3">
       <div class="stat-card text-center" style="background: linear-gradient(135deg, #198754, #157347); color: white;">
-        <h6 class="mb-1">إجمالي الإيرادات</h6>
+        <h6 class="mb-1">{% if lang == 'en' %}Total Revenue{% else %}إجمالي الإيرادات{% endif %}</h6>
         <h3 class="mb-0">{{ '{:,.0f}'.format(total_revenue) }} IQD</h3>
       </div>
     </div>
@@ -49,14 +49,14 @@
     <div class="col-12">
       <div class="stat-card">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0"><i class="fas fa-bullseye me-2"></i>الميزانية الشهرية</h6>
+          <h6 class="mb-0"><i class="fas fa-bullseye me-2"></i>{% if lang == 'en' %}Monthly Budget{% else %}الميزانية الشهرية{% endif %}</h6>
           <span class="text-muted">{{ '{:,.0f}'.format(month_expenses) }} / {{ '{:,.0f}'.format(monthly_budget) }} IQD</span>
         </div>
         <div class="progress" style="height: 10px;">
           <div class="progress-bar {% if budget_pct > 90 %}bg-danger{% elif budget_pct > 70 %}bg-warning{% else %}bg-success{% endif %}"
                style="width: {{ budget_pct }}%"></div>
         </div>
-        <small class="text-muted">{{ '{:.1f}'.format(budget_pct) }}% من الميزانية</small>
+        <small class="text-muted">{{ '{:.1f}'.format(budget_pct) }}% {% if lang == 'en' %}of budget{% else %}من الميزانية{% endif %}</small>
       </div>
     </div>
   </div>
@@ -66,7 +66,7 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="stat-card">
-        <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>الاتجاه الشهري</h5>
+        <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>{% if lang == 'en' %}Monthly Trend{% else %}الاتجاه الشهري{% endif %}</h5>
         <div class="d-flex gap-3 align-items-end" style="height: 80px;">
           {% set max_trend = monthly_trend | map(attribute='total') | max %}
           {% for item in monthly_trend %}
@@ -88,7 +88,7 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="stat-card">
-        <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>التوزيع حسب الفئة</h5>
+        <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>{% if lang == 'en' %}Breakdown by Category{% else %}التوزيع حسب الفئة{% endif %}</h5>
         <div class="row g-2">
           {% for cat in expense_categories %}
           <div class="col-md-3 col-6">
@@ -108,22 +108,22 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="stat-card">
-        <h5 class="mb-3"><i class="fas fa-filter me-2"></i>الفلترة</h5>
+        <h5 class="mb-3"><i class="fas fa-filter me-2"></i>{% if lang == 'en' %}Filter{% else %}الفلترة{% endif %}</h5>
         <form method="GET" action="{{ url_for('admin.expenses') }}">
           <div class="row g-2 align-items-end">
             <div class="col-md-4">
-              <label class="form-label">الشهر</label>
+              <label class="form-label">{% if lang == 'en' %}Month{% else %}الشهر{% endif %}</label>
               <input type="month" name="month" class="form-control"
                      value="{{ request.args.get('month', '') }}">
             </div>
             <div class="col-md-2">
               <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-search me-1"></i>بحث
+                <i class="fas fa-search me-1"></i>{% if lang == 'en' %}Search{% else %}بحث{% endif %}
               </button>
             </div>
             <div class="col-md-2">
               <a href="{{ url_for('admin.expenses') }}" class="btn btn-outline-secondary w-100">
-                <i class="fas fa-redo me-1"></i>إعادة تعيين
+                <i class="fas fa-redo me-1"></i>{% if lang == 'en' %}Reset{% else %}إعادة تعيين{% endif %}
               </a>
             </div>
           </div>
@@ -137,19 +137,20 @@
     <div class="col-12">
       <div class="stat-card">
         <h5 class="mb-3">
-          <i class="fas fa-plus-circle me-2"></i>إضافة مصروف جديد
+          <i class="fas fa-plus-circle me-2"></i>{% if lang == 'en' %}Add New Expense{% else %}إضافة مصروف جديد{% endif %}
         </h5>
         <form method="POST" action="{{ url_for('admin.add_expense') }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="row g-3">
             <div class="col-md-2">
-              <label class="form-label">التاريخ *</label>
+              <label class="form-label">{% if lang == 'en' %}Date *{% else %}التاريخ *{% endif %}</label>
               <input type="date" name="date" class="form-control" value="{{ today }}" required>
             </div>
 
             <div class="col-md-2">
-              <label class="form-label">الفئة</label>
+              <label class="form-label">{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</label>
               <select name="category_id" class="form-select">
-                <option value="">بدون فئة</option>
+                <option value="">{% if lang == 'en' %}No Category{% else %}بدون فئة{% endif %}</option>
                 {% for cat in expense_categories %}
                   <option value="{{ cat.id }}">{{ cat.name }}</option>
                 {% endfor %}
@@ -157,19 +158,19 @@
             </div>
 
             <div class="col-md-2">
-              <label class="form-label">المبلغ (IQD) *</label>
+              <label class="form-label">{% if lang == 'en' %}Amount (IQD) *{% else %}المبلغ (IQD) *{% endif %}</label>
               <input type="number" name="amount" class="form-control" min="1" step="any" required>
             </div>
 
             <div class="col-md-3">
-              <label class="form-label">الوصف *</label>
+              <label class="form-label">{% if lang == 'en' %}Description *{% else %}الوصف *{% endif %}</label>
               <input type="text" name="description" class="form-control"
-                     placeholder="وصف المصروف..." required>
+                     placeholder="{% if lang == 'en' %}Expense description...{% else %}وصف المصروف...{% endif %}" required>
             </div>
 
             <div class="col-md-2">
-              <label class="form-label">ملاحظات</label>
-              <input type="text" name="notes" class="form-control" placeholder="اختياري...">
+              <label class="form-label">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
+              <input type="text" name="notes" class="form-control" placeholder="{% if lang == 'en' %}Optional...{% else %}اختياري...{% endif %}">
             </div>
 
             <div class="col-md-1 d-flex align-items-end">
@@ -189,10 +190,10 @@
       <div class="stat-card">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">
-            <i class="fas fa-list me-2"></i>قائمة المصاريف
+            <i class="fas fa-list me-2"></i>{% if lang == 'en' %}Expenses List{% else %}قائمة المصاريف{% endif %}
           </h5>
           <a href="{{ url_for('admin.export_expenses') }}" class="btn btn-outline-success btn-sm">
-            <i class="fas fa-file-export me-1"></i>تصدير
+            <i class="fas fa-file-export me-1"></i>{% if lang == 'en' %}Export{% else %}تصدير{% endif %}
           </a>
         </div>
 
@@ -202,13 +203,13 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>التاريخ</th>
-                <th>الفئة</th>
-                <th>الوصف</th>
-                <th>الملاحظات</th>
-                <th>المبلغ</th>
-                <th>أضيف بواسطة</th>
-                <th>الإجراءات</th>
+                <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+                <th>{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</th>
+                <th>{% if lang == 'en' %}Description{% else %}الوصف{% endif %}</th>
+                <th>{% if lang == 'en' %}Notes{% else %}الملاحظات{% endif %}</th>
+                <th>{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+                <th>{% if lang == 'en' %}Added By{% else %}أضيف بواسطة{% endif %}</th>
+                <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
               </tr>
             </thead>
             <tbody>
@@ -222,7 +223,7 @@
                       {{ expense.category.name }}
                     </span>
                   {% else %}
-                    <span class="badge bg-secondary">بدون فئة</span>
+                    <span class="badge bg-secondary">{% if lang == 'en' %}No Category{% else %}بدون فئة{% endif %}</span>
                   {% endif %}
                 </td>
                 <td>{{ expense.description or '-' }}</td>
@@ -244,7 +245,8 @@
                   <form method="POST"
                         action="{{ url_for('admin.delete_expense', exp_id=expense.id) }}"
                         style="display:inline;"
-                        onsubmit="return confirm('هل أنت متأكد من حذف هذا المصروف؟')">
+                        onsubmit="return confirm('{% if lang == 'en' %}Are you sure you want to delete this expense?{% else %}هل أنت متأكد من حذف هذا المصروف؟{% endif %}')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-danger">
                       <i class="fas fa-trash"></i>
                     </button>
@@ -290,7 +292,7 @@
         {% else %}
         <div class="text-center text-muted py-5">
           <i class="fas fa-inbox fa-3x mb-3"></i>
-          <p>لا توجد مصاريف في هذه الفترة</p>
+          <p>{% if lang == 'en' %}No expenses in this period{% else %}لا توجد مصاريف في هذه الفترة{% endif %}</p>
         </div>
         {% endif %}
       </div>
@@ -302,20 +304,21 @@
 <div class="modal fade" id="editModal" tabindex="-1">
   <div class="modal-dialog">
     <form class="modal-content" id="editForm" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-header">
-        <h5 class="modal-title">تعديل المصروف</h5>
+        <h5 class="modal-title">{% if lang == 'en' %}Edit Expense{% else %}تعديل المصروف{% endif %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label">التاريخ *</label>
+          <label class="form-label">{% if lang == 'en' %}Date *{% else %}التاريخ *{% endif %}</label>
           <input type="date" name="date" id="editDate" class="form-control" required>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">الفئة</label>
+          <label class="form-label">{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</label>
           <select name="category_id" id="editCategory" class="form-select">
-            <option value="">بدون فئة</option>
+            <option value="">{% if lang == 'en' %}No Category{% else %}بدون فئة{% endif %}</option>
             {% for cat in expense_categories %}
               <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
@@ -323,24 +326,24 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">المبلغ (IQD) *</label>
+          <label class="form-label">{% if lang == 'en' %}Amount (IQD) *{% else %}المبلغ (IQD) *{% endif %}</label>
           <input type="number" name="amount" id="editAmount" class="form-control" min="1" step="any" required>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">الوصف *</label>
+          <label class="form-label">{% if lang == 'en' %}Description *{% else %}الوصف *{% endif %}</label>
           <input type="text" name="description" id="editDescription" class="form-control" required>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">ملاحظات</label>
+          <label class="form-label">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
           <input type="text" name="notes" id="editNotes" class="form-control">
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
         <button type="submit" class="btn btn-warning">
-          <i class="fas fa-save me-2"></i>حفظ التعديلات
+          <i class="fas fa-save me-2"></i>{% if lang == 'en' %}Save Changes{% else %}حفظ التعديلات{% endif %}
         </button>
       </div>
     </form>

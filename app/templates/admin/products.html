@@ -1,16 +1,16 @@
-{% extends 'admin/base.html' %}
-{% block title %}المنتجات{% endblock %}
-{% block page_title %}المنتجات{% endblock %}
+{% extends 'admin/base_admin.html' %}
+{% block title %}{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}{% endblock %}
 
 {% block content %}
 
 <div class="page-header">
   <div>
-    <div class="page-header-title">المنتجات</div>
-    <div class="page-header-sub">إدارة منتجات المتجر ونقطة البيع</div>
+    <div class="page-header-title">{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}</div>
+    <div class="page-header-sub">{% if lang == 'en' %}Manage store products and point of sale{% else %}إدارة منتجات المتجر ونقطة البيع{% endif %}</div>
   </div>
   <a href="{{ url_for('admin.new_product') }}" class="btn-z-primary">
-    <i class="fas fa-plus"></i> إضافة منتج
+    <i class="fas fa-plus"></i> {% if lang == 'en' %}Add Product{% else %}إضافة منتج{% endif %}
   </a>
 </div>
 
@@ -21,7 +21,7 @@
       <div class="stat-icon blue"><i class="fas fa-box-open"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ products|length }}</div>
-        <div class="stat-label">إجمالي المنتجات</div>
+        <div class="stat-label">{% if lang == 'en' %}Total Products{% else %}إجمالي المنتجات{% endif %}</div>
       </div>
     </div>
   </div>
@@ -30,7 +30,7 @@
       <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ products|selectattr('is_active')|list|length }}</div>
-        <div class="stat-label">منتجات نشطة</div>
+        <div class="stat-label">{% if lang == 'en' %}Active Products{% else %}منتجات نشطة{% endif %}</div>
       </div>
     </div>
   </div>
@@ -39,7 +39,7 @@
       <div class="stat-icon cyan"><i class="fas fa-globe"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ products|selectattr('show_on_website')|list|length }}</div>
-        <div class="stat-label">على الموقع</div>
+        <div class="stat-label">{% if lang == 'en' %}On Website{% else %}على الموقع{% endif %}</div>
       </div>
     </div>
   </div>
@@ -48,7 +48,7 @@
       <div class="stat-icon orange"><i class="fas fa-triangle-exclamation"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ products|selectattr('stock', 'lt', 5)|list|length }}</div>
-        <div class="stat-label">مخزون منخفض</div>
+        <div class="stat-label">{% if lang == 'en' %}Low Stock{% else %}مخزون منخفض{% endif %}</div>
       </div>
     </div>
   </div>
@@ -57,9 +57,8 @@
 <!-- Products table -->
 <div class="card-z">
   <div class="card-header-z">
-    <div class="card-title-z"><i class="fas fa-box-open"></i> قائمة المنتجات</div>
-    <!-- Search -->
-    <input type="text" id="searchInput" placeholder="بحث عن منتج..."
+    <div class="card-title-z"><i class="fas fa-box-open"></i> {% if lang == 'en' %}Products List{% else %}قائمة المنتجات{% endif %}</div>
+    <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search for a product...{% else %}بحث عن منتج...{% endif %}"
            class="form-control-z" style="max-width:220px;"
            oninput="filterProducts()">
   </div>
@@ -67,13 +66,13 @@
     <table class="table-z" id="productsTable">
       <thead>
         <tr>
-          <th>المنتج</th>
-          <th>الفئة</th>
-          <th>السعر</th>
-          <th>المخزون</th>
-          <th>الموقع</th>
-          <th>الحالة</th>
-          <th>الإجراءات</th>
+          <th>{% if lang == 'en' %}Product{% else %}المنتج{% endif %}</th>
+          <th>{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</th>
+          <th>{% if lang == 'en' %}Price{% else %}السعر{% endif %}</th>
+          <th>{% if lang == 'en' %}Stock{% else %}المخزون{% endif %}</th>
+          <th>{% if lang == 'en' %}Website{% else %}الموقع{% endif %}</th>
+          <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+          <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
         </tr>
       </thead>
       <tbody>
@@ -104,7 +103,7 @@
               <span style="color:var(--text-muted);font-size:.8rem;">—</span>
             {% endif %}
           </td>
-          <td style="font-weight:700;">{{ p.price|int|string }} د.ع</td>
+          <td style="font-weight:700;">{{ p.price|int|string }} {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</td>
           <td>
             {% if p.stock < 5 %}
               <span class="badge-z pending"><i class="fas fa-triangle-exclamation"></i> {{ p.stock }}</span>
@@ -114,27 +113,27 @@
           </td>
           <td>
             {% if p.show_on_website %}
-              <span class="badge-z active"><i class="fas fa-check"></i> نعم</span>
+              <span class="badge-z active"><i class="fas fa-check"></i> {% if lang == 'en' %}Yes{% else %}نعم{% endif %}</span>
             {% else %}
               <span style="color:var(--text-muted);font-size:.8rem;">—</span>
             {% endif %}
           </td>
           <td>
             {% if p.is_active %}
-              <span class="badge-z confirmed">نشط</span>
+              <span class="badge-z confirmed">{% if lang == 'en' %}Active{% else %}نشط{% endif %}</span>
             {% else %}
-              <span class="badge-z cancelled">متوقف</span>
+              <span class="badge-z cancelled">{% if lang == 'en' %}Inactive{% else %}متوقف{% endif %}</span>
             {% endif %}
           </td>
           <td>
             <div style="display:flex;gap:6px;">
               <a href="{{ url_for('admin.edit_product', product_id=p.id) }}"
                  class="btn-z-outline" style="padding:5px 12px;font-size:.8rem;">
-                <i class="fas fa-pen"></i> تعديل
+                <i class="fas fa-pen"></i> {% if lang == 'en' %}Edit{% else %}تعديل{% endif %}
               </a>
               <form method="POST"
                     action="{{ url_for('admin.delete_product', product_id=p.id) }}"
-                    onsubmit="return confirm('حذف {{ p.name }}؟')">
+                    onsubmit="return confirm('{% if lang == 'en' %}Delete {{ p.name }}?{% else %}حذف {{ p.name }}؟{% endif %}')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn-z-danger" style="padding:5px 12px;font-size:.8rem;">
                   <i class="fas fa-trash"></i>
@@ -147,8 +146,8 @@
         <tr>
           <td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted);">
             <i class="fas fa-box-open" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3;"></i>
-            لا توجد منتجات بعد —
-            <a href="{{ url_for('admin.new_product') }}" style="color:var(--brand-blue);">أضف أول منتج</a>
+            {% if lang == 'en' %}No products yet —{% else %}لا توجد منتجات بعد —{% endif %}
+            <a href="{{ url_for('admin.new_product') }}" style="color:var(--brand-blue);">{% if lang == 'en' %}Add first product{% else %}أضف أول منتج{% endif %}</a>
           </td>
         </tr>
         {% endfor %}

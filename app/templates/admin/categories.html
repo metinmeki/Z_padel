@@ -1,16 +1,16 @@
-{% extends 'admin/base.html' %}
-{% block title %}الفئات{% endblock %}
-{% block page_title %}الفئات{% endblock %}
+{% extends 'admin/base_admin.html' %}
+{% block title %}{% if lang == 'en' %}Categories{% else %}الفئات{% endif %}{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Categories{% else %}الفئات{% endif %}{% endblock %}
 
 {% block content %}
 
 <div class="page-header">
   <div>
-    <div class="page-header-title">فئات المنتجات</div>
-    <div class="page-header-sub">إدارة تصنيفات المتجر</div>
+    <div class="page-header-title">{% if lang == 'en' %}Product Categories{% else %}فئات المنتجات{% endif %}</div>
+    <div class="page-header-sub">{% if lang == 'en' %}Manage store classifications{% else %}إدارة تصنيفات المتجر{% endif %}</div>
   </div>
   <button class="btn-z-primary" onclick="openAddModal()">
-    <i class="fas fa-plus"></i> إضافة فئة
+    <i class="fas fa-plus"></i> {% if lang == 'en' %}Add Category{% else %}إضافة فئة{% endif %}
   </button>
 </div>
 
@@ -21,11 +21,11 @@
       <div class="stat-icon blue"><i class="fas fa-tags"></i></div>
       <div class="stat-info">
         <div class="stat-value">{{ categories|length }}</div>
-        <div class="stat-label">إجمالي الفئات</div>
+        <div class="stat-label">{% if lang == 'en' %}Total Categories{% else %}إجمالي الفئات{% endif %}</div>
       </div>
     </div>
   </div>
-<div class="col-6 col-md-3">
+  <div class="col-6 col-md-3">
     <div class="stat-card cyan">
       <div class="stat-icon cyan"><i class="fas fa-box-open"></i></div>
       <div class="stat-info">
@@ -36,10 +36,11 @@
           {% endfor %}
           {{ total.count }}
         </div>
-        <div class="stat-label">إجمالي المنتجات</div>
+        <div class="stat-label">{% if lang == 'en' %}Total Products{% else %}إجمالي المنتجات{% endif %}</div>
       </div>
     </div>
   </div>
+</div>
 
 <!-- Categories grid -->
 {% if categories %}
@@ -55,7 +56,7 @@
             </div>
             <div>
               <div style="font-weight:700;font-size:.95rem;">{{ cat.name }}</div>
-              <div style="font-size:.75rem;color:var(--text-muted);">{{ cat.products|length }} منتج</div>
+              <div style="font-size:.75rem;color:var(--text-muted);">{{ cat.products|length }} {% if lang == 'en' %}product(s){% else %}منتج{% endif %}</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;">
@@ -64,7 +65,7 @@
               <i class="fas fa-pen"></i>
             </button>
             <form method="POST" action="{{ url_for('admin.delete_category', cat_id=cat.id) }}"
-                  onsubmit="return confirm('حذف فئة {{ cat.name }}؟ سيتم إلغاء ربط منتجاتها.')">
+                  onsubmit="return confirm('{% if lang == 'en' %}Delete category {{ cat.name }}? Its products will be unlinked.{% else %}حذف فئة {{ cat.name }}؟ سيتم إلغاء ربط منتجاتها.{% endif %}')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn-z-danger" style="padding:5px 10px;font-size:.8rem;">
                 <i class="fas fa-trash"></i>
@@ -83,22 +84,22 @@
 <div class="card-z">
   <div style="text-align:center;padding:64px 24px;color:var(--text-muted);">
     <i class="fas fa-tags" style="font-size:40px;display:block;margin-bottom:14px;opacity:.25;"></i>
-    <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">لا توجد فئات بعد</div>
-    <div style="font-size:.85rem;margin-bottom:20px;">أضف فئات لتنظيم منتجاتك</div>
+    <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">{% if lang == 'en' %}No categories yet{% else %}لا توجد فئات بعد{% endif %}</div>
+    <div style="font-size:.85rem;margin-bottom:20px;">{% if lang == 'en' %}Add categories to organize your products{% else %}أضف فئات لتنظيم منتجاتك{% endif %}</div>
     <button class="btn-z-primary" onclick="openAddModal()">
-      <i class="fas fa-plus"></i> إضافة أول فئة
+      <i class="fas fa-plus"></i> {% if lang == 'en' %}Add First Category{% else %}إضافة أول فئة{% endif %}
     </button>
   </div>
 </div>
 {% endif %}
 
-<!-- ═══ ADD MODAL ═══ -->
+<!-- ADD MODAL -->
 <div id="addModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
   <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);" onclick="closeAddModal()"></div>
   <div style="position:relative;background:white;border-radius:16px;padding:2rem;width:min(440px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;">
       <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);">
-        <i class="fas fa-plus me-2" style="color:var(--brand-blue);"></i> إضافة فئة جديدة
+        <i class="fas fa-plus me-2" style="color:var(--brand-blue);"></i> {% if lang == 'en' %}Add New Category{% else %}إضافة فئة جديدة{% endif %}
       </h3>
       <button onclick="closeAddModal()" style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;">
         <i class="fas fa-times"></i>
@@ -107,11 +108,11 @@
     <form method="POST" action="{{ url_for('admin.add_category') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
-        <label class="form-label-z">اسم الفئة *</label>
-        <input type="text" name="name" class="form-control-z" required placeholder="مثال: مشروبات">
+        <label class="form-label-z">{% if lang == 'en' %}Category Name *{% else %}اسم الفئة *{% endif %}</label>
+        <input type="text" name="name" class="form-control-z" required placeholder="{% if lang == 'en' %}e.g. Beverages{% else %}مثال: مشروبات{% endif %}">
       </div>
       <div class="mb-4">
-        <label class="form-label-z">اللون</label>
+        <label class="form-label-z">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</label>
         <div style="display:flex;align-items:center;gap:12px;">
           <input type="color" name="color" id="addColorPicker" value="#1565C0"
                  style="width:48px;height:38px;border:1.5px solid var(--border-color);border-radius:8px;cursor:pointer;padding:2px;">
@@ -120,21 +121,21 @@
       </div>
       <div style="display:flex;gap:10px;">
         <button type="submit" class="btn-z-primary" style="flex:1;">
-          <i class="fas fa-save"></i> إضافة
+          <i class="fas fa-save"></i> {% if lang == 'en' %}Add{% else %}إضافة{% endif %}
         </button>
-        <button type="button" class="btn-z-outline" onclick="closeAddModal()">إلغاء</button>
+        <button type="button" class="btn-z-outline" onclick="closeAddModal()">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- ═══ EDIT MODAL ═══ -->
+<!-- EDIT MODAL -->
 <div id="editModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
   <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);" onclick="closeEditModal()"></div>
   <div style="position:relative;background:white;border-radius:16px;padding:2rem;width:min(440px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;">
       <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);">
-        <i class="fas fa-pen me-2" style="color:var(--brand-blue);"></i> تعديل الفئة
+        <i class="fas fa-pen me-2" style="color:var(--brand-blue);"></i> {% if lang == 'en' %}Edit Category{% else %}تعديل الفئة{% endif %}
       </h3>
       <button onclick="closeEditModal()" style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;">
         <i class="fas fa-times"></i>
@@ -143,11 +144,11 @@
     <form method="POST" id="editForm">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
-        <label class="form-label-z">اسم الفئة *</label>
+        <label class="form-label-z">{% if lang == 'en' %}Category Name *{% else %}اسم الفئة *{% endif %}</label>
         <input type="text" name="name" id="editName" class="form-control-z" required>
       </div>
       <div class="mb-4">
-        <label class="form-label-z">اللون</label>
+        <label class="form-label-z">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</label>
         <div style="display:flex;align-items:center;gap:12px;">
           <input type="color" name="color" id="editColorPicker"
                  style="width:48px;height:38px;border:1.5px solid var(--border-color);border-radius:8px;cursor:pointer;padding:2px;">
@@ -156,16 +157,15 @@
       </div>
       <div style="display:flex;gap:10px;">
         <button type="submit" class="btn-z-primary" style="flex:1;">
-          <i class="fas fa-save"></i> حفظ
+          <i class="fas fa-save"></i> {% if lang == 'en' %}Save{% else %}حفظ{% endif %}
         </button>
-        <button type="button" class="btn-z-outline" onclick="closeEditModal()">إلغاء</button>
+        <button type="button" class="btn-z-outline" onclick="closeEditModal()">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-  // ADD MODAL
   function openAddModal() {
     document.getElementById('addModal').style.display = 'flex';
   }
@@ -176,7 +176,6 @@
     document.getElementById('addColorHex').textContent = this.value;
   });
 
-  // EDIT MODAL
   function openEditModal(id, name, color) {
     document.getElementById('editName').value        = name;
     document.getElementById('editColorPicker').value = color;

@@ -1,8 +1,8 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}طلبات التدريب — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Training Requests — Z Padel{% else %}طلبات التدريب — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-dumbbell{% endblock %}
-{% block page_title %}طلبات التدريب{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Training Requests{% else %}طلبات التدريب{% endif %}{% endblock %}
 
 {% block extra_styles %}
 .stats-strip {
@@ -82,21 +82,21 @@
     <div class="stat-icon blue"><i class="fas fa-dumbbell"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ training_requests|length if training_requests else 0 }}</div>
-      <div class="stat-label">إجمالي الطلبات</div>
+      <div class="stat-label">{% if lang == 'en' %}Total Requests{% else %}إجمالي الطلبات{% endif %}</div>
     </div>
   </div>
   <div class="stat-card orange" style="animation-delay:0.07s;">
     <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ training_requests|selectattr('status','equalto','pending')|list|length if training_requests else 0 }}</div>
-      <div class="stat-label">معلقة</div>
+      <div class="stat-label">{% if lang == 'en' %}Pending{% else %}معلقة{% endif %}</div>
     </div>
   </div>
   <div class="stat-card green" style="animation-delay:0.14s;">
     <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ training_requests|selectattr('status','equalto','confirmed')|list|length if training_requests else 0 }}</div>
-      <div class="stat-label">مؤكدة</div>
+      <div class="stat-label">{% if lang == 'en' %}Confirmed{% else %}مؤكدة{% endif %}</div>
     </div>
   </div>
   <div class="stat-card" style="animation-delay:0.21s;">
@@ -105,7 +105,7 @@
     </div>
     <div class="stat-info">
       <div class="stat-value">{{ training_requests|selectattr('status','equalto','cancelled')|list|length if training_requests else 0 }}</div>
-      <div class="stat-label">ملغية</div>
+      <div class="stat-label">{% if lang == 'en' %}Cancelled{% else %}ملغية{% endif %}</div>
     </div>
   </div>
 </div>
@@ -115,24 +115,23 @@
   <div class="table-toolbar">
     <div class="table-title">
       <i class="fas fa-dumbbell" style="color:var(--brand-blue);"></i>
-      طلبات التدريب
+      {% if lang == 'en' %}Training Requests{% else %}طلبات التدريب{% endif %}
       <span class="count-pill">{{ training_requests|length if training_requests else 0 }}</span>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <div class="search-wrap">
         <i class="fas fa-magnifying-glass"></i>
-        <!-- ✅ FIXED: removed oninput="filterTable()" — handled via debounced event listener below -->
-        <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..."/>
+        <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search by name or phone...{% else %}بحث باسم أو هاتف...{% endif %}"/>
       </div>
       <select id="statusFilter"
               style="padding:8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;outline:none;color:var(--text-dark);background:white;">
-        <option value="">كل الحالات</option>
-        <option value="pending">معلقة</option>
-        <option value="confirmed">مؤكدة</option>
-        <option value="cancelled">ملغية</option>
+        <option value="">{% if lang == 'en' %}All Statuses{% else %}كل الحالات{% endif %}</option>
+        <option value="pending">{% if lang == 'en' %}Pending{% else %}معلقة{% endif %}</option>
+        <option value="confirmed">{% if lang == 'en' %}Confirmed{% else %}مؤكدة{% endif %}</option>
+        <option value="cancelled">{% if lang == 'en' %}Cancelled{% else %}ملغية{% endif %}</option>
       </select>
       <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addRequestModal">
-        <i class="fas fa-plus"></i> طلب جديد
+        <i class="fas fa-plus"></i> {% if lang == 'en' %}New Request{% else %}طلب جديد{% endif %}
       </button>
     </div>
   </div>
@@ -142,13 +141,13 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>العميل</th>
-          <th>المدرب</th>
-          <th>التاريخ المفضل</th>
-          <th>الوقت المفضل</th>
-          <th>الحالة</th>
-          <th>ملاحظات</th>
-          <th>الإجراءات</th>
+          <th>{% if lang == 'en' %}Customer{% else %}العميل{% endif %}</th>
+          <th>{% if lang == 'en' %}Coach{% else %}المدرب{% endif %}</th>
+          <th>{% if lang == 'en' %}Preferred Date{% else %}التاريخ المفضل{% endif %}</th>
+          <th>{% if lang == 'en' %}Preferred Time{% else %}الوقت المفضل{% endif %}</th>
+          <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+          <th>{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</th>
+          <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
         </tr>
       </thead>
       <tbody id="requestsBody">
@@ -171,7 +170,7 @@
                   <span style="font-size:13px;font-weight:600;">{{ tr.coach.name }}</span>
                 </div>
               {% else %}
-                <span style="color:var(--text-muted);font-size:12px;">غير محدد</span>
+                <span style="color:var(--text-muted);font-size:12px;">{% if lang == 'en' %}Unassigned{% else %}غير محدد{% endif %}</span>
               {% endif %}
             </td>
             <td style="font-size:13px;white-space:nowrap;">
@@ -190,11 +189,11 @@
             <td>
               {% set s = tr.status|default('pending') %}
               {% if s == 'confirmed' %}
-                <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مؤكد</span>
+                <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Confirmed{% else %}مؤكد{% endif %}</span>
               {% elif s == 'pending' %}
-                <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>معلق</span>
+                <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Pending{% else %}معلق{% endif %}</span>
               {% elif s == 'cancelled' %}
-                <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>ملغي</span>
+                <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Cancelled{% else %}ملغي{% endif %}</span>
               {% endif %}
             </td>
             <td style="font-size:12.5px;color:var(--text-muted);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -205,13 +204,13 @@
                 {% if tr.status == 'pending' %}
                 <form method="POST" action="{{ url_for('admin.confirm_training', req_id=tr.id) }}" style="display:inline;">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <button type="submit" class="action-btn confirm" title="تأكيد">
+                  <button type="submit" class="action-btn confirm" title="{% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}">
                     <i class="fas fa-check"></i>
                   </button>
                 </form>
                 <form method="POST" action="{{ url_for('admin.cancel_training', req_id=tr.id) }}" style="display:inline;">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <button type="submit" class="action-btn reject" title="إلغاء">
+                  <button type="submit" class="action-btn reject" title="{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}">
                     <i class="fas fa-xmark"></i>
                   </button>
                 </form>
@@ -225,7 +224,7 @@
             <td colspan="8">
               <div class="empty-state">
                 <i class="fas fa-dumbbell"></i>
-                <p>لا توجد طلبات تدريب بعد</p>
+                <p>{% if lang == 'en' %}No training requests yet{% else %}لا توجد طلبات تدريب بعد{% endif %}</p>
               </div>
             </td>
           </tr>
@@ -241,7 +240,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> إضافة طلب تدريب</h5>
+        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> {% if lang == 'en' %}Add Training Request{% else %}إضافة طلب تدريب{% endif %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="POST" action="{{ url_for('admin.add_training_request') }}">
@@ -249,46 +248,46 @@
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label-z">اسم العميل <span style="color:#e53935;">*</span></label>
-              <input type="text" name="customer_name" class="form-control-z" required placeholder="الاسم الكامل"/>
+              <label class="form-label-z">{% if lang == 'en' %}Customer Name{% else %}اسم العميل{% endif %} <span style="color:#e53935;">*</span></label>
+              <input type="text" name="customer_name" class="form-control-z" required placeholder="{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}"/>
             </div>
             <div class="col-md-6">
-              <label class="form-label-z">رقم الهاتف <span style="color:#e53935;">*</span></label>
+              <label class="form-label-z">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:#e53935;">*</span></label>
               <input type="tel" name="customer_phone" class="form-control-z" required placeholder="07xx xxx xxxx" dir="ltr"/>
             </div>
             <div class="col-md-6">
-              <label class="form-label-z">المدرب</label>
+              <label class="form-label-z">{% if lang == 'en' %}Coach{% else %}المدرب{% endif %}</label>
               <select name="coach_id" class="form-control-z">
-                <option value="">اختر المدرب</option>
+                <option value="">{% if lang == 'en' %}Select Coach{% else %}اختر المدرب{% endif %}</option>
                 {% for coach in coaches %}
                   <option value="{{ coach.id }}">{{ coach.name }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label-z">التاريخ المفضل</label>
+              <label class="form-label-z">{% if lang == 'en' %}Preferred Date{% else %}التاريخ المفضل{% endif %}</label>
               <input type="date" name="preferred_date" class="form-control-z"/>
             </div>
             <div class="col-md-6">
-              <label class="form-label-z">الوقت المفضل</label>
+              <label class="form-label-z">{% if lang == 'en' %}Preferred Time{% else %}الوقت المفضل{% endif %}</label>
               <input type="time" name="preferred_time" class="form-control-z"/>
             </div>
             <div class="col-md-6">
-              <label class="form-label-z">الحالة</label>
+              <label class="form-label-z">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
               <select name="status" class="form-control-z">
-                <option value="pending">معلق</option>
-                <option value="confirmed">مؤكد</option>
+                <option value="pending">{% if lang == 'en' %}Pending{% else %}معلق{% endif %}</option>
+                <option value="confirmed">{% if lang == 'en' %}Confirmed{% else %}مؤكد{% endif %}</option>
               </select>
             </div>
             <div class="col-12">
-              <label class="form-label-z">ملاحظات</label>
-              <textarea name="notes" class="form-control-z" rows="2" style="resize:none;" placeholder="ملاحظات إضافية..."></textarea>
+              <label class="form-label-z">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
+              <textarea name="notes" class="form-control-z" rows="2" style="resize:none;" placeholder="{% if lang == 'en' %}Additional notes...{% else %}ملاحظات إضافية...{% endif %}"></textarea>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn-z-primary"><i class="fas fa-plus-circle"></i> إضافة الطلب</button>
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+          <button type="submit" class="btn-z-primary"><i class="fas fa-plus-circle"></i> {% if lang == 'en' %}Add Request{% else %}إضافة الطلب{% endif %}</button>
         </div>
       </form>
     </div>
@@ -300,7 +299,6 @@
 {% block extra_scripts %}
 <script>
 (function () {
-  // ── Filter function ────────────────────────────────────────────────
   function filterTable() {
     var q      = document.getElementById('searchInput').value.toLowerCase();
     var status = document.getElementById('statusFilter').value;
@@ -314,14 +312,12 @@
     });
   }
 
-  // ── Debounced search (200 ms) — FIXES the typing lag ──────────────
   var _searchTimer;
   document.getElementById('searchInput').addEventListener('input', function () {
     clearTimeout(_searchTimer);
     _searchTimer = setTimeout(filterTable, 200);
   });
 
-  // ── Status dropdown fires instantly (single click, no lag) ─────────
   document.getElementById('statusFilter').addEventListener('change', filterTable);
 })();
 </script>

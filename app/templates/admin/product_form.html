@@ -1,6 +1,6 @@
-﻿{% extends 'admin/base.html' %}
-{% block title %}{{ 'تعديل منتج' if product else 'إضافة منتج' }}{% endblock %}
-{% block page_title %}{{ 'تعديل منتج' if product else 'إضافة منتج جديد' }}{% endblock %}
+{% extends 'admin/base_admin.html' %}
+{% block title %}{% if product %}{% if lang == 'en' %}Edit Product{% else %}تعديل منتج{% endif %}{% else %}{% if lang == 'en' %}Add Product{% else %}إضافة منتج{% endif %}{% endif %}{% endblock %}
+{% block page_title %}{% if product %}{% if lang == 'en' %}Edit Product{% else %}تعديل منتج{% endif %}{% else %}{% if lang == 'en' %}Add New Product{% else %}إضافة منتج جديد{% endif %}{% endif %}{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -45,7 +45,7 @@
 {% block content %}
 
 <a href="{{ url_for('admin.products') }}" class="back-link">
-  <i class="fas fa-arrow-right"></i> العودة للمنتجات
+  <i class="fas fa-arrow-right"></i> {% if lang == 'en' %}Back to Products{% else %}العودة للمنتجات{% endif %}
 </a>
 
 <div class="form-wrap">
@@ -60,7 +60,7 @@
     <div class="visibility-card">
       <div class="vis-title">
         <i class="fas fa-eye" style="color:var(--brand-blue-light);"></i>
-        مكان عرض المنتج
+        {% if lang == 'en' %}Product Display Location{% else %}مكان عرض المنتج{% endif %}
       </div>
 
       <!-- POS — always on -->
@@ -68,11 +68,11 @@
         <div class="vis-left">
           <div class="vis-icon vi-pos"><i class="fas fa-cash-register"></i></div>
           <div class="vis-info">
-            <div class="vi-name">نظام POS</div>
-            <div class="vi-desc">يظهر دائماً في نظام نقطة البيع</div>
+            <div class="vi-name">{% if lang == 'en' %}POS System{% else %}نظام POS{% endif %}</div>
+            <div class="vi-desc">{% if lang == 'en' %}Always visible in the point of sale system{% else %}يظهر دائماً في نظام نقطة البيع{% endif %}</div>
           </div>
         </div>
-        <span class="always-badge"><i class="fas fa-check me-1"></i>دائماً</span>
+        <span class="always-badge"><i class="fas fa-check me-1"></i>{% if lang == 'en' %}Always{% else %}دائماً{% endif %}</span>
       </div>
 
       <!-- Website toggle -->
@@ -80,8 +80,8 @@
         <div class="vis-left">
           <div class="vis-icon vi-web"><i class="fas fa-globe"></i></div>
           <div class="vis-info">
-            <div class="vi-name">متجر الموقع</div>
-            <div class="vi-desc">اعرض هذا المنتج للزوار على الموقع</div>
+            <div class="vi-name">{% if lang == 'en' %}Website Store{% else %}متجر الموقع{% endif %}</div>
+            <div class="vi-desc">{% if lang == 'en' %}Show this product to visitors on the website{% else %}اعرض هذا المنتج للزوار على الموقع{% endif %}</div>
           </div>
         </div>
         <div class="toggle-wrap">
@@ -97,16 +97,16 @@
     <div class="form-card">
 
       <div class="mb-3">
-        <label class="f-label">اسم المنتج *</label>
+        <label class="f-label">{% if lang == 'en' %}Product Name *{% else %}اسم المنتج *{% endif %}</label>
         <input type="text" name="name" class="f-ctrl" required
                value="{{ product.name if product else '' }}"
-               placeholder="مثال: Red Bull">
+               placeholder="{% if lang == 'en' %}e.g. Red Bull{% else %}مثال: Red Bull{% endif %}">
       </div>
 
       <div class="mb-3">
-        <label class="f-label">الفئة</label>
+        <label class="f-label">{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</label>
         <select name="category_id" class="f-ctrl">
-          <option value="">— بدون فئة —</option>
+          <option value="">{% if lang == 'en' %}— No Category —{% else %}— بدون فئة —{% endif %}</option>
           {% for cat in categories %}
             <option value="{{ cat.id }}"
               {% if product and product.category_id == cat.id %}selected{% endif %}>
@@ -117,20 +117,20 @@
       </div>
 
       <div class="mb-3">
-        <label class="f-label">الوصف</label>
+        <label class="f-label">{% if lang == 'en' %}Description{% else %}الوصف{% endif %}</label>
         <textarea name="description" class="f-ctrl" rows="2"
-                  placeholder="وصف المنتج...">{{ product.description or '' if product else '' }}</textarea>
+                  placeholder="{% if lang == 'en' %}Product description...{% else %}وصف المنتج...{% endif %}">{{ product.description or '' if product else '' }}</textarea>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label class="f-label">السعر (د.ع) *</label>
+          <label class="f-label">{% if lang == 'en' %}Price (IQD) *{% else %}السعر (د.ع) *{% endif %}</label>
           <input type="number" name="price" class="f-ctrl" required step="0.01" min="0"
                  value="{{ product.price|int if product else '' }}"
                  placeholder="2500">
         </div>
         <div class="col-md-6">
-          <label class="f-label">المخزون</label>
+          <label class="f-label">{% if lang == 'en' %}Stock{% else %}المخزون{% endif %}</label>
           <input type="number" name="stock" class="f-ctrl" min="0"
                  value="{{ product.stock if product else 0 }}"
                  placeholder="0">
@@ -138,18 +138,18 @@
       </div>
 
       <div class="mb-3">
-        <label class="f-label">الباركود <small style="text-transform:none;font-weight:400;">(اختياري)</small></label>
+        <label class="f-label">{% if lang == 'en' %}Barcode <small style="text-transform:none;font-weight:400;">(optional)</small>{% else %}الباركود <small style="text-transform:none;font-weight:400;">(اختياري)</small>{% endif %}</label>
         <input type="text" name="barcode" class="f-ctrl" dir="ltr"
                value="{{ product.barcode or '' if product else '' }}"
                placeholder="123456789">
       </div>
 
       <div class="mb-3">
-        <label class="f-label">صورة المنتج</label>
+        <label class="f-label">{% if lang == 'en' %}Product Image{% else %}صورة المنتج{% endif %}</label>
         {% if product and product.image %}
           <img src="{{ url_for('static', filename='images/products/' ~ product.image) }}"
                class="img-preview" alt="{{ product.name }}">
-          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:6px;">اتركه فارغاً للإبقاء على الصورة الحالية</div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:6px;">{% if lang == 'en' %}Leave empty to keep the current image{% else %}اتركه فارغاً للإبقاء على الصورة الحالية{% endif %}</div>
         {% endif %}
         <input type="file" name="image" class="f-ctrl" accept="image/*" style="padding:6px 12px;">
       </div>
@@ -159,17 +159,17 @@
           <input type="checkbox" name="is_active" id="isActive"
                  {% if not product or product.is_active %}checked{% endif %}
                  style="width:16px;height:16px;accent-color:var(--brand-blue);cursor:pointer;">
-          <label for="isActive" style="font-size:.88rem;cursor:pointer;margin:0;">المنتج نشط</label>
+          <label for="isActive" style="font-size:.88rem;cursor:pointer;margin:0;">{% if lang == 'en' %}Product is Active{% else %}المنتج نشط{% endif %}</label>
         </div>
       </div>
 
       <div class="d-flex gap-2 flex-wrap">
         <button type="submit" class="btn-z">
           <i class="fas fa-save"></i>
-          {{ 'حفظ التعديلات' if product else 'إضافة المنتج' }}
+          {% if product %}{% if lang == 'en' %}Save Changes{% else %}حفظ التعديلات{% endif %}{% else %}{% if lang == 'en' %}Add Product{% else %}إضافة المنتج{% endif %}{% endif %}
         </button>
         <a href="{{ url_for('admin.products') }}" class="btn-z-ghost">
-          <i class="fas fa-times"></i> إلغاء
+          <i class="fas fa-times"></i> {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
         </a>
       </div>
 

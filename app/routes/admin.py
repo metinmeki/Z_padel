@@ -862,6 +862,65 @@ def export_backup():
 
 
 # ════════════════════════════════════════════
+# NOTIFICATIONS API
+# ════════════════════════════════════════════
+@admin_bp.route('/api/notifications')
+@login_required
+def api_notifications():
+    from flask import jsonify
+    from app.models.main import CancelRequest, TrainingRequest
+    from app.models.store import Product, Order
+
+    pending_bookings  = Booking.query.filter_by(status='pending').count()
+    cancel_requests   = CancelRequest.query.filter_by(status='pending').count()
+    training_requests = TrainingRequest.query.filter_by(status='pending').count()
+    low_stock         = Product.query.filter(Product.stock <= 5, Product.is_active == True).count()
+    pending_orders    = Order.query.filter_by(status='pending').count()
+
+    items = []
+    if pending_bookings:
+        items.append({
+            'icon': 'fa-calendar-clock', 'color': '#FB8C00',
+            'en': f'{pending_bookings} pending booking(s) awaiting review',
+            'ar': f'يوجد {pending_bookings} حجز بانتظار المراجعة',
+            'url': '/admin/pending-bookings'
+        })
+    if cancel_requests:
+        items.append({
+            'icon': 'fa-calendar-xmark', 'color': '#E53935',
+            'en': f'{cancel_requests} cancellation request(s)',
+            'ar': f'يوجد {cancel_requests} طلب إلغاء',
+            'url': '/admin/cancel-requests'
+        })
+    if training_requests:
+        items.append({
+            'icon': 'fa-dumbbell', 'color': '#7B1FA2',
+            'en': f'{training_requests} training request(s)',
+            'ar': f'يوجد {training_requests} طلب تدريب',
+            'url': '/admin/training-requests'
+        })
+    if low_stock:
+        items.append({
+            'icon': 'fa-box-open', 'color': '#F57C00',
+            'en': f'{low_stock} product(s) low on stock',
+            'ar': f'يوجد {low_stock} منتج ينفد مخزونه',
+            'url': '/admin/products'
+        })
+    if pending_orders:
+        items.append({
+            'icon': 'fa-bag-shopping', 'color': '#1565C0',
+            'en': f'{pending_orders} pending order(s)',
+            'ar': f'يوجد {pending_orders} طلب معلق',
+            'url': '/admin/orders'
+        })
+
+    return jsonify({
+        'total': len(items),
+        'items': items
+    })
+
+
+# ════════════════════════════════════════════
 # MISC
 # ════════════════════════════════════════════
 @admin_bp.route('/print-barcodes')

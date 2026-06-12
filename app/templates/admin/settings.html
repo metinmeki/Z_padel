@@ -1,220 +1,63 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}الإعدادات — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Settings — Z Padel{% else %}الإعدادات — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-gear{% endblock %}
-{% block page_title %}الإعدادات{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Settings{% else %}الإعدادات{% endif %}{% endblock %}
 
 {% block extra_styles %}
-/* ── Settings layout ── */
-.settings-layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 20px;
-  align-items: start;
-}
+.settings-layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start; }
 @media (max-width: 900px) { .settings-layout { grid-template-columns: 1fr; } }
-
-/* ── Side nav ── */
-.settings-sidenav {
-  background: white;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  position: sticky;
-  top: calc(var(--topbar-height) + 16px);
-  animation: fadeSlideIn 0.35s ease both;
-}
-.sidenav-header {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 11px; font-weight: 700;
-  color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;
-}
-.sidenav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 18px;
-  font-size: 13.5px; font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer; transition: var(--transition);
-  border-right: 3px solid transparent;
-  text-decoration: none;
-}
-.sidenav-item:hover {
-  background: var(--brand-blue-soft);
-  color: var(--brand-blue-dark);
-}
-.sidenav-item.active {
-  background: var(--brand-blue-soft);
-  color: var(--brand-blue-dark);
-  border-right-color: var(--brand-blue);
-  font-weight: 700;
-}
+.settings-sidenav { background: white; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); overflow: hidden; position: sticky; top: calc(var(--topbar-height) + 16px); animation: fadeSlideIn 0.35s ease both; }
+.sidenav-header { padding: 14px 18px; border-bottom: 1px solid var(--border-color); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+.sidenav-item { display: flex; align-items: center; gap: 10px; padding: 11px 18px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: var(--transition); border-right: 3px solid transparent; text-decoration: none; }
+.sidenav-item:hover { background: var(--brand-blue-soft); color: var(--brand-blue-dark); }
+.sidenav-item.active { background: var(--brand-blue-soft); color: var(--brand-blue-dark); border-right-color: var(--brand-blue); font-weight: 700; }
 .sidenav-item i { width: 18px; text-align: center; font-size: 14px; }
 .sidenav-item.active i { color: var(--brand-blue); }
-
-/* ── Settings panel ── */
 .settings-panel { display: none; animation: fadeSlideIn 0.3s ease both; }
 .settings-panel.active { display: block; }
-
-.settings-card {
-  background: white;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  margin-bottom: 18px;
-  animation: fadeSlideIn 0.4s ease both;
-}
-.settings-card-header {
-  padding: 16px 22px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex; align-items: center; gap: 12px;
-}
-.settings-card-icon {
-  width: 38px; height: 38px;
-  background: var(--brand-blue-soft);
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; color: var(--brand-blue);
-  flex-shrink: 0;
-}
-.settings-card-title {
-  font-size: 15px; font-weight: 700; color: var(--brand-blue-dark);
-}
-.settings-card-sub {
-  font-size: 12px; color: var(--text-muted); margin-top: 1px;
-}
+.settings-card { background: white; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 18px; animation: fadeSlideIn 0.4s ease both; }
+.settings-card-header { padding: 16px 22px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; }
+.settings-card-icon { width: 38px; height: 38px; background: var(--brand-blue-soft); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--brand-blue); flex-shrink: 0; }
+.settings-card-title { font-size: 15px; font-weight: 700; color: var(--brand-blue-dark); }
+.settings-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
 .settings-card-body { padding: 22px; }
-
-/* ── Form rows ── */
-.setting-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border-color);
-  gap: 16px;
-  flex-wrap: wrap;
-}
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border-color); gap: 16px; flex-wrap: wrap; }
 .setting-row:last-child { border-bottom: none; padding-bottom: 0; }
 .setting-row:first-child { padding-top: 0; }
 .setting-info { flex: 1; min-width: 180px; }
-.setting-label {
-  font-size: 13.5px; font-weight: 700; color: var(--text-dark);
-  margin-bottom: 2px;
-}
-.setting-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.setting-label { font-size: 13.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 2px; }
+.setting-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 .setting-control { flex-shrink: 0; }
-
-/* Inline input */
-.setting-input {
-  padding: 8px 14px;
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  font-family: 'Cairo', sans-serif; font-size: 13px;
-  color: var(--text-dark); background: white;
-  outline: none; transition: var(--transition);
-  min-width: 180px;
-}
-.setting-input:focus {
-  border-color: var(--brand-blue-light);
-  box-shadow: 0 0 0 3px rgba(30,136,229,0.12);
-}
+.setting-input { padding: 8px 14px; border: 1.5px solid var(--border-color); border-radius: var(--radius-sm); font-family: 'Cairo', sans-serif; font-size: 13px; color: var(--text-dark); background: white; outline: none; transition: var(--transition); min-width: 180px; }
+.setting-input:focus { border-color: var(--brand-blue-light); box-shadow: 0 0 0 3px rgba(30,136,229,0.12); }
 .setting-input-sm { min-width: 110px; }
-
-/* Toggle switch (reuse) */
-.toggle-switch {
-  position: relative; width: 48px; height: 26px; display: inline-block;
-}
+.toggle-switch { position: relative; width: 48px; height: 26px; display: inline-block; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-  position: absolute; inset: 0; border-radius: 26px;
-  cursor: pointer; transition: 0.3s ease; background: var(--border-color);
-}
-.toggle-slider::before {
-  content: ''; position: absolute;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: white; bottom: 3px; right: 3px;
-  transition: 0.3s ease;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.20);
-}
+.toggle-slider { position: absolute; inset: 0; border-radius: 26px; cursor: pointer; transition: 0.3s ease; background: var(--border-color); }
+.toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: white; bottom: 3px; right: 3px; transition: 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.20); }
 .toggle-switch input:checked + .toggle-slider { background: #43A047; }
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(-22px); }
-
-/* Time range inputs */
-.time-range {
-  display: flex; align-items: center; gap: 8px;
-}
+.time-range { display: flex; align-items: center; gap: 8px; }
 .time-range span { font-size: 13px; color: var(--text-muted); font-weight: 600; }
-
-/* Color swatch picker */
-.brand-color-wrap {
-  display: flex; align-items: center; gap: 10px;
-}
-.color-preview {
-  width: 36px; height: 36px; border-radius: var(--radius-sm);
-  border: 2px solid var(--border-color); cursor: pointer;
-  transition: var(--transition); flex-shrink: 0;
-}
+.brand-color-wrap { display: flex; align-items: center; gap: 10px; }
+.color-preview { width: 36px; height: 36px; border-radius: var(--radius-sm); border: 2px solid var(--border-color); cursor: pointer; transition: var(--transition); flex-shrink: 0; }
 .color-preview:hover { transform: scale(1.1); }
-
-/* ── Danger zone ── */
-.danger-zone-card {
-  background: rgba(229,57,53,0.04);
-  border: 1.5px solid rgba(229,57,53,0.20);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  margin-bottom: 18px;
-}
-.danger-zone-title {
-  font-size: 14px; font-weight: 700; color: #C62828;
-  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
-}
-.danger-action-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0; border-bottom: 1px solid rgba(229,57,53,0.12);
-  flex-wrap: wrap; gap: 10px;
-}
+.danger-zone-card { background: rgba(229,57,53,0.04); border: 1.5px solid rgba(229,57,53,0.20); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px; }
+.danger-zone-title { font-size: 14px; font-weight: 700; color: #C62828; display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.danger-action-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(229,57,53,0.12); flex-wrap: wrap; gap: 10px; }
 .danger-action-row:last-child { border-bottom: none; padding-bottom: 0; }
 .danger-action-label { font-size: 13.5px; font-weight: 700; color: var(--text-dark); }
 .danger-action-desc  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-/* ── Save bar (sticky) ── */
-.save-bar {
-  position: sticky; bottom: 0; z-index: 100;
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border-color);
-  padding: 14px 22px;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap;
-  box-shadow: 0 -4px 20px rgba(21,101,192,0.08);
-  border-radius: 0 0 var(--radius) var(--radius);
-  margin-top: 6px;
-  animation: fadeSlideIn 0.3s ease both;
-}
-.save-bar-info {
-  font-size: 13px; color: var(--text-muted);
-  display: flex; align-items: center; gap: 8px;
-}
+.save-bar { position: sticky; bottom: 0; z-index: 100; background: rgba(255,255,255,0.97); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; box-shadow: 0 -4px 20px rgba(21,101,192,0.08); border-radius: 0 0 var(--radius) var(--radius); margin-top: 6px; animation: fadeSlideIn 0.3s ease both; }
+.save-bar-info { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
 .save-bar-info i { color: var(--brand-blue); }
-.unsaved-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: #FB8C00;
-  display: none; animation: pulseGlow 1.5s infinite;
-}
+.unsaved-dot { width: 8px; height: 8px; border-radius: 50%; background: #FB8C00; display: none; animation: pulseGlow 1.5s infinite; }
 .unsaved-dot.visible { display: inline-block; }
-
-/* ── Password strength ── */
-.pwd-strength-bar {
-  height: 4px; border-radius: 2px; background: var(--border-color);
-  overflow: hidden; margin-top: 6px;
-}
+.pwd-strength-bar  { height: 4px; border-radius: 2px; background: var(--border-color); overflow: hidden; margin-top: 6px; }
 .pwd-strength-fill { height: 100%; border-radius: 2px; transition: width 0.4s, background 0.4s; }
 .pwd-strength-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-
-/* ── Notification toggles ── */
-.notif-group {
-  display: flex; flex-direction: column; gap: 0;
-}
+.notif-group { display: flex; flex-direction: column; gap: 0; }
 {% endblock %}
 
 {% block content %}
@@ -223,37 +66,37 @@
 
   <!-- Side Nav -->
   <div class="settings-sidenav">
-    <div class="sidenav-header">الإعدادات</div>
+    <div class="sidenav-header">{% if lang == 'en' %}Settings{% else %}الإعدادات{% endif %}</div>
     <a class="sidenav-item active" onclick="showPanel('general', this)">
-      <i class="fas fa-sliders"></i> عام
+      <i class="fas fa-sliders"></i> {% if lang == 'en' %}General{% else %}عام{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('booking', this)">
-      <i class="fas fa-calendar-check"></i> الحجوزات
+      <i class="fas fa-calendar-check"></i> {% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('pricing', this)">
-      <i class="fas fa-coins"></i> التسعير
+      <i class="fas fa-coins"></i> {% if lang == 'en' %}Pricing{% else %}التسعير{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('store', this)">
-      <i class="fas fa-bag-shopping"></i> المتجر
+      <i class="fas fa-bag-shopping"></i> {% if lang == 'en' %}Store{% else %}المتجر{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('notifications', this)">
-      <i class="fas fa-bell"></i> الإشعارات
+      <i class="fas fa-bell"></i> {% if lang == 'en' %}Notifications{% else %}الإشعارات{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('security', this)">
-      <i class="fas fa-lock"></i> الأمان
+      <i class="fas fa-lock"></i> {% if lang == 'en' %}Security{% else %}الأمان{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('appearance', this)">
-      <i class="fas fa-palette"></i> المظهر
+      <i class="fas fa-palette"></i> {% if lang == 'en' %}Appearance{% else %}المظهر{% endif %}
     </a>
     <a class="sidenav-item" onclick="showPanel('danger', this)" style="color:#C62828;">
-      <i class="fas fa-triangle-exclamation" style="color:#E53935;"></i> منطقة الخطر
+      <i class="fas fa-triangle-exclamation" style="color:#E53935;"></i> {% if lang == 'en' %}Danger Zone{% else %}منطقة الخطر{% endif %}
     </a>
   </div>
 
   <!-- Panels -->
   <div>
 
-    <!-- ═══ GENERAL ═══ -->
+    <!-- GENERAL -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='general') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel active" id="panel-general">
@@ -262,16 +105,16 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-building"></i></div>
             <div>
-              <div class="settings-card-title">معلومات المنشأة</div>
-              <div class="settings-card-sub">البيانات الأساسية لـ Z Padel</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Facility Information{% else %}معلومات المنشأة{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Basic data for Z Padel{% else %}البيانات الأساسية لـ Z Padel{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">اسم المنشأة</div>
-                <div class="setting-desc">يظهر في الفواتير وصفحة الحجز</div>
+                <div class="setting-label">{% if lang == 'en' %}Facility Name{% else %}اسم المنشأة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Appears in invoices and booking page{% else %}يظهر في الفواتير وصفحة الحجز{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="text" name="facility_name" class="setting-input"
@@ -281,8 +124,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">رقم الهاتف</div>
-                <div class="setting-desc">رقم التواصل الرئيسي</div>
+                <div class="setting-label">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Main contact number{% else %}رقم التواصل الرئيسي{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="tel" name="phone" class="setting-input setting-input-sm"
@@ -293,8 +136,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">البريد الإلكتروني</div>
-                <div class="setting-desc">للتواصل والإشعارات</div>
+                <div class="setting-label">{% if lang == 'en' %}Email{% else %}البريد الإلكتروني{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}For contact and notifications{% else %}للتواصل والإشعارات{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="email" name="email" class="setting-input"
@@ -305,25 +148,25 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">العنوان</div>
-                <div class="setting-desc">موقع المنشأة</div>
+                <div class="setting-label">{% if lang == 'en' %}Address{% else %}العنوان{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Facility location{% else %}موقع المنشأة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="text" name="address" class="setting-input"
                        value="{{ settings.address|default('') }}"
-                       placeholder="المدينة، الحي، الشارع"/>
+                       placeholder="{% if lang == 'en' %}City, District, Street{% else %}المدينة، الحي، الشارع{% endif %}"/>
               </div>
             </div>
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">العملة</div>
-                <div class="setting-desc">وحدة العملة المستخدمة في الفواتير</div>
+                <div class="setting-label">{% if lang == 'en' %}Currency{% else %}العملة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Currency unit used in invoices{% else %}وحدة العملة المستخدمة في الفواتير{% endif %}</div>
               </div>
               <div class="setting-control">
                 <select name="currency" class="setting-input setting-input-sm">
-                  <option value="IQD" {% if settings.currency|default('IQD')=='IQD' %}selected{% endif %}>دينار عراقي (د.ع)</option>
-                  <option value="USD" {% if settings.currency|default('')=='USD' %}selected{% endif %}>دولار أمريكي ($)</option>
+                  <option value="IQD" {% if settings.currency|default('IQD')=='IQD' %}selected{% endif %}>{% if lang == 'en' %}Iraqi Dinar (IQD){% else %}دينار عراقي (د.ع){% endif %}</option>
+                  <option value="USD" {% if settings.currency|default('')=='USD' %}selected{% endif %}>{% if lang == 'en' %}US Dollar ($){% else %}دولار أمريكي ($){% endif %}</option>
                 </select>
               </div>
             </div>
@@ -335,16 +178,16 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-clock"></i></div>
             <div>
-              <div class="settings-card-title">ساعات العمل</div>
-              <div class="settings-card-sub">أوقات فتح وإغلاق المنشأة</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Working Hours{% else %}ساعات العمل{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Facility opening and closing times{% else %}أوقات فتح وإغلاق المنشأة{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">ساعات الدوام</div>
-                <div class="setting-desc">يمنع الحجوزات خارج هذا النطاق</div>
+                <div class="setting-label">{% if lang == 'en' %}Working Hours{% else %}ساعات الدوام{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Prevents bookings outside this range{% else %}يمنع الحجوزات خارج هذا النطاق{% endif %}</div>
               </div>
               <div class="setting-control">
                 <div class="time-range">
@@ -359,8 +202,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">قبول حجوزات ما بعد منتصف الليل</div>
-                <div class="setting-desc">يسمح بالحجز حتى 04:00 بعد منتصف الليل كيوم نفسه</div>
+                <div class="setting-label">{% if lang == 'en' %}Accept after-midnight bookings{% else %}قبول حجوزات ما بعد منتصف الليل{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Allow booking until 04:00 AM as the same day{% else %}يسمح بالحجز حتى 04:00 بعد منتصف الليل كيوم نفسه{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -373,8 +216,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">وقت الإغلاق الفعلي (بعد منتصف الليل)</div>
-                <div class="setting-desc">آخر وقت يمكن فيه بدء حجز في اليوم التالي</div>
+                <div class="setting-label">{% if lang == 'en' %}Actual closing time (after midnight){% else %}وقت الإغلاق الفعلي (بعد منتصف الليل){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Last time a booking can start the next day{% else %}آخر وقت يمكن فيه بدء حجز في اليوم التالي{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="time" name="late_close_time" class="setting-input setting-input-sm"
@@ -389,10 +232,10 @@
           <div class="save-bar-info">
             <i class="fas fa-circle-info"></i>
             <span class="unsaved-dot" id="dot-general"></span>
-            التغييرات تُطبَّق فور الحفظ
+            {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ الإعدادات العامة
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save General Settings{% else %}حفظ الإعدادات العامة{% endif %}
           </button>
         </div>
 
@@ -400,7 +243,7 @@
     </form>
 
 
-    <!-- ═══ BOOKING ═══ -->
+    <!-- BOOKING -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='booking') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel" id="panel-booking">
@@ -409,30 +252,30 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-calendar-check"></i></div>
             <div>
-              <div class="settings-card-title">إعدادات الحجز</div>
-              <div class="settings-card-sub">قواعد وسلوك نظام الحجز</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Booking Settings{% else %}إعدادات الحجز{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Rules and behavior of the booking system{% else %}قواعد وسلوك نظام الحجز{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">مدة الحجز الافتراضية</div>
-                <div class="setting-desc">بالدقائق (مثال: 60 = ساعة واحدة)</div>
+                <div class="setting-label">{% if lang == 'en' %}Default Booking Duration{% else %}مدة الحجز الافتراضية{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}In minutes (e.g. 60 = one hour){% else %}بالدقائق (مثال: 60 = ساعة واحدة){% endif %}</div>
               </div>
               <div class="setting-control">
                 <select name="default_duration" class="setting-input setting-input-sm">
-                  <option value="60"  {% if settings.default_duration|default(60)==60  %}selected{% endif %}>60 دقيقة</option>
-                  <option value="90"  {% if settings.default_duration|default(60)==90  %}selected{% endif %}>90 دقيقة</option>
-                  <option value="120" {% if settings.default_duration|default(60)==120 %}selected{% endif %}>120 دقيقة</option>
+                  <option value="60"  {% if settings.default_duration|default(60)==60  %}selected{% endif %}>60 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+                  <option value="90"  {% if settings.default_duration|default(60)==90  %}selected{% endif %}>90 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+                  <option value="120" {% if settings.default_duration|default(60)==120 %}selected{% endif %}>120 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
                 </select>
               </div>
             </div>
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">الحجز المسبق الأقصى</div>
-                <div class="setting-desc">أقصى عدد أيام يمكن الحجز مسبقاً</div>
+                <div class="setting-label">{% if lang == 'en' %}Maximum Advance Booking{% else %}الحجز المسبق الأقصى{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Max days in advance a booking can be made{% else %}أقصى عدد أيام يمكن الحجز مسبقاً{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="max_advance_days" class="setting-input setting-input-sm"
@@ -442,8 +285,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">طلب دفع مسبق</div>
-                <div class="setting-desc">يطلب الدفع عند إنشاء الحجز</div>
+                <div class="setting-label">{% if lang == 'en' %}Require Prepayment{% else %}طلب دفع مسبق{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Request payment when creating a booking{% else %}يطلب الدفع عند إنشاء الحجز{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -456,8 +299,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تأكيد تلقائي للحجوزات</div>
-                <div class="setting-desc">تُؤكَّد الحجوزات فور إنشائها بدون مراجعة</div>
+                <div class="setting-label">{% if lang == 'en' %}Auto-confirm Bookings{% else %}تأكيد تلقائي للحجوزات{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Bookings are confirmed immediately without review{% else %}تُؤكَّد الحجوزات فور إنشائها بدون مراجعة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -470,8 +313,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">السماح بالإلغاء الذاتي</div>
-                <div class="setting-desc">يمكن للعميل إلغاء حجزه من الموقع</div>
+                <div class="setting-label">{% if lang == 'en' %}Allow Self-Cancellation{% else %}السماح بالإلغاء الذاتي{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Customer can cancel their booking from the website{% else %}يمكن للعميل إلغاء حجزه من الموقع{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -484,8 +327,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">مهلة الإلغاء (ساعات)</div>
-                <div class="setting-desc">الحد الأدنى قبل موعد الحجز للسماح بالإلغاء</div>
+                <div class="setting-label">{% if lang == 'en' %}Cancellation Window (hours){% else %}مهلة الإلغاء (ساعات){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Minimum hours before the booking to allow cancellation{% else %}الحد الأدنى قبل موعد الحجز للسماح بالإلغاء{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="cancel_window_hours" class="setting-input setting-input-sm"
@@ -498,10 +341,10 @@
 
         <div class="save-bar">
           <div class="save-bar-info">
-            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+            <i class="fas fa-circle-info"></i> {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ إعدادات الحجز
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save Booking Settings{% else %}حفظ إعدادات الحجز{% endif %}
           </button>
         </div>
 
@@ -509,7 +352,7 @@
     </form>
 
 
-    <!-- ═══ PRICING ═══ -->
+    <!-- PRICING -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='pricing') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel" id="panel-pricing">
@@ -518,16 +361,16 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-coins"></i></div>
             <div>
-              <div class="settings-card-title">التسعير والخصومات</div>
-              <div class="settings-card-sub">أسعار الملاعب وقواعد الخصم</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Pricing & Discounts{% else %}التسعير والخصومات{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Court prices and discount rules{% else %}أسعار الملاعب وقواعد الخصم{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">السعر الافتراضي للساعة</div>
-                <div class="setting-desc">يُطبَّق على الملاعب التي لم يُحدَّد لها سعر خاص</div>
+                <div class="setting-label">{% if lang == 'en' %}Default Price per Hour{% else %}السعر الافتراضي للساعة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Applied to courts with no specific price set{% else %}يُطبَّق على الملاعب التي لم يُحدَّد لها سعر خاص{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="default_price" class="setting-input setting-input-sm"
@@ -537,8 +380,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تفعيل خصم ساعات معينة</div>
-                <div class="setting-desc">تطبيق خصم تلقائي في نطاق زمني محدد</div>
+                <div class="setting-label">{% if lang == 'en' %}Enable Hourly Discount{% else %}تفعيل خصم ساعات معينة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Apply automatic discount in a specific time range{% else %}تطبيق خصم تلقائي في نطاق زمني محدد{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -551,8 +394,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">نسبة الخصم (%)</div>
-                <div class="setting-desc">النسبة المئوية للخصم في الساعات المحددة</div>
+                <div class="setting-label">{% if lang == 'en' %}Discount Percentage (%){% else %}نسبة الخصم (%){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Percentage discount during specified hours{% else %}النسبة المئوية للخصم في الساعات المحددة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="discount_percent" class="setting-input setting-input-sm"
@@ -562,8 +405,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">فترة الخصم</div>
-                <div class="setting-desc">الساعات التي تُطبَّق فيها نسبة الخصم</div>
+                <div class="setting-label">{% if lang == 'en' %}Discount Period{% else %}فترة الخصم{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Hours during which the discount applies{% else %}الساعات التي تُطبَّق فيها نسبة الخصم{% endif %}</div>
               </div>
               <div class="setting-control">
                 <div class="time-range">
@@ -578,8 +421,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">الميزانية الشهرية (للمصروفات)</div>
-                <div class="setting-desc">الحد الأقصى للمصروفات الشهرية (للتنبيه)</div>
+                <div class="setting-label">{% if lang == 'en' %}Monthly Budget (for expenses){% else %}الميزانية الشهرية (للمصروفات){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Maximum monthly expenses (for alerting){% else %}الحد الأقصى للمصروفات الشهرية (للتنبيه){% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="monthly_budget" class="setting-input setting-input-sm"
@@ -592,10 +435,10 @@
 
         <div class="save-bar">
           <div class="save-bar-info">
-            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+            <i class="fas fa-circle-info"></i> {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ إعدادات التسعير
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save Pricing Settings{% else %}حفظ إعدادات التسعير{% endif %}
           </button>
         </div>
 
@@ -603,7 +446,7 @@
     </form>
 
 
-    <!-- ═══ STORE ═══ -->
+    <!-- STORE -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='store') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel" id="panel-store">
@@ -612,16 +455,16 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-bag-shopping"></i></div>
             <div>
-              <div class="settings-card-title">إعدادات المتجر</div>
-              <div class="settings-card-sub">خيارات المتجر والمبيعات</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Store Settings{% else %}إعدادات المتجر{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Store and sales options{% else %}خيارات المتجر والمبيعات{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تفعيل المتجر</div>
-                <div class="setting-desc">إظهار قسم المتجر في الموقع</div>
+                <div class="setting-label">{% if lang == 'en' %}Enable Store{% else %}تفعيل المتجر{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Show the store section on the website{% else %}إظهار قسم المتجر في الموقع{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -634,8 +477,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">الحد الأدنى للطلب (د.ع)</div>
-                <div class="setting-desc">أقل مبلغ لإتمام طلب من المتجر</div>
+                <div class="setting-label">{% if lang == 'en' %}Minimum Order Amount (IQD){% else %}الحد الأدنى للطلب (د.ع){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Minimum amount to complete a store order{% else %}أقل مبلغ لإتمام طلب من المتجر{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="min_order_amount" class="setting-input setting-input-sm"
@@ -645,8 +488,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تنبيه المخزون المنخفض</div>
-                <div class="setting-desc">إرسال تنبيه عند وصول المخزون لهذا العدد</div>
+                <div class="setting-label">{% if lang == 'en' %}Low Stock Alert{% else %}تنبيه المخزون المنخفض{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Send alert when stock reaches this count{% else %}إرسال تنبيه عند وصول المخزون لهذا العدد{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="number" name="low_stock_alert" class="setting-input setting-input-sm"
@@ -656,8 +499,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تفعيل نقطة البيع (POS)</div>
-                <div class="setting-desc">السماح بالبيع المباشر من لوحة الإدارة</div>
+                <div class="setting-label">{% if lang == 'en' %}Enable POS{% else %}تفعيل نقطة البيع (POS){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Allow direct sales from the admin panel{% else %}السماح بالبيع المباشر من لوحة الإدارة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -673,10 +516,10 @@
 
         <div class="save-bar">
           <div class="save-bar-info">
-            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+            <i class="fas fa-circle-info"></i> {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ إعدادات المتجر
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save Store Settings{% else %}حفظ إعدادات المتجر{% endif %}
           </button>
         </div>
 
@@ -684,7 +527,7 @@
     </form>
 
 
-    <!-- ═══ NOTIFICATIONS ═══ -->
+    <!-- NOTIFICATIONS -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='notifications') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel" id="panel-notifications">
@@ -693,18 +536,28 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-bell"></i></div>
             <div>
-              <div class="settings-card-title">إعدادات الإشعارات</div>
-              <div class="settings-card-sub">تحكم في متى وكيف تصلك الإشعارات</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Notification Settings{% else %}إعدادات الإشعارات{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Control when and how you receive notifications{% else %}تحكم في متى وكيف تصلك الإشعارات{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
-            {% set notifs = [
-              ('notif_new_booking',    'حجز جديد',              'عند إنشاء حجز جديد'),
-              ('notif_cancel_request', 'طلب إلغاء',             'عند تقديم طلب إلغاء'),
-              ('notif_new_order',      'طلب متجر جديد',         'عند ورود طلب شراء جديد'),
-              ('notif_low_stock',      'تنبيه مخزون منخفض',     'عند انخفاض مخزون منتج'),
-              ('notif_pending_review', 'حجز بانتظار المراجعة',  'تذكير بالحجوزات المعلقة'),
-            ] %}
+            {% if lang == 'en' %}
+              {% set notifs = [
+                ('notif_new_booking',    'New Booking',              'When a new booking is created'),
+                ('notif_cancel_request', 'Cancellation Request',     'When a cancellation request is submitted'),
+                ('notif_new_order',      'New Store Order',          'When a new purchase order arrives'),
+                ('notif_low_stock',      'Low Stock Alert',          'When a product stock is low'),
+                ('notif_pending_review', 'Booking Awaiting Review',  'Reminder for pending bookings'),
+              ] %}
+            {% else %}
+              {% set notifs = [
+                ('notif_new_booking',    'حجز جديد',              'عند إنشاء حجز جديد'),
+                ('notif_cancel_request', 'طلب إلغاء',             'عند تقديم طلب إلغاء'),
+                ('notif_new_order',      'طلب متجر جديد',         'عند ورود طلب شراء جديد'),
+                ('notif_low_stock',      'تنبيه مخزون منخفض',     'عند انخفاض مخزون منتج'),
+                ('notif_pending_review', 'حجز بانتظار المراجعة',  'تذكير بالحجوزات المعلقة'),
+              ] %}
+            {% endif %}
             {% for name, label, desc in notifs %}
             <div class="setting-row">
               <div class="setting-info">
@@ -725,10 +578,10 @@
 
         <div class="save-bar">
           <div class="save-bar-info">
-            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+            <i class="fas fa-circle-info"></i> {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ إعدادات الإشعارات
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save Notification Settings{% else %}حفظ إعدادات الإشعارات{% endif %}
           </button>
         </div>
 
@@ -736,7 +589,7 @@
     </form>
 
 
-    <!-- ═══ SECURITY ═══ -->
+    <!-- SECURITY -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='security') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel" id="panel-security">
@@ -745,20 +598,20 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-lock"></i></div>
             <div>
-              <div class="settings-card-title">تغيير كلمة المرور</div>
-              <div class="settings-card-sub">تأكد من استخدام كلمة مرور قوية</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Change Password{% else %}تغيير كلمة المرور{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Make sure to use a strong password{% else %}تأكد من استخدام كلمة مرور قوية{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
-              <div class="setting-label">كلمة المرور الحالية</div>
+              <div class="setting-label">{% if lang == 'en' %}Current Password{% else %}كلمة المرور الحالية{% endif %}</div>
               <input type="password" name="current_password" class="setting-input"
                      placeholder="••••••••" style="width:100%;max-width:340px;"/>
             </div>
 
             <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-              <div class="setting-label">كلمة المرور الجديدة</div>
+              <div class="setting-label">{% if lang == 'en' %}New Password{% else %}كلمة المرور الجديدة{% endif %}</div>
               <input type="password" name="new_password" id="newPwd" class="setting-input"
                      placeholder="••••••••" style="width:100%;max-width:340px;"
                      oninput="checkStrength(this.value)"/>
@@ -771,7 +624,7 @@
             </div>
 
             <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
-              <div class="setting-label">تأكيد كلمة المرور</div>
+              <div class="setting-label">{% if lang == 'en' %}Confirm Password{% else %}تأكيد كلمة المرور{% endif %}</div>
               <input type="password" name="confirm_password" class="setting-input"
                      placeholder="••••••••" style="width:100%;max-width:340px;"/>
             </div>
@@ -783,31 +636,31 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-shield-halved"></i></div>
             <div>
-              <div class="settings-card-title">إعدادات الجلسة</div>
-              <div class="settings-card-sub">التحكم في مدة الجلسة والوصول</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Session Settings{% else %}إعدادات الجلسة{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Control session duration and access{% else %}التحكم في مدة الجلسة والوصول{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">مدة الجلسة (دقيقة)</div>
-                <div class="setting-desc">تسجيل الخروج تلقائياً بعد انتهاء المدة</div>
+                <div class="setting-label">{% if lang == 'en' %}Session Timeout (minutes){% else %}مدة الجلسة (دقيقة){% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Auto logout after session expires{% else %}تسجيل الخروج تلقائياً بعد انتهاء المدة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <select name="session_timeout" class="setting-input setting-input-sm">
-                  <option value="30"  {% if settings.session_timeout|default(60)==30  %}selected{% endif %}>30 دقيقة</option>
-                  <option value="60"  {% if settings.session_timeout|default(60)==60  %}selected{% endif %}>60 دقيقة</option>
-                  <option value="120" {% if settings.session_timeout|default(60)==120 %}selected{% endif %}>ساعتان</option>
-                  <option value="480" {% if settings.session_timeout|default(60)==480 %}selected{% endif %}>8 ساعات</option>
+                  <option value="30"  {% if settings.session_timeout|default(60)==30  %}selected{% endif %}>30 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+                  <option value="60"  {% if settings.session_timeout|default(60)==60  %}selected{% endif %}>60 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+                  <option value="120" {% if settings.session_timeout|default(60)==120 %}selected{% endif %}>{% if lang == 'en' %}2 hours{% else %}ساعتان{% endif %}</option>
+                  <option value="480" {% if settings.session_timeout|default(60)==480 %}selected{% endif %}>{% if lang == 'en' %}8 hours{% else %}8 ساعات{% endif %}</option>
                 </select>
               </div>
             </div>
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تسجيل محاولات الدخول الفاشلة</div>
-                <div class="setting-desc">تسجيل وقت وعنوان IP لكل محاولة فاشلة</div>
+                <div class="setting-label">{% if lang == 'en' %}Log Failed Login Attempts{% else %}تسجيل محاولات الدخول الفاشلة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Record time and IP address of each failed attempt{% else %}تسجيل وقت وعنوان IP لكل محاولة فاشلة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -823,10 +676,10 @@
 
         <div class="save-bar">
           <div class="save-bar-info">
-            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+            <i class="fas fa-circle-info"></i> {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ إعدادات الأمان
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save Security Settings{% else %}حفظ إعدادات الأمان{% endif %}
           </button>
         </div>
 
@@ -834,7 +687,7 @@
     </form>
 
 
-    <!-- ═══ APPEARANCE ═══ -->
+    <!-- APPEARANCE -->
     <form method="POST" action="{{ url_for('admin.save_settings', section='appearance') }}" onchange="markUnsaved()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="settings-panel" id="panel-appearance">
@@ -843,16 +696,16 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-palette"></i></div>
             <div>
-              <div class="settings-card-title">المظهر والعلامة التجارية</div>
-              <div class="settings-card-sub">تخصيص ألوان وشكل لوحة الإدارة</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Appearance & Branding{% else %}المظهر والعلامة التجارية{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Customize colors and look of the admin panel{% else %}تخصيص ألوان وشكل لوحة الإدارة{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">اللون الرئيسي</div>
-                <div class="setting-desc">يُطبَّق على الأزرار والشريط الجانبي</div>
+                <div class="setting-label">{% if lang == 'en' %}Primary Color{% else %}اللون الرئيسي{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Applied to buttons and sidebar{% else %}يُطبَّق على الأزرار والشريط الجانبي{% endif %}</div>
               </div>
               <div class="setting-control">
                 <div class="brand-color-wrap">
@@ -872,8 +725,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">اسم لوحة الإدارة</div>
-                <div class="setting-desc">يظهر في تبويب المتصفح والشريط الجانبي</div>
+                <div class="setting-label">{% if lang == 'en' %}Admin Panel Name{% else %}اسم لوحة الإدارة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Appears in browser tab and sidebar{% else %}يظهر في تبويب المتصفح والشريط الجانبي{% endif %}</div>
               </div>
               <div class="setting-control">
                 <input type="text" name="admin_panel_name" class="setting-input"
@@ -883,8 +736,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">تفعيل الرسوم المتحركة</div>
-                <div class="setting-desc">تأثيرات الانتقال والظهور في الواجهة</div>
+                <div class="setting-label">{% if lang == 'en' %}Enable Animations{% else %}تفعيل الرسوم المتحركة{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Transition and fade effects in the interface{% else %}تأثيرات الانتقال والظهور في الواجهة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -897,8 +750,8 @@
 
             <div class="setting-row">
               <div class="setting-info">
-                <div class="setting-label">عرض الساعة في شريط التنقل</div>
-                <div class="setting-desc">ساعة حية في أعلى الصفحة</div>
+                <div class="setting-label">{% if lang == 'en' %}Show Clock in Navbar{% else %}عرض الساعة في شريط التنقل{% endif %}</div>
+                <div class="setting-desc">{% if lang == 'en' %}Live clock at the top of the page{% else %}ساعة حية في أعلى الصفحة{% endif %}</div>
               </div>
               <div class="setting-control">
                 <label class="toggle-switch">
@@ -914,10 +767,10 @@
 
         <div class="save-bar">
           <div class="save-bar-info">
-            <i class="fas fa-circle-info"></i> التغييرات تُطبَّق فور الحفظ
+            <i class="fas fa-circle-info"></i> {% if lang == 'en' %}Changes take effect immediately after saving{% else %}التغييرات تُطبَّق فور الحفظ{% endif %}
           </div>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-floppy-disk"></i> حفظ إعدادات المظهر
+            <i class="fas fa-floppy-disk"></i> {% if lang == 'en' %}Save Appearance Settings{% else %}حفظ إعدادات المظهر{% endif %}
           </button>
         </div>
 
@@ -925,50 +778,50 @@
     </form>
 
 
-    <!-- ═══ DANGER ZONE ═══ -->
+    <!-- DANGER ZONE -->
     <div class="settings-panel" id="panel-danger">
 
       <div class="danger-zone-card">
         <div class="danger-zone-title">
-          <i class="fas fa-triangle-exclamation"></i> منطقة الخطر
+          <i class="fas fa-triangle-exclamation"></i> {% if lang == 'en' %}Danger Zone{% else %}منطقة الخطر{% endif %}
         </div>
 
         <div class="danger-action-row">
           <div>
-            <div class="danger-action-label">حذف جميع الحجوزات الملغية</div>
-            <div class="danger-action-desc">يحذف بشكل نهائي جميع الحجوزات بحالة "ملغي"</div>
+            <div class="danger-action-label">{% if lang == 'en' %}Delete All Cancelled Bookings{% else %}حذف جميع الحجوزات الملغية{% endif %}</div>
+            <div class="danger-action-desc">{% if lang == 'en' %}Permanently deletes all bookings with "cancelled" status{% else %}يحذف بشكل نهائي جميع الحجوزات بحالة "ملغي"{% endif %}</div>
           </div>
           <form method="POST" action="{{ url_for('admin.danger_delete_cancelled') }}"
-                onsubmit="return confirm('هل أنت متأكد؟ لا يمكن التراجع!')">
+                onsubmit="return confirm('{% if lang == 'en' %}Are you sure? This cannot be undone!{% else %}هل أنت متأكد؟ لا يمكن التراجع!{% endif %}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn-z-danger" style="padding:8px 18px;">
-              <i class="fas fa-trash"></i> حذف الملغية
+              <i class="fas fa-trash"></i> {% if lang == 'en' %}Delete Cancelled{% else %}حذف الملغية{% endif %}
             </button>
           </form>
         </div>
 
         <div class="danger-action-row">
           <div>
-            <div class="danger-action-label">إعادة تعيين إعدادات النظام</div>
-            <div class="danger-action-desc">يعيد جميع الإعدادات إلى القيم الافتراضية</div>
+            <div class="danger-action-label">{% if lang == 'en' %}Reset System Settings{% else %}إعادة تعيين إعدادات النظام{% endif %}</div>
+            <div class="danger-action-desc">{% if lang == 'en' %}Resets all settings to their default values{% else %}يعيد جميع الإعدادات إلى القيم الافتراضية{% endif %}</div>
           </div>
           <form method="POST" action="{{ url_for('admin.danger_reset_settings') }}"
-                onsubmit="return confirm('سيتم إعادة تعيين كل الإعدادات. هل أنت متأكد؟')">
+                onsubmit="return confirm('{% if lang == 'en' %}All settings will be reset. Are you sure?{% else %}سيتم إعادة تعيين كل الإعدادات. هل أنت متأكد؟{% endif %}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn-z-danger" style="padding:8px 18px;">
-              <i class="fas fa-rotate-left"></i> إعادة تعيين
+              <i class="fas fa-rotate-left"></i> {% if lang == 'en' %}Reset{% else %}إعادة تعيين{% endif %}
             </button>
           </form>
         </div>
 
         <div class="danger-action-row">
           <div>
-            <div class="danger-action-label">تصدير نسخة احتياطية من قاعدة البيانات</div>
-            <div class="danger-action-desc">تحميل ملف قاعدة البيانات الكاملة</div>
+            <div class="danger-action-label">{% if lang == 'en' %}Export Database Backup{% else %}تصدير نسخة احتياطية من قاعدة البيانات{% endif %}</div>
+            <div class="danger-action-desc">{% if lang == 'en' %}Download the complete database file{% else %}تحميل ملف قاعدة البيانات الكاملة{% endif %}</div>
           </div>
           <a href="{{ url_for('admin.export_backup') }}" class="btn-z-outline"
              style="padding:8px 18px;font-size:13px;">
-            <i class="fas fa-download"></i> تحميل النسخة
+            <i class="fas fa-download"></i> {% if lang == 'en' %}Download Backup{% else %}تحميل النسخة{% endif %}
           </a>
         </div>
 
@@ -979,18 +832,28 @@
         <div class="settings-card-header">
           <div class="settings-card-icon"><i class="fas fa-circle-info"></i></div>
           <div>
-            <div class="settings-card-title">معلومات النظام</div>
-            <div class="settings-card-sub">إصدار التطبيق والبيئة</div>
+            <div class="settings-card-title">{% if lang == 'en' %}System Information{% else %}معلومات النظام{% endif %}</div>
+            <div class="settings-card-sub">{% if lang == 'en' %}App version and environment{% else %}إصدار التطبيق والبيئة{% endif %}</div>
           </div>
         </div>
         <div class="settings-card-body">
-          {% set sys_info = [
-            ('إصدار التطبيق', 'Z Padel v1.0'),
-            ('إطار العمل',    'Flask + SQLAlchemy'),
-            ('قاعدة البيانات','SQLite'),
-            ('الخادم',         'Gunicorn / Nginx'),
-            ('Python',         '3.13'),
-          ] %}
+          {% if lang == 'en' %}
+            {% set sys_info = [
+              ('App Version',  'Z Padel v1.0'),
+              ('Framework',    'Flask + SQLAlchemy'),
+              ('Database',     'SQLite'),
+              ('Server',       'Gunicorn / Nginx'),
+              ('Python',       '3.13'),
+            ] %}
+          {% else %}
+            {% set sys_info = [
+              ('إصدار التطبيق', 'Z Padel v1.0'),
+              ('إطار العمل',    'Flask + SQLAlchemy'),
+              ('قاعدة البيانات','SQLite'),
+              ('الخادم',         'Gunicorn / Nginx'),
+              ('Python',         '3.13'),
+            ] %}
+          {% endif %}
           {% for label, val in sys_info %}
           <div class="setting-row">
             <div class="setting-info">
@@ -1015,7 +878,8 @@
 
 {% block extra_scripts %}
 <script>
-// ── Panel switching ──
+const isEn = '{{ lang }}' === 'en';
+
 function showPanel(id, el) {
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidenav-item').forEach(i => i.classList.remove('active'));
@@ -1023,12 +887,10 @@ function showPanel(id, el) {
   el.classList.add('active');
 }
 
-// ── Unsaved indicator ──
 function markUnsaved() {
   document.querySelectorAll('.unsaved-dot').forEach(d => d.classList.add('visible'));
 }
 
-// ── Password strength ──
 function checkStrength(pwd) {
   const fill  = document.getElementById('pwdStrengthFill');
   const label = document.getElementById('pwdStrengthLabel');
@@ -1038,7 +900,12 @@ function checkStrength(pwd) {
   if (/[A-Z]/.test(pwd)) score++;
   if (/[0-9]/.test(pwd)) score++;
   if (/[^A-Za-z0-9]/.test(pwd)) score++;
-  const levels = [
+  const levels = isEn ? [
+    { w: '25%',  bg: '#E53935', lbl: 'Very Weak' },
+    { w: '50%',  bg: '#FB8C00', lbl: 'Weak' },
+    { w: '75%',  bg: '#FDD835', lbl: 'Medium' },
+    { w: '100%', bg: '#43A047', lbl: 'Strong ✓' },
+  ] : [
     { w: '25%',  bg: '#E53935', lbl: 'ضعيفة جداً' },
     { w: '50%',  bg: '#FB8C00', lbl: 'ضعيفة' },
     { w: '75%',  bg: '#FDD835', lbl: 'متوسطة' },
@@ -1051,7 +918,6 @@ function checkStrength(pwd) {
   label.style.color     = l.bg;
 }
 
-// ── Brand color hex update ──
 document.getElementById('brandColorInput')?.addEventListener('input', function() {
   document.getElementById('brandColorHex').textContent = this.value.toUpperCase();
 });

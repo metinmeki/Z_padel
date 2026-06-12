@@ -1,5 +1,5 @@
 {% extends 'pos/base_pos.html' %}
-{% block title %}تقارير المبيعات — Z Padel POS{% endblock %}
+{% block title %}{% if lang == 'en' %}Sales Reports{% else %}تقارير المبيعات{% endif %} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -72,17 +72,17 @@
   <div class="section-head">
     <div class="section-title">
       <i class="fas fa-chart-bar"></i>
-      تقارير المبيعات
+      {% if lang == 'en' %}Sales Reports{% else %}تقارير المبيعات{% endif %}
     </div>
     <div class="date-filters">
       <a href="{{ url_for('pos.reports', period='today') }}"
-         class="filter-chip {% if period=='today' %}active{% endif %}">اليوم</a>
+         class="filter-chip {% if period=='today' %}active{% endif %}">{% if lang == 'en' %}Today{% else %}اليوم{% endif %}</a>
       <a href="{{ url_for('pos.reports', period='week') }}"
-         class="filter-chip {% if period=='week' %}active{% endif %}">هذا الأسبوع</a>
+         class="filter-chip {% if period=='week' %}active{% endif %}">{% if lang == 'en' %}This Week{% else %}هذا الأسبوع{% endif %}</a>
       <a href="{{ url_for('pos.reports', period='month') }}"
-         class="filter-chip {% if period=='month' %}active{% endif %}">هذا الشهر</a>
+         class="filter-chip {% if period=='month' %}active{% endif %}">{% if lang == 'en' %}This Month{% else %}هذا الشهر{% endif %}</a>
       <a href="{{ url_for('pos.reports', period='all') }}"
-         class="filter-chip {% if period=='all' %}active{% endif %}">الكل</a>
+         class="filter-chip {% if period=='all' %}active{% endif %}">{% if lang == 'en' %}All{% else %}الكل{% endif %}</a>
     </div>
   </div>
 </div>
@@ -91,26 +91,26 @@
 <div class="stat-grid">
   <div class="stat-box sb-revenue">
     <div class="stat-num">{{ "{:,.0f}".format(stats.revenue) }}</div>
-    <div class="stat-lbl">إجمالي المبيعات</div>
-    <div class="stat-sub">د.ع</div>
+    <div class="stat-lbl">{% if lang == 'en' %}Total Revenue{% else %}إجمالي المبيعات{% endif %}</div>
+    <div class="stat-sub">IQD</div>
     <i class="fas fa-coins stat-icon"></i>
   </div>
   <div class="stat-box sb-orders">
     <div class="stat-num">{{ stats.orders }}</div>
-    <div class="stat-lbl">عدد الفواتير</div>
-    <div class="stat-sub">فاتورة مكتملة</div>
+    <div class="stat-lbl">{% if lang == 'en' %}Invoices{% else %}عدد الفواتير{% endif %}</div>
+    <div class="stat-sub">{% if lang == 'en' %}completed{% else %}فاتورة مكتملة{% endif %}</div>
     <i class="fas fa-receipt stat-icon"></i>
   </div>
   <div class="stat-box sb-items">
     <div class="stat-num">{{ stats.items_sold }}</div>
-    <div class="stat-lbl">قطع مباعة</div>
-    <div class="stat-sub">مجموع الكميات</div>
+    <div class="stat-lbl">{% if lang == 'en' %}Items Sold{% else %}قطع مباعة{% endif %}</div>
+    <div class="stat-sub">{% if lang == 'en' %}total quantity{% else %}مجموع الكميات{% endif %}</div>
     <i class="fas fa-box stat-icon"></i>
   </div>
   <div class="stat-box sb-avg">
     <div class="stat-num">{{ "{:,.0f}".format(stats.avg_order) }}</div>
-    <div class="stat-lbl">متوسط الفاتورة</div>
-    <div class="stat-sub">د.ع</div>
+    <div class="stat-lbl">{% if lang == 'en' %}Avg. Invoice{% else %}متوسط الفاتورة{% endif %}</div>
+    <div class="stat-sub">IQD</div>
     <i class="fas fa-calculator stat-icon"></i>
   </div>
 </div>
@@ -121,7 +121,7 @@
   <div class="col-lg-6">
     <div class="section-card">
       <div class="section-head">
-        <div class="section-title"><i class="fas fa-trophy"></i>أكثر المنتجات مبيعاً</div>
+        <div class="section-title"><i class="fas fa-trophy"></i>{% if lang == 'en' %}Top Selling Products{% else %}أكثر المنتجات مبيعاً{% endif %}</div>
         <span style="font-size:.75rem;color:var(--text-muted);">{{ period_label }}</span>
       </div>
       {% if top_products %}
@@ -129,10 +129,10 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>المنتج</th>
-            <th>كمية</th>
-            <th>إجمالي</th>
-            <th>نسبة</th>
+            <th>{% if lang == 'en' %}Product{% else %}المنتج{% endif %}</th>
+            <th>{% if lang == 'en' %}Qty{% else %}كمية{% endif %}</th>
+            <th>{% if lang == 'en' %}Total{% else %}إجمالي{% endif %}</th>
+            <th>{% if lang == 'en' %}Share{% else %}نسبة{% endif %}</th>
           </tr>
         </thead>
         <tbody>
@@ -145,7 +145,7 @@
             </td>
             <td style="font-weight:700;">{{ p.name }}</td>
             <td style="font-weight:700;color:var(--primary);">{{ p.qty }}</td>
-            <td style="font-weight:700;">{{ "{:,.0f}".format(p.total) }} <span style="font-size:.65rem;color:var(--text-muted);">د.ع</span></td>
+            <td style="font-weight:700;">{{ "{:,.0f}".format(p.total) }} <span style="font-size:.65rem;color:var(--text-muted);">IQD</span></td>
             <td style="min-width:100px;">
               <div class="bar-wrap">
                 <div class="bar-bg"><div class="bar-fill" style="width:{{ p.pct }}%;"></div></div>
@@ -159,7 +159,7 @@
       {% else %}
       <div class="empty-state">
         <i class="fas fa-box-open"></i>
-        <p>لا توجد مبيعات في هذه الفترة</p>
+        <p>{% if lang == 'en' %}No sales in this period{% else %}لا توجد مبيعات في هذه الفترة{% endif %}</p>
       </div>
       {% endif %}
     </div>
@@ -169,7 +169,7 @@
   <div class="col-lg-6">
     <div class="section-card" style="margin-bottom:1rem;">
       <div class="section-head">
-        <div class="section-title"><i class="fas fa-wallet"></i>طرق الدفع</div>
+        <div class="section-title"><i class="fas fa-wallet"></i>{% if lang == 'en' %}Payment Methods{% else %}طرق الدفع{% endif %}</div>
       </div>
       <div style="padding:1rem 1.3rem;">
         {% for pm in pay_methods %}
@@ -177,14 +177,18 @@
           <div style="display:flex;align-items:center;gap:10px;">
             <span class="pay-pill pay-{{ pm.method }}">
               <i class="fas fa-{{ 'money-bill-wave' if pm.method=='cash' else 'credit-card' if pm.method=='card' else 'user-clock' }}"></i>
-              {{ 'نقدي' if pm.method=='cash' else 'بطاقة' if pm.method=='card' else 'دين' }}
+              {% if lang == 'en' %}
+                {{ 'Cash' if pm.method=='cash' else 'Card' if pm.method=='card' else 'Debt' }}
+              {% else %}
+                {{ 'نقدي' if pm.method=='cash' else 'بطاقة' if pm.method=='card' else 'دين' }}
+              {% endif %}
             </span>
-            <span style="font-size:.82rem;color:var(--text-secondary);">{{ pm.count }} فاتورة</span>
+            <span style="font-size:.82rem;color:var(--text-secondary);">{{ pm.count }} {% if lang == 'en' %}invoice{% else %}فاتورة{% endif %}</span>
           </div>
-          <span style="font-weight:800;color:var(--text-primary);">{{ "{:,.0f}".format(pm.total) }} <span style="font-size:.65rem;color:var(--text-muted);">د.ع</span></span>
+          <span style="font-weight:800;color:var(--text-primary);">{{ "{:,.0f}".format(pm.total) }} <span style="font-size:.65rem;color:var(--text-muted);">IQD</span></span>
         </div>
         {% else %}
-        <div class="empty-state"><i class="fas fa-wallet"></i><p>لا بيانات</p></div>
+        <div class="empty-state"><i class="fas fa-wallet"></i><p>{% if lang == 'en' %}No data{% else %}لا بيانات{% endif %}</p></div>
         {% endfor %}
       </div>
     </div>
@@ -192,7 +196,7 @@
     <!-- Hourly best time -->
     <div class="section-card">
       <div class="section-head">
-        <div class="section-title"><i class="fas fa-clock"></i>أوقات الذروة</div>
+        <div class="section-title"><i class="fas fa-clock"></i>{% if lang == 'en' %}Peak Hours{% else %}أوقات الذروة{% endif %}</div>
       </div>
       <div style="padding:1rem 1.3rem;">
         {% for h in peak_hours %}
@@ -202,7 +206,7 @@
           <span style="font-size:.75rem;color:var(--text-muted);min-width:28px;">{{ h.count }}</span>
         </div>
         {% else %}
-        <div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:.84rem;">لا بيانات</div>
+        <div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:.84rem;">{% if lang == 'en' %}No data{% else %}لا بيانات{% endif %}</div>
         {% endfor %}
       </div>
     </div>
@@ -213,8 +217,8 @@
 <!-- Recent orders -->
 <div class="section-card">
   <div class="section-head">
-    <div class="section-title"><i class="fas fa-list"></i>آخر الفواتير</div>
-    <span style="font-size:.75rem;color:var(--text-muted);">{{ stats.orders }} فاتورة</span>
+    <div class="section-title"><i class="fas fa-list"></i>{% if lang == 'en' %}Recent Invoices{% else %}آخر الفواتير{% endif %}</div>
+    <span style="font-size:.75rem;color:var(--text-muted);">{{ stats.orders }} {% if lang == 'en' %}invoice{% else %}فاتورة{% endif %}</span>
   </div>
   {% if recent_orders %}
   <div class="table-responsive">
@@ -222,11 +226,11 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>الوقت</th>
-          <th>الزبون</th>
-          <th>المنتجات</th>
-          <th>الدفع</th>
-          <th>المبلغ</th>
+          <th>{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</th>
+          <th>{% if lang == 'en' %}Customer{% else %}الزبون{% endif %}</th>
+          <th>{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}</th>
+          <th>{% if lang == 'en' %}Payment{% else %}الدفع{% endif %}</th>
+          <th>{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
           <th></th>
         </tr>
       </thead>
@@ -244,10 +248,14 @@
           <td>
             {% set method = 'cash' if 'cash' in (o.notes or '') else 'card' if 'card' in (o.notes or '') else 'debt' if 'دين' in (o.notes or '') else 'cash' %}
             <span class="pay-pill pay-{{ method }}">
-              {{ 'نقدي' if method=='cash' else 'بطاقة' if method=='card' else 'دين' }}
+              {% if lang == 'en' %}
+                {{ 'Cash' if method=='cash' else 'Card' if method=='card' else 'Debt' }}
+              {% else %}
+                {{ 'نقدي' if method=='cash' else 'بطاقة' if method=='card' else 'دين' }}
+              {% endif %}
             </span>
           </td>
-          <td style="font-weight:800;color:var(--primary);">{{ "{:,.0f}".format(o.total_price) }} <span style="font-size:.65rem;color:var(--text-muted);">د.ع</span></td>
+          <td style="font-weight:800;color:var(--primary);">{{ "{:,.0f}".format(o.total_price) }} <span style="font-size:.65rem;color:var(--text-muted);">IQD</span></td>
           <td>
             <a href="{{ url_for('pos.receipt', order_id=o.id) }}"
                class="btn btn-outline-secondary btn-sm py-1 px-2" target="_blank">
@@ -262,7 +270,7 @@
   {% else %}
   <div class="empty-state">
     <i class="fas fa-receipt"></i>
-    <p>لا توجد فواتير في هذه الفترة</p>
+    <p>{% if lang == 'en' %}No invoices in this period{% else %}لا توجد فواتير في هذه الفترة{% endif %}</p>
   </div>
   {% endif %}
 </div>

@@ -1,8 +1,8 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}طلبات الإلغاء — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Cancel Requests — Z Padel{% else %}طلبات الإلغاء — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-ban{% endblock %}
-{% block page_title %}طلبات الإلغاء{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Cancel Requests{% else %}طلبات الإلغاء{% endif %}{% endblock %}
 
 {% block extra_styles %}
 .stats-strip {
@@ -154,21 +154,21 @@
     </div>
     <div class="stat-info">
       <div class="stat-value">{{ cancel_requests|length if cancel_requests else 0 }}</div>
-      <div class="stat-label">إجمالي الطلبات</div>
+      <div class="stat-label">{% if lang == 'en' %}Total Requests{% else %}إجمالي الطلبات{% endif %}</div>
     </div>
   </div>
   <div class="stat-card orange" style="animation-delay:0.07s;">
     <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ cancel_requests|selectattr('status','equalto','pending')|list|length if cancel_requests else 0 }}</div>
-      <div class="stat-label">قيد الانتظار</div>
+      <div class="stat-label">{% if lang == 'en' %}Pending{% else %}قيد الانتظار{% endif %}</div>
     </div>
   </div>
   <div class="stat-card green" style="animation-delay:0.14s;">
     <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ approved_count|default(0) }}</div>
-      <div class="stat-label">تم قبولها</div>
+      <div class="stat-label">{% if lang == 'en' %}Approved{% else %}تم قبولها{% endif %}</div>
     </div>
   </div>
   <div class="stat-card" style="animation-delay:0.21s;">
@@ -177,7 +177,7 @@
     </div>
     <div class="stat-info">
       <div class="stat-value">{{ rejected_count|default(0) }}</div>
-      <div class="stat-label">تم رفضها</div>
+      <div class="stat-label">{% if lang == 'en' %}Rejected{% else %}تم رفضها{% endif %}</div>
     </div>
   </div>
 </div>
@@ -190,9 +190,9 @@
   </div>
   <div style="flex:1;">
     <strong style="font-size:14px;color:#C62828;display:block;margin-bottom:2px;">
-      يوجد {{ cancel_requests|length }} طلب إلغاء بانتظار المراجعة
+      {% if lang == 'en' %}There are {{ cancel_requests|length }} cancellation request(s) awaiting review{% else %}يوجد {{ cancel_requests|length }} طلب إلغاء بانتظار المراجعة{% endif %}
     </strong>
-    <span style="font-size:12.5px;color:#BF360C;">يرجى مراجعة الطلبات وقبولها أو رفضها</span>
+    <span style="font-size:12.5px;color:#BF360C;">{% if lang == 'en' %}Please review and approve or reject the requests{% else %}يرجى مراجعة الطلبات وقبولها أو رفضها{% endif %}</span>
   </div>
 </div>
 {% endif %}
@@ -202,14 +202,14 @@
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <div style="position:relative;display:flex;align-items:center;">
       <i class="fas fa-magnifying-glass" style="position:absolute;right:11px;color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
-      <input type="text" id="searchInput" placeholder="بحث باسم العميل..."
+      <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search by customer name...{% else %}بحث باسم العميل...{% endif %}"
              oninput="filterCards()"
              style="padding:8px 34px 8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;width:220px;outline:none;color:var(--text-dark);"
              onfocus="this.style.borderColor='var(--brand-blue-light)'"
              onblur="this.style.borderColor='var(--border-color)'"/>
     </div>
     <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline" style="padding:7px 16px;font-size:13px;">
-      <i class="fas fa-calendar-check"></i> عرض كل الحجوزات
+      <i class="fas fa-calendar-check"></i> {% if lang == 'en' %}View All Bookings{% else %}عرض كل الحجوزات{% endif %}
     </a>
   </div>
 </div>
@@ -232,7 +232,7 @@
 
       <div class="req-body">
         <div class="req-field">
-          <div class="req-field-label">الملعب</div>
+          <div class="req-field-label">{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</div>
           <div class="req-field-value">
             <span class="court-pill">
               <i class="fas fa-circle" style="font-size:7px;"></i>
@@ -241,13 +241,13 @@
           </div>
         </div>
         <div class="req-field">
-          <div class="req-field-label">التاريخ</div>
+          <div class="req-field-label">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</div>
           <div class="req-field-value" style="font-size:12.5px;">
             {{ cr.booking.booking_date.strftime('%Y-%m-%d') if cr.booking and cr.booking.booking_date else '—' }}
           </div>
         </div>
         <div class="req-field">
-          <div class="req-field-label">الوقت</div>
+          <div class="req-field-label">{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</div>
           <div class="req-field-value">
             <span class="time-pill">
               <i class="fas fa-clock" style="font-size:10px;"></i>
@@ -258,29 +258,29 @@
           </div>
         </div>
         <div class="req-field">
-          <div class="req-field-label">المبلغ</div>
+          <div class="req-field-label">{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</div>
           <div class="req-field-value" style="color:var(--brand-blue);font-size:14px;font-weight:800;">
             {{ "{:,.0f}".format(cr.booking.total_price) if cr.booking and cr.booking.total_price else '—' }}
             {% if cr.booking and cr.booking.total_price %}
-              <small style="font-size:11px;color:var(--text-muted);font-weight:400;"> د.ع</small>
+              <small style="font-size:11px;color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
             {% endif %}
           </div>
         </div>
         <div class="req-field">
-          <div class="req-field-label">تاريخ الطلب</div>
+          <div class="req-field-label">{% if lang == 'en' %}Request Date{% else %}تاريخ الطلب{% endif %}</div>
           <div class="req-field-value" style="font-size:12px;color:var(--text-muted);">
             {{ cr.created_at.strftime('%Y-%m-%d %H:%M') if cr.created_at else '—' }}
           </div>
         </div>
         <div class="req-field">
-          <div class="req-field-label">الحالة</div>
+          <div class="req-field-label">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</div>
           <div class="req-field-value">
             {% if cr.status == 'pending' %}
-              <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>انتظار</span>
+              <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Pending{% else %}انتظار{% endif %}</span>
             {% elif cr.status == 'approved' %}
-              <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مقبول</span>
+              <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Approved{% else %}مقبول{% endif %}</span>
             {% elif cr.status == 'rejected' %}
-              <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>مرفوض</span>
+              <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Rejected{% else %}مرفوض{% endif %}</span>
             {% endif %}
           </div>
         </div>
@@ -307,19 +307,19 @@
         <form method="POST" action="{{ url_for('admin.approve_cancel', req_id=cr.id) }}" style="flex:1;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-approve" style="width:100%;"
-                  onclick="return confirm('هل تريد قبول طلب الإلغاء؟')">
-            <i class="fas fa-check"></i> قبول الإلغاء
+                  onclick="return confirm('{% if lang == 'en' %}Approve this cancellation request?{% else %}هل تريد قبول طلب الإلغاء؟{% endif %}')">
+            <i class="fas fa-check"></i> {% if lang == 'en' %}Approve Cancellation{% else %}قبول الإلغاء{% endif %}
           </button>
         </form>
         <form method="POST" action="{{ url_for('admin.reject_cancel', req_id=cr.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn-reject-req"
-                  onclick="return confirm('هل تريد رفض طلب الإلغاء؟')">
-            <i class="fas fa-xmark"></i> رفض
+                  onclick="return confirm('{% if lang == 'en' %}Reject this cancellation request?{% else %}هل تريد رفض طلب الإلغاء؟{% endif %}')">
+            <i class="fas fa-xmark"></i> {% if lang == 'en' %}Reject{% else %}رفض{% endif %}
           </button>
         </form>
         <a href="{{ url_for('admin.booking_detail', booking_id=cr.booking_id) }}"
-           class="btn-view-detail" title="عرض تفاصيل الحجز">
+           class="btn-view-detail" title="{% if lang == 'en' %}View booking details{% else %}عرض تفاصيل الحجز{% endif %}">
           <i class="fas fa-eye"></i>
         </a>
       </div>
@@ -327,7 +327,7 @@
       <div class="req-footer" style="justify-content:center;">
         <a href="{{ url_for('admin.booking_detail', booking_id=cr.booking_id) }}"
            class="btn-z-outline" style="padding:7px 18px;font-size:13px;">
-          <i class="fas fa-eye"></i> عرض تفاصيل الحجز
+          <i class="fas fa-eye"></i> {% if lang == 'en' %}View Booking Details{% else %}عرض تفاصيل الحجز{% endif %}
         </a>
       </div>
       {% endif %}
@@ -338,8 +338,8 @@
   {% else %}
     <div class="empty-state">
       <div class="empty-icon"><i class="fas fa-circle-check"></i></div>
-      <h4>لا توجد طلبات إلغاء</h4>
-      <p>جميع الحجوزات سليمة، لا يوجد طلبات معلقة ✅</p>
+      <h4>{% if lang == 'en' %}No cancellation requests{% else %}لا توجد طلبات إلغاء{% endif %}</h4>
+      <p>{% if lang == 'en' %}All bookings are intact, no pending requests{% else %}جميع الحجوزات سليمة، لا يوجد طلبات معلقة{% endif %} ✅</p>
     </div>
   {% endif %}
 

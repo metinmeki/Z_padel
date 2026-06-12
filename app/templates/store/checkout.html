@@ -1,10 +1,14 @@
-﻿<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Z Padel - إتمام الطلب</title>
+  <title>Z Padel - {% if lang == 'en' %}Checkout{% else %}إتمام الطلب{% endif %}</title>
+  {% if lang == 'en' %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  {% else %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  {% endif %}
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
@@ -46,11 +50,14 @@
 
 <nav class="store-nav">
   <a href="{{ url_for('store.shop') }}" class="brand">Z PADEL</a>
-  <a href="{{ url_for('store.cart') }}" class="back-btn"><i class="fas fa-arrow-right"></i> السلة</a>
+  <a href="{{ url_for('store.cart') }}" class="back-btn">
+    <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i>
+    {% if lang == 'en' %}Cart{% else %}السلة{% endif %}
+  </a>
 </nav>
 
 <div class="page-wrap">
-  <div class="page-title">إتمام الطلب</div>
+  <div class="page-title">{% if lang == 'en' %}Checkout{% else %}إتمام الطلب{% endif %}</div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -66,19 +73,19 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="section-card">
-      <div class="section-label">معلومات التواصل</div>
-      <label style="color:var(--muted); font-size:0.8rem; margin-bottom:5px;">الاسم الكامل</label>
+      <div class="section-label">{% if lang == 'en' %}Contact Information{% else %}معلومات التواصل{% endif %}</div>
+      <label style="color:var(--muted); font-size:0.8rem; margin-bottom:5px;">{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}</label>
       <input type="text" name="customer_name" class="form-control" required>
 
-      <label style="color:var(--muted); font-size:0.8rem; margin-bottom:5px;">رقم الهاتف</label>
+      <label style="color:var(--muted); font-size:0.8rem; margin-bottom:5px;">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %}</label>
       <input type="text" name="customer_phone" class="form-control" required>
 
-      <label style="color:var(--muted); font-size:0.8rem; margin-bottom:5px;">ملاحظات</label>
+      <label style="color:var(--muted); font-size:0.8rem; margin-bottom:5px;">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
       <textarea name="notes" class="form-control" rows="2"></textarea>
     </div>
 
     <div class="section-card">
-      <div class="section-label">ملخص الطلب</div>
+      <div class="section-label">{% if lang == 'en' %}Order Summary{% else %}ملخص الطلب{% endif %}</div>
       {% for item in items %}
       <div class="sum-item">
         <div>{{ item.product.name }} <span style="color:var(--muted)">× {{ item.qty }}</span></div>
@@ -86,12 +93,12 @@
       </div>
       {% endfor %}
       <div class="sum-total">
-        <span>الإجمالي</span>
+        <span>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</span>
         <span>{{ "{:,.0f}".format(total) }} IQD</span>
       </div>
     </div>
 
-    <button type="submit" class="btn-place">تأكيد الطلب</button>
+    <button type="submit" class="btn-place">{% if lang == 'en' %}Confirm Order{% else %}تأكيد الطلب{% endif %}</button>
   </form>
 </div>
 

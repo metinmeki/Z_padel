@@ -1,5 +1,5 @@
 {% extends 'pos/base_pos.html' %}
-{% block title %}بيع سريع — Z Padel POS{% endblock %}
+{% block title %}{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -35,9 +35,9 @@
 <div class="pos-card mb-3" style="padding:.9rem 1.2rem;">
   <div class="d-flex justify-content-between align-items-center">
     <h2 style="margin:0;font-size:1.3rem;font-weight:800;">
-      <i class="fas fa-bolt me-2" style="color:var(--primary);"></i>بيع سريع
+      <i class="fas fa-bolt me-2" style="color:var(--primary);"></i>{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %}
     </h2>
-    <span style="font-size:.8rem;color:var(--text-muted);">{{ products|length }} منتج</span>
+    <span style="font-size:.8rem;color:var(--text-muted);">{{ products|length }} {% if lang == 'en' %}products{% else %}منتج{% endif %}</span>
   </div>
 </div>
 
@@ -50,12 +50,12 @@
     <div class="search-card">
       <div class="row g-2">
         <div class="col-md-6" style="position:relative;">
-          <i class="fas fa-barcode" style="position:absolute;right:22px;top:50%;transform:translateY(-50%);color:var(--primary);font-size:1.05rem;pointer-events:none;"></i>
-          <input type="text" id="barcodeInput" class="form-control barcode-input" style="padding-right:2.5rem;" placeholder="امسح الباركود..." autofocus>
+          <i class="fas fa-barcode" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:22px;top:50%;transform:translateY(-50%);color:var(--primary);font-size:1.05rem;pointer-events:none;"></i>
+          <input type="text" id="barcodeInput" class="form-control barcode-input" style="padding-{{ 'left' if lang == 'en' else 'right' }}:2.5rem;" placeholder="{% if lang == 'en' %}Scan barcode...{% else %}امسح الباركود...{% endif %}" autofocus>
         </div>
         <div class="col-md-6" style="position:relative;">
-          <i class="fas fa-search" style="position:absolute;right:22px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
-          <input type="text" id="searchInput" class="form-control" style="padding-right:2.5rem;" placeholder="بحث بالاسم...">
+          <i class="fas fa-search" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:22px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
+          <input type="text" id="searchInput" class="form-control" style="padding-{{ 'left' if lang == 'en' else 'right' }}:2.5rem;" placeholder="{% if lang == 'en' %}Search by name...{% else %}بحث بالاسم...{% endif %}">
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@
     <!-- Category tabs -->
     <div class="category-tabs">
       <button class="category-tab active" data-cat="all">
-        <i class="fas fa-th me-1"></i>الكل
+        <i class="fas fa-th me-1"></i>{% if lang == 'en' %}All{% else %}الكل{% endif %}
       </button>
     </div>
 
@@ -83,11 +83,11 @@
             {% endif %}
           </div>
           <h6>{{ p.name }}</h6>
-          <div class="price">{{ '{:,.0f}'.format(p.price) }} د.ع</div>
+          <div class="price">{{ '{:,.0f}'.format(p.price) }} IQD</div>
           {% if p.stock == 0 %}
-            <div style="font-size:.65rem;color:var(--danger);font-weight:700;margin-top:2px;">نفذ</div>
+            <div style="font-size:.65rem;color:var(--danger);font-weight:700;margin-top:2px;">{% if lang == 'en' %}Out of Stock{% else %}نفذ{% endif %}</div>
           {% elif p.stock <= 5 %}
-            <div style="font-size:.65rem;color:var(--warning);font-weight:700;margin-top:2px;">متبقي {{ p.stock }}</div>
+            <div style="font-size:.65rem;color:var(--warning);font-weight:700;margin-top:2px;">{% if lang == 'en' %}{{ p.stock }} left{% else %}متبقي {{ p.stock }}{% endif %}</div>
           {% endif %}
         </div>
       </div>
@@ -96,7 +96,7 @@
 
     <div id="noResults">
       <i class="fas fa-search fa-2x mb-3" style="opacity:.3;display:block;"></i>
-      <p>لا توجد منتجات مطابقة</p>
+      <p>{% if lang == 'en' %}No matching products{% else %}لا توجد منتجات مطابقة{% endif %}</p>
     </div>
 
   </div><!-- /col -->
@@ -108,7 +108,7 @@
       <div class="cart-header">
         <div class="cart-title">
           <i class="fas fa-shopping-basket" style="color:var(--primary);"></i>
-          السلة
+          {% if lang == 'en' %}Cart{% else %}السلة{% endif %}
         </div>
         <div style="display:flex;align-items:center;gap:.5rem;">
           <span class="cart-badge" id="itemsCount">0</span>
@@ -123,31 +123,31 @@
       <div class="cart-items" id="cartItems">
         <div class="cart-empty">
           <i class="fas fa-shopping-basket"></i>
-          <p>السلة فارغة</p>
-          <small style="font-size:.76rem;color:var(--text-muted);">امسح الباركود أو اختر منتج</small>
+          <p>{% if lang == 'en' %}Cart is empty{% else %}السلة فارغة{% endif %}</p>
+          <small style="font-size:.76rem;color:var(--text-muted);">{% if lang == 'en' %}Scan a barcode or select a product{% else %}امسح الباركود أو اختر منتج{% endif %}</small>
         </div>
       </div>
 
       <!-- Total -->
       <div class="total-bar">
-        <span class="total-label">المجموع</span>
-        <span class="total-amount" id="totalAmount">0 د.ع</span>
+        <span class="total-label">{% if lang == 'en' %}Total{% else %}المجموع{% endif %}</span>
+        <span class="total-amount" id="totalAmount">0 IQD</span>
       </div>
 
       <!-- Checkout buttons -->
       <div class="checkout-grid">
         <button class="btn btn-success btn-lg" onclick="checkout('cash')" id="cashBtn" disabled>
           <i class="fas fa-money-bill-wave d-block mb-1" style="font-size:1.1rem;"></i>
-          <span style="font-size:.82rem;">نقدي</span>
+          <span style="font-size:.82rem;">{% if lang == 'en' %}Cash{% else %}نقدي{% endif %}</span>
         </button>
         <button class="btn btn-primary btn-lg" onclick="checkout('card')" id="cardBtn" disabled>
           <i class="fas fa-credit-card d-block mb-1" style="font-size:1.1rem;"></i>
-          <span style="font-size:.82rem;">بطاقة</span>
+          <span style="font-size:.82rem;">{% if lang == 'en' %}Card{% else %}بطاقة{% endif %}</span>
         </button>
       </div>
 
       <button class="btn btn-danger w-100 mt-2" onclick="openDebtModal()" id="debtBtn" disabled>
-        <i class="fas fa-user-clock me-2"></i>تسجيل كدين
+        <i class="fas fa-user-clock me-2"></i>{% if lang == 'en' %}Record as Debt{% else %}تسجيل كدين{% endif %}
       </button>
 
     </div>
@@ -160,35 +160,39 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header" style="background:linear-gradient(135deg,#EF4444,#C01E1E);border-bottom:none;border-radius:16px 16px 0 0;">
-        <h5 class="modal-title" style="color:#fff;"><i class="fas fa-user-clock me-2"></i>تسجيل دين</h5>
+        <h5 class="modal-title" style="color:#fff;"><i class="fas fa-user-clock me-2"></i>{% if lang == 'en' %}Record Debt{% else %}تسجيل دين{% endif %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="padding:1.2rem;">
         <p style="color:var(--text-muted);font-size:.86rem;margin-bottom:1rem;">
-          سيتم حفظ السلة كـ <strong style="color:var(--danger);">دين</strong> بدون دفع فوري.
+          {% if lang == 'en' %}
+            The cart will be saved as a <strong style="color:var(--danger);">debt</strong> without immediate payment.
+          {% else %}
+            سيتم حفظ السلة كـ <strong style="color:var(--danger);">دين</strong> بدون دفع فوري.
+          {% endif %}
         </p>
         <div class="mb-3">
-          <label class="form-label">اسم الشخص <span style="color:var(--danger);">*</span></label>
-          <input type="text" id="debtName" class="form-control" placeholder="مثال: أحمد محمد">
+          <label class="form-label">{% if lang == 'en' %}Person's Name{% else %}اسم الشخص{% endif %} <span style="color:var(--danger);">*</span></label>
+          <input type="text" id="debtName" class="form-control" placeholder="{% if lang == 'en' %}e.g. Ahmed Mohammed{% else %}مثال: أحمد محمد{% endif %}">
         </div>
         <div class="mb-3">
-          <label class="form-label">رقم الهاتف <small style="color:var(--text-muted);">(اختياري)</small></label>
+          <label class="form-label">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <small style="color:var(--text-muted);">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</small></label>
           <input type="text" id="debtPhone" class="form-control" placeholder="07xx xxx xxxx">
         </div>
         <div class="mb-3">
-          <label class="form-label">ملاحظة <small style="color:var(--text-muted);">(اختياري)</small></label>
-          <textarea id="debtNote" class="form-control" rows="2" placeholder="ملاحظات..."></textarea>
+          <label class="form-label">{% if lang == 'en' %}Note{% else %}ملاحظة{% endif %} <small style="color:var(--text-muted);">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</small></label>
+          <textarea id="debtNote" class="form-control" rows="2" placeholder="{% if lang == 'en' %}Notes...{% else %}ملاحظات...{% endif %}"></textarea>
         </div>
         <div style="background:var(--bg-base);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:.9rem 1rem;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-weight:600;color:var(--text-secondary);">إجمالي الدين</span>
-          <span style="font-weight:800;color:var(--danger);font-size:1.1rem;" id="debtTotalText">0 د.ع</span>
+          <span style="font-weight:600;color:var(--text-secondary);">{% if lang == 'en' %}Total Debt{% else %}إجمالي الدين{% endif %}</span>
+          <span style="font-weight:800;color:var(--danger);font-size:1.1rem;" id="debtTotalText">0 IQD</span>
         </div>
         <div id="debtError" class="mt-2" style="display:none;color:var(--danger);font-size:.86rem;"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
         <button class="btn btn-danger" onclick="submitDebt()" id="debtSaveBtn">
-          <i class="fas fa-save me-2"></i>حفظ الدين
+          <i class="fas fa-save me-2"></i>{% if lang == 'en' %}Save Debt{% else %}حفظ الدين{% endif %}
         </button>
       </div>
     </div>
@@ -199,9 +203,10 @@
 {% block extra_js %}
 <script>
 let cart = [];
+const isEn = '{{ lang }}' === 'en';
 
 /* ── Helpers ── */
-function fmt(n) { return Number(n||0).toLocaleString('ar-IQ'); }
+function fmt(n) { return Number(n||0).toLocaleString('en-IQ'); }
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function focusBarcode() { const el=document.getElementById('barcodeInput'); if(el) el.focus({preventScroll:true}); }
 function getScrollY() { return window.scrollY||0; }
@@ -228,9 +233,12 @@ function updateCartUI() {
   const hasItems = cart.length > 0;
   btns.forEach(b=>{ if(b) b.disabled=!hasItems; });
 
+  const emptyLabel   = isEn ? 'Cart is empty'                       : 'السلة فارغة';
+  const emptySub     = isEn ? 'Scan a barcode or select a product'  : 'امسح الباركود أو اختر منتج';
+
   if (!hasItems) {
-    wrap.innerHTML=`<div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>السلة فارغة</p><small style="font-size:.76rem;color:var(--text-muted);">امسح الباركود أو اختر منتج</small></div>`;
-    total.textContent='0 د.ع'; cnt.textContent='0'; return;
+    wrap.innerHTML=`<div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>${emptyLabel}</p><small style="font-size:.76rem;color:var(--text-muted);">${emptySub}</small></div>`;
+    total.textContent='0 IQD'; cnt.textContent='0'; return;
   }
 
   let html='', sum=0, qty=0;
@@ -238,7 +246,7 @@ function updateCartUI() {
     const sub=item.price*item.qty; sum+=sub; qty+=item.qty;
     html+=`<div class="cart-item">
       <div class="d-flex justify-content-between align-items-start mb-2">
-        <div style="flex:1;min-width:0;margin-left:.5rem;">
+        <div style="flex:1;min-width:0;margin-{{ 'left' if lang == 'en' else 'right' }}:.5rem;">
           <div class="cart-item-name">${escHtml(item.name)}</div>
           <div class="cart-item-unit">${fmt(item.price)} × ${item.qty}</div>
         </div>
@@ -250,12 +258,12 @@ function updateCartUI() {
           <span class="qty-display">${item.qty}</span>
           <button class="qty-btn" onclick="updateQty(${i},${item.qty+1})">+</button>
         </div>
-        <span class="cart-item-subtotal">${fmt(sub)} د.ع</span>
+        <span class="cart-item-subtotal">${fmt(sub)} IQD</span>
       </div>
     </div>`;
   });
   wrap.innerHTML=html;
-  total.textContent=fmt(sum)+' د.ع';
+  total.textContent=fmt(sum)+' IQD';
   cnt.textContent=String(qty);
 }
 
@@ -278,7 +286,8 @@ function updateQty(idx, newQty) {
 function removeItem(idx) { const y=getScrollY(); cart.splice(idx,1); updateCartUI(); restoreScroll(y); }
 
 function clearCart() {
-  if (!confirm('إفراغ السلة؟')) return;
+  const msg = isEn ? 'Clear cart?' : 'إفراغ السلة؟';
+  if (!confirm(msg)) return;
   const y=getScrollY(); cart=[]; updateCartUI(); restoreScroll(y);
 }
 
@@ -298,16 +307,16 @@ function checkout(method) {
   .then(r=>r.json())
   .then(d=>{
     if (d.success) window.location.href=`/pos/receipt/${d.order_id}?autoprint=1`;
-    else { showToast(d.message||'حدث خطأ','danger'); if(btn) btn.innerHTML=orig; updateCartUI(); }
+    else { showToast(d.message||(isEn?'An error occurred':'حدث خطأ'),'danger'); if(btn) btn.innerHTML=orig; updateCartUI(); }
   })
-  .catch(()=>{ showToast('فشل الاتصال','danger'); if(btn) btn.innerHTML=orig; updateCartUI(); });
+  .catch(()=>{ showToast(isEn?'Connection failed':'فشل الاتصال','danger'); if(btn) btn.innerHTML=orig; updateCartUI(); });
 }
 
 /* ── Debt ── */
 function openDebtModal() {
   if (!cart.length) return;
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  document.getElementById('debtTotalText').textContent=fmt(total)+' د.ع';
+  document.getElementById('debtTotalText').textContent=fmt(total)+' IQD';
   document.getElementById('debtError').style.display='none';
   ['debtName','debtPhone','debtNote'].forEach(id=>document.getElementById(id).value='');
   new bootstrap.Modal(document.getElementById('debtModal')).show();
@@ -318,10 +327,17 @@ function submitDebt() {
   const name=document.getElementById('debtName').value.trim();
   const err=document.getElementById('debtError');
   err.style.display='none';
-  if (!name) { err.textContent='الرجاء كتابة اسم الشخص'; err.style.display='block'; document.getElementById('debtName').focus(); return; }
+  if (!name) {
+    err.textContent = isEn ? 'Please enter the person\'s name' : 'الرجاء كتابة اسم الشخص';
+    err.style.display='block';
+    document.getElementById('debtName').focus();
+    return;
+  }
 
   const btn=document.getElementById('debtSaveBtn');
-  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+  const savingLabel = isEn ? '<i class="fas fa-spinner fa-spin me-2"></i>Saving...' : '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+  const savedLabel  = isEn ? '<i class="fas fa-save me-2"></i>Save Debt'            : '<i class="fas fa-save me-2"></i>حفظ الدين';
+  btn.disabled=true; btn.innerHTML=savingLabel;
 
   fetch('/pos/debt', {
     method:'POST',
@@ -334,12 +350,13 @@ function submitDebt() {
   })
   .then(r=>r.json())
   .then(d=>{
-    btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-2"></i>حفظ الدين';
-    if (!d.success) { err.textContent=d.message||'حدث خطأ'; err.style.display='block'; return; }
+    btn.disabled=false; btn.innerHTML=savedLabel;
+    if (!d.success) { err.textContent=d.message||(isEn?'An error occurred':'حدث خطأ'); err.style.display='block'; return; }
     bootstrap.Modal.getInstance(document.getElementById('debtModal'))?.hide();
-    cart=[]; updateCartUI(); showToast('تم تسجيل الدين بنجاح ✅','success');
+    cart=[]; updateCartUI();
+    showToast(isEn ? 'Debt recorded successfully ✅' : 'تم تسجيل الدين بنجاح ✅','success');
   })
-  .catch(()=>{ btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-2"></i>حفظ الدين'; err.textContent='فشل الاتصال'; err.style.display='block'; });
+  .catch(()=>{ btn.disabled=false; btn.innerHTML=savedLabel; err.textContent=isEn?'Connection failed':'فشل الاتصال'; err.style.display='block'; });
 }
 
 /* ── Barcode ── */
@@ -352,13 +369,12 @@ document.getElementById('barcodeInput')?.addEventListener('keydown', function(e)
   lastBarcode=barcode; lastAt=now;
   const y=getScrollY(); this.value='';
 
-  // Try to match product by name/id directly
   const item=document.querySelector(`.product-item[data-id="${barcode}"]`);
   if (item) {
     const card=item.querySelector('.product-card'); if(card) card.click();
     restoreScroll(y); return;
   }
-  showToast('المنتج غير موجود!','danger');
+  showToast(isEn ? 'Product not found!' : 'المنتج غير موجود!','danger');
 });
 
 /* ── Search ── */

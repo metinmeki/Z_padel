@@ -128,6 +128,37 @@ body {
 }
 .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(89,103,112,.4); color: inherit; }
 
+/* ── Language Switcher Button ── */
+.lang-btn {
+  padding: 8px 16px;
+  background: rgba(255,255,255,.14);
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 50px;
+  font-size: 13px; font-weight: 700;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all .25s var(--ease);
+  font-family: 'Almarai', 'Montserrat', sans-serif;
+  letter-spacing: .3px;
+}
+.navbar-z.scrolled .lang-btn {
+  background: var(--bsft);
+  color: var(--bdk);
+  border-color: var(--br);
+}
+.lang-btn:hover {
+  background: rgba(255,255,255,.24);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(89,103,112,.25);
+}
+.navbar-z.scrolled .lang-btn:hover {
+  background: var(--bmid);
+  color: var(--bd);
+  border-color: var(--ac);
+}
+
 .nav-toggle {
   display: none;
   width: 40px; height: 40px;

@@ -1,8 +1,16 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, session, redirect, request
 from app.models.main import Court, Booking, Coach
 from app.models.store import Product  # Import at the top
 
 main_bp = Blueprint('main', __name__)
+
+
+@main_bp.route('/set-lang/<lang>')
+def set_lang(lang):
+    if lang in ('ar', 'en'):
+        session['lang'] = lang
+        session.permanent = True
+    return redirect(request.referrer or '/')
 
 
 @main_bp.route('/')

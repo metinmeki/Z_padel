@@ -1,8 +1,8 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}الحجوزات — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Bookings — Z Padel{% else %}الحجوزات — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-calendar-check{% endblock %}
-{% block page_title %}الحجوزات{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}{% endblock %}
 
 {% block extra_styles %}
 /* ── Availability color dots ── */
@@ -258,28 +258,28 @@
     <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ bookings|length if bookings else 0 }}</div>
-      <div class="stat-label">إجمالي الحجوزات</div>
+      <div class="stat-label">{% if lang == 'en' %}Total Bookings{% else %}إجمالي الحجوزات{% endif %}</div>
     </div>
   </div>
   <div class="stat-card cyan" style="animation-delay:0.07s">
     <div class="stat-icon cyan"><i class="fas fa-circle-check"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ bookings|selectattr('status','equalto','confirmed')|list|length if bookings else 0 }}</div>
-      <div class="stat-label">مؤكدة</div>
+      <div class="stat-label">{% if lang == 'en' %}Confirmed{% else %}مؤكدة{% endif %}</div>
     </div>
   </div>
   <div class="stat-card" style="animation-delay:0.14s; --card-color: orange;">
     <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ bookings|selectattr('status','equalto','pending')|list|length if bookings else 0 }}</div>
-      <div class="stat-label">معلقة</div>
+      <div class="stat-label">{% if lang == 'en' %}Pending{% else %}معلقة{% endif %}</div>
     </div>
   </div>
   <div class="stat-card" style="animation-delay:0.21s;">
     <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-ban"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ bookings|selectattr('status','equalto','cancelled')|list|length if bookings else 0 }}</div>
-      <div class="stat-label">ملغية</div>
+      <div class="stat-label">{% if lang == 'en' %}Cancelled{% else %}ملغية{% endif %}</div>
     </div>
   </div>
 </div>
@@ -289,14 +289,14 @@
   <form method="GET" action="{{ url_for('admin.bookings') }}" style="display:contents;">
 
     <div class="filter-group">
-      <label><i class="fas fa-calendar-days" style="margin-left:4px;"></i>التاريخ</label>
+      <label><i class="fas fa-calendar-days" style="margin-left:4px;"></i>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</label>
       <input type="date" name="date" value="{{ request.args.get('date','') }}"/>
     </div>
 
     <div class="filter-group">
-      <label><i class="fas fa-shield-halved" style="margin-left:4px;"></i>الملعب</label>
+      <label><i class="fas fa-shield-halved" style="margin-left:4px;"></i>{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</label>
       <select name="court_id">
-        <option value="">كل الملاعب</option>
+        <option value="">{% if lang == 'en' %}All Courts{% else %}كل الملاعب{% endif %}</option>
         {% for court in courts %}
           <option value="{{ court.id }}" {% if request.args.get('court_id')|string == court.id|string %}selected{% endif %}>
             {{ court.name }}
@@ -306,12 +306,12 @@
     </div>
 
     <div class="filter-group">
-      <label><i class="fas fa-circle-half-stroke" style="margin-left:4px;"></i>الحالة</label>
+      <label><i class="fas fa-circle-half-stroke" style="margin-left:4px;"></i>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
       <select name="status">
-        <option value="">كل الحالات</option>
-        <option value="confirmed"  {% if request.args.get('status')=='confirmed'  %}selected{% endif %}>مؤكدة</option>
-        <option value="pending"    {% if request.args.get('status')=='pending'    %}selected{% endif %}>معلقة</option>
-        <option value="cancelled"  {% if request.args.get('status')=='cancelled'  %}selected{% endif %}>ملغية</option>
+        <option value="">{% if lang == 'en' %}All Statuses{% else %}كل الحالات{% endif %}</option>
+        <option value="confirmed"  {% if request.args.get('status')=='confirmed'  %}selected{% endif %}>{% if lang == 'en' %}Confirmed{% else %}مؤكدة{% endif %}</option>
+        <option value="pending"    {% if request.args.get('status')=='pending'    %}selected{% endif %}>{% if lang == 'en' %}Pending{% else %}معلقة{% endif %}</option>
+        <option value="cancelled"  {% if request.args.get('status')=='cancelled'  %}selected{% endif %}>{% if lang == 'en' %}Cancelled{% else %}ملغية{% endif %}</option>
       </select>
     </div>
 
@@ -319,7 +319,7 @@
       <label>&nbsp;</label>
       <div style="display:flex;gap:8px;">
         <button type="submit" class="btn-z-primary" style="padding:7px 18px;">
-          <i class="fas fa-filter"></i> تصفية
+          <i class="fas fa-filter"></i> {% if lang == 'en' %}Filter{% else %}تصفية{% endif %}
         </button>
         <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline" style="padding:7px 14px;">
           <i class="fas fa-rotate-left"></i>
@@ -329,7 +329,7 @@
 
     <div style="margin-right:auto; display:flex; align-items:flex-end;">
       <div class="discount-hours-note">
-        <i class="fas fa-tag"></i> خصم 25% من 12:00 حتى 16:00
+        <i class="fas fa-tag"></i> {% if lang == 'en' %}25% discount 12:00–16:00{% else %}خصم 25% من 12:00 حتى 16:00{% endif %}
       </div>
     </div>
 
@@ -341,19 +341,19 @@
   <div class="table-toolbar">
     <div class="table-toolbar-title">
       <i class="fas fa-list" style="color:var(--brand-blue);"></i>
-      قائمة الحجوزات
+      {% if lang == 'en' %}Bookings List{% else %}قائمة الحجوزات{% endif %}
       <span class="count-pill">{{ bookings|length if bookings else 0 }}</span>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <div class="search-input-wrap">
         <i class="fas fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..." oninput="filterTable()"/>
+        <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search by name or phone...{% else %}بحث باسم أو هاتف...{% endif %}" oninput="filterTable()"/>
       </div>
       <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal">
-        <i class="fas fa-plus"></i> حجز جديد
+        <i class="fas fa-plus"></i> {% if lang == 'en' %}New Booking{% else %}حجز جديد{% endif %}
       </button>
       <a href="{{ url_for('admin.bookings', export='csv', **request.args) }}" class="btn-z-outline">
-        <i class="fas fa-file-export"></i> تصدير
+        <i class="fas fa-file-export"></i> {% if lang == 'en' %}Export{% else %}تصدير{% endif %}
       </a>
     </div>
   </div>
@@ -363,13 +363,13 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>العميل</th>
-          <th>الملعب</th>
-          <th>التاريخ</th>
-          <th>الوقت</th>
-          <th>المبلغ</th>
-          <th>الحالة</th>
-          <th>الإجراءات</th>
+          <th>{% if lang == 'en' %}Customer{% else %}العميل{% endif %}</th>
+          <th>{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</th>
+          <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+          <th>{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</th>
+          <th>{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+          <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+          <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
         </tr>
       </thead>
       <tbody id="bookingsBody">
@@ -407,15 +407,15 @@
             </td>
             <td style="font-weight:700;color:var(--brand-blue-dark);font-size:13.5px;">
               {{ b.total_price|default('—') }}
-              {% if b.total_price %}<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> د.ع</span>{% endif %}
+              {% if b.total_price %}<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>{% endif %}
             </td>
             <td>
               {% if b.status == 'confirmed' %}
-                <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>مؤكد</span>
+                <span class="badge-z confirmed"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Confirmed{% else %}مؤكد{% endif %}</span>
               {% elif b.status == 'pending' %}
-                <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>معلق</span>
+                <span class="badge-z pending"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Pending{% else %}معلق{% endif %}</span>
               {% elif b.status == 'cancelled' %}
-                <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>ملغي</span>
+                <span class="badge-z cancelled"><i class="fas fa-circle" style="font-size:7px;"></i>{% if lang == 'en' %}Cancelled{% else %}ملغي{% endif %}</span>
               {% else %}
                 <span class="badge-z blue">{{ b.status }}</span>
               {% endif %}
@@ -423,20 +423,20 @@
             <td>
               <div class="action-btns">
                 <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
-                   class="action-btn view" title="عرض التفاصيل">
+                   class="action-btn view" title="{% if lang == 'en' %}View Details{% else %}عرض التفاصيل{% endif %}">
                   <i class="fas fa-eye"></i>
                 </a>
                 <a href="{{ url_for('admin.edit_booking', booking_id=b.id) }}"
-                   class="action-btn edit" title="تعديل">
+                   class="action-btn edit" title="{% if lang == 'en' %}Edit{% else %}تعديل{% endif %}">
                   <i class="fas fa-pen"></i>
                 </a>
                 {% if b.status != 'cancelled' %}
                 <form method="POST"
                       action="{{ url_for('admin.cancel_booking', booking_id=b.id) }}"
-                      onsubmit="return confirm('هل تريد إلغاء هذا الحجز؟')"
+                      onsubmit="return confirm('{% if lang == 'en' %}Cancel this booking?{% else %}هل تريد إلغاء هذا الحجز؟{% endif %}')"
                       style="display:inline;">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <button type="submit" class="action-btn cancel" title="إلغاء">
+                  <button type="submit" class="action-btn cancel" title="{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}">
                     <i class="fas fa-xmark"></i>
                   </button>
                 </form>
@@ -450,7 +450,7 @@
             <td colspan="8">
               <div class="empty-state">
                 <i class="fas fa-calendar-xmark"></i>
-                <p>لا توجد حجوزات تطابق الفلتر المحدد</p>
+                <p>{% if lang == 'en' %}No bookings match the selected filter{% else %}لا توجد حجوزات تطابق الفلتر المحدد{% endif %}</p>
               </div>
             </td>
           </tr>
@@ -463,9 +463,15 @@
   {% if pagination %}
   <div class="pagination-wrap">
     <div class="pagination-info">
-      عرض {{ pagination.per_page * (pagination.page - 1) + 1 }}
-      – {{ [pagination.per_page * pagination.page, pagination.total]|min }}
-      من {{ pagination.total }} حجز
+      {% if lang == 'en' %}
+        Showing {{ pagination.per_page * (pagination.page - 1) + 1 }}
+        – {{ [pagination.per_page * pagination.page, pagination.total]|min }}
+        of {{ pagination.total }} bookings
+      {% else %}
+        عرض {{ pagination.per_page * (pagination.page - 1) + 1 }}
+        – {{ [pagination.per_page * pagination.page, pagination.total]|min }}
+        من {{ pagination.total }} حجز
+      {% endif %}
     </div>
     <div class="pagination-btns">
       {% if pagination.has_prev %}
@@ -497,7 +503,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fas fa-calendar-plus"></i> إضافة حجز جديد
+          <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Add New Booking{% else %}إضافة حجز جديد{% endif %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -507,19 +513,19 @@
           <div class="row g-3">
 
             <div class="col-md-6">
-              <label class="form-label-z">اسم العميل <span style="color:#e53935;">*</span></label>
-              <input type="text" name="customer_name" class="form-control-z" required placeholder="الاسم الكامل"/>
+              <label class="form-label-z">{% if lang == 'en' %}Customer Name{% else %}اسم العميل{% endif %} <span style="color:#e53935;">*</span></label>
+              <input type="text" name="customer_name" class="form-control-z" required placeholder="{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}"/>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">رقم الهاتف <span style="color:#e53935;">*</span></label>
+              <label class="form-label-z">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:#e53935;">*</span></label>
               <input type="tel" name="customer_phone" class="form-control-z" required placeholder="07xx xxx xxxx" dir="ltr"/>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">الملعب <span style="color:#e53935;">*</span></label>
+              <label class="form-label-z">{% if lang == 'en' %}Court{% else %}الملعب{% endif %} <span style="color:#e53935;">*</span></label>
               <select name="court_id" class="form-control-z" required id="courtSelect">
-                <option value="">اختر الملعب</option>
+                <option value="">{% if lang == 'en' %}Select Court{% else %}اختر الملعب{% endif %}</option>
                 {% for court in courts %}
                   <option value="{{ court.id }}">{{ court.name }}</option>
                 {% endfor %}
@@ -527,14 +533,14 @@
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">تاريخ الحجز <span style="color:#e53935;">*</span></label>
+              <label class="form-label-z">{% if lang == 'en' %}Booking Date{% else %}تاريخ الحجز{% endif %} <span style="color:#e53935;">*</span></label>
               <input type="date" name="booking_date" class="form-control-z" required id="bookingDate"/>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">وقت البداية <span style="color:#e53935;">*</span></label>
+              <label class="form-label-z">{% if lang == 'en' %}Start Time{% else %}وقت البداية{% endif %} <span style="color:#e53935;">*</span></label>
               <select name="start_time" class="form-control-z" required id="startTime" onchange="calcPrice()">
-                <option value="">اختر الوقت</option>
+                <option value="">{% if lang == 'en' %}Select Time{% else %}اختر الوقت{% endif %}</option>
                 {% for h in range(0, 24) %}
                   <option value="{{ '%02d'|format(h) }}:00">{{ '%02d'|format(h) }}:00</option>
                   <option value="{{ '%02d'|format(h) }}:30">{{ '%02d'|format(h) }}:30</option>
@@ -543,9 +549,9 @@
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">وقت النهاية <span style="color:#e53935;">*</span></label>
+              <label class="form-label-z">{% if lang == 'en' %}End Time{% else %}وقت النهاية{% endif %} <span style="color:#e53935;">*</span></label>
               <select name="end_time" class="form-control-z" required id="endTime" onchange="calcPrice()">
-                <option value="">اختر الوقت</option>
+                <option value="">{% if lang == 'en' %}Select Time{% else %}اختر الوقت{% endif %}</option>
                 {% for h in range(0, 24) %}
                   <option value="{{ '%02d'|format(h) }}:00">{{ '%02d'|format(h) }}:00</option>
                   <option value="{{ '%02d'|format(h) }}:30">{{ '%02d'|format(h) }}:30</option>
@@ -555,23 +561,23 @@
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">الحالة</label>
+              <label class="form-label-z">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
               <select name="status" class="form-control-z">
-                <option value="confirmed">مؤكدة</option>
-                <option value="pending">معلقة</option>
+                <option value="confirmed">{% if lang == 'en' %}Confirmed{% else %}مؤكدة{% endif %}</option>
+                <option value="pending">{% if lang == 'en' %}Pending{% else %}معلقة{% endif %}</option>
               </select>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label-z">ملاحظات</label>
-              <input type="text" name="notes" class="form-control-z" placeholder="ملاحظات اختيارية"/>
+              <label class="form-label-z">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
+              <input type="text" name="notes" class="form-control-z" placeholder="{% if lang == 'en' %}Optional notes{% else %}ملاحظات اختيارية{% endif %}"/>
             </div>
 
             <!-- Price preview -->
             <div class="col-12" id="pricePreview" style="display:none;">
               <div style="background:var(--brand-blue-soft);border:1px solid var(--brand-blue-mid);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-size:13px;font-weight:600;color:var(--brand-blue-dark);">
-                  <i class="fas fa-calculator" style="margin-left:6px;"></i>المبلغ المحسوب
+                  <i class="fas fa-calculator" style="margin-left:6px;"></i>{% if lang == 'en' %}Calculated Amount{% else %}المبلغ المحسوب{% endif %}
                 </span>
                 <span id="priceValue" style="font-size:18px;font-weight:900;color:var(--brand-blue);"></span>
               </div>
@@ -580,9 +586,9 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
           <button type="submit" class="btn-z-primary">
-            <i class="fas fa-calendar-plus"></i> تأكيد الحجز
+            <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Confirm Booking{% else %}تأكيد الحجز{% endif %}
           </button>
         </div>
       </form>
@@ -627,9 +633,10 @@ function calcPrice() {
   const isDiscount = sh >= 12 && sh < 16;
   const rate   = isDiscount ? HOURLY_RATE * 0.75 : HOURLY_RATE;
   const total  = Math.round(hours * rate);
+  const discountLabel = '{% if lang == "en" %}(25% discount){% else %}(خصم 25%){% endif %}';
   const label  = isDiscount
-    ? `${total.toLocaleString()} د.ع <small style="color:#E65100;font-size:12px;margin-right:6px;">(خصم 25%)</small>`
-    : `${total.toLocaleString()} د.ع`;
+    ? `${total.toLocaleString()} {% if lang == "en" %}IQD{% else %}د.ع{% endif %} <small style="color:#E65100;font-size:12px;margin-right:6px;">${discountLabel}</small>`
+    : `${total.toLocaleString()} {% if lang == "en" %}IQD{% else %}د.ع{% endif %}`;
 
   document.getElementById('priceValue').innerHTML = label;
   document.getElementById('pricePreview').style.display = '';

@@ -1,10 +1,14 @@
-﻿<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Z Padel - السلة</title>
+  <title>Z Padel - {% if lang == 'en' %}Cart{% else %}السلة{% endif %}</title>
+  {% if lang == 'en' %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  {% else %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  {% endif %}
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
@@ -24,11 +28,14 @@
 <body>
 
 <nav class="store-nav">
-  <a href="{{ url_for('store.shop') }}" class="btn btn-outline-light"><i class="fas fa-arrow-right"></i> متابعة التسوق</a>
+  <a href="{{ url_for('store.shop') }}" class="btn btn-outline-light">
+    <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i>
+    {% if lang == 'en' %}Continue Shopping{% else %}متابعة التسوق{% endif %}
+  </a>
 </nav>
 
 <div class="page-wrap">
-  <h3 class="mb-4">سلة التسوق</h3>
+  <h3 class="mb-4">{% if lang == 'en' %}Shopping Cart{% else %}سلة التسوق{% endif %}</h3>
   {% if items %}
   <div id="cartList">
     {% for item in items %}
@@ -49,11 +56,13 @@
   </div>
 
   <div class="mt-4 p-3 bg-dark rounded">
-    <h5>الإجمالي: <span id="totalVal">{{ "{:,.0f}".format(total) }}</span> IQD</h5>
-    <a href="{{ url_for('store.checkout') }}" class="btn-checkout text-center text-decoration-none d-block">إتمام الطلب</a>
+    <h5>{% if lang == 'en' %}Total:{% else %}الإجمالي:{% endif %} <span id="totalVal">{{ "{:,.0f}".format(total) }}</span> IQD</h5>
+    <a href="{{ url_for('store.checkout') }}" class="btn-checkout text-center text-decoration-none d-block">
+      {% if lang == 'en' %}Place Order{% else %}إتمام الطلب{% endif %}
+    </a>
   </div>
   {% else %}
-  <p class="text-center mt-5">السلة فارغة</p>
+  <p class="text-center mt-5">{% if lang == 'en' %}Your cart is empty{% else %}السلة فارغة{% endif %}</p>
   {% endif %}
 </div>
 
@@ -66,7 +75,7 @@ function updateQty(id, delta) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token() }}' // CRITICAL: Added CSRF Token
+      'X-CSRFToken': '{{ csrf_token() }}'
     },
     body: JSON.stringify({qty: newQty})
   })

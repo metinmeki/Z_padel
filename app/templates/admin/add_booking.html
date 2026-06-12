@@ -1,7 +1,7 @@
 {% extends 'admin/base_admin.html' %}
-{% block title %}إضافة حجز{% endblock %}
+{% block title %}{% if lang == 'en' %}Add Booking{% else %}إضافة حجز{% endif %}{% endblock %}
 {% block page_icon %}fas fa-calendar-plus{% endblock %}
-{% block page_title %}إضافة حجز جديد{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Add New Booking{% else %}إضافة حجز جديد{% endif %}{% endblock %}
 
 {% block extra_styles %}
 .price-box {
@@ -17,7 +17,7 @@
 {% block content %}
 
 <a href="{{ url_for('admin.bookings') }}" class="back-link">
-  <i class="fas fa-arrow-right"></i> العودة للحجوزات
+  <i class="fas fa-arrow-right"></i> {% if lang == 'en' %}Back to Bookings{% else %}العودة للحجوزات{% endif %}
 </a>
 
 <div class="form-wrap">
@@ -26,21 +26,21 @@
       <div class="row g-3">
 
         <div class="col-md-6">
-          <label class="f-label">اسم العميل *</label>
-          <input type="text" name="customer_name" class="f-ctrl" required placeholder="الاسم الكامل">
+          <label class="f-label">{% if lang == 'en' %}Customer Name *{% else %}اسم العميل *{% endif %}</label>
+          <input type="text" name="customer_name" class="f-ctrl" required placeholder="{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}">
         </div>
         <div class="col-md-6">
-          <label class="f-label">رقم الهاتف *</label>
+          <label class="f-label">{% if lang == 'en' %}Phone Number *{% else %}رقم الهاتف *{% endif %}</label>
           <input type="text" name="customer_phone" class="f-ctrl" required placeholder="07xx-xxx-xxxx">
         </div>
 
         <div class="col-12">
-          <label class="f-label">الملعب *</label>
+          <label class="f-label">{% if lang == 'en' %}Court *{% else %}الملعب *{% endif %}</label>
           <select name="court_id" class="f-ctrl" required id="courtSel">
-            <option value="">اختر الملعب</option>
+            <option value="">{% if lang == 'en' %}Select Court{% else %}اختر الملعب{% endif %}</option>
             {% for court in courts %}
             <option value="{{ court.id }}" data-price="{{ court.price_per_hour }}">
-              {{ court.name }} — {{ "{:,.0f}".format(court.price_per_hour) }} د.ع/ساعة
+              {{ court.name }} — {{ "{:,.0f}".format(court.price_per_hour) }} {% if lang == 'en' %}IQD/hr{% else %}د.ع/ساعة{% endif %}
             </option>
             {% endfor %}
           </select>
@@ -49,35 +49,35 @@
         <hr class="section-sep col-12">
 
         <div class="col-md-4">
-          <label class="f-label">التاريخ *</label>
+          <label class="f-label">{% if lang == 'en' %}Date *{% else %}التاريخ *{% endif %}</label>
           <input type="date" name="date" class="f-ctrl" required id="dateInp">
         </div>
         <div class="col-md-4">
-          <label class="f-label">وقت البداية *</label>
+          <label class="f-label">{% if lang == 'en' %}Start Time *{% else %}وقت البداية *{% endif %}</label>
           <input type="time" name="start_time" class="f-ctrl" required id="startInp">
         </div>
         <div class="col-md-4">
-          <label class="f-label">وقت النهاية *</label>
+          <label class="f-label">{% if lang == 'en' %}End Time *{% else %}وقت النهاية *{% endif %}</label>
           <input type="time" name="end_time" class="f-ctrl" required id="endInp">
         </div>
 
         <div class="col-12">
           <div class="price-box">
-            <div class="p-lbl"><i class="fas fa-coins me-1"></i>المبلغ الإجمالي</div>
-            <div class="p-num" id="totalPrice">0 د.ع</div>
+            <div class="p-lbl"><i class="fas fa-coins me-1"></i>{% if lang == 'en' %}Total Amount{% else %}المبلغ الإجمالي{% endif %}</div>
+            <div class="p-num" id="totalPrice">0 {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</div>
           </div>
         </div>
 
         <div class="col-12">
-          <label class="f-label">ملاحظات</label>
-          <textarea name="notes" class="f-ctrl" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+          <label class="f-label">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
+          <textarea name="notes" class="f-ctrl" rows="2" placeholder="{% if lang == 'en' %}Any additional notes...{% else %}أي ملاحظات إضافية...{% endif %}"></textarea>
         </div>
 
       </div>
 
       <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn-z-primary"><i class="fas fa-save"></i> حفظ الحجز</button>
-        <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline">إلغاء</a>
+        <button type="submit" class="btn-z-primary"><i class="fas fa-save"></i> {% if lang == 'en' %}Save Booking{% else %}حفظ الحجز{% endif %}</button>
+        <a href="{{ url_for('admin.bookings') }}" class="btn-z-outline">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</a>
       </div>
     </form>
   </div>
@@ -87,6 +87,7 @@
 
 {% block extra_scripts %}
 <script>
+  const iqd = '{% if lang == "en" %}IQD{% else %}د.ع{% endif %}';
   function calcPrice() {
     const sel   = document.getElementById('courtSel');
     const start = document.getElementById('startInp').value;
@@ -98,11 +99,11 @@
       const [eh, em] = end.split(':').map(Number);
       const hours = ((eh * 60 + em) - (sh * 60 + sm)) / 60;
       if (hours > 0) {
-        el.textContent = Math.round(hours * price).toLocaleString() + ' د.ع';
+        el.textContent = Math.round(hours * price).toLocaleString() + ' ' + iqd;
         return;
       }
     }
-    el.textContent = '0 د.ع';
+    el.textContent = '0 ' + iqd;
   }
   document.getElementById('courtSel').addEventListener('change', calcPrice);
   document.getElementById('startInp').addEventListener('change', calcPrice);

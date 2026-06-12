@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}Z Padel Admin{% endblock %}</title>
 
-  <!-- Bootstrap 5 RTL -->
+  <!-- Bootstrap 5 — RTL for Arabic, LTR for English -->
+  {% if lang == 'en' %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+  {% else %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
+  {% endif %}
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <!-- Google Fonts — FIXED: was missing closing > -->
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
   <style>
     /* ═══════════════════════════════════════════
@@ -437,6 +441,73 @@
       border: 2px solid white;
     }
 
+    /* ── Notification dropdown ── */
+    .notif-wrapper { position: relative; }
+    .notif-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      width: 320px;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(13,71,161,0.18);
+      z-index: 1200;
+      display: none;
+      overflow: hidden;
+      animation: fadeSlideIn 0.2s ease;
+    }
+    html[dir="ltr"] .notif-dropdown { left: auto; right: 0; }
+    .notif-dropdown.open { display: block; }
+    .notif-header {
+      padding: 14px 16px;
+      background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .notif-badge {
+      background: #F44336;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+      min-width: 20px;
+      text-align: center;
+    }
+    .notif-list { max-height: 320px; overflow-y: auto; }
+    .notif-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      text-decoration: none;
+      color: var(--text-dark);
+      transition: var(--transition);
+    }
+    .notif-item:hover { background: var(--brand-blue-soft); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .notif-text { font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+    .notif-empty {
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .notif-empty i { font-size: 28px; display: block; margin-bottom: 8px; color: #43A047; }
+
     /* ═══════════════════════════════════════════
        PAGE CONTENT
     ═══════════════════════════════════════════ */
@@ -837,6 +908,75 @@
       .page-content { padding: 16px; }
     }
 
+    /* ═══════════════════════════════════════════
+       LTR (English) OVERRIDES
+    ═══════════════════════════════════════════ */
+    html[dir="ltr"] body {
+      font-family: 'Inter', 'Cairo', sans-serif;
+    }
+    html[dir="ltr"] .sidebar {
+      right: auto;
+      left: 0;
+      box-shadow: 4px 0 24px rgba(13,71,161,0.25);
+    }
+    html[dir="ltr"] .main-wrapper {
+      margin-right: 0;
+      margin-left: var(--sidebar-width);
+    }
+    html[dir="ltr"] .nav-link-custom:hover {
+      transform: translateX(4px);
+    }
+    html[dir="ltr"] .nav-link-custom.active::after {
+      left: auto;
+      right: 0;
+      border-radius: 3px 0 0 3px;
+    }
+    html[dir="ltr"] .topbar-btn .badge-dot {
+      left: auto;
+      right: 6px;
+    }
+    @media (max-width: 992px) {
+      html[dir="ltr"] .sidebar {
+        transform: translateX(-100%);
+      }
+      html[dir="ltr"] .sidebar.open {
+        transform: translateX(0);
+      }
+      html[dir="ltr"] .main-wrapper {
+        margin-left: 0;
+      }
+    }
+
+    /* ── Language Toggle Button ── */
+    .lang-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--brand-blue-soft);
+      border: 1.5px solid var(--brand-blue-mid);
+      color: var(--brand-blue-dark);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Cairo', 'Inter', sans-serif;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .lang-toggle-btn:hover {
+      background: var(--brand-blue-mid);
+      border-color: var(--brand-blue-light);
+      color: var(--brand-blue-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    .lang-toggle-btn i {
+      font-size: 13px;
+      color: var(--brand-blue);
+    }
+
   </style>
   <style>
     {% block extra_styles %}{% endblock %}
@@ -848,7 +988,7 @@
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div class="loading-text">جاري التحميل...</div>
+  <div class="loading-text">{% if lang == 'en' %}Loading...{% else %}جاري التحميل...{% endif %}</div>
 </div>
 
 <!-- Sidebar Overlay (mobile) -->
@@ -864,7 +1004,7 @@
     </div>
     <div class="brand-text">
       <span class="brand-name">Z Padel</span>
-      <span class="brand-sub">لوحة الإدارة</span>
+      <span class="brand-sub">{% if lang == 'en' %}Admin Panel{% else %}لوحة الإدارة{% endif %}</span>
     </div>
   </a>
 
@@ -875,30 +1015,30 @@
     </div>
     <div class="admin-details">
       <div class="admin-name">{{ current_user.username if current_user.is_authenticated else 'Admin' }}</div>
-      <div class="admin-role">مدير النظام</div>
+      <div class="admin-role">{% if lang == 'en' %}System Admin{% else %}مدير النظام{% endif %}</div>
     </div>
   </div>
 
   <!-- Nav -->
   <nav class="sidebar-nav">
 
-    <div class="nav-section-label">الرئيسية</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Main{% else %}الرئيسية{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.dashboard') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
         <i class="fas fa-gauge-high nav-icon"></i>
-        <span class="nav-label">لوحة التحكم</span>
+        <span class="nav-label">{% if lang == 'en' %}Dashboard{% else %}لوحة التحكم{% endif %}</span>
       </a>
     </div>
 
-    <div class="nav-section-label">الحجوزات</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.bookings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.bookings' %}active{% endif %}">
         <i class="fas fa-calendar-check nav-icon"></i>
-        <span class="nav-label">الحجوزات</span>
+        <span class="nav-label">{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}</span>
       </a>
     </div>
 
@@ -906,7 +1046,7 @@
       <a href="{{ url_for('admin.pending_bookings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.pending_bookings' %}active{% endif %}">
         <i class="fas fa-clock nav-icon"></i>
-        <span class="nav-label">الحجوزات المعلقة</span>
+        <span class="nav-label">{% if lang == 'en' %}Pending Bookings{% else %}الحجوزات المعلقة{% endif %}</span>
         {% set pending_count = pending_bookings_count|default(0) %}
         {% if pending_count > 0 %}
           <span class="nav-badge">{{ pending_count }}</span>
@@ -914,14 +1054,13 @@
       </a>
     </div>
 
-
-    <div class="nav-section-label">الملاعب والتدريب</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Courts & Training{% else %}الملاعب والتدريب{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.courts') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.courts' %}active{% endif %}">
         <i class="fas fa-shield-halved nav-icon"></i>
-        <span class="nav-label">الملاعب</span>
+        <span class="nav-label">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</span>
       </a>
     </div>
 
@@ -929,7 +1068,7 @@
       <a href="{{ url_for('admin.coaches') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.coaches' %}active{% endif %}">
         <i class="fas fa-person-running nav-icon"></i>
-        <span class="nav-label">المدربون</span>
+        <span class="nav-label">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</span>
       </a>
     </div>
 
@@ -937,17 +1076,17 @@
       <a href="{{ url_for('admin.training_requests') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.training_requests' %}active{% endif %}">
         <i class="fas fa-dumbbell nav-icon"></i>
-        <span class="nav-label">طلبات التدريب</span>
+        <span class="nav-label">{% if lang == 'en' %}Training Requests{% else %}طلبات التدريب{% endif %}</span>
       </a>
     </div>
 
-    <div class="nav-section-label">المتجر والمبيعات</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Store & Sales{% else %}المتجر والمبيعات{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.products') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.products' %}active{% endif %}">
         <i class="fas fa-box-open nav-icon"></i>
-        <span class="nav-label">المنتجات</span>
+        <span class="nav-label">{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}</span>
       </a>
     </div>
 
@@ -955,7 +1094,7 @@
       <a href="{{ url_for('admin.categories') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.categories' %}active{% endif %}">
         <i class="fas fa-tags nav-icon"></i>
-        <span class="nav-label">الفئات</span>
+        <span class="nav-label">{% if lang == 'en' %}Categories{% else %}الفئات{% endif %}</span>
       </a>
     </div>
 
@@ -963,7 +1102,7 @@
       <a href="{{ url_for('admin.orders') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.orders' %}active{% endif %}">
         <i class="fas fa-bag-shopping nav-icon"></i>
-        <span class="nav-label">الطلبات</span>
+        <span class="nav-label">{% if lang == 'en' %}Orders{% else %}الطلبات{% endif %}</span>
       </a>
     </div>
 
@@ -971,17 +1110,17 @@
       <a href="{{ url_for('pos.quick_sale') }}"
          class="nav-link-custom {% if 'pos' in request.endpoint %}active{% endif %}">
         <i class="fas fa-cash-register nav-icon"></i>
-        <span class="nav-label">نقطة البيع (POS)</span>
+        <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% else %}نقطة البيع (POS){% endif %}</span>
       </a>
     </div>
 
-    <div class="nav-section-label">المالية والتقارير</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Finance & Reports{% else %}المالية والتقارير{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.expenses') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.expenses' %}active{% endif %}">
         <i class="fas fa-receipt nav-icon"></i>
-        <span class="nav-label">المصروفات</span>
+        <span class="nav-label">{% if lang == 'en' %}Expenses{% else %}المصروفات{% endif %}</span>
       </a>
     </div>
 
@@ -989,17 +1128,17 @@
       <a href="{{ url_for('admin.reports') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.reports' %}active{% endif %}">
         <i class="fas fa-chart-line nav-icon"></i>
-        <span class="nav-label">التقارير</span>
+        <span class="nav-label">{% if lang == 'en' %}Reports{% else %}التقارير{% endif %}</span>
       </a>
     </div>
 
-    <div class="nav-section-label">الإدارة</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Management{% else %}الإدارة{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.users') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.users' %}active{% endif %}">
         <i class="fas fa-users nav-icon"></i>
-        <span class="nav-label">المستخدمون</span>
+        <span class="nav-label">{% if lang == 'en' %}Users{% else %}المستخدمون{% endif %}</span>
       </a>
     </div>
 
@@ -1007,7 +1146,7 @@
       <a href="{{ url_for('admin.print_barcodes') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.print_barcodes' %}active{% endif %}">
         <i class="fas fa-barcode nav-icon"></i>
-        <span class="nav-label">الباركود</span>
+        <span class="nav-label">{% if lang == 'en' %}Barcodes{% else %}الباركود{% endif %}</span>
       </a>
     </div>
 
@@ -1015,7 +1154,7 @@
       <a href="{{ url_for('admin.settings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.settings' %}active{% endif %}">
         <i class="fas fa-gear nav-icon"></i>
-        <span class="nav-label">الإعدادات</span>
+        <span class="nav-label">{% if lang == 'en' %}Settings{% else %}الإعدادات{% endif %}</span>
       </a>
     </div>
 
@@ -1025,7 +1164,7 @@
   <div class="sidebar-footer">
     <a href="{{ url_for('auth.logout') }}" class="logout-btn">
       <i class="fas fa-right-from-bracket"></i>
-      <span>تسجيل الخروج</span>
+      <span>{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}</span>
     </a>
   </div>
 
@@ -1045,19 +1184,39 @@
 
     <div class="topbar-right">
       <!-- Toggle sidebar (mobile) -->
-      <button class="topbar-btn d-lg-none" onclick="toggleSidebar()" title="القائمة">
+      <button class="topbar-btn d-lg-none" onclick="toggleSidebar()" title="{{ 'Menu' if lang == 'en' else 'القائمة' }}">
         <i class="fas fa-bars"></i>
       </button>
 
       <!-- Notifications -->
-      <a href="#" class="topbar-btn" title="الإشعارات">
-        <i class="fas fa-bell"></i>
-        <span class="badge-dot"></span>
-      </a>
+      <div class="notif-wrapper">
+        <button class="topbar-btn" id="notifBtn" onclick="toggleNotif(event)" title="{{ 'Notifications' if lang == 'en' else 'الإشعارات' }}">
+          <i class="fas fa-bell"></i>
+          <span class="badge-dot" id="notifDot" style="display:none;"></span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span><i class="fas fa-bell" style="margin-{% if lang == 'en' %}right{% else %}left{% endif %}:7px;"></i>{% if lang == 'en' %}Notifications{% else %}الإشعارات{% endif %}</span>
+            <span class="notif-badge" id="notifCount">0</span>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">
+              <i class="fas fa-circle-check"></i>
+              {% if lang == 'en' %}All caught up!{% else %}لا توجد إشعارات جديدة{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Home -->
-      <a href="{{ url_for('main.index') }}" class="topbar-btn" title="الموقع الرئيسي">
+      <a href="{{ url_for('main.index') }}" class="topbar-btn" title="{{ 'Main Website' if lang == 'en' else 'الموقع الرئيسي' }}">
         <i class="fas fa-globe"></i>
+      </a>
+
+      <!-- Language switcher -->
+      <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-toggle-btn">
+        <i class="fas fa-language"></i>
+        {% if lang == 'en' %}العربية{% else %}English{% endif %}
       </a>
     </div>
   </header>
@@ -1119,6 +1278,71 @@
       setTimeout(() => el.remove(), 400);
     });
   }, 4000);
+
+  // Move modals to <body> so Bootstrap z-index works correctly with the
+  // page-content animation (transform on page-content creates a stacking
+  // context that traps position:fixed modals behind the backdrop otherwise).
+  document.querySelectorAll('.modal').forEach(function(m) {
+    document.body.appendChild(m);
+  });
+
+  // ── Notifications ──
+  const LANG = '{{ lang }}';
+
+  function toggleNotif(e) {
+    e.stopPropagation();
+    const dd = document.getElementById('notifDropdown');
+    dd.classList.toggle('open');
+    if (dd.classList.contains('open')) loadNotifications();
+  }
+
+  function loadNotifications() {
+    fetch('/admin/api/notifications')
+      .then(r => r.json())
+      .then(data => {
+        const dot   = document.getElementById('notifDot');
+        const count = document.getElementById('notifCount');
+        const list  = document.getElementById('notifList');
+
+        count.textContent = data.total;
+        dot.style.display = data.total > 0 ? '' : 'none';
+
+        if (data.total === 0) {
+          list.innerHTML = `<div class="notif-empty">
+            <i class="fas fa-circle-check"></i>
+            ${LANG === 'en' ? 'All caught up!' : 'لا توجد إشعارات جديدة'}
+          </div>`;
+          return;
+        }
+
+        list.innerHTML = data.items.map(item => `
+          <a href="${item.url}" class="notif-item">
+            <div class="notif-icon" style="background:${item.color}22;color:${item.color};">
+              <i class="fas ${item.icon}"></i>
+            </div>
+            <div class="notif-text">${LANG === 'en' ? item.en : item.ar}</div>
+            <i class="fas fa-chevron-${LANG === 'en' ? 'right' : 'left'}" style="font-size:10px;color:var(--text-muted);margin-${LANG === 'en' ? 'left' : 'right'}:auto;flex-shrink:0;"></i>
+          </a>`).join('');
+      })
+      .catch(() => {});
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    const wrapper = document.querySelector('.notif-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      document.getElementById('notifDropdown').classList.remove('open');
+    }
+  });
+
+  // Load notification dot on page load (silent, no dropdown)
+  fetch('/admin/api/notifications')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('notifDot').style.display = data.total > 0 ? '' : 'none';
+      document.getElementById('notifCount').textContent = data.total;
+    })
+    .catch(() => {});
 
 </script>
 

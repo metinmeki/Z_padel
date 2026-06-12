@@ -1,0 +1,162 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if lang == 'en' %}Print Barcodes — Z Padel{% else %}طباعة الباركود — Z Padel{% endif %}{% endblock %}
+{% block page_icon %}fas fa-barcode{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Print Barcodes{% else %}طباعة الباركود{% endif %}{% endblock %}
+
+{% block extra_styles %}
+.toolbar {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.barcode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.barcode-card {
+  background: white;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.barcode-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--brand-blue-mid);
+}
+.barcode-product-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.barcode-number {
+  font-size: 11px;
+  color: var(--text-muted);
+  direction: ltr;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  font-family: monospace;
+}
+.barcode-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-blue);
+  margin-top: 8px;
+}
+.barcode-svg-wrap {
+  background: #f8f9fa;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  margin: 8px 0;
+}
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+.empty-state i {
+  font-size: 48px;
+  color: var(--border-color);
+  margin-bottom: 16px;
+  display: block;
+}
+.empty-state h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+@media print {
+  .toolbar, .topbar, .sidebar, .sidebar-overlay { display: none !important; }
+  .main-wrapper { margin: 0 !important; }
+  .page-content { padding: 0 !important; }
+  .barcode-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .barcode-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="toolbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:14px;font-weight:700;color:var(--brand-blue-dark);">
+      <i class="fas fa-barcode" style="margin-{% if lang == 'en' %}right{% else %}left{% endif %}:6px;color:var(--brand-blue);"></i>
+      {% if lang == 'en' %}{{ products|length }} product(s) with barcodes{% else %}{{ products|length }} منتج يحتوي على باركود{% endif %}
+    </span>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{{ url_for('admin.products') }}" class="btn-z-outline">
+      <i class="fas fa-arrow-{% if lang == 'en' %}left{% else %}right{% endif %}"></i>
+      {% if lang == 'en' %}Back to Products{% else %}العودة للمنتجات{% endif %}
+    </a>
+    {% if products %}
+    <button class="btn-z-primary" onclick="window.print()">
+      <i class="fas fa-print"></i>
+      {% if lang == 'en' %}Print All{% else %}طباعة الكل{% endif %}
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+{% if products %}
+<div class="barcode-grid" id="barcodeGrid">
+  {% for p in products %}
+  <div class="barcode-card">
+    <div class="barcode-product-name">{{ p.name }}</div>
+    <div class="barcode-number">{{ p.barcode }}</div>
+    <div class="barcode-svg-wrap">
+      <svg id="barcode-{{ p.id }}" style="width:100%;height:60px;"></svg>
+    </div>
+    <div class="barcode-price">
+      {{ "{:,.0f}".format(p.price) }} {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  {% for p in products %}
+  try {
+    JsBarcode('#barcode-{{ p.id }}', '{{ p.barcode }}', {
+      format: 'CODE128',
+      width: 1.5,
+      height: 50,
+      displayValue: false,
+      margin: 4
+    });
+  } catch(e) {}
+  {% endfor %}
+});
+</script>
+
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-barcode"></i>
+  <h4>{% if lang == 'en' %}No barcodes found{% else %}لا توجد باركودات{% endif %}</h4>
+  <p>{% if lang == 'en' %}No products have a barcode assigned yet. Add barcodes to products first.{% else %}لم يتم تعيين باركود لأي منتج بعد. أضف الباركود للمنتجات أولاً.{% endif %}</p>
+  <a href="{{ url_for('admin.products') }}" class="btn-z-primary" style="display:inline-flex;margin-top:16px;">
+    <i class="fas fa-box"></i> {% if lang == 'en' %}Go to Products{% else %}الذهاب للمنتجات{% endif %}
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}

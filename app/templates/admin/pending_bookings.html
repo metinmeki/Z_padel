@@ -1,8 +1,8 @@
-{% extends "admin/base.html" %}
+{% extends "admin/base_admin.html" %}
 
-{% block title %}الحجوزات المعلقة — Z Padel{% endblock %}
+{% block title %}{% if lang == 'en' %}Pending Bookings — Z Padel{% else %}الحجوزات المعلقة — Z Padel{% endif %}{% endblock %}
 {% block page_icon %}fas fa-clock{% endblock %}
-{% block page_title %}الحجوزات المعلقة{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Pending Bookings{% else %}الحجوزات المعلقة{% endif %}{% endblock %}
 
 {% block extra_styles %}
 /* ── Fix modal to cover full screen including sidebar ── */
@@ -276,45 +276,45 @@
 <div class="pending-alert">
   <div class="pending-alert-icon"><i class="fas fa-hourglass-half"></i></div>
   <div class="pending-alert-text">
-    <strong>يوجد {{ pending_bookings|length }} حجز بانتظار المراجعة</strong>
-    <span>يرجى مراجعة الحجوزات المعلقة وتأكيدها أو رفضها في أقرب وقت</span>
+    <strong>{% if lang == 'en' %}{{ pending_bookings|length }} booking(s) awaiting review{% else %}يوجد {{ pending_bookings|length }} حجز بانتظار المراجعة{% endif %}</strong>
+    <span>{% if lang == 'en' %}Please review pending bookings and confirm or reject them as soon as possible{% else %}يرجى مراجعة الحجوزات المعلقة وتأكيدها أو رفضها في أقرب وقت{% endif %}</span>
   </div>
   <a href="{{ url_for('admin.bookings', status='pending') }}" class="btn-z-outline" style="flex-shrink:0;padding:7px 16px;font-size:13px;">
-    عرض في الجدول <i class="fas fa-arrow-left" style="font-size:11px;"></i>
+    {% if lang == 'en' %}View in Table{% else %}عرض في الجدول{% endif %} <i class="fas fa-arrow-left" style="font-size:11px;"></i>
   </a>
 </div>
 {% endif %}
 
 <div class="stats-strip">
-  <div class="stat-card orange"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-value">{{ pending_bookings|length if pending_bookings else 0 }}</div><div class="stat-label">إجمالي المعلقة</div></div></div>
-  <div class="stat-card" style="animation-delay:0.07s;"><div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-fire"></i></div><div class="stat-info"><div class="stat-value">{{ urgent_count|default(0) }}</div><div class="stat-label">عاجلة (+2 ساعة)</div></div></div>
-  <div class="stat-card cyan" style="animation-delay:0.14s;"><div class="stat-icon cyan"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><div class="stat-value">{{ today_pending|default(0) }}</div><div class="stat-label">حجوزات اليوم</div></div></div>
-  <div class="stat-card green" style="animation-delay:0.21s;"><div class="stat-icon green"><i class="fas fa-circle-check"></i></div><div class="stat-info"><div class="stat-value">{{ confirmed_today|default(0) }}</div><div class="stat-label">تم تأكيدها اليوم</div></div></div>
+  <div class="stat-card orange"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-value">{{ pending_bookings|length if pending_bookings else 0 }}</div><div class="stat-label">{% if lang == 'en' %}Total Pending{% else %}إجمالي المعلقة{% endif %}</div></div></div>
+  <div class="stat-card" style="animation-delay:0.07s;"><div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-fire"></i></div><div class="stat-info"><div class="stat-value">{{ urgent_count|default(0) }}</div><div class="stat-label">{% if lang == 'en' %}Urgent (+2 hrs){% else %}عاجلة (+2 ساعة){% endif %}</div></div></div>
+  <div class="stat-card cyan" style="animation-delay:0.14s;"><div class="stat-icon cyan"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><div class="stat-value">{{ today_pending|default(0) }}</div><div class="stat-label">{% if lang == 'en' %}Today's Bookings{% else %}حجوزات اليوم{% endif %}</div></div></div>
+  <div class="stat-card green" style="animation-delay:0.21s;"><div class="stat-icon green"><i class="fas fa-circle-check"></i></div><div class="stat-info"><div class="stat-value">{{ confirmed_today|default(0) }}</div><div class="stat-label">{% if lang == 'en' %}Confirmed Today{% else %}تم تأكيدها اليوم{% endif %}</div></div></div>
 </div>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <div style="position:relative;display:flex;align-items:center;">
       <i class="fas fa-magnifying-glass" style="position:absolute;right:11px;color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
-      <input type="text" id="searchInput" placeholder="بحث باسم أو هاتف..." oninput="filterCards()"
+      <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search by name or phone...{% else %}بحث باسم أو هاتف...{% endif %}" oninput="filterCards()"
              style="padding:8px 34px 8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;width:220px;outline:none;color:var(--text-dark);"
              onfocus="this.style.borderColor='var(--brand-blue-light)'"
              onblur="this.style.borderColor='var(--border-color)'"/>
     </div>
     <select id="courtFilter" onchange="filterCards()"
             style="padding:8px 14px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:13px;outline:none;color:var(--text-dark);background:white;cursor:pointer;">
-      <option value="">كل الملاعب</option>
+      <option value="">{% if lang == 'en' %}All Courts{% else %}كل الملاعب{% endif %}</option>
       {% for court in courts %}<option value="{{ court.name }}">{{ court.name }}</option>{% endfor %}
     </select>
     {% if pending_bookings %}
     <button class="btn-z-primary" onclick="confirmAllPrompt()" style="padding:8px 16px;font-size:13px;">
-      <i class="fas fa-check-double"></i> تأكيد الكل
+      <i class="fas fa-check-double"></i> {% if lang == 'en' %}Confirm All{% else %}تأكيد الكل{% endif %}
     </button>
     {% endif %}
   </div>
   <div class="view-toggle">
-    <button class="view-btn active" onclick="setView('card',this)" title="بطاقات"><i class="fas fa-grip"></i></button>
-    <button class="view-btn" onclick="setView('table',this)" title="جدول"><i class="fas fa-table-list"></i></button>
+    <button class="view-btn active" onclick="setView('card',this)" title="{% if lang == 'en' %}Cards{% else %}بطاقات{% endif %}"><i class="fas fa-grip"></i></button>
+    <button class="view-btn" onclick="setView('table',this)" title="{% if lang == 'en' %}Table{% else %}جدول{% endif %}"><i class="fas fa-table-list"></i></button>
   </div>
 </div>
 
@@ -338,7 +338,7 @@
       </div>
       <div class="pc-body">
         <div class="pc-field">
-          <div class="pc-field-label">الملعب</div>
+          <div class="pc-field-label">{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</div>
           <div class="pc-field-value">
             <span class="court-pill" style="background:{{ (b.court.color~'22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};">
               <i class="fas fa-circle" style="font-size:7px;"></i>{{ b.court.name if b.court else '—' }}
@@ -346,39 +346,39 @@
           </div>
         </div>
         <div class="pc-field">
-          <div class="pc-field-label">التاريخ</div>
+          <div class="pc-field-label">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</div>
           <div class="pc-field-value" style="font-size:12.5px;">{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}</div>
         </div>
         <div class="pc-field">
-          <div class="pc-field-label">الوقت</div>
+          <div class="pc-field-label">{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</div>
           <div class="pc-field-value">
             <span class="time-pill">
               <i class="fas fa-clock" style="font-size:10px;"></i>
               {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}
             </span>
             {% if b.start_time and 12 <= b.start_time.hour < 16 %}
-            <div style="margin-top:4px;"><span class="discount-pill"><i class="fas fa-tag" style="font-size:9px;"></i>خصم 25%</span></div>
+            <div style="margin-top:4px;"><span class="discount-pill"><i class="fas fa-tag" style="font-size:9px;"></i>{% if lang == 'en' %}25% discount{% else %}خصم 25%{% endif %}</span></div>
             {% endif %}
           </div>
         </div>
         <div class="pc-field">
-          <div class="pc-field-label">المبلغ</div>
+          <div class="pc-field-label">{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</div>
           <div class="pc-field-value" style="color:var(--brand-blue);font-size:14px;font-weight:800;">
             {{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}
-            {% if b.total_price %}<span style="font-size:11px;color:var(--text-muted);font-weight:400;"> د.ع</span>{% endif %}
+            {% if b.total_price %}<span style="font-size:11px;color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>{% endif %}
           </div>
         </div>
         {% if b.notes %}
         <div class="pc-field" style="grid-column:1/-1;">
-          <div class="pc-field-label">ملاحظات</div>
+          <div class="pc-field-label">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</div>
           <div class="pc-field-value" style="font-size:12.5px;color:var(--text-muted);">{{ b.notes }}</div>
         </div>
         {% endif %}
       </div>
       <div class="waiting-bar-wrap">
         <div class="waiting-label">
-          <span><i class="fas fa-hourglass" style="margin-left:4px;font-size:10px;"></i>وقت الانتظار</span>
-          <strong>{% if waiting_mins >= 60 %}{{ waiting_mins//60 }}س {{ waiting_mins%60 }}د{% else %}{{ waiting_mins }} دقيقة{% endif %}{% if is_urgent %} 🔴{% endif %}</strong>
+          <span><i class="fas fa-hourglass" style="margin-left:4px;font-size:10px;"></i>{% if lang == 'en' %}Waiting Time{% else %}وقت الانتظار{% endif %}</span>
+          <strong>{% if waiting_mins >= 60 %}{{ waiting_mins//60 }}{% if lang == 'en' %}h {% else %}س {% endif %}{{ waiting_mins%60 }}{% if lang == 'en' %}m{% else %}د{% endif %}{% else %}{{ waiting_mins }} {% if lang == 'en' %}min{% else %}دقيقة{% endif %}{% endif %}{% if is_urgent %} 🔴{% endif %}</strong>
         </div>
         <div class="waiting-bar">
           <div class="waiting-bar-fill {{ 'high' if waiting_mins>120 else 'mid' if waiting_mins>60 else 'low' }}"
@@ -390,15 +390,15 @@
   <form method="POST" action="{{ url_for('admin.confirm_booking', booking_id=b.id) }}" style="flex:1;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <button type="submit" class="btn-confirm" style="width:100%;"
-            onclick="return confirm('تأكيد حجز {{ b.customer_name }}؟')">
-      <i class="fas fa-check"></i> تأكيد
+            onclick="return confirm('{% if lang == 'en' %}Confirm booking for {{ b.customer_name }}?{% else %}تأكيد حجز {{ b.customer_name }}؟{% endif %}')">
+      <i class="fas fa-check"></i> {% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}
     </button>
   </form>
   <form method="POST" action="{{ url_for('admin.reject_booking', booking_id=b.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <button type="submit" class="btn-reject"
-            onclick="return confirm('رفض حجز {{ b.customer_name }}؟')">
-      <i class="fas fa-xmark"></i> رفض
+            onclick="return confirm('{% if lang == 'en' %}Reject booking for {{ b.customer_name }}?{% else %}رفض حجز {{ b.customer_name }}؟{% endif %}')">
+      <i class="fas fa-xmark"></i> {% if lang == 'en' %}Reject{% else %}رفض{% endif %}
     </button>
   </form>
   <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}" class="btn-view-detail">
@@ -410,8 +410,8 @@
   {% else %}
     <div class="empty-pending">
       <div class="empty-icon"><i class="fas fa-circle-check"></i></div>
-      <h4>لا توجد حجوزات معلقة</h4>
-      <p>جميع الحجوزات تمت مراجعتها. عمل رائع! ✅</p>
+      <h4>{% if lang == 'en' %}No pending bookings{% else %}لا توجد حجوزات معلقة{% endif %}</h4>
+      <p>{% if lang == 'en' %}All bookings have been reviewed. Great work! ✅{% else %}جميع الحجوزات تمت مراجعتها. عمل رائع! ✅{% endif %}</p>
     </div>
   {% endif %}
 </div>
@@ -420,12 +420,21 @@
 <div class="table-wrapper" id="tableView">
   <div style="padding:14px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;">
     <i class="fas fa-clock" style="color:var(--brand-blue);"></i>
-    <span style="font-size:15px;font-weight:700;color:var(--brand-blue-dark);">الحجوزات المعلقة</span>
+    <span style="font-size:15px;font-weight:700;color:var(--brand-blue-dark);">{% if lang == 'en' %}Pending Bookings{% else %}الحجوزات المعلقة{% endif %}</span>
     <span style="background:var(--brand-blue-soft);color:var(--brand-blue-dark);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;">{{ pending_bookings|length if pending_bookings else 0 }}</span>
   </div>
   <div style="overflow-x:auto;">
     <table class="table-z">
-      <thead><tr><th>#</th><th>العميل</th><th>الملعب</th><th>التاريخ</th><th>الوقت</th><th>المبلغ</th><th>وقت الانتظار</th><th>الإجراءات</th></tr></thead>
+      <thead><tr>
+        <th>#</th>
+        <th>{% if lang == 'en' %}Customer{% else %}العميل{% endif %}</th>
+        <th>{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</th>
+        <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+        <th>{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</th>
+        <th>{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+        <th>{% if lang == 'en' %}Wait Time{% else %}وقت الانتظار{% endif %}</th>
+        <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
+      </tr></thead>
       <tbody>
         {% if pending_bookings %}{% for b in pending_bookings %}{% set waiting_mins = b.waiting_minutes|default(0) %}
         <tr>
@@ -434,24 +443,24 @@
           <td><span class="court-pill" style="background:{{ (b.court.color~'22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};"><i class="fas fa-circle" style="font-size:7px;"></i>{{ b.court.name if b.court else '—' }}</span></td>
           <td style="font-size:13px;white-space:nowrap;">{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}</td>
           <td><span class="time-pill">{{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}</span></td>
-          <td style="font-weight:700;color:var(--brand-blue-dark);">{{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}{% if b.total_price %}<small style="color:var(--text-muted);font-weight:400;"> د.ع</small>{% endif %}</td>
-          <td><span style="font-size:12px;font-weight:600;color:{{ '#C62828' if waiting_mins>120 else '#E65100' if waiting_mins>60 else '#2E7D32' }};">{% if waiting_mins>=60 %}{{ waiting_mins//60 }}س {{ waiting_mins%60 }}د{% else %}{{ waiting_mins }}د{% endif %}</span></td>
+          <td style="font-weight:700;color:var(--brand-blue-dark);">{{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}{% if b.total_price %}<small style="color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>{% endif %}</td>
+          <td><span style="font-size:12px;font-weight:600;color:{{ '#C62828' if waiting_mins>120 else '#E65100' if waiting_mins>60 else '#2E7D32' }};">{% if waiting_mins>=60 %}{{ waiting_mins//60 }}{% if lang == 'en' %}h {% else %}س {% endif %}{{ waiting_mins%60 }}{% if lang == 'en' %}m{% else %}د{% endif %}{% else %}{{ waiting_mins }}{% if lang == 'en' %}m{% else %}د{% endif %}{% endif %}</span></td>
           <td>
             <div style="display:flex;gap:6px;">
               <button style="background:rgba(67,160,71,0.12);color:#2E7D32;width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;"
                 onclick="openConfirmModal({{ b.id }},'{{ b.customer_name|replace("'","\\'")|replace('"','\\"') }}','{{ (b.court.name if b.court else '')|replace("'","\\'")|replace('"','\\"') }}','{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '' }}','{{ b.start_time.strftime('%H:%M') if b.start_time else '' }}')"
-                title="تأكيد"><i class="fas fa-check"></i></button>
+                title="{% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}"><i class="fas fa-check"></i></button>
               <button style="background:rgba(229,57,53,0.10);color:#C62828;width:30px;height:30px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;"
                 onclick="openRejectModal({{ b.id }},'{{ b.customer_name|replace("'","\\'")|replace('"','\\"') }}')"
-                title="رفض"><i class="fas fa-xmark"></i></button>
+                title="{% if lang == 'en' %}Reject{% else %}رفض{% endif %}"><i class="fas fa-xmark"></i></button>
               <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
                  style="background:var(--brand-blue-soft);color:var(--brand-blue);width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;"
-                 title="تفاصيل"><i class="fas fa-eye"></i></a>
+                 title="{% if lang == 'en' %}Details{% else %}تفاصيل{% endif %}"><i class="fas fa-eye"></i></a>
             </div>
           </td>
         </tr>
         {% endfor %}{% else %}
-        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;"><i class="fas fa-circle-check" style="color:#43A047;font-size:24px;display:block;margin-bottom:8px;"></i>لا توجد حجوزات معلقة</td></tr>
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;"><i class="fas fa-circle-check" style="color:#43A047;font-size:24px;display:block;margin-bottom:8px;"></i>{% if lang == 'en' %}No pending bookings{% else %}لا توجد حجوزات معلقة{% endif %}</td></tr>
         {% endif %}
       </tbody>
     </table>
@@ -463,23 +472,23 @@
   <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-circle-check"></i> تأكيد الحجز</h5>
+        <h5 class="modal-title"><i class="fas fa-circle-check"></i> {% if lang == 'en' %}Confirm Booking{% else %}تأكيد الحجز{% endif %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="POST" id="confirmForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-body">
-          <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px;">هل تريد تأكيد الحجز التالي؟</p>
+          <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px;">{% if lang == 'en' %}Confirm the following booking?{% else %}هل تريد تأكيد الحجز التالي؟{% endif %}</p>
           <div class="confirm-summary" id="confirmSummary"></div>
           <div>
-            <label class="form-label-z">ملاحظة للعميل (اختياري)</label>
-            <textarea name="note" class="form-control-z" rows="2" placeholder="مثال: تم تأكيد حجزك، نراك قريباً..." style="resize:none;"></textarea>
+            <label class="form-label-z">{% if lang == 'en' %}Note to Customer (optional){% else %}ملاحظة للعميل (اختياري){% endif %}</label>
+            <textarea name="note" class="form-control-z" rows="2" placeholder="{% if lang == 'en' %}e.g. Your booking is confirmed, see you soon...{% else %}مثال: تم تأكيد حجزك، نراك قريباً...{% endif %}" style="resize:none;"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
           <button type="submit" class="btn-modal-confirm">
-            <i class="fas fa-circle-check"></i> تأكيد الحجز
+            <i class="fas fa-circle-check"></i> {% if lang == 'en' %}Confirm Booking{% else %}تأكيد الحجز{% endif %}
           </button>
         </div>
       </form>
@@ -492,34 +501,34 @@
   <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-circle-xmark"></i> رفض الحجز</h5>
+        <h5 class="modal-title"><i class="fas fa-circle-xmark"></i> {% if lang == 'en' %}Reject Booking{% else %}رفض الحجز{% endif %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="POST" id="rejectForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-body">
           <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px;">
-            هل تريد رفض حجز <strong id="rejectCustomerName" style="color:var(--text-dark);"></strong>؟
+            {% if lang == 'en' %}Reject booking for {% else %}هل تريد رفض حجز {% endif %}<strong id="rejectCustomerName" style="color:var(--text-dark);"></strong>{% if lang == 'en' %}?{% else %}؟{% endif %}
           </p>
           <div>
-            <label class="form-label-z">سبب الرفض <span style="color:#e53935;">*</span></label>
+            <label class="form-label-z">{% if lang == 'en' %}Rejection Reason{% else %}سبب الرفض{% endif %} <span style="color:#e53935;">*</span></label>
             <select name="reject_reason" class="form-control-z" required>
-              <option value="">اختر السبب</option>
-              <option value="court_unavailable">الملعب غير متاح في هذا الوقت</option>
-              <option value="duplicate">حجز مكرر</option>
-              <option value="no_show_history">سجل عدم حضور سابق</option>
-              <option value="other">سبب آخر</option>
+              <option value="">{% if lang == 'en' %}Select Reason{% else %}اختر السبب{% endif %}</option>
+              <option value="court_unavailable">{% if lang == 'en' %}Court unavailable at this time{% else %}الملعب غير متاح في هذا الوقت{% endif %}</option>
+              <option value="duplicate">{% if lang == 'en' %}Duplicate booking{% else %}حجز مكرر{% endif %}</option>
+              <option value="no_show_history">{% if lang == 'en' %}Previous no-show record{% else %}سجل عدم حضور سابق{% endif %}</option>
+              <option value="other">{% if lang == 'en' %}Other reason{% else %}سبب آخر{% endif %}</option>
             </select>
           </div>
           <div style="margin-top:12px;">
-            <label class="form-label-z">ملاحظة إضافية</label>
-            <textarea name="note" class="form-control-z" rows="2" placeholder="تفاصيل إضافية..." style="resize:none;"></textarea>
+            <label class="form-label-z">{% if lang == 'en' %}Additional Note{% else %}ملاحظة إضافية{% endif %}</label>
+            <textarea name="note" class="form-control-z" rows="2" placeholder="{% if lang == 'en' %}Additional details...{% else %}تفاصيل إضافية...{% endif %}" style="resize:none;"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">إلغاء</button>
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
           <button type="submit" class="btn-modal-reject">
-            <i class="fas fa-circle-xmark"></i> تأكيد الرفض
+            <i class="fas fa-circle-xmark"></i> {% if lang == 'en' %}Confirm Rejection{% else %}تأكيد الرفض{% endif %}
           </button>
         </div>
       </form>
@@ -558,12 +567,16 @@ function filterCards() {
 
 function openConfirmModal(id, name, court, date, time) {
   document.getElementById('confirmForm').action = `/admin/bookings/${id}/confirm`;
+  const customerLabel = '{% if lang == "en" %}Customer{% else %}العميل{% endif %}';
+  const courtLabel    = '{% if lang == "en" %}Court{% else %}الملعب{% endif %}';
+  const dateLabel     = '{% if lang == "en" %}Date{% else %}التاريخ{% endif %}';
+  const timeLabel     = '{% if lang == "en" %}Time{% else %}الوقت{% endif %}';
   document.getElementById('confirmSummary').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">العميل</span><strong>${name}</strong></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">الملعب</span><strong>${court}</strong></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">التاريخ</span><strong>${date}</strong></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;"><span style="color:#6B8BB5;">الوقت</span><strong>${time}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">${customerLabel}</span><strong>${name}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">${courtLabel}</span><strong>${court}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #D6E4F7;"><span style="color:#6B8BB5;">${dateLabel}</span><strong>${date}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;"><span style="color:#6B8BB5;">${timeLabel}</span><strong>${time}</strong></div>
     </div>`;
   const el = document.getElementById('confirmModal');
   const existing = bootstrap.Modal.getInstance(el);
@@ -581,7 +594,8 @@ function openRejectModal(id, name) {
 }
 
 function confirmAllPrompt() {
-  if (confirm('هل تريد تأكيد جميع الحجوزات المعلقة؟ لا يمكن التراجع عن هذا الإجراء.')) {
+  const msg = '{% if lang == "en" %}Confirm all pending bookings? This action cannot be undone.{% else %}هل تريد تأكيد جميع الحجوزات المعلقة؟ لا يمكن التراجع عن هذا الإجراء.{% endif %}';
+  if (confirm(msg)) {
     window.location.href = "{{ url_for('admin.confirm_all_pending') }}";
   }
 }

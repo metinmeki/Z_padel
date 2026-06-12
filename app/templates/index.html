@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Z Padel — دهوك | ملاعب الباديل الاحترافية</title>
+  <title>{% if lang == 'en' %}Z Padel — Duhok | Professional Padel Courts{% else %}Z Padel — دهوك | ملاعب الباديل الاحترافية{% endif %}</title>
 
   <!-- Fonts first -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet"/>
 
-  <!-- Bootstrap RTL -->
+  <!-- Bootstrap — RTL for Arabic, LTR for English -->
+  {% if lang == 'en' %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+  {% else %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
+  {% endif %}
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -23,13 +27,16 @@
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
-  <a href="#courts"   onclick="closeMobileMenu()">الملاعب</a>
-  <a href="#features" onclick="closeMobileMenu()">مميزاتنا</a>
-  <a href="#pricing"  onclick="closeMobileMenu()">الأسعار</a>
-  <a href="#store"    onclick="closeMobileMenu()">المتجر</a>
-  <a href="#contact"  onclick="closeMobileMenu()">تواصل معنا</a>
+  <a href="#courts"   onclick="closeMobileMenu()">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
+  <a href="#features" onclick="closeMobileMenu()">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
+  <a href="#pricing"  onclick="closeMobileMenu()">{% if lang == 'en' %}Pricing{% else %}الأسعار{% endif %}</a>
+  <a href="#store"    onclick="closeMobileMenu()">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
+  <a href="#contact"  onclick="closeMobileMenu()">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
   <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()" style="background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;margin-top:12px;border-radius:50px;padding:14px 40px;">
-    <i class="fas fa-calendar-plus"></i> احجز الآن
+    <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
+  </a>
+  <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" onclick="closeMobileMenu()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 28px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+    <i class="fas fa-globe"></i> {% if lang == 'en' %}العربية{% else %}English{% endif %}
   </a>
 </div>
 
@@ -41,13 +48,17 @@
       <span class="nav-brand-name">Z Padel</span>
     </a>
     <div class="nav-links">
-      <a href="#courts"   class="nav-link-item">الملاعب</a>
-      <a href="#steps"    class="nav-link-item">كيف تحجز؟</a>
-      <a href="#store"    class="nav-link-item">المتجر</a>
-      <a href="#contact"  class="nav-link-item">تواصل معنا</a>
+      <a href="#courts"   class="nav-link-item">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
+      <a href="#steps"    class="nav-link-item">{% if lang == 'en' %}How to Book?{% else %}كيف تحجز؟{% endif %}</a>
+      <a href="#store"    class="nav-link-item">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
+      <a href="#contact"  class="nav-link-item">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <a href="{{ url_for('booking.index') }}" class="nav-cta"><i class="fas fa-calendar-plus"></i> احجز الآن</a>
+      <a href="{{ url_for('booking.index') }}" class="nav-cta"><i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}</a>
+      <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-btn" title="{% if lang == 'en' %}Switch to Arabic{% else %}Switch to English{% endif %}">
+        <i class="fas fa-globe"></i>
+        <span>{% if lang == 'en' %}العربية{% else %}EN{% endif %}</span>
+      </a>
       <button class="nav-toggle" id="navToggle" onclick="openMobileMenu()"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -66,25 +77,25 @@
     <div class="row">
       <div class="col-lg-7">
         <div class="hero-eyebrow">
-          <i class="fas fa-location-dot"></i> دهوك · كردستان العراق
+          <i class="fas fa-location-dot"></i> {% if lang == 'en' %}Duhok · Kurdistan, Iraq{% else %}دهوك · كردستان العراق{% endif %}
         </div>
         <h1 class="hero-title">
-          <span class="line-sm">مرحباً بك في</span>
+          <span class="line-sm">{% if lang == 'en' %}Welcome to{% else %}مرحباً بك في{% endif %}</span>
           <span class="line-big">Z <em>Padel</em></span>
         </h1>
-        <p class="hero-sub">وجهتك الأولى لرياضة الباديل في دهوك — ملاعب بأعلى المواصفات، حجز سهل بدون دفع مسبق، وخصم 25% يومياً من 12 إلى 16.</p>
+        <p class="hero-sub">{% if lang == 'en' %}Your #1 destination for padel in Duhok — professional courts, easy booking with no upfront payment, and 25% daily discount from 12:00 to 16:00.{% else %}وجهتك الأولى لرياضة الباديل في دهوك — ملاعب بأعلى المواصفات، حجز سهل بدون دفع مسبق، وخصم 25% يومياً من 12 إلى 16.{% endif %}</p>
         <div class="hero-btns">
           <a href="{{ url_for('booking.index') }}" class="btn-main">
-            <i class="fas fa-calendar-plus"></i> احجز ملعبك الآن
+            <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
           </a>
           <a href="#courts" class="btn-ghost">
-            <i class="fas fa-arrow-down"></i> شاهد الملاعب
+            <i class="fas fa-arrow-down"></i> {% if lang == 'en' %}View Courts{% else %}شاهد الملاعب{% endif %}
           </a>
         </div>
         <div class="hero-stats">
-          <div class="hst"><div class="hst-val">{{ courts|length }}<em>+</em></div><div class="hst-lbl">ملعب احترافي</div></div>
-          <div class="hst"><div class="hst-val">{{ total_bookings|default(0) }}<em>+</em></div><div class="hst-lbl">حجز منجز</div></div>
-          <div class="hst"><div class="hst-val">25<em>%</em></div><div class="hst-lbl">خصم 12–16</div></div>
+          <div class="hst"><div class="hst-val">{{ courts|length }}<em>+</em></div><div class="hst-lbl">{% if lang == 'en' %}Pro Courts{% else %}ملعب احترافي{% endif %}</div></div>
+          <div class="hst"><div class="hst-val">{{ total_bookings|default(0) }}<em>+</em></div><div class="hst-lbl">{% if lang == 'en' %}Bookings Done{% else %}حجز منجز{% endif %}</div></div>
+          <div class="hst"><div class="hst-val">25<em>%</em></div><div class="hst-lbl">{% if lang == 'en' %}Discount 12–16{% else %}خصم 12–16{% endif %}</div></div>
         </div>
       </div>
     </div>
@@ -94,7 +105,12 @@
 <!-- TICKER -->
 <div class="ticker">
   <div class="ticker-track">
-    {% for item in ['Z PADEL DUHOK','ملاعب احترافية','خصم 25% من 12–16','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','ملاعب احترافية','خصم 25% من 12–16','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% if lang == 'en' %}
+    {% set ticker_items = ['Z PADEL DUHOK','PROFESSIONAL COURTS','25% DISCOUNT 12–16','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','PROFESSIONAL COURTS','25% DISCOUNT 12–16','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% else %}
+    {% set ticker_items = ['Z PADEL DUHOK','ملاعب احترافية','خصم 25% من 12–16','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','ملاعب احترافية','خصم 25% من 12–16','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% endif %}
+    {% for item in ticker_items %}
     <span class="ticker-item">{{ item }} <span class="ticker-dot"></span></span>
     {% endfor %}
   </div>
@@ -106,9 +122,9 @@
 
     <div class="courts-header reveal">
       <div>
-        <span class="sec-eye"><i class="fas fa-shield-halved"></i> ملاعبنا</span>
-        <h2 class="sec-ttl">ملاعب <span>احترافية</span> لكل المستويات</h2>
-        <p class="sec-sub">مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى</p>
+        <span class="sec-eye"><i class="fas fa-shield-halved"></i> {% if lang == 'en' %}Our Courts{% else %}ملاعبنا{% endif %}</span>
+        <h2 class="sec-ttl">{% if lang == 'en' %}<span>Professional</span> Courts for All Levels{% else %}ملاعب <span>احترافية</span> لكل المستويات{% endif %}</h2>
+        <p class="sec-sub">{% if lang == 'en' %}Equipped to the highest standards for an unforgettable playing experience{% else %}مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى{% endif %}</p>
       </div>
       <a href="{{ url_for('booking.index') }}" class="btn-blue" style="white-space:nowrap;"></a>
     </div>
@@ -124,9 +140,9 @@
           <div class="cc-num">0{{ loop.index }}</div>
           <div class="cc-badge {{ 'available' if court.is_active else 'closed' }}">
             {% if court.is_active %}
-              <span class="cc-badge-dot"></span> متاح الآن
+              <span class="cc-badge-dot"></span> {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
             {% else %}
-              <i class="fas fa-lock" style="font-size:9px;"></i> مؤقتاً مغلق
+              <i class="fas fa-lock" style="font-size:9px;"></i> {% if lang == 'en' %}Temporarily Closed{% else %}مؤقتاً مغلق{% endif %}
             {% endif %}
           </div>
           <div class="cc-ribbon">
@@ -138,37 +154,37 @@
             <div class="cc-price-wrap">
               <div class="cc-price">
                 {{ "{:,.0f}".format(court.price_per_hour or 25000) }}
-                <small>د.ع/ساعة</small>
+                <small>{% if lang == 'en' %}IQD/hr{% else %}د.ع/ساعة{% endif %}</small>
               </div>
               <div class="cc-disc">
                 <i class="fas fa-tag" style="font-size:9px;"></i>
-                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} في ساعات الخصم
+                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} {% if lang == 'en' %}during discount hours{% else %}في ساعات الخصم{% endif %}
               </div>
             </div>
           </div>
           <div class="cc-hover-btn">
             <a href="{{ url_for('booking.index') }}" class="cc-hover-link">
-              <i class="fas fa-calendar-plus"></i> احجز الآن
+              <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
             </a>
           </div>
         </div>
         <div class="cc-body">
           <p class="cc-desc">
-            {{ court.description or 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة LED احترافية، مناسب لجميع المستويات.' }}
+            {{ court.description or ('Professional court equipped to the highest standards with LED lighting, suitable for all levels.' if lang == 'en' else 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة LED احترافية، مناسب لجميع المستويات.') }}
           </p>
           <div class="cc-amenities">
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-lightbulb"></i></div><span>إضاءة LED</span></div>
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-wind"></i></div><span>مكيف مركزي</span></div>
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-layer-group"></i></div><span>عشب صناعي</span></div>
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-users"></i></div><span>مزدوج</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-lightbulb"></i></div><span>{% if lang == 'en' %}LED Lighting{% else %}إضاءة LED{% endif %}</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-wind"></i></div><span>{% if lang == 'en' %}Central A/C{% else %}مكيف مركزي{% endif %}</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-layer-group"></i></div><span>{% if lang == 'en' %}Artificial Turf{% else %}عشب صناعي{% endif %}</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-users"></i></div><span>{% if lang == 'en' %}Doubles{% else %}مزدوج{% endif %}</span></div>
           </div>
           <div class="cc-footer">
             <div class="cc-pricing">
-              <div class="cc-price-full">{{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small>د.ع / ساعة</small></div>
-              <div class="cc-price-off"><i class="fas fa-clock"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} د.ع في ساعات الخصم</div>
+              <div class="cc-price-full">{{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small>{% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small></div>
+              <div class="cc-price-off"><i class="fas fa-clock"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} {% if lang == 'en' %}IQD during discount hours{% else %}د.ع في ساعات الخصم{% endif %}</div>
             </div>
             <a href="{{ url_for('booking.index') }}" class="cc-book">
-              <i class="fas fa-calendar-plus"></i><span>احجز</span>
+              <i class="fas fa-calendar-plus"></i><span>{% if lang == 'en' %}Book{% else %}احجز{% endif %}</span>
             </a>
           </div>
         </div>
@@ -176,8 +192,8 @@
       {% else %}
       <div class="courts-empty">
         <div class="courts-empty-icon"><i class="fas fa-shield-halved"></i></div>
-        <h3>لا توجد ملاعب متاحة حالياً</h3>
-        <p>سيتم إضافة الملاعب قريباً، تابعونا!</p>
+        <h3>{% if lang == 'en' %}No courts available currently{% else %}لا توجد ملاعب متاحة حالياً{% endif %}</h3>
+        <p>{% if lang == 'en' %}Courts will be added soon, stay tuned!{% else %}سيتم إضافة الملاعب قريباً، تابعونا!{% endif %}</p>
       </div>
       {% endfor %}
     </div>
@@ -207,15 +223,27 @@
   <div class="container-z">
     <div class="features-layout">
       <div class="features-left reveal">
-        <span class="sec-eye" style="color:var(--primary-color);font-weight:bold;"><i class="fas fa-star"></i> لماذا Z Padel؟</span>
-        <h2 class="sec-ttl">تجربة باديل<br/><span>استثنائية في دهوك</span></h2>
-        <p class="sec-sub">ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.</p>
+        <span class="sec-eye" style="color:var(--primary-color);font-weight:bold;"><i class="fas fa-star"></i> {% if lang == 'en' %}Why Z Padel?{% else %}لماذا Z Padel؟{% endif %}</span>
+        <h2 class="sec-ttl">{% if lang == 'en' %}An <span>Exceptional</span> Padel Experience in Duhok{% else %}تجربة باديل<br/><span>استثنائية في دهوك</span>{% endif %}</h2>
+        <p class="sec-sub">{% if lang == 'en' %}Elevate your game with world-class facilities and services designed for your comfort.{% else %}ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.{% endif %}</p>
         <div style="margin-top:28px;">
-          <a href="{{ url_for('booking.index') }}" class="btn-blue"><i class="fas fa-calendar-plus"></i> احجز ملعبك الآن</a>
+          <a href="{{ url_for('booking.index') }}" class="btn-blue"><i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}</a>
         </div>
       </div>
       <div class="features-grid">
-        {% for icon,title,desc in [
+        {% if lang == 'en' %}
+        {% set features = [
+          ('fa-calendar-check','Easy Booking','Book your court in minutes with no pre-registration.'),
+          ('fa-tag','25% Discount','Daily discount from 12:00 PM until 4:00 PM.'),
+          ('fa-person-running','Pro Coaches','A team of coaches to develop your skills.'),
+          ('fa-wind','Comfortable Environment','Modern A/C and professional LED lighting.'),
+          ('fa-clock','Flexible Hours','Open daily from 8 AM until 11 PM.'),
+          ('fa-bag-shopping','Full Store','Original padel gear for all your needs.'),
+          ('fa-location-dot','Prime Location','In the heart of Duhok with parking available.'),
+          ('fa-shield-halved','International Courts','Doubles courts built to the highest global standards.')
+        ] %}
+        {% else %}
+        {% set features = [
           ('fa-calendar-check','حجز سهل','احجز ملعبك في دقائق بدون تسجيل مسبق.'),
           ('fa-tag','خصم 25%','خصم يومي من 12:00 ظهراً حتى 4:00 عصراً.'),
           ('fa-person-running','مدربون محترفون','فريق من المدربين لتطوير مهاراتك.'),
@@ -225,6 +253,8 @@
           ('fa-location-dot','موقع استراتيجي','في قلب دهوك مع توفر مواقف سيارات.'),
           ('fa-shield-halved','ملاعب دولية','ملاعب مزدوجة بأعلى المعايير العالمية.')
         ] %}
+        {% endif %}
+        {% for icon,title,desc in features %}
         <div class="feat-item reveal">
           <div class="fi-icon"><i class="fas {{ icon }}"></i></div>
           <div class="fi-content">
@@ -292,12 +322,12 @@
 
     <!-- Header -->
     <div class="reveal" style="text-align:center;margin-bottom:64px;">
-      <span class="sec-eye"><i class="fas fa-person-running"></i> المدربون</span>
+      <span class="sec-eye"><i class="fas fa-person-running"></i> {% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</span>
       <h2 class="sec-ttl" style="text-align:center;">
-        مدربون <span>محترفون</span> في خدمتك
+        {% if lang == 'en' %}<span>Professional</span> Coaches at Your Service{% else %}مدربون <span>محترفون</span> في خدمتك{% endif %}
       </h2>
       <p class="sec-sub" style="margin:0 auto;text-align:center;">
-        فريق من أفضل مدربي الباديل في دهوك لرفع مستواك
+        {% if lang == 'en' %}A team of Duhok's best padel coaches to elevate your game{% else %}فريق من أفضل مدربي الباديل في دهوك لرفع مستواك{% endif %}
       </p>
     </div>
 
@@ -322,9 +352,9 @@
 
             <span class="coach-status-badge {{ coach.status }}">
               {% if coach.status == 'available' %}
-                <i class="fas fa-circle" style="font-size:8px;margin-left:4px;"></i> متاح الآن
+                <i class="fas fa-circle" style="font-size:8px;margin-left:4px;"></i> {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
               {% else %}
-                <i class="fas fa-clock" style="font-size:10px;margin-left:4px;"></i> قريباً
+                <i class="fas fa-clock" style="font-size:10px;margin-left:4px;"></i> {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
               {% endif %}
             </span>
 
@@ -335,7 +365,7 @@
             {% if coach.status == 'available' %}
             <div style="margin-top:16px;">
               <button type="button" class="btn-blue" style="font-size:13px;padding:8px 20px;border:none;cursor:pointer;width:100%;">
-                <i class="fas fa-calendar-plus"></i> احجز جلسة
+                <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
               </button>
             </div>
             {% endif %}
@@ -383,30 +413,28 @@
         <div class="coaches-cs-content">
           <div class="coaches-cs-label">
             <span class="cs-dot"></span>
-            قريباً
+            {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
           </div>
           <h3 class="coaches-cs-title">
-            نعمل على إحضار<br/>
-            <em>أفضل المدربين</em> لك
+            {% if lang == 'en' %}We're bringing you<br/><em>the best coaches</em>{% else %}نعمل على إحضار<br/><em>أفضل المدربين</em> لك{% endif %}
           </h3>
           <p class="coaches-cs-sub">
-            سيتمكن قريباً من حجز جلسات تدريبية خاصة مع مدربين معتمدين
-            لتطوير مهاراتك في الباديل من الصفر وحتى الاحتراف.
+            {% if lang == 'en' %}You'll soon be able to book private training sessions with certified coaches to develop your padel skills from beginner to pro.{% else %}سيتمكن قريباً من حجز جلسات تدريبية خاصة مع مدربين معتمدين لتطوير مهاراتك في الباديل من الصفر وحتى الاحتراف.{% endif %}
           </p>
           <div class="coaches-cs-features">
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-calendar-check"></i></div><span>حجز مباشر</span></div>
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-medal"></i></div><span>مدربون معتمدون</span></div>
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-chart-line"></i></div><span>تتبع التقدم</span></div>
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-clock"></i></div><span>جلسات مرنة</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-calendar-check"></i></div><span>{% if lang == 'en' %}Direct Booking{% else %}حجز مباشر{% endif %}</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-medal"></i></div><span>{% if lang == 'en' %}Certified Coaches{% else %}مدربون معتمدون{% endif %}</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-chart-line"></i></div><span>{% if lang == 'en' %}Track Progress{% else %}تتبع التقدم{% endif %}</span></div>
+            <div class="csf-item"><div class="csf-icon"><i class="fas fa-clock"></i></div><span>{% if lang == 'en' %}Flexible Sessions{% else %}جلسات مرنة{% endif %}</span></div>
           </div>
           <div class="coaches-cs-notify">
             <a href="#contact" class="coaches-cs-btn">
               <i class="fas fa-bell"></i>
-              <span>أبلغني عند الإطلاق</span>
+              <span>{% if lang == 'en' %}Notify Me at Launch{% else %}أبلغني عند الإطلاق{% endif %}</span>
             </a>
             <p class="coaches-cs-hint">
               <i class="fas fa-circle-info"></i>
-              تواصل معنا لحجز جلسة تدريبية الآن
+              {% if lang == 'en' %}Contact us to book a training session now{% else %}تواصل معنا لحجز جلسة تدريبية الآن{% endif %}
             </p>
           </div>
         </div>
@@ -424,7 +452,7 @@
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 10px 40px rgba(0,0,0,0.15);">
       <div class="modal-header" style="background:linear-gradient(135deg,#596770,#D6C3A1);color:white;border:none;padding:20px;">
         <h5 class="modal-title" style="font-size:16px;font-weight:700;font-family:'Almarai',sans-serif;">
-          <i class="fas fa-calendar-check" style="margin-left:10px;"></i>احجز جلسة تدريب
+          <i class="fas fa-calendar-check" style="margin-left:10px;"></i>{% if lang == 'en' %}Book a Training Session{% else %}احجز جلسة تدريب{% endif %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
       </div>
@@ -433,15 +461,15 @@
         <div class="modal-body" style="padding:24px;">
 
           <div class="form-group" style="margin-bottom:16px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">اسمك <span style="color:red;">*</span></label>
-            <input type="text" name="customer_name" required placeholder="الاسم الكامل"
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Your Name{% else %}اسمك{% endif %} <span style="color:red;">*</span></label>
+            <input type="text" name="customer_name" required placeholder="{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}"
                    style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
                    onFocus="this.style.borderColor='#D6C3A1'"
                    onBlur="this.style.borderColor='#ddd'">
           </div>
 
           <div class="form-group" style="margin-bottom:16px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">رقم الهاتف <span style="color:red;">*</span></label>
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:red;">*</span></label>
             <input type="tel" name="customer_phone" required placeholder="07xx xxx xxxx" dir="ltr"
                    style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
                    onFocus="this.style.borderColor='#D6C3A1'"
@@ -449,7 +477,7 @@
           </div>
 
           <div class="form-group" style="margin-bottom:16px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">المدرب <span style="color:red;">*</span></label>
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Coach{% else %}المدرب{% endif %} <span style="color:red;">*</span></label>
             <input type="text" id="coachNameDisplay" readonly
                    style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;background:#f5f5f5;color:#666;font-family:inherit;">
             <input type="hidden" name="coach_id" id="coachIdInput" required>
@@ -457,14 +485,14 @@
 
           <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
             <div class="form-group">
-              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">التاريخ المفضل</label>
+              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Preferred Date{% else %}التاريخ المفضل{% endif %}</label>
               <input type="date" name="preferred_date"
                      style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
                      onFocus="this.style.borderColor='#D6C3A1'"
                      onBlur="this.style.borderColor='#ddd'">
             </div>
             <div class="form-group">
-              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">الوقت المفضل</label>
+              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Preferred Time{% else %}الوقت المفضل{% endif %}</label>
               <input type="time" name="preferred_time"
                      style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
                      onFocus="this.style.borderColor='#D6C3A1'"
@@ -473,17 +501,17 @@
           </div>
 
           <div class="form-group" style="margin-bottom:24px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">ملاحظات إضافية</label>
-            <textarea name="notes" rows="3" placeholder="أخبرنا عن أهدافك وخبرتك..."
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Additional Notes{% else %}ملاحظات إضافية{% endif %}</label>
+            <textarea name="notes" rows="3" placeholder="{% if lang == 'en' %}Tell us about your goals and experience...{% else %}أخبرنا عن أهدافك وخبرتك...{% endif %}"
                       style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;resize:none;font-family:inherit;"
                       onFocus="this.style.borderColor='#D6C3A1'"
                       onBlur="this.style.borderColor='#ddd'"></textarea>
           </div>
         </div>
         <div class="modal-footer" style="border-top:1px solid #eee;padding:16px 24px;gap:8px;">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
           <button type="submit" class="btn-main" style="padding:10px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#D6C3A1,#596770);color:white;font-weight:700;cursor:pointer;font-family:inherit;">
-            <i class="fas fa-paper-plane" style="margin-left:8px;"></i>أرسل الطلب
+            <i class="fas fa-paper-plane" style="margin-left:8px;"></i>{% if lang == 'en' %}Send Request{% else %}أرسل الطلب{% endif %}
           </button>
         </div>
       </form>
@@ -495,9 +523,9 @@
 <section class="section" id="store">
   <div class="container-z">
     <div class="reveal" style="text-align:center;">
-      <span class="sec-eye"><i class="fas fa-bag-shopping"></i> متجرنا</span>
-      <h2 class="sec-ttl" style="text-align:center;">تسوق <span>معنا</span></h2>
-      <p class="sec-sub" style="margin:0 auto;text-align:center;">معدات الباديل الأصلية وكل ما تحتاجه</p>
+      <span class="sec-eye"><i class="fas fa-bag-shopping"></i> {% if lang == 'en' %}Our Store{% else %}متجرنا{% endif %}</span>
+      <h2 class="sec-ttl" style="text-align:center;">{% if lang == 'en' %}Shop <span>With Us</span>{% else %}تسوق <span>معنا</span>{% endif %}</h2>
+      <p class="sec-sub" style="margin:0 auto;text-align:center;">{% if lang == 'en' %}Original padel gear and everything you need{% else %}معدات الباديل الأصلية وكل ما تحتاجه{% endif %}</p>
     </div>
 
     <div class="store-grid">
@@ -512,16 +540,16 @@
         </div>
         <div class="store-body">
           <div class="store-name">{{ p.name }}</div>
-          <div class="store-price">{{ "{:,.0f}".format(p.price) }} <small>د.ع</small></div>
+          <div class="store-price">{{ "{:,.0f}".format(p.price) }} <small>{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small></div>
         </div>
       </a>
       {% else %}
-      <p style="text-align:center; color:#999; grid-column: 1/-1;">لا توجد منتجات متاحة حالياً.</p>
+      <p style="text-align:center; color:#999; grid-column: 1/-1;">{% if lang == 'en' %}No products available currently.{% else %}لا توجد منتجات متاحة حالياً.{% endif %}</p>
       {% endfor %}
     </div>
 
     <div style="display:flex;justify-content:center;margin-top:40px;" class="reveal">
-      <a href="{{ url_for('store.shop') }}" class="btn-blue"><i class="fas fa-bag-shopping"></i> تصفح المتجر كاملاً</a>
+      <a href="{{ url_for('store.shop') }}" class="btn-blue"><i class="fas fa-bag-shopping"></i> {% if lang == 'en' %}Browse Full Store{% else %}تصفح المتجر كاملاً{% endif %}</a>
     </div>
   </div>
 </section>
@@ -531,12 +559,12 @@
   <div class="cta-glow"></div>
   <div class="container-z">
     <div class="cta-inner reveal">
-      <span class="sec-eye" style="margin-bottom:20px;justify-content:center;background:rgba(214,195,161,.15);border-color:rgba(214,195,161,.3);color:var(--ac);"><i class="fas fa-bolt"></i> ابدأ الآن</span>
-      <h2 class="cta-ttl">جاهز للعب؟<br/><span>احجز الآن!</span></h2>
-      <p class="cta-sub">لا تنتظر — ملاعبنا تمتلئ بسرعة. احجز مكانك اليوم مجاناً.</p>
+      <span class="sec-eye" style="margin-bottom:20px;justify-content:center;background:rgba(214,195,161,.15);border-color:rgba(214,195,161,.3);color:var(--ac);"><i class="fas fa-bolt"></i> {% if lang == 'en' %}Start Now{% else %}ابدأ الآن{% endif %}</span>
+      <h2 class="cta-ttl">{% if lang == 'en' %}Ready to Play?<br/><span>Book Now!</span>{% else %}جاهز للعب؟<br/><span>احجز الآن!</span>{% endif %}</h2>
+      <p class="cta-sub">{% if lang == 'en' %}Don't wait — our courts fill up fast. Reserve your spot today for free.{% else %}لا تنتظر — ملاعبنا تمتلئ بسرعة. احجز مكانك اليوم مجاناً.{% endif %}</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-        <a href="{{ url_for('booking.index') }}" class="btn-main"><i class="fas fa-calendar-plus"></i> احجز ملعبك الآن</a>
-        <a href="#contact" class="btn-ghost"><i class="fas fa-phone"></i> تواصل معنا</a>
+        <a href="{{ url_for('booking.index') }}" class="btn-main"><i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}</a>
+        <a href="#contact" class="btn-ghost"><i class="fas fa-phone"></i> {% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
       </div>
     </div>
   </div>
@@ -546,8 +574,8 @@
 <section class="section" id="contact">
   <div class="container-z">
     <div class="reveal" style="text-align: center; margin-bottom: 2rem;">
-      <span class="sec-eye"><i class="fas fa-location-dot"></i> موقعنا</span>
-      <h2 class="sec-ttl">تفضل <span>بزيارتنا</span></h2>
+      <span class="sec-eye"><i class="fas fa-location-dot"></i> {% if lang == 'en' %}Our Location{% else %}موقعنا{% endif %}</span>
+      <h2 class="sec-ttl">{% if lang == 'en' %}Come <span>Visit Us</span>{% else %}تفضل <span>بزيارتنا</span>{% endif %}</h2>
     </div>
 
     <div class="reveal" style="border-radius: var(--r); overflow: hidden; border: 1px solid var(--bmid); height: 450px; width: 100%;">
@@ -568,18 +596,17 @@
           <img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel" class="footer-logo"/>
           <div class="footer-bname-wrap">
             <span class="footer-bname">Z <em>Padel</em></span>
-            <span class="footer-bsub">دهوك · كردستان العراق</span>
+            <span class="footer-bsub">{% if lang == 'en' %}Duhok · Kurdistan, Iraq{% else %}دهوك · كردستان العراق{% endif %}</span>
           </div>
         </a>
         <p class="footer-desc">
-          وجهتك الأولى لرياضة الباديل في دهوك —
-          ملاعب احترافية بأعلى المواصفات، وأجواء رياضية لا تُنسى.
+          {% if lang == 'en' %}Your #1 destination for padel in Duhok — professional courts built to the highest standards, and an unforgettable sports atmosphere.{% else %}وجهتك الأولى لرياضة الباديل في دهوك — ملاعب احترافية بأعلى المواصفات، وأجواء رياضية لا تُنسى.{% endif %}
         </p>
         <div class="footer-status">
           <span class="footer-status-dot"></span>
-          <span>مفتوح الآن</span>
+          <span>{% if lang == 'en' %}Open Now{% else %}مفتوح الآن{% endif %}</span>
           <span class="footer-status-sep">·</span>
-          <span>8:00 ص — 11:00 م</span>
+          <span>8:00 AM — 11:00 PM</span>
         </div>
         <div class="footer-social">
           <a href="#" class="fs-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -591,7 +618,7 @@
     </div>
     <div class="footer-divider"></div>
     <div class="footer-bottom">
-      <div class="footer-copy">© 2025 <strong>Z Padel</strong> — جميع الحقوق محفوظة</div>
+      <div class="footer-copy">© 2025 <strong>Z Padel</strong> — {% if lang == 'en' %}All Rights Reserved{% else %}جميع الحقوق محفوظة{% endif %}</div>
       <a href="https://coda-agency.net" target="_blank" rel="noopener" class="footer-powered">
         <span>Powered & Developed by</span>
         <div class="footer-coda">
@@ -601,7 +628,7 @@
       </a>
       <div class="footer-live">
         <span class="footer-live-dot"></span>
-        مفتوح الآن
+        {% if lang == 'en' %}Open Now{% else %}مفتوح الآن{% endif %}
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, session, g, request as flask_request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
@@ -32,6 +32,15 @@ def create_app(config_name: str = None):
     # ── Ensure upload folders exist ──
     os.makedirs(app.config['UPLOAD_FOLDER'],   exist_ok=True)
     os.makedirs(app.config['RECEIPTS_FOLDER'], exist_ok=True)
+
+    # ── Language middleware ──
+    @app.before_request
+    def set_lang():
+        g.lang = session.get('lang', 'ar')
+
+    @app.context_processor
+    def inject_lang():
+        return dict(lang=g.lang)
 
     # ── Register blueprints ──
     from app.routes.auth    import auth_bp

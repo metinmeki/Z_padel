@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Z Padel POS{% endblock %}</title>
+  {% if lang == 'en' %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  {% else %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  {% endif %}
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
@@ -232,7 +236,7 @@
   <div class="container-fluid px-4">
     <a class="nav-brand" href="{{ url_for('pos.quick_sale') }}">
       <div class="brand-icon"><i class="fas fa-table-tennis"></i></div>
-      Z Padel <span style="color:var(--primary);margin-right:.3rem;">POS</span>
+      Z Padel <span style="color:var(--primary);margin-{{ 'left' if lang == 'en' else 'right' }}:.3rem;">POS</span>
     </a>
 
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#posNav">
@@ -243,7 +247,7 @@
       <ul class="navbar-nav me-auto gap-1">
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('pos.quick_sale') }}">
-            <i class="fas fa-bolt"></i>بيع سريع
+            <i class="fas fa-bolt"></i>{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %}
           </a>
         </li>
       </ul>
@@ -257,12 +261,12 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-            <i class="fas fa-cog"></i>الإدارة
+            <i class="fas fa-cog"></i>{% if lang == 'en' %}Admin{% else %}الإدارة{% endif %}
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout" style="color:var(--danger)!important;">
-            <i class="fas fa-sign-out-alt"></i>خروج
+            <i class="fas fa-sign-out-alt"></i>{% if lang == 'en' %}Logout{% else %}خروج{% endif %}
           </a>
         </li>
       </ul>

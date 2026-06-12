@@ -1,10 +1,14 @@
-﻿<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Z Padel — تم إرسال طلبك بنجاح</title>
+  <title>Z Padel — {% if lang == 'en' %}Order Placed Successfully{% else %}تم إرسال طلبك بنجاح{% endif %}</title>
+  {% if lang == 'en' %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  {% else %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+  {% endif %}
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -16,8 +20,6 @@
       font-family: 'Almarai', sans-serif; background: var(--bg); color: var(--text);
       min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
     }
-
-    /* Matching your Success Card design */
     .success-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 24px; padding: 40px 32px; max-width: 500px; width: 100%;
@@ -32,7 +34,6 @@
     }
     h1 { font-family: 'Montserrat', sans-serif; font-size: 1.75rem; font-weight: 900; margin-bottom: 6px; }
     .sub-text { color: var(--muted); font-size: .9rem; margin-bottom: 24px; }
-
     .info-table {
       background: rgba(214,195,161,.03); border: 1px solid var(--border);
       border-radius: 14px; margin-bottom: 24px;
@@ -42,7 +43,6 @@
       padding: 12px 18px; border-bottom: 1px solid var(--border); font-size: .88rem;
     }
     .info-row:last-child { border-bottom: none; }
-
     .btn-primary-z {
       display: flex; align-items: center; justify-content: center; gap: 8px;
       background: linear-gradient(135deg,var(--gold),var(--slate));
@@ -54,22 +54,29 @@
 
 <div class="success-card">
   <div class="check-circle"><i class="fas fa-check"></i></div>
-  <h1>تم إرسال طلبك!</h1>
-  <p class="sub-text">شكراً لتسوقك من Z Padel. سنتواصل معك هاتفياً قريباً لتأكيد تفاصيل التوصيل.</p>
+  <h1>{% if lang == 'en' %}Order Placed!{% else %}تم إرسال طلبك!{% endif %}</h1>
+  <p class="sub-text">
+    {% if lang == 'en' %}
+      Thank you for shopping at Z Padel. We will contact you by phone shortly to confirm your delivery details.
+    {% else %}
+      شكراً لتسوقك من Z Padel. سنتواصل معك هاتفياً قريباً لتأكيد تفاصيل التوصيل.
+    {% endif %}
+  </p>
 
   <div class="info-table">
     <div class="info-row">
-      <span style="color:var(--muted)">رقم الطلب</span>
+      <span style="color:var(--muted)">{% if lang == 'en' %}Order Number{% else %}رقم الطلب{% endif %}</span>
       <span style="font-weight:800; color:var(--gold)">#{{ order_id }}</span>
     </div>
     <div class="info-row">
-      <span style="color:var(--muted)">المبلغ الإجمالي</span>
+      <span style="color:var(--muted)">{% if lang == 'en' %}Total Amount{% else %}المبلغ الإجمالي{% endif %}</span>
       <span style="font-weight:800; color:var(--gold)">{{ "{:,.0f}".format(total_price) }} IQD</span>
     </div>
   </div>
 
   <a href="{{ url_for('store.shop') }}" class="btn-primary-z">
-    <i class="fas fa-shopping-bag"></i> العودة للمتجر
+    <i class="fas fa-shopping-bag"></i>
+    {% if lang == 'en' %}Back to Store{% else %}العودة للمتجر{% endif %}
   </a>
 </div>
 

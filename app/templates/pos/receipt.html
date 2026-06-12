@@ -1,5 +1,5 @@
 {% extends 'pos/base_pos.html' %}
-{% block title %}فاتورة #{{ order.id }} — Z Padel POS{% endblock %}
+{% block title %}{% if lang == 'en' %}Receipt{% else %}فاتورة{% endif %} #{{ order.id }} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -47,20 +47,20 @@
 
     <div class="text-center mb-4 no-print">
       <span class="success-badge">
-        <i class="fas fa-check-circle me-2"></i>تم البيع بنجاح
+        <i class="fas fa-check-circle me-2"></i>{% if lang == 'en' %}Sale Completed Successfully{% else %}تم البيع بنجاح{% endif %}
       </span>
     </div>
 
     <div class="d-flex justify-content-between mb-4 no-print gap-2">
       <a href="{{ url_for('pos.quick_sale') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-right me-2"></i>رجوع
+        <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back{% else %}رجوع{% endif %}
       </a>
       <div class="d-flex gap-2">
         <button onclick="printReceipt(false)" class="btn btn-primary">
-          <i class="fas fa-print me-2"></i>طباعة
+          <i class="fas fa-print me-2"></i>{% if lang == 'en' %}Print{% else %}طباعة{% endif %}
         </button>
         <a href="{{ url_for('pos.quick_sale') }}" class="btn btn-success">
-          <i class="fas fa-plus me-2"></i>بيع جديد
+          <i class="fas fa-plus me-2"></i>{% if lang == 'en' %}New Sale{% else %}بيع جديد{% endif %}
         </a>
       </div>
     </div>
@@ -70,25 +70,25 @@
 
         <div class="receipt-header">
           <h3>Z PADEL</h3>
-          <p>دهوك، العراق</p>
+          <p>{% if lang == 'en' %}Duhok, Iraq{% else %}دهوك، العراق{% endif %}</p>
         </div>
 
         <div class="receipt-info">
           <div class="info-row">
-            <span class="info-label">رقم الفاتورة:</span>
+            <span class="info-label">{% if lang == 'en' %}Invoice No:{% else %}رقم الفاتورة:{% endif %}</span>
             <strong class="info-value">#{{ '%05d' % order.id }}</strong>
           </div>
           <div class="info-row">
-            <span class="info-label">التاريخ:</span>
+            <span class="info-label">{% if lang == 'en' %}Date:{% else %}التاريخ:{% endif %}</span>
             <strong class="info-value">{{ order.created_at.strftime('%Y-%m-%d') }}</strong>
           </div>
           <div class="info-row">
-            <span class="info-label">الوقت:</span>
+            <span class="info-label">{% if lang == 'en' %}Time:{% else %}الوقت:{% endif %}</span>
             <strong class="info-value">{{ order.created_at.strftime('%H:%M') }}</strong>
           </div>
           {% if order.customer_name and order.customer_name != 'زبون POS' %}
           <div class="info-row">
-            <span class="info-label">الزبون:</span>
+            <span class="info-label">{% if lang == 'en' %}Customer:{% else %}الزبون:{% endif %}</span>
             <strong class="info-value">{{ order.customer_name }}</strong>
           </div>
           {% endif %}
@@ -98,28 +98,32 @@
           {% for item in order.items %}
           <div class="receipt-item">
             <span class="item-name">{{ item.product.name }} × {{ item.quantity }}</span>
-            <span class="item-price">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} د.ع</span>
+            <span class="item-price">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} IQD</span>
           </div>
           {% endfor %}
           <div class="receipt-item subtotal">
-            <span class="item-name">المجموع:</span>
-            <span class="item-price">{{ '{:,.0f}'.format(order.total_price) }} د.ع</span>
+            <span class="item-name">{% if lang == 'en' %}Subtotal:{% else %}المجموع:{% endif %}</span>
+            <span class="item-price">{{ '{:,.0f}'.format(order.total_price) }} IQD</span>
           </div>
         </div>
 
         <div class="receipt-total">
-          <span>الصافي:</span>
-          <span>{{ '{:,.0f}'.format(order.total_price) }} د.ع</span>
+          <span>{% if lang == 'en' %}Net Total:{% else %}الصافي:{% endif %}</span>
+          <span>{{ '{:,.0f}'.format(order.total_price) }} IQD</span>
         </div>
 
         <div class="payment-method">
           <i class="fas fa-{{ 'money-bill-wave' if 'cash' in (order.notes or '') else 'credit-card' if 'card' in (order.notes or '') else 'money-bill-wave' }}"></i>
-          طريقة الدفع: {{ 'نقدي' if 'cash' in (order.notes or '') else 'بطاقة' if 'card' in (order.notes or '') else 'نقدي' }}
+          {% if lang == 'en' %}
+            Payment: {{ 'Cash' if 'cash' in (order.notes or '') else 'Card' if 'card' in (order.notes or '') else 'Cash' }}
+          {% else %}
+            طريقة الدفع: {{ 'نقدي' if 'cash' in (order.notes or '') else 'بطاقة' if 'card' in (order.notes or '') else 'نقدي' }}
+          {% endif %}
         </div>
 
         <div class="receipt-footer">
           <hr>
-          <p><i class="fas fa-heart"></i> شكراً لزيارتكم</p>
+          <p><i class="fas fa-heart"></i> {% if lang == 'en' %}Thank you for your visit{% else %}شكراً لزيارتكم{% endif %}</p>
           <p><strong>Z PADEL</strong></p>
         </div>
 

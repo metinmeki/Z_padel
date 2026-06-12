@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Z Padel — تم الحجز بنجاح</title>
+  <title>{% if lang == 'en' %}Z Padel — Booking Confirmed{% else %}Z Padel — تم الحجز بنجاح{% endif %}</title>
+  {% if lang == 'en' %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  {% else %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+  {% endif %}
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -275,29 +279,29 @@
     <div class="check-circle"><i class="fas fa-check"></i></div>
   </div>
 
-  <h1>تم استلام حجزك!</h1>
-  <p class="sub-text">سنتواصل معك قريباً لتأكيد الحجز</p>
+  <h1>{% if lang == 'en' %}Booking Received!{% else %}تم استلام حجزك!{% endif %}</h1>
+  <p class="sub-text">{% if lang == 'en' %}We'll contact you soon to confirm your booking{% else %}سنتواصل معك قريباً لتأكيد الحجز{% endif %}</p>
 
   <div class="status-badge">
     <span class="status-dot"></span>
-    بانتظار التأكيد
+    {% if lang == 'en' %}Awaiting Confirmation{% else %}بانتظار التأكيد{% endif %}
   </div>
 
   <div class="info-table">
     <div class="info-row">
-      <span class="info-lbl"><i class="fas fa-hashtag"></i>رقم الحجز</span>
+      <span class="info-lbl"><i class="fas fa-hashtag"></i>{% if lang == 'en' %}Booking #{% else %}رقم الحجز{% endif %}</span>
       <span class="booking-id">#{{ booking.id }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl"><i class="fas fa-user"></i>الاسم</span>
+      <span class="info-lbl"><i class="fas fa-user"></i>{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</span>
       <span class="info-val">{{ booking.customer_name }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl"><i class="fas fa-phone"></i>الهاتف</span>
+      <span class="info-lbl"><i class="fas fa-phone"></i>{% if lang == 'en' %}Phone{% else %}الهاتف{% endif %}</span>
       <span class="info-val" style="direction:ltr;">{{ booking.customer_phone }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl"><i class="fas fa-shield-halved"></i>الملعب</span>
+      <span class="info-lbl"><i class="fas fa-shield-halved"></i>{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</span>
       <span class="info-val" style="display:flex;align-items:center;gap:6px;">
         {% if booking.court %}
           <span style="width:9px;height:9px;border-radius:50%;background:{{ booking.court.color or '#596770' }};display:inline-block;"></span>
@@ -306,11 +310,11 @@
       </span>
     </div>
     <div class="info-row">
-      <span class="info-lbl"><i class="fas fa-calendar-day"></i>التاريخ</span>
+      <span class="info-lbl"><i class="fas fa-calendar-day"></i>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</span>
       <span class="info-val">{{ booking.booking_date.strftime('%d / %m / %Y') if booking.booking_date else '—' }}</span>
     </div>
     <div class="info-row">
-      <span class="info-lbl"><i class="fas fa-clock"></i>الوقت</span>
+      <span class="info-lbl"><i class="fas fa-clock"></i>{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</span>
       <div style="text-align:left;">
         <span class="info-val" style="direction:ltr;display:block;">
           {{ booking.start_time.strftime('%H:%M') if booking.start_time else '—' }}
@@ -318,7 +322,7 @@
           {{ booking.end_time.strftime('%H:%M') if booking.end_time else '—' }}
         </span>
         {% if booking.start_time and 12 <= booking.start_time.hour < 16 %}
-        <span class="discount-note"><i class="fas fa-tag" style="font-size:9px;"></i>خصم 25% مطبق</span>
+        <span class="discount-note"><i class="fas fa-tag" style="font-size:9px;"></i>{% if lang == 'en' %}25% discount applied{% else %}خصم 25% مطبق{% endif %}</span>
         {% endif %}
       </div>
     </div>
@@ -326,24 +330,24 @@
 
   {% if booking.total_price %}
   <div class="total-box">
-    <div class="total-lbl">المبلغ الإجمالي</div>
+    <div class="total-lbl">{% if lang == 'en' %}Total Amount{% else %}المبلغ الإجمالي{% endif %}</div>
     <div class="total-val">
       {{ "{:,.0f}".format(booking.total_price) }}
-      <span style="font-size:1rem;color:var(--muted);font-weight:400;"> د.ع</span>
+      <span style="font-size:1rem;color:var(--muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>
     </div>
   </div>
   {% endif %}
 
   <div class="no-prepay">
     <i class="fas fa-circle-check"></i>
-    بدون دفع مسبق — ادفع عند الحضور فقط
+    {% if lang == 'en' %}No upfront payment — pay on arrival only{% else %}بدون دفع مسبق — ادفع عند الحضور فقط{% endif %}
   </div>
 
   <a href="{{ url_for('main.index') }}" class="btn-primary-z">
-    <i class="fas fa-house"></i> العودة للرئيسية
+    <i class="fas fa-house"></i> {% if lang == 'en' %}Back to Home{% else %}العودة للرئيسية{% endif %}
   </a>
   <a href="{{ url_for('booking.index') }}" class="btn-outline-z">
-    <i class="fas fa-plus-circle"></i> حجز جديد
+    <i class="fas fa-plus-circle"></i> {% if lang == 'en' %}New Booking{% else %}حجز جديد{% endif %}
   </a>
 
 </div>
