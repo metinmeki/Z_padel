@@ -721,6 +721,10 @@ def export_report():
 # ════════════════════════════════════════════
 # USERS
 # ════════════════════════════════════════════
+# ════════════════════════════════════════════
+# USERS
+# ════════════════════════════════════════════
+
 @admin_bp.route('/users')
 @login_required
 def users():
@@ -731,15 +735,21 @@ def users():
 @admin_bp.route('/users/add', methods=['POST'])
 @login_required
 def add_user():
+    if not current_user.has_perm('perm_users'):
+        flash('ليس لديك صلاحية لإضافة مستخدمين.', 'danger')
+        return redirect(url_for('admin.users'))
+
     if Admin.query.filter_by(username=request.form['username']).first():
         flash('اسم المستخدم مستخدم بالفعل.', 'danger')
         return redirect(url_for('admin.users'))
+
     u = Admin(
         username=request.form['username'],
         email=request.form.get('email') or None,
         password=generate_password_hash(request.form['password']),
         role=request.form.get('role', 'staff'),
         is_active=bool(int(request.form.get('is_active', 1))),
+        permissions={},
     )
     db.session.add(u)
     db.session.commit()
@@ -750,6 +760,10 @@ def add_user():
 @admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
 @login_required
 def edit_user(user_id):
+    if not current_user.has_perm('perm_users'):
+        flash('ليس لديك صلاحية لتعديل المستخدمين.', 'danger')
+        return redirect(url_for('admin.users'))
+
     u = Admin.query.get_or_404(user_id)
     u.username  = request.form.get('username', u.username)
     u.email     = request.form.get('email', u.email) or u.email
@@ -766,9 +780,25 @@ def edit_user(user_id):
 @admin_bp.route('/users/<int:user_id>/permissions', methods=['POST'])
 @login_required
 def edit_permissions(user_id):
+    if not current_user.has_perm('perm_users'):
+        flash('ليس لديك صلاحية لتعديل الصلاحيات.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    # Only superadmin can assign perm_users and perm_settings to others
+    perm_keys = ['perm_bookings', 'perm_courts', 'perm_products', 'perm_orders',
+                 'perm_expenses', 'perm_reports', 'perm_users', 'perm_settings']
+
+    if current_user.role != 'superadmin':
+        # non-superadmin cannot grant perm_users or perm_settings
+        perm_keys = [k for k in perm_keys if k not in ('perm_users', 'perm_settings')]
+
     u = Admin.query.get_or_404(user_id)
-    perm_keys = ['perm_bookings','perm_courts','perm_products','perm_orders',
-                 'perm_expenses','perm_reports','perm_users','perm_settings']
+
+    # Prevent editing a superadmin's permissions unless you are also superadmin
+    if u.role == 'superadmin' and current_user.role != 'superadmin':
+        flash('لا يمكنك تعديل صلاحيات المدير العام.', 'danger')
+        return redirect(url_for('admin.users'))
+
     u.permissions = {k: (k in request.form) for k in perm_keys}
     db.session.commit()
     flash('تم تحديث الصلاحيات.', 'success')
@@ -778,10 +808,21 @@ def edit_permissions(user_id):
 @admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 def delete_user(user_id):
+    if not current_user.has_perm('perm_users'):
+        flash('ليس لديك صلاحية لحذف المستخدمين.', 'danger')
+        return redirect(url_for('admin.users'))
+
     if user_id == current_user.id:
         flash('لا يمكنك حذف حسابك الخاص.', 'danger')
         return redirect(url_for('admin.users'))
+
     u = Admin.query.get_or_404(user_id)
+
+    # Prevent deleting a superadmin unless you are also superadmin
+    if u.role == 'superadmin' and current_user.role != 'superadmin':
+        flash('لا يمكنك حذف حساب المدير العام.', 'danger')
+        return redirect(url_for('admin.users'))
+
     db.session.delete(u)
     db.session.commit()
     flash('تم حذف المستخدم.', 'success')

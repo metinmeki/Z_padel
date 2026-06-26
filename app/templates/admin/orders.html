@@ -1,123 +1,574 @@
 {% extends "admin/base_admin.html" %}
 
 {% block title %}{% if lang == 'en' %}Orders — Z Padel{% else %}الطلبات — Z Padel{% endif %}{% endblock %}
+{% block page_icon %}fas fa-bag-shopping{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Orders{% else %}الطلبات{% endif %}{% endblock %}
+
+{% block extra_styles %}
+/* ── Toolbar ── */
+.orders-toolbar {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeSlideIn 0.35s ease both;
+}
+.toolbar-left  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+.search-wrap { position: relative; display: flex; align-items: center; }
+.search-wrap i { position: absolute; right: 11px; color: var(--text-muted); font-size: 13px; pointer-events: none; }
+html[dir="ltr"] .search-wrap i { right: auto; left: 11px; }
+.search-wrap input {
+  padding: 8px 34px 8px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  width: 210px; outline: none; transition: var(--transition); color: var(--text-dark);
+}
+html[dir="ltr"] .search-wrap input { padding: 8px 14px 8px 34px; }
+.search-wrap input:focus { border-color: var(--brand-blue-light); box-shadow: 0 0 0 3px rgba(30,136,229,0.12); width: 250px; }
+
+.filter-select {
+  padding: 8px 14px; border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm); font-family: 'Cairo', sans-serif;
+  font-size: 13px; outline: none; color: var(--text-dark);
+  background: white; cursor: pointer; transition: var(--transition);
+}
+.filter-select:focus { border-color: var(--brand-blue-light); }
+
+/* ── Stats strip ── */
+.orders-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* ── Table wrapper ── */
+.table-wrapper {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: fadeSlideIn 0.4s ease 0.1s both;
+}
+.table-toolbar {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.table-title {
+  font-size: 15px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 8px;
+}
+.count-pill {
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px;
+}
+
+/* ── Status badges ── */
+.status-badge {
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.status-badge.pending    { background: rgba(251,140,0,0.12);  color: #E65100; }
+.status-badge.processing { background: rgba(21,101,192,0.12); color: var(--brand-blue-dark); }
+.status-badge.completed  { background: rgba(67,160,71,0.12);  color: #2E7D32; }
+.status-badge.delivered  { background: rgba(0,150,136,0.12);  color: #00695C; }
+.status-badge.cancelled  { background: rgba(229,57,53,0.12);  color: #C62828; }
+
+/* ── Action buttons ── */
+.action-btn {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm); border: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; transition: var(--transition);
+  text-decoration: none;
+}
+.action-btn.view   { background: var(--brand-blue-soft); color: var(--brand-blue-dark); }
+.action-btn.delete { background: rgba(229,57,53,0.10);   color: #C62828; }
+.action-btn:hover  { transform: scale(1.12); }
+
+/* ── Pagination ── */
+.pagination-wrap {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color);
+  background: white;
+}
+.pagination-info { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+.pagination-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+.page-btn {
+  min-width: 34px; height: 34px; padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color);
+  background: white; color: var(--text-muted);
+  font-size: 13px; font-weight: 600;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer; transition: var(--transition);
+  display: inline-flex; align-items: center; justify-content: center;
+  text-decoration: none;
+}
+.page-btn:hover  { background: var(--brand-blue-soft); border-color: var(--brand-blue-mid); color: var(--brand-blue-dark); }
+.page-btn.active { background: var(--brand-blue); border-color: var(--brand-blue); color: white; }
+.page-btn.disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── Order detail modal ── */
+.order-detail-header {
+  padding: 16px 22px;
+  background: linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
+  color: white;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.order-detail-header h5 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin: 0; }
+.order-section-title {
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+.order-items-table { width: 100%; font-size: 13px; }
+.order-items-table th {
+  background: var(--brand-blue-soft); color: var(--brand-blue-dark);
+  font-weight: 700; padding: 8px 12px; font-size: 12px;
+}
+.order-items-table td { padding: 9px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+.order-items-table tr:last-child td { border-bottom: none; }
+.order-total-row { background: var(--off-white); }
+.order-total-row td { font-weight: 800; font-size: 14px; color: var(--brand-blue-dark); }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center; padding: 70px 20px;
+}
+.empty-state i { font-size: 44px; color: var(--brand-blue-mid); margin-bottom: 12px; display: block; }
+.empty-state p { font-size: 13.5px; color: var(--text-muted); font-weight: 500; }
+{% endblock %}
 
 {% block content %}
+
+<!-- Stats Strip -->
+<div class="orders-stats">
+  <div class="stat-card blue" style="animation-delay:0s;">
+    <div class="stat-icon blue"><i class="fas fa-bag-shopping"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ pagination.total }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Total Orders{% else %}إجمالي الطلبات{% endif %}</div>
+    </div>
+  </div>
+  <div class="stat-card orange" style="animation-delay:0.07s;">
+    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|selectattr('status','equalto','pending')|list|length }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Pending{% else %}انتظار{% endif %}</div>
+    </div>
+  </div>
+  <div class="stat-card" style="animation-delay:0.14s;">
+    <div class="stat-icon blue"><i class="fas fa-spinner"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|selectattr('status','equalto','processing')|list|length }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Processing{% else %}تجهيز{% endif %}</div>
+    </div>
+  </div>
+  <div class="stat-card green" style="animation-delay:0.21s;">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ orders|selectattr('status','in',['completed','delivered'])|list|length }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Done{% else %}مكتمل{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
 <div class="orders-toolbar">
+  <div class="toolbar-left">
+    <!-- Search -->
+    <div class="search-wrap">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" id="searchInput"
+             placeholder="{% if lang == 'en' %}Search by customer or order ID...{% else %}بحث بالاسم أو رقم الطلب...{% endif %}"
+             oninput="filterTable()" value="{{ request.args.get('q','') }}"/>
+    </div>
+    <!-- Status filter -->
+    <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+      <option value="">{% if lang == 'en' %}All Statuses{% else %}كل الحالات{% endif %}</option>
+      <option value="pending"    {{ 'selected' if request.args.get('status')=='pending' }}>{% if lang == 'en' %}Pending{% else %}انتظار{% endif %}</option>
+      <option value="processing" {{ 'selected' if request.args.get('status')=='processing' }}>{% if lang == 'en' %}Processing{% else %}تجهيز{% endif %}</option>
+      <option value="completed"  {{ 'selected' if request.args.get('status')=='completed' }}>{% if lang == 'en' %}Completed{% else %}مكتمل{% endif %}</option>
+      <option value="delivered"  {{ 'selected' if request.args.get('status')=='delivered' }}>{% if lang == 'en' %}Delivered{% else %}تم التوصيل{% endif %}</option>
+      <option value="cancelled"  {{ 'selected' if request.args.get('status')=='cancelled' }}>{% if lang == 'en' %}Cancelled{% else %}ملغي{% endif %}</option>
+    </select>
+    <!-- Date filter -->
+    <input type="date" class="filter-select" id="dateFilter"
+           value="{{ request.args.get('date','') }}"
+           onchange="applyFilters()"/>
+  </div>
   <div class="toolbar-right">
-    <a href="{{ url_for('admin.export_report') }}" class="btn-z-outline">
+    {% if request.args.get('status') or request.args.get('date') %}
+    <a href="{{ url_for('admin.orders') }}" class="btn-z-outline">
+      <i class="fas fa-xmark"></i> {% if lang == 'en' %}Clear{% else %}مسح{% endif %}
+    </a>
+    {% endif %}
+    <a href="{{ url_for('admin.export_report', fmt='excel') }}" class="btn-z-outline">
       <i class="fas fa-file-export"></i> {% if lang == 'en' %}Export{% else %}تصدير{% endif %}
     </a>
   </div>
 </div>
 
+<!-- Table -->
 <div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="table-title">
+      <i class="fas fa-bag-shopping" style="color:var(--brand-blue);"></i>
+      {% if lang == 'en' %}Orders{% else %}الطلبات{% endif %}
+      <span class="count-pill">{{ pagination.total }}</span>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
     <table class="table-z" id="ordersTable">
-        <tbody id="ordersBody">
-            {% for o in orders %}
-            <tr data-id="{{ o.id }}">
-                <td>#{{ '%04d'|format(o.id) }}</td>
-                <td>{{ o.customer_name }}</td>
-                <td>
-                    <span class="status-badge">{{ o.status|default('pending') }}</span>
-                </td>
-                <td>
-                    <button class="action-btn view" onclick="openOrderModal({{ o.id }})">{% if lang == 'en' %}View{% else %}عرض{% endif %}</button>
-                    <button class="action-btn delete" onclick="openDeleteModal({{ o.id }}, '{{ '%04d'|format(o.id) }}')">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div class="modal fade modal-z" id="orderDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" id="orderModalBody"></div>
-    </div>
-</div>
-
-<div class="modal fade modal-z delete-modal" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="deleteOrderForm" method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="modal-content" style="padding: 20px; text-align: center;">
-                <p>{% if lang == 'en' %}Are you sure you want to delete this order?{% else %}هل أنت متأكد من الحذف؟{% endif %}</p>
-                <button type="submit" class="btn-z-danger">{% if lang == 'en' %}Yes, Delete{% else %}نعم، احذف{% endif %}</button>
+      <thead>
+        <tr>
+          <th>{% if lang == 'en' %}Order #{% else %}رقم الطلب{% endif %}</th>
+          <th>{% if lang == 'en' %}Customer{% else %}العميل{% endif %}</th>
+          <th>{% if lang == 'en' %}Items{% else %}العناصر{% endif %}</th>
+          <th>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</th>
+          <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+          <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+          <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody">
+        {% for o in orders %}
+        <tr data-id="{{ o.id }}"
+            data-name="{{ o.customer_name|lower|default('') }}"
+            data-status="{{ o.status|default('pending') }}">
+          <td style="font-weight:700;color:var(--brand-blue-dark);">#{{ '%04d'|format(o.id) }}</td>
+          <td>
+            <div style="font-weight:600;font-size:13.5px;">{{ o.customer_name|default('—') }}</div>
+            {% if o.customer_phone %}
+              <div style="font-size:11.5px;color:var(--text-muted);direction:ltr;">{{ o.customer_phone }}</div>
+            {% endif %}
+          </td>
+          <td style="font-size:13px;color:var(--text-muted);">
+            {{ o.items|length }} {% if lang == 'en' %}item(s){% else %}عنصر{% endif %}
+          </td>
+          <td style="font-weight:700;color:var(--brand-blue-dark);">
+            {% set total = o.items|sum(attribute='subtotal') if o.items else 0 %}
+            {{ "{:,.0f}".format(total) }} {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}
+          </td>
+          <td>
+            {% set st = o.status|default('pending') %}
+            <span class="status-badge {{ st }}">
+              <i class="fas fa-{{ 'clock' if st=='pending' else 'spinner' if st=='processing' else 'circle-check' if st=='completed' else 'truck' if st=='delivered' else 'xmark' }}"></i>
+              {% if lang == 'en' %}
+                {{ st|capitalize }}
+              {% else %}
+                {{ {'pending':'انتظار','processing':'تجهيز','completed':'مكتمل','delivered':'تم التوصيل','cancelled':'ملغي'}.get(st, st) }}
+              {% endif %}
+            </span>
+          </td>
+          <td style="font-size:12.5px;color:var(--text-muted);white-space:nowrap;">
+            {{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '—' }}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="action-btn view"
+                      onclick="openOrderModal({{ o.id }})"
+                      title="{% if lang == 'en' %}View{% else %}عرض{% endif %}">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="action-btn delete"
+                      onclick="openDeleteModal({{ o.id }}, '{{ '%04d'|format(o.id) }}')"
+                      title="{% if lang == 'en' %}Delete{% else %}حذف{% endif %}">
+                <i class="fas fa-trash"></i>
+              </button>
             </div>
-        </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="fas fa-bag-shopping"></i>
+              <p>{% if lang == 'en' %}No orders found{% else %}لا توجد طلبات{% endif %}</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <div class="pagination-wrap">
+    <div class="pagination-info">
+      {% if lang == 'en' %}
+        Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }}–{{ [pagination.page * pagination.per_page, pagination.total]|min }} of {{ pagination.total }}
+      {% else %}
+        عرض {{ ((pagination.page - 1) * pagination.per_page) + 1 }}–{{ [pagination.page * pagination.per_page, pagination.total]|min }} من {{ pagination.total }}
+      {% endif %}
     </div>
+    <div class="pagination-btns">
+      {# Prev #}
+      <a class="page-btn {{ 'disabled' if not pagination.has_prev }}"
+         href="{{ url_for('admin.orders', page=pagination.prev_num, status=request.args.get('status',''), date=request.args.get('date','')) if pagination.has_prev else '#' }}">
+        <i class="fas fa-chevron-{{ 'right' if lang == 'ar' else 'left' }}"></i>
+      </a>
+      {# Pages #}
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+          <a class="page-btn {{ 'active' if p == pagination.page }}"
+             href="{{ url_for('admin.orders', page=p, status=request.args.get('status',''), date=request.args.get('date','')) }}">
+            {{ p }}
+          </a>
+        {% else %}
+          <span class="page-btn disabled">…</span>
+        {% endif %}
+      {% endfor %}
+      {# Next #}
+      <a class="page-btn {{ 'disabled' if not pagination.has_next }}"
+         href="{{ url_for('admin.orders', page=pagination.next_num, status=request.args.get('status',''), date=request.args.get('date','')) if pagination.has_next else '#' }}">
+        <i class="fas fa-chevron-{{ 'left' if lang == 'ar' else 'right' }}"></i>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 
-<script type="application/json" id="ordersData">
-[
-  {% for o in orders %}
-  {
-    "id": {{ o.id }},
-    "status": "{{ o.status|default('pending') }}"
-  }{% if not loop.last %},{% endif %}
-  {% endfor %}
-]
-</script>
+<!-- ORDER DETAIL MODAL -->
+<div class="modal fade modal-z" id="orderDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" id="orderModalContent">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
 
+<!-- DELETE MODAL -->
+<div class="modal fade modal-z delete-modal" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#B71C1C,#E53935);color:white;border:none;padding:16px 22px;">
+        <h5 class="modal-title" style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px;">
+          <i class="fas fa-trash"></i>
+          {% if lang == 'en' %}Delete Order{% else %}حذف الطلب{% endif %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
+      </div>
+      <form id="deleteOrderForm" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body" style="text-align:center;padding:28px 22px;">
+          <div style="width:64px;height:64px;background:rgba(229,57,53,0.10);border-radius:50%;
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:28px;color:#E53935;margin:0 auto 14px;">
+            <i class="fas fa-trash"></i>
+          </div>
+          <p style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:6px;">
+            {% if lang == 'en' %}Delete this order?{% else %}هل تريد حذف هذا الطلب؟{% endif %}
+          </p>
+          <p style="font-size:13px;color:var(--text-muted);">
+            {% if lang == 'en' %}Order{% else %}الطلب{% endif %}
+            <strong id="deleteOrderLabel" style="color:#E53935;"></strong>
+            — {% if lang == 'en' %}This action cannot be undone.{% else %}لا يمكن التراجع عن هذا الإجراء.{% endif %}
+          </p>
+        </div>
+        <div class="modal-footer" style="justify-content:center;gap:10px;">
+          <button type="button" class="btn-z-outline" data-bs-dismiss="modal" style="min-width:100px;">
+            {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+          </button>
+          <button type="submit" class="btn-z-danger" style="min-width:120px;padding:9px 20px;">
+            <i class="fas fa-trash"></i>
+            {% if lang == 'en' %}Yes, Delete{% else %}نعم، احذف{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Pass orders data to JS safely #}
+<script type="application/json" id="ordersData">
+[{% for o in orders %}{"id":{{ o.id }},"customer_name":"{{ o.customer_name|default('')|replace('"','\\"') }}","customer_phone":"{{ o.customer_phone|default('')|replace('"','\\"') }}","status":"{{ o.status|default('pending') }}","created_at":"{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '' }}","total":{{ o.items|sum(attribute='subtotal') if o.items else 0 }},"items":[{% for item in o.items %}{"name":"{{ item.product.name|default('Product')|replace('"','\\"') if item.product else 'Product' }}","qty":{{ item.quantity }},"price":{{ item.unit_price|default(0) }},"subtotal":{{ item.subtotal|default(0) }}}{% if not loop.last %},{% endif %}{% endfor %}]}{% if not loop.last %},{% endif %}{% endfor %}]
+</script>
 <script type="application/json" id="langData">"{{ lang }}"</script>
 {% endblock %}
 
+
 {% block extra_scripts %}
 <script>
-const ordersData = JSON.parse(document.getElementById('ordersData').textContent);
+const ordersData  = JSON.parse(document.getElementById('ordersData').textContent);
 const currentLang = JSON.parse(document.getElementById('langData').textContent);
 const isEn = currentLang === 'en';
 
-async function submitStatusUpdate(url, formData, id) {
-    const response = await fetch(url, { method: 'POST', body: formData });
-    if (response.ok) {
-        const result = await response.json();
-        const row = document.querySelector(`tr[data-id="${id}"] .status-badge`);
-        if (row) row.textContent = result.new_status;
-        bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();
-    } else {
-        alert(isEn ? 'An error occurred during the update' : 'حدث خطأ أثناء التحديث');
-    }
+// ── Status label map ──────────────────────────────────
+const statusLabels = isEn
+  ? { pending:'Pending', processing:'Processing', completed:'Completed', delivered:'Delivered', cancelled:'Cancelled' }
+  : { pending:'انتظار', processing:'تجهيز', completed:'مكتمل', delivered:'تم التوصيل', cancelled:'ملغي' };
+
+const statusIcons = {
+  pending:'fa-clock', processing:'fa-spinner',
+  completed:'fa-circle-check', delivered:'fa-truck', cancelled:'fa-xmark'
+};
+
+// ── Client-side search filter ─────────────────────────
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#ordersBody tr[data-id]').forEach(row => {
+    const name = row.dataset.name || '';
+    const id   = row.dataset.id   || '';
+    row.style.display = (!q || name.includes(q) || id.includes(q)) ? '' : 'none';
+  });
 }
 
+// ── Server-side filters (status / date) ──────────────
+function applyFilters() {
+  const status = document.getElementById('statusFilter').value;
+  const date   = document.getElementById('dateFilter').value;
+  const url    = new URL(window.location.href);
+  url.searchParams.set('page', '1');
+  status ? url.searchParams.set('status', status) : url.searchParams.delete('status');
+  date   ? url.searchParams.set('date',   date)   : url.searchParams.delete('date');
+  window.location.href = url.toString();
+}
+
+// ── Open order detail modal ───────────────────────────
 function openOrderModal(id) {
-    const order = ordersData.find(o => o.id === id);
-    const modalBody = document.getElementById('orderModalBody');
+  const o = ordersData.find(x => x.id === id);
+  if (!o) return;
 
-    const optPending    = isEn ? 'Pending'    : 'انتظار';
-    const optProcessing = isEn ? 'Processing' : 'تجهيز';
-    const optCompleted  = isEn ? 'Completed'  : 'مكتمل';
-    const optDelivered  = isEn ? 'Delivered'  : 'تم التوصيل';
-    const btnSave       = isEn ? 'Save'        : 'حفظ';
+  const statusClass = o.status || 'pending';
+  const statusLabel = statusLabels[statusClass] || statusClass;
+  const statusIcon  = statusIcons[statusClass]  || 'fa-circle';
 
-    modalBody.innerHTML = `
-        <div class="modal-body">
-            <form onsubmit="event.preventDefault(); submitStatusUpdate(this.action, new FormData(this), ${id});"
-                  action="/orders/${id}/status" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <select name="status" class="form-control">
-                    <option value="pending"    ${order.status==='pending'   ?'selected':''}>${optPending}</option>
-                    <option value="processing" ${order.status==='processing'?'selected':''}>${optProcessing}</option>
-                    <option value="completed"  ${order.status==='completed' ?'selected':''}>${optCompleted}</option>
-                    <option value="delivered"  ${order.status==='delivered' ?'selected':''}>${optDelivered}</option>
-                </select>
-                <button type="submit" class="btn btn-primary mt-2">${btnSave}</button>
-            </form>
+  const itemRows = o.items.map(item => `
+    <tr>
+      <td>${item.name}</td>
+      <td style="text-align:center;">${item.qty}</td>
+      <td style="text-align:left;direction:ltr;">${Number(item.price).toLocaleString()} ${isEn?'IQD':'د.ع'}</td>
+      <td style="text-align:left;direction:ltr;font-weight:700;color:var(--brand-blue-dark);">
+        ${Number(item.subtotal).toLocaleString()} ${isEn?'IQD':'د.ع'}
+      </td>
+    </tr>`).join('');
+
+  document.getElementById('orderModalContent').innerHTML = `
+    <div class="order-detail-header">
+      <h5><i class="fas fa-bag-shopping"></i>
+        ${isEn ? 'Order' : 'الطلب'} #${String(o.id).padStart(4,'0')}
+      </h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
+    </div>
+    <div class="modal-body" style="padding:22px;">
+
+      <!-- Info row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div>
+          <div class="order-section-title">${isEn?'Customer':'العميل'}</div>
+          <div style="font-size:14px;font-weight:700;">${o.customer_name||'—'}</div>
+          ${o.customer_phone ? `<div style="font-size:12px;color:var(--text-muted);direction:ltr;">${o.customer_phone}</div>` : ''}
         </div>
-    `;
-    new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
+        <div>
+          <div class="order-section-title">${isEn?'Date':'التاريخ'}</div>
+          <div style="font-size:13px;color:var(--text-muted);">${o.created_at||'—'}</div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="order-section-title">${isEn?'Items':'العناصر'}</div>
+      <div style="border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border-color);margin-bottom:20px;">
+        <table class="order-items-table">
+          <thead>
+            <tr>
+              <th>${isEn?'Product':'المنتج'}</th>
+              <th style="text-align:center;">${isEn?'Qty':'الكمية'}</th>
+              <th>${isEn?'Price':'السعر'}</th>
+              <th>${isEn?'Subtotal':'المجموع'}</th>
+            </tr>
+          </thead>
+          <tbody>${itemRows || `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">${isEn?'No items':'لا توجد عناصر'}</td></tr>`}</tbody>
+          <tfoot>
+            <tr class="order-total-row">
+              <td colspan="3" style="padding:10px 12px;font-weight:700;">${isEn?'Total':'الإجمالي'}</td>
+              <td style="padding:10px 12px;direction:ltr;">${Number(o.total).toLocaleString()} ${isEn?'IQD':'د.ع'}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Status update form -->
+      <div class="order-section-title">${isEn?'Update Status':'تحديث الحالة'}</div>
+      <form id="statusForm_${o.id}"
+            onsubmit="event.preventDefault(); submitStatusUpdate('/admin/orders/${o.id}/status', new FormData(this), ${o.id});"
+            style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="hidden" name="csrf_token" value="${document.querySelector('meta[name=csrf_token]')?.content || ''}"/>
+        <select name="status" class="form-control-z" style="flex:1;min-width:180px;">
+          ${['pending','processing','completed','delivered','cancelled'].map(s =>
+            `<option value="${s}" ${o.status===s?'selected':''}>${statusLabels[s]}</option>`
+          ).join('')}
+        </select>
+        <button type="submit" class="btn-z-primary">
+          <i class="fas fa-floppy-disk"></i> ${isEn?'Save':'حفظ'}
+        </button>
+      </form>
+
+    </div>`;
+
+  new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
 }
 
+// ── Submit status update via AJAX ─────────────────────
+async function submitStatusUpdate(url, formData, id) {
+  try {
+    const csrfMeta = document.querySelector('meta[name=csrf_token]');
+    if (csrfMeta) formData.set('csrf_token', csrfMeta.content);
+
+    const res = await fetch(url, { method: 'POST', body: formData });
+    if (res.ok) {
+      const result = await res.json();
+      // Update badge in table row
+      const badge = document.querySelector(`tr[data-id="${id}"] .status-badge`);
+      if (badge) {
+        const newStatus = result.new_status;
+        badge.className = `status-badge ${newStatus}`;
+        badge.innerHTML = `<i class="fas ${statusIcons[newStatus]||'fa-circle'}"></i> ${statusLabels[newStatus]||newStatus}`;
+        // sync local data
+        const o = ordersData.find(x => x.id === id);
+        if (o) o.status = newStatus;
+      }
+      bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();
+    } else {
+      alert(isEn ? 'An error occurred during the update.' : 'حدث خطأ أثناء التحديث.');
+    }
+  } catch(e) {
+    alert(isEn ? 'Network error.' : 'خطأ في الشبكة.');
+  }
+}
+
+// ── Delete modal ──────────────────────────────────────
 function openDeleteModal(id, label) {
-    const form = document.getElementById('deleteOrderForm');
-    form.action = `/orders/${id}/delete`;
-    form.onsubmit = async function(e) {
-        e.preventDefault();
-        const res = await fetch(this.action, { method: 'POST', body: new FormData(this) });
-        if(res.ok) window.location.reload();
-    };
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+  document.getElementById('deleteOrderLabel').textContent = '#' + label;
+  const form = document.getElementById('deleteOrderForm');
+  form.action = `/admin/orders/${id}/delete`;
+  form.onsubmit = async function(e) {
+    e.preventDefault();
+    const res = await fetch(this.action, { method: 'POST', body: new FormData(this) });
+    if (res.ok) window.location.reload();
+    else alert(isEn ? 'Delete failed.' : 'فشل الحذف.');
+  };
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 </script>
 {% endblock %}

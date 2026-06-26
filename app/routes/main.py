@@ -33,3 +33,7 @@ def index():
                            courts=courts,
                            total_bookings=total_bookings,
                            products=products)
+@main_bp.route('/sw.js')
+def sw():
+    from flask import send_from_directory, current_app
+    return send_from_directory(current_app.static_folder, 'sw.js'), 200, {'Content-Type': 'application/javascript'}

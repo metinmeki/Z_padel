@@ -392,13 +392,21 @@
 <!-- Top Tables: Courts + Products -->
 <div class="tables-row">
 
+  {# ── FIX: compute max_rev OUTSIDE the loop using namespace ── #}
+  {% set courts_ns = namespace(max_rev=1) %}
+  {% if top_courts and top_courts|length > 0 %}
+    {% set first_rev = top_courts[0].revenue %}
+    {% if first_rev is not none and first_rev > 0 %}
+      {% set courts_ns.max_rev = first_rev %}
+    {% endif %}
+  {% endif %}
+
   <div class="chart-card">
     <div class="chart-card-header">
       <div class="chart-card-title"><i class="fas fa-trophy"></i> {% if lang == 'en' %}Top Performing Courts{% else %}أعلى الملاعب أداءً{% endif %}</div>
     </div>
     <div class="chart-card-body" style="padding:14px 20px;">
       {% for court in top_courts|default([]) %}
-      {% set max_rev = top_courts[0].revenue|default(1) if top_courts else 1 %}
       <div class="rank-row">
         <div class="rank-num {{ 'gold' if loop.index==1 else 'silver' if loop.index==2 else 'bronze' if loop.index==3 else 'other' }}">
           {{ loop.index }}
@@ -406,7 +414,8 @@
         <div class="rank-label">{{ court.name }}</div>
         <div class="rank-bar-wrap">
           <div class="rank-bar">
-            <div class="rank-bar-fill" style="width:{{ (court.revenue|default(0) / max_rev * 100)|round }}%;"></div>
+            {# ── FIX: safe division using courts_ns.max_rev which is always >= 1 ── #}
+            <div class="rank-bar-fill" style="width:{{ (court.revenue|default(0) / courts_ns.max_rev * 100)|round }}%;"></div>
           </div>
         </div>
         <div class="rank-value">{{ "{:,.0f}".format(court.revenue|default(0)) }} {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</div>
@@ -417,13 +426,21 @@
     </div>
   </div>
 
+  {# ── FIX: compute max_qty OUTSIDE the loop using namespace ── #}
+  {% set products_ns = namespace(max_qty=1) %}
+  {% if top_products and top_products|length > 0 %}
+    {% set first_qty = top_products[0].sold %}
+    {% if first_qty is not none and first_qty > 0 %}
+      {% set products_ns.max_qty = first_qty %}
+    {% endif %}
+  {% endif %}
+
   <div class="chart-card">
     <div class="chart-card-header">
       <div class="chart-card-title"><i class="fas fa-box-open"></i> {% if lang == 'en' %}Best Selling Products{% else %}أكثر المنتجات مبيعاً{% endif %}</div>
     </div>
     <div class="chart-card-body" style="padding:14px 20px;">
       {% for product in top_products|default([]) %}
-      {% set max_qty = top_products[0].sold|default(1) if top_products else 1 %}
       <div class="rank-row">
         <div class="rank-num {{ 'gold' if loop.index==1 else 'silver' if loop.index==2 else 'bronze' if loop.index==3 else 'other' }}">
           {{ loop.index }}
@@ -431,7 +448,8 @@
         <div class="rank-label">{{ product.name }}</div>
         <div class="rank-bar-wrap">
           <div class="rank-bar">
-            <div class="rank-bar-fill" style="width:{{ (product.sold|default(0) / max_qty * 100)|round }}%;background:linear-gradient(90deg,#7B1FA2,#AB47BC);"></div>
+            {# ── FIX: safe division using products_ns.max_qty which is always >= 1 ── #}
+            <div class="rank-bar-fill" style="width:{{ (product.sold|default(0) / products_ns.max_qty * 100)|round }}%;background:linear-gradient(90deg,#7B1FA2,#AB47BC);"></div>
           </div>
         </div>
         <div class="rank-value">{{ product.sold|default(0) }} {% if lang == 'en' %}units{% else %}قطعة{% endif %}</div>
@@ -482,6 +500,8 @@
           ('Pending' if lang == 'en' else 'معلقة',    pending_bookings_count|default(0),   '#FB8C00'),
           ('Cancelled' if lang == 'en' else 'ملغية',  cancelled_bookings|default(0), '#E53935')
         ] %}
+        {# ── FIX: safe total for status bars — never divide by zero ── #}
+        {% set safe_total = [total_bookings|default(0), 1]|max %}
         {% for label, val, color in statuses %}
         <div>
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">
@@ -492,8 +512,9 @@
             <strong style="color:var(--text-dark);">{{ val }}</strong>
           </div>
           <div style="height:5px;border-radius:3px;background:var(--border-color);overflow:hidden;">
+            {# ── FIX: use safe_total instead of inline [total_bookings|default(1),1]|max ── #}
             <div style="height:100%;border-radius:3px;background:{{ color }};
-                        width:{{ (val / [total_bookings|default(1), 1]|max * 100)|round }}%;
+                        width:{{ (val / safe_total * 100)|round }}%;
                         transition:width 1s ease;"></div>
           </div>
         </div>

@@ -224,3 +224,13 @@ class SystemSetting(db.Model):
 
     def __repr__(self):
         return f'<Setting {self.key}={self.value}>'
+
+
+
+class PushSubscription(db.Model):
+    __tablename__ = 'push_subscriptions'
+    id        = db.Column(db.Integer, primary_key=True)
+    endpoint  = db.Column(db.Text, unique=True, nullable=False)
+    p256dh    = db.Column(db.String(255), nullable=False)
+    auth      = db.Column(db.String(255), nullable=False)
+    created   = db.Column(db.DateTime, default=datetime.utcnow)

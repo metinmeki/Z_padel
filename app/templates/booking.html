@@ -2,257 +2,305 @@
 <html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>{% if lang == 'en' %}Book Your Court — Z Padel{% else %}احجز ملعبك — Z Padel{% endif %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap{% if lang == 'en' %}{% else %}.rtl{% endif %}.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --slate-deep:  #2C3539;
-      --slate-dark:  #596770;
-      --slate-main:  #596770;
+      --ink:         #1C2428;
+      --ink-soft:    #2C3539;
+      --slate:       #596770;
       --slate-light: #6E7F89;
-      --sand-soft:   #F5F2ED;
-      --sand-mid:    #E8DFD0;
+      --muted:       #9AA5AC;
+      --muted-light: #C8D0D4;
+      --sand:        #F7F5F2;
+      --sand-mid:    #EAE6E0;
+      --sand-warm:   #F0ECE7;
       --gold:        #D6C3A1;
       --gold-deep:   #C9B48E;
-      --off-white:   #FAF8F5;
-      --text-dark:   #2C3539;
-      --text-muted:  #7A8A93;
-      --border:      #E4DDD3;
+      --white:       #FFFFFF;
       --radius:      14px;
       --radius-sm:   9px;
-      --shadow:      0 4px 20px rgba(89,103,112,0.10);
-      --transition:  all 0.3s cubic-bezier(0.4,0,0.2,1);
+      --radius-xs:   7px;
+      --transition:  all 0.2s cubic-bezier(.4,0,.2,1);
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Almarai',sans-serif;background:var(--off-white);color:var(--text-dark);min-height:100vh;overflow-x:hidden;}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes spin{to{transform:rotate(360deg);}}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Almarai', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
 
-    /* NAVBAR */
-    .navbar-z{
-      background:linear-gradient(135deg,var(--slate-deep),var(--slate-dark));
-      padding:12px 0;
-      box-shadow:0 2px 16px rgba(89,103,112,0.30);
-      position:sticky;top:0;z-index:200;
-    }
-    .nav-inner{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between;}
-    .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .nav-brand-icon{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;color:white;}
-    .nav-brand-name{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:900;color:white;letter-spacing:-0.5px;}
-    .nav-back{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,0.80);text-decoration:none;font-size:13px;font-weight:600;font-family:'Montserrat',sans-serif;}
-    .nav-back:hover{color:white;}
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes pop    { 0%{transform:scale(.88);opacity:0;} 55%{transform:scale(1.04);} 100%{transform:scale(1);opacity:1;} }
 
-    /* PAGE HEADER */
-    .page-header{background:linear-gradient(135deg,var(--slate-deep),var(--slate-dark));padding:22px 0 18px;color:white;}
-    .page-header-inner{max-width:1200px;margin:0 auto;padding:0 16px;}
-    .page-header h1{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;margin-bottom:3px;letter-spacing:-0.5px;}
-    .page-header p{font-size:13px;color:rgba(255,255,255,0.65);}
+    /* ── NAVBAR ── */
+    .navbar-z {
+      background: var(--ink);
+      padding: 11px 0;
+      position: sticky; top: 0; z-index: 200;
+    }
+    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-brand-icon { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; }
+    .nav-brand-name { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 900; color: white; letter-spacing: -.5px; }
+    .nav-back { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,.45); text-decoration: none; font-size: 12px; font-weight: 600; font-family: 'Montserrat', sans-serif; transition: color .2s; }
+    .nav-back:hover { color: white; }
 
-    /* LAYOUT */
-    .booking-layout{
-      max-width:1200px;margin:0 auto;padding:16px;
-      display:grid;grid-template-columns:minmax(0,1fr) 300px;
-      gap:16px;align-items:start;
+    /* ── PAGE HERO ── */
+    .page-hero {
+      background: var(--ink);
+      padding: 26px 0 22px; color: white; position: relative; overflow: hidden;
     }
-    .col-left{display:flex;flex-direction:column;gap:14px;min-width:0;}
-    .col-right{display:flex;flex-direction:column;gap:14px;min-width:0;}
+    .page-hero::before {
+      content: ''; position: absolute; right: -60px; top: -60px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: rgba(214,195,161,.06); pointer-events: none;
+    }
+    .page-hero::after {
+      content: ''; position: absolute; left: 40%; bottom: -80px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: rgba(214,195,161,.04); pointer-events: none;
+    }
+    .page-hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
+    .hero-eyebrow { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; opacity: 0.8; }
+    .page-hero h1 { font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 900; margin-bottom: 5px; letter-spacing: -.8px; line-height: 1.2; }
+    .page-hero p  { font-size: 13px; color: rgba(255,255,255,.4); }
+    .hero-badges  { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 14px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.11);
+      border-radius: 30px; padding: 4px 12px;
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,.6);
+      font-family: 'Montserrat', sans-serif;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
 
-    /* CARD */
-    .card-z{
-      background:white;border-radius:var(--radius);
-      border:1px solid var(--border);box-shadow:var(--shadow);
-      animation:fadeUp 0.4s ease both;width:100%;
-    }
-    .card-header-z{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-    .ch-icon{width:30px;height:30px;border-radius:var(--radius-sm);background:var(--sand-soft);color:var(--slate-main);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
-    .ch-title{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:var(--slate-deep);}
-    .card-body-z{padding:16px;}
+    /* ── LAYOUT ── */
+    .booking-wrap { max-width: 1100px; margin: 0 auto; padding: 14px; display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
+    html[dir="rtl"] .booking-wrap { direction: ltr; }
+    html[dir="rtl"] .booking-wrap > * { direction: rtl; }
 
-    /* DATE STRIP */
-    .date-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--sand-mid) transparent;}
-    .date-strip::-webkit-scrollbar{height:3px;}
-    .date-strip::-webkit-scrollbar-thumb{background:var(--sand-mid);border-radius:2px;}
-    .date-btn{
-      flex-shrink:0;display:flex;flex-direction:column;align-items:center;
-      padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
-      background:white;cursor:pointer;transition:var(--transition);min-width:56px;
-      font-family:'Montserrat',sans-serif;
+    /* ── CARD ── */
+    .card-z { background: var(--white); border-radius: var(--radius); border: 1px solid var(--sand-mid); overflow: hidden; animation: fadeUp .35s ease both; }
+    .card-head { padding: 13px 16px; border-bottom: 1px solid var(--sand-mid); display: flex; align-items: center; gap: 10px; }
+    .step-badge {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--gold); color: var(--ink);
+      font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .date-btn:hover{border-color:var(--sand-mid);background:var(--sand-soft);}
-    .date-btn.active{
-      background:linear-gradient(135deg,var(--gold),var(--slate-dark));
-      border-color:transparent;color:white;
-      box-shadow:0 3px 10px rgba(89,103,112,0.30);
-    }
-    .date-btn .dn{font-size:9px;font-weight:600;color:var(--text-muted);}
-    .date-btn .dd{font-size:16px;font-weight:900;color:var(--text-dark);margin:1px 0;}
-    .date-btn .dm{font-size:8px;font-weight:600;color:var(--text-muted);}
-    .date-btn.active .dn,.date-btn.active .dd,.date-btn.active .dm{color:white;}
-    .date-btn.today .dd{color:var(--slate-main);}
-    .date-btn.active.today .dd{color:white;}
+    .ch-icon { width: 28px; height: 28px; border-radius: var(--radius-xs); background: var(--sand); color: var(--slate); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .ch-title { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: var(--ink); }
+    .ch-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .card-body { padding: 16px; }
 
-    /* COURT TABS */
-    .court-tabs{display:flex;gap:7px;flex-wrap:wrap;padding:12px 16px 0;}
-    .court-tab{
-      display:flex;align-items:center;gap:6px;padding:7px 14px;
-      border-radius:30px;border:1.5px solid var(--border);background:white;
-      font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:600;
-      color:var(--text-muted);cursor:pointer;transition:var(--transition);
+    /* ── CALENDAR ── */
+    .quick-dates { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .quick-btn {
+      padding: 6px 13px; border-radius: 30px;
+      border: 1.5px solid var(--sand-mid); background: var(--white);
+      font-size: 11.5px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+      color: var(--muted); cursor: pointer; transition: var(--transition);
     }
-    .court-tab:hover{border-color:var(--sand-mid);color:var(--slate-dark);}
-    .court-tab.active{background:var(--slate-main);border-color:var(--slate-main);color:white;}
-    .court-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .quick-btn:hover { border-color: var(--gold); color: var(--slate); background: var(--sand); }
+    .quick-btn.active { background: var(--ink); border-color: var(--ink); color: white; }
 
-    /* SLOTS */
-    .slots-section{padding:14px 16px;}
-    .discount-banner{
-      background:rgba(214,195,161,0.15);border:1px solid rgba(214,195,161,0.40);
-      border-radius:var(--radius-sm);padding:8px 12px;
-      display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12.5px;
+    .date-picker-wrap {
+      position: relative; display: flex; align-items: center;
     }
-    .discount-banner i{color:var(--gold-deep);flex-shrink:0;}
-    .discount-banner strong{color:#8B6914;}
-    .discount-banner span{color:var(--text-muted);}
-    .slots-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
-    .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-muted);}
-    .legend-dot{width:10px;height:10px;border-radius:3px;}
-    .legend-dot.free    {background:#F0F5F0;border:1px solid #B8D4B8;}
-    .legend-dot.booked  {background:#FFEBEE;border:1px solid #EF9A9A;}
-    .legend-dot.discount{background:#FBF6EC;border:1px solid #D6C3A1;}
-    .legend-dot.selected{background:var(--slate-main);}
-    .legend-dot.past    {background:#F5F5F5;border:1px solid #E0E0E0;}
-
-    /* SLOTS GRID */
-    #slotsContainer{width:100%;}
-    .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;direction:ltr;width:100%;}
-    .slot-btn{
-      display:flex;flex-direction:column;align-items:center;
-      padding:9px 4px;border-radius:var(--radius-sm);border:1.5px solid;
-      cursor:pointer;transition:var(--transition);position:relative;
-      font-family:'Montserrat',sans-serif;user-select:none;overflow:visible;
-      min-width:0;width:100%;
+    .date-picker-icon {
+      position: absolute; left: 13px; color: var(--muted); font-size: 14px;
+      pointer-events: none; z-index: 1;
     }
-    .slot-btn.free    {background:#F0F5F0;border-color:#B8D4B8;color:#3A6B3A;}
-    .slot-btn.discount{background:#FBF6EC;border-color:#D6C3A1;color:#8B6914;}
-    .slot-btn.booked  {background:#FFEBEE;border-color:#EF9A9A;color:#C62828;cursor:not-allowed;}
-    .slot-btn.past    {background:#F5F5F5;border-color:#E0E0E0;color:#BDBDBD;cursor:not-allowed;opacity:.6;}
-    .slot-btn.free:hover    {background:#DCF0DC;border-color:#7BBD7B;transform:translateY(-2px);}
-    .slot-btn.discount:hover{background:#F2E8D5;border-color:#C9B48E;transform:translateY(-2px);}
-    .slot-btn.selected{
-      background:var(--slate-main)!important;border-color:var(--slate-deep)!important;
-      color:white!important;transform:translateY(-2px);
-      box-shadow:0 4px 14px rgba(89,103,112,0.40)!important;
+    html[dir="rtl"] .date-picker-icon { left: auto; right: 13px; }
+    .date-picker-input {
+      width: 100%; padding: 11px 13px 11px 38px;
+      border: 1.5px solid var(--sand-mid); border-radius: var(--radius-xs);
+      font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700;
+      color: var(--ink); background: var(--white); outline: none;
+      cursor: pointer; transition: var(--transition);
+      appearance: none; -webkit-appearance: none;
     }
-    .slot-btn.selected .slot-check{display:block;}
-    .slot-time {font-size:13px;font-weight:800;line-height:1;}
-    .slot-dur  {font-size:9px;font-weight:500;opacity:.75;margin-top:2px;}
-    .slot-price{font-size:10px;font-weight:700;margin-top:3px;}
-    .slot-tag  {
-      position:absolute;top:-7px;left:50%;transform:translateX(-50%);
-      background:var(--gold-deep);color:white;font-size:7px;font-weight:800;
-      padding:1px 4px;border-radius:4px;white-space:nowrap;z-index:1;
-      font-family:'Montserrat',sans-serif;
-    }
-    .slot-check{display:none;position:absolute;top:4px;right:4px;font-size:9px;}
-    .slots-loading{display:flex;align-items:center;justify-content:center;padding:32px;gap:10px;color:var(--text-muted);font-size:13px;}
-    .slots-loading i{animation:spin .8s linear infinite;color:var(--slate-main);font-size:18px;}
-
-    /* SUMMARY */
-    .summary-empty{text-align:center;padding:24px 14px;color:var(--text-muted);}
-    .summary-empty i{font-size:28px;color:var(--sand-mid);margin-bottom:8px;display:block;}
-    .summary-empty p{font-size:12px;}
-    .summary-field{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
-    .summary-field:last-of-type{border-bottom:none;}
-    .sf-label{color:var(--text-muted);display:flex;align-items:center;gap:6px;}
-    .sf-label i{color:var(--slate-light);width:14px;text-align:center;}
-    .sf-value{font-family:'Montserrat',sans-serif;font-weight:700;color:var(--text-dark);}
-    .price-total{
-      background:var(--sand-soft);border-radius:var(--radius-sm);
-      padding:12px 14px;margin-top:12px;
-      display:flex;align-items:center;justify-content:space-between;
-    }
-    .price-total-label{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--slate-deep);}
-    .price-total-value{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;color:var(--slate-main);}
-    .price-total-value small{font-size:11px;font-weight:400;color:var(--text-muted);}
-    .discount-applied{
-      display:flex;align-items:center;gap:6px;
-      background:rgba(214,195,161,0.18);border:1px solid rgba(214,195,161,0.40);
-      border-radius:var(--radius-sm);padding:7px 12px;
-      font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;
-      color:#8B6914;margin-top:8px;
+    html[dir="rtl"] .date-picker-input { padding: 11px 38px 11px 13px; }
+    .date-picker-input:focus { border-color: var(--slate); box-shadow: 0 0 0 3px rgba(89,103,112,.08); }
+    .date-picker-input::-webkit-calendar-picker-indicator {
+      opacity: 0; position: absolute; right: 0; top: 0; width: 100%; height: 100%; cursor: pointer;
     }
 
-    /* FORM */
-    .form-group{margin-bottom:12px;}
-    .form-label{display:block;font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:700;color:var(--text-dark);margin-bottom:5px;}
-    .form-input{
-      width:100%;padding:10px 12px;border:1.5px solid var(--border);
-      border-radius:var(--radius-sm);font-family:'Almarai',sans-serif;
-      font-size:14px;color:var(--text-dark);background:white;outline:none;transition:var(--transition);
+    /* ── COURT TABS ── */
+    .court-tabs { display: flex; gap: 7px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--sand-mid); }
+    .court-tab {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 30px;
+      border: 1.5px solid var(--sand-mid); background: var(--white);
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--muted); cursor: pointer; transition: var(--transition);
     }
-    .form-input:focus{border-color:var(--slate-main);box-shadow:0 0 0 3px rgba(89,103,112,0.10);}
-    .duration-btns{display:flex;gap:7px;flex-wrap:wrap;}
-    .dur-btn{
-      padding:7px 14px;border-radius:30px;border:1.5px solid var(--border);
-      background:white;font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:600;
-      color:var(--text-muted);cursor:pointer;transition:var(--transition);
-    }
-    .dur-btn:hover{border-color:var(--sand-mid);color:var(--slate-dark);}
-    .dur-btn.active{background:var(--slate-main);border-color:var(--slate-main);color:white;}
-    .btn-confirm{
-      width:100%;padding:13px;
-      background:linear-gradient(135deg,var(--gold),var(--slate-dark));
-      color:white;border:none;border-radius:var(--radius-sm);
-      font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;
-      cursor:pointer;transition:var(--transition);
-      display:flex;align-items:center;justify-content:center;gap:8px;
-      box-shadow:0 4px 14px rgba(89,103,112,0.30);margin-top:14px;
-    }
-    .btn-confirm:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(89,103,112,0.40);}
-    .no-prepay-note{
-      display:flex;align-items:center;gap:7px;
-      background:rgba(67,160,71,0.08);border:1px solid rgba(67,160,71,0.20);
-      border-radius:var(--radius-sm);padding:9px 12px;
-      font-size:12px;color:#2E7D32;font-weight:600;margin-top:10px;
-    }
-    .alert-z{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-    .alert-z.success{background:rgba(67,160,71,0.10);border:1px solid rgba(67,160,71,0.25);color:#2E7D32;}
-    .alert-z.error  {background:rgba(229,57,53,0.10);border:1px solid rgba(229,57,53,0.25);color:#C62828;}
-    .alert-z.info   {background:var(--sand-soft);border:1px solid var(--sand-mid);color:var(--slate-deep);}
+    .court-tab:hover { border-color: var(--gold); color: var(--slate); background: var(--sand); }
+    .court-tab.active { background: var(--ink); border-color: var(--ink); color: white; }
+    .court-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-    /* ── TABLET ≤860px ── */
-    @media(max-width:860px){
-      .booking-layout{grid-template-columns:1fr;padding:10px;gap:10px;}
-      .col-left{order:1;} .col-right{order:2;}
+    /* ── DISCOUNT BANNER ── */
+    .discount-banner {
+      margin: 12px 16px 0; padding: 9px 13px;
+      background: #FDFAF5; border: 1px solid #EDD98A; border-radius: var(--radius-xs);
+      display: flex; align-items: center; gap: 9px; font-size: 12px;
     }
-    /* ── MOBILE ≤600px ── */
-    @media(max-width:600px){
-      .page-header h1{font-size:17px;} .page-header p{font-size:11px;}
-      .nav-brand-name{font-size:16px;} .slots-section{padding:10px;}
-      .card-body-z{padding:12px;} .slots-grid{gap:5px;}
-      .slot-btn{padding:8px 2px;} .slot-time{font-size:11px;}
-      .slot-dur{font-size:7px;} .slot-price{font-size:8px;}
-      .slot-tag{font-size:6px;padding:1px 3px;} .date-strip{gap:4px;}
-      .date-btn{min-width:44px;padding:6px 4px;} .date-btn .dd{font-size:14px;}
-      .date-btn .dn,.date-btn .dm{font-size:8px;}
-      .court-tabs{gap:5px;padding:10px 10px 0;}
-      .court-tab{padding:5px 10px;font-size:11px;}
-      .discount-banner{font-size:11px;padding:7px 10px;}
-      .slots-legend{gap:6px;} .legend-item{font-size:9.5px;}
-      .summary-field{font-size:12px;} .price-total-value{font-size:18px;}
-      .btn-confirm{font-size:14px;padding:12px;}
+    .discount-banner i { color: #C9A227; font-size: 14px; flex-shrink: 0; }
+    .discount-banner strong { color: #7A5C0A; }
+    .discount-banner span { color: #B08E52; }
+
+    /* ── TIME GRID ── */
+    .slots-wrap { padding: 14px 16px; }
+    .slots-legend { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: var(--muted); }
+    .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+    .legend-dot.free     { background: #F0FAF0; border: 1px solid #90C490; }
+    .legend-dot.booked   { background: #FFF5F5; border: 1px solid #EF9A9A; }
+    .legend-dot.discount { background: #FDFAF5; border: 1px solid #D6C3A1; }
+    .legend-dot.selected { background: var(--ink); }
+    .legend-dot.past     { background: #F5F5F5; border: 1px solid #E0E0E0; }
+
+    .slots-group-label {
+      font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 800;
+      color: var(--muted-light); letter-spacing: 1.5px; text-transform: uppercase;
+      margin: 12px 0 8px; padding: 0 2px;
     }
-    @media(max-width:380px){
-      .slots-grid{grid-template-columns:repeat(3,1fr);}
-      .date-btn{min-width:38px;}
+    .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; direction: ltr; }
+
+    .slot-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 9px 4px; border-radius: var(--radius-xs); border: 1.5px solid;
+      cursor: pointer; transition: var(--transition); position: relative;
+      font-family: 'Montserrat', sans-serif; user-select: none; min-width: 0;
+    }
+    .slot-btn.free     { background: #F0FAF0; border-color: #90C490; }
+    .slot-btn.discount { background: #FDFAF5; border-color: #D6C3A1; }
+    .slot-btn.booked   { background: #FFF5F5; border-color: #EF9A9A; cursor: not-allowed; }
+    .slot-btn.past     { background: #F8F8F8; border-color: #E0E0E0; cursor: not-allowed; opacity: .5; }
+    .slot-btn.free:hover     { background: #D4EDD4; border-color: #5FAF5F; transform: translateY(-2px); }
+    .slot-btn.discount:hover { background: #F0E5CC; border-color: var(--gold-deep); transform: translateY(-2px); }
+    .slot-btn.selected {
+      background: var(--ink) !important; border-color: var(--ink-soft) !important;
+      color: white !important; transform: translateY(-2px) !important;
+    }
+    .slot-time  { font-size: 12.5px; font-weight: 800; line-height: 1; }
+    .slot-btn.free .slot-time     { color: #2E6B2E; }
+    .slot-btn.discount .slot-time { color: #7A5C0A; }
+    .slot-btn.booked .slot-time   { color: #C62828; }
+    .slot-btn.past .slot-time     { color: #BDBDBD; }
+    .slot-btn.selected .slot-time { color: white; }
+    .slot-price { font-size: 9.5px; font-weight: 700; margin-top: 3px; opacity: .8; }
+    .slot-btn.free .slot-price     { color: #2E6B2E; }
+    .slot-btn.discount .slot-price { color: #7A5C0A; }
+    .slot-btn.booked .slot-price, .slot-btn.past .slot-price { color: #BDBDBD; }
+    .slot-btn.selected .slot-price { color: rgba(255,255,255,.6); }
+    .slot-check { display: none; position: absolute; top: 5px; right: 5px; font-size: 8px; color: rgba(255,255,255,.7); }
+    .slot-btn.selected .slot-check { display: block; }
+    .disc-pill {
+      position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+      background: var(--gold); color: #3a2f00; font-size: 7px; font-weight: 800;
+      padding: 2px 5px; border-radius: 4px; white-space: nowrap; z-index: 1;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .slots-loading { display: flex; align-items: center; justify-content: center; padding: 40px; gap: 10px; color: var(--muted); font-size: 13px; }
+    .slots-loading i { animation: spin .8s linear infinite; color: var(--slate); font-size: 18px; }
+
+    /* ── SUMMARY ── */
+    .summary-empty { text-align: center; padding: 28px 14px; }
+    .summary-empty i { font-size: 28px; color: var(--sand-mid); display: block; margin-bottom: 10px; }
+    .summary-empty p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    .summary-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--sand-warm); font-size: 12.5px; }
+    .summary-row:last-of-type { border-bottom: none; }
+    .sr-label { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 7px; }
+    .sr-label i { color: var(--muted-light); width: 13px; text-align: center; font-size: 11px; }
+    .sr-value { font-family: 'Montserrat', sans-serif; font-weight: 700; color: var(--ink); font-size: 13px; }
+
+    .price-box {
+      background: var(--sand); border-radius: var(--radius-xs);
+      padding: 14px; margin-top: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .price-box-label {
+      font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+    }
+    .price-box-val { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 900; color: var(--ink); line-height: 1; letter-spacing: -1px; }
+    .price-box-val small { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 3px; }
+    .discount-tag {
+      display: flex; align-items: center; gap: 6px; margin-top: 8px;
+      background: #FDFAF5; border: 1px solid #EDD98A;
+      border-radius: var(--radius-xs); padding: 7px 11px;
+      font-size: 11px; font-weight: 700; color: #7A5C0A;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 12px; }
+    .form-lbl { display: block; font-family: 'Montserrat', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--slate); margin-bottom: 5px; letter-spacing: .3px; }
+    .form-inp {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid var(--sand-mid); border-radius: var(--radius-xs);
+      font-family: 'Almarai', sans-serif; font-size: 14px;
+      color: var(--ink); background: var(--white); outline: none; transition: var(--transition);
+    }
+    .form-inp:focus { border-color: var(--slate); box-shadow: 0 0 0 3px rgba(89,103,112,.08); }
+    .form-inp::placeholder { color: var(--muted-light); }
+
+    .dur-row { display: flex; gap: 6px; }
+    .dur-btn {
+      flex: 1; padding: 7px 6px; border-radius: var(--radius-xs);
+      border: 1.5px solid var(--sand-mid); background: var(--white);
+      font-family: 'Montserrat', sans-serif; font-size: 11.5px; font-weight: 700;
+      color: var(--muted); cursor: pointer; transition: var(--transition); text-align: center;
+    }
+    .dur-btn:hover { border-color: var(--gold); color: var(--slate); background: var(--sand); }
+    .dur-btn.active { background: var(--ink); border-color: var(--ink); color: white; }
+
+    .btn-book {
+      width: 100%; padding: 13px;
+      background: var(--ink); color: white;
+      border: none; border-radius: var(--radius-xs);
+      font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 900;
+      cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 14px; letter-spacing: -.3px;
+    }
+    .btn-book:hover { background: var(--ink-soft); transform: translateY(-1px); }
+    .btn-book:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    .no-pay-badge {
+      display: flex; align-items: center; gap: 8px; margin-top: 11px;
+      background: #F0FAF0; border: 1px solid #90C490;
+      border-radius: var(--radius-xs); padding: 9px 12px;
+      font-size: 11.5px; color: #2E7D32; font-weight: 700;
+    }
+    .no-pay-badge i { flex-shrink: 0; }
+
+    .alert-z { padding: 10px 14px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .alert-z.success { background: rgba(67,160,71,.08); border: 1px solid rgba(67,160,71,.22); color: #2E7D32; }
+    .alert-z.error   { background: rgba(229,57,53,.08); border: 1px solid rgba(229,57,53,.22); color: #C62828; }
+    .alert-z.info    { background: var(--sand); border: 1px solid var(--sand-mid); color: var(--ink); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .booking-wrap { grid-template-columns: 1fr; padding: 10px; gap: 12px; }
+    }
+    @media (max-width: 600px) {
+      .page-hero h1 { font-size: 20px; }
+      .hero-badge   { font-size: 10px; padding: 4px 9px; }
+      .slots-grid   { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+      .slot-time    { font-size: 11.5px; }
+      .slot-price   { font-size: 9px; }
+      .card-body    { padding: 12px; }
+      .price-box-val { font-size: 24px; }
     }
   </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar-z">
   <div class="nav-inner">
     <a href="{{ url_for('main.index') }}" class="nav-brand">
@@ -260,63 +308,109 @@
       <span class="nav-brand-name">Z Padel</span>
     </a>
     <a href="{{ url_for('main.index') }}" class="nav-back">
-      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i> {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
+      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i>
+      {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
     </a>
   </div>
 </nav>
 
-<div class="page-header">
-  <div class="page-header-inner">
-    <h1><i class="fas fa-calendar-plus" style="margin-left:9px;opacity:.75;"></i>{% if lang == 'en' %}Book Your Court{% else %}احجز ملعبك{% endif %}</h1>
-    <p>{% if lang == 'en' %}Choose date, court, and time — no upfront payment{% else %}اختر التاريخ، الملعب، والوقت — بدون دفع مسبق{% endif %}</p>
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="hero-eyebrow">{% if lang == 'en' %}Booking{% else %}الحجز{% endif %}</div>
+    <h1>{% if lang == 'en' %}Reserve Your Court{% else %}احجز ملعبك{% endif %}</h1>
+    <p>{% if lang == 'en' %}No upfront payment — pay when you arrive{% else %}بدون دفع مسبق — ادفع عند الحضور{% endif %}</p>
+    <div class="hero-badges">
+      <div class="hero-badge"><div class="hero-badge-dot"></div> {% if lang == 'en' %}25% off 12:00–16:00{% else %}خصم 25% من 12:00 إلى 16:00{% endif %}</div>
+      <div class="hero-badge"><div class="hero-badge-dot"></div> {% if lang == 'en' %}Free cancellation{% else %}إلغاء مجاني{% endif %}</div>
+      <div class="hero-badge"><div class="hero-badge-dot"></div> {% if lang == 'en' %}Open 8AM – 11PM{% else %}مفتوح 8ص–11م{% endif %}</div>
+    </div>
   </div>
 </div>
 
-<div style="max-width:1200px;margin:12px auto 0;padding:0 16px;">
+<!-- Flash messages -->
+<div style="max-width:1100px;margin:12px auto 0;padding:0 14px;">
   {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}{% for category, message in messages %}
-      <div class="alert-z {{ 'success' if category=='success' else 'error' if category=='danger' else 'info' }}">
-        <i class="fas fa-{{ 'check-circle' if category=='success' else 'exclamation-circle' if category=='danger' else 'info-circle' }}"></i>
-        {{ message }}
+    {% if messages %}{% for cat, msg in messages %}
+      <div class="alert-z {{ 'success' if cat=='success' else 'error' if cat=='danger' else 'info' }}">
+        <i class="fas fa-{{ 'check-circle' if cat=='success' else 'exclamation-circle' if cat=='danger' else 'info-circle' }}"></i>
+        {{ msg }}
       </div>
     {% endfor %}{% endif %}
   {% endwith %}
 </div>
 
-<div class="booking-layout">
+<!-- BOOKING LAYOUT -->
+<div class="booking-wrap">
 
-  <!-- LEFT COLUMN -->
-  <div class="col-left">
+  <!-- LEFT: Calendar + Slots -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
 
-    <div class="card-z">
-      <div class="card-header-z">
-        <div class="ch-icon"><i class="fas fa-calendar-days"></i></div>
-        <div class="ch-title">{% if lang == 'en' %}Select Date{% else %}اختر التاريخ{% endif %}</div>
+    <!-- STEP 1: DATE -->
+    <div class="card-z" style="animation-delay:.0s">
+      <div class="card-head">
+        <div class="step-badge">1</div>
+        <div>
+          <div class="ch-title">{% if lang == 'en' %}Select Date{% else %}اختر التاريخ{% endif %}</div>
+          <div class="ch-sub" id="selectedDateLabel">{% if lang == 'en' %}No date selected{% else %}لم يتم اختيار تاريخ{% endif %}</div>
+        </div>
       </div>
-      <div class="card-body-z">
-        <div class="date-strip" id="dateStrip"></div>
+      <div class="card-body">
+
+        <!-- Quick chips -->
+        <div class="quick-dates">
+          <button class="quick-btn active" id="qToday"    onclick="quickDate(0,this)">{% if lang == 'en' %}Today{% else %}اليوم{% endif %}</button>
+          <button class="quick-btn"        id="qTomorrow" onclick="quickDate(1,this)">{% if lang == 'en' %}Tomorrow{% else %}غداً{% endif %}</button>
+          <button class="quick-btn"        id="qDay3"     onclick="quickDate(2,this)"></button>
+          <button class="quick-btn"        id="qDay4"     onclick="quickDate(3,this)"></button>
+        </div>
+
+        <!-- Date picker -->
+        <div class="date-picker-wrap">
+          <i class="fas fa-calendar-days date-picker-icon"></i>
+          <input type="date" id="datePicker" class="date-picker-input"
+                 onchange="pickDateFromInput(this.value)"
+                 placeholder="{% if lang == 'en' %}Pick a date{% else %}اختر تاريخاً{% endif %}"/>
+        </div>
+
       </div>
     </div>
 
-    <div class="card-z">
+    <!-- STEP 2: COURT + TIME -->
+    <div class="card-z" style="animation-delay:.08s">
+      <div class="card-head">
+        <div class="step-badge">2</div>
+        <div>
+          <div class="ch-title">{% if lang == 'en' %}Select Court & Time{% else %}اختر الملعب والوقت{% endif %}</div>
+          <div class="ch-sub">{% if lang == 'en' %}Pick a court then choose your slot{% else %}اختر الملعب ثم حدد وقتاً{% endif %}</div>
+        </div>
+      </div>
+
+      <!-- Court tabs -->
       <div class="court-tabs" id="courtTabs">
         {% for court in courts %}
         <button class="court-tab {% if loop.first %}active{% endif %}"
                 data-court-id="{{ court.id }}"
                 data-court-name="{{ court.name }}"
                 data-court-price="{{ court.price_per_hour|default(25000) }}"
-                data-court-color="{{ court.color|default('#596770') }}"
                 onclick="selectCourt(this)">
           <span class="court-dot" style="background:{{ court.color|default('#596770') }};"></span>
           {{ court.name }}
         </button>
         {% endfor %}
       </div>
-      <div class="slots-section">
-        <div class="discount-banner">
-          <i class="fas fa-tag"></i>
-          <div>{% if lang == 'en' %}<strong>25% Discount</strong><span> from </span><strong>12:00–16:00</strong><span> automatically applied</span>{% else %}<strong>خصم 25%</strong><span> من </span><strong>12:00–16:00</strong><span> تلقائياً</span>{% endif %}</div>
+
+      <!-- Discount banner -->
+      <div class="discount-banner">
+        <i class="fas fa-bolt"></i>
+        <div>
+          {% if lang == 'en' %}<strong>25% OFF</strong><span> automatically from </span><strong>12:00 to 16:00</strong><span> daily</span>
+          {% else %}<strong>خصم 25%</strong><span> تلقائياً من </span><strong>12:00 إلى 16:00</strong><span> يومياً</span>{% endif %}
         </div>
+      </div>
+
+      <!-- Slots -->
+      <div class="slots-wrap">
         <div class="slots-legend">
           <div class="legend-item"><div class="legend-dot free"></div>{% if lang == 'en' %}Available{% else %}متاح{% endif %}</div>
           <div class="legend-item"><div class="legend-dot discount"></div>{% if lang == 'en' %}Discount{% else %}خصم{% endif %}</div>
@@ -325,66 +419,82 @@
           <div class="legend-item"><div class="legend-dot past"></div>{% if lang == 'en' %}Past{% else %}منتهي{% endif %}</div>
         </div>
         <div id="slotsContainer">
-          <div class="slots-loading"><i class="fas fa-spinner"></i><span>{% if lang == 'en' %}Loading...{% else %}جاري التحميل...{% endif %}</span></div>
+          <div class="slots-loading"><i class="fas fa-spinner"></i><span>{% if lang == 'en' %}Select a date first...{% else %}اختر التاريخ أولاً...{% endif %}</span></div>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- RIGHT COLUMN -->
-  <div class="col-right">
+  <!-- RIGHT: Summary + Form -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
 
-    <div class="card-z">
-      <div class="card-header-z">
+    <!-- SUMMARY -->
+    <div class="card-z" style="animation-delay:.12s">
+      <div class="card-head">
         <div class="ch-icon"><i class="fas fa-receipt"></i></div>
         <div class="ch-title">{% if lang == 'en' %}Booking Summary{% else %}ملخص الحجز{% endif %}</div>
       </div>
-      <div class="card-body-z" id="summaryBody">
+      <div class="card-body" id="summaryBody">
         <div class="summary-empty">
-          <i class="fas fa-calendar-xmark"></i>
-          <p>{% if lang == 'en' %}Select a time to view details{% else %}اختر وقتاً لعرض التفاصيل{% endif %}</p>
+          <i class="fas fa-calendar-days"></i>
+          <p>{% if lang == 'en' %}Select a date and time slot to see your booking summary here.{% else %}اختر التاريخ والوقت لرؤية ملخص حجزك هنا.{% endif %}</p>
         </div>
       </div>
     </div>
 
-    <div class="card-z" id="bookingFormCard" style="display:none;">
-      <div class="card-header-z">
-        <div class="ch-icon"><i class="fas fa-user"></i></div>
-        <div class="ch-title">{% if lang == 'en' %}Your Details{% else %}بياناتك{% endif %}</div>
+    <!-- FORM -->
+    <div class="card-z" id="formCard" style="display:none;animation-delay:.16s">
+      <div class="card-head">
+        <div class="step-badge">3</div>
+        <div>
+          <div class="ch-title">{% if lang == 'en' %}Your Details{% else %}بياناتك{% endif %}</div>
+          <div class="ch-sub">{% if lang == 'en' %}Fill in to confirm{% else %}أكمل البيانات للتأكيد{% endif %}</div>
+        </div>
       </div>
-      <div class="card-body-z">
+      <div class="card-body">
         <form method="POST" action="{{ url_for('booking.create') }}">
           <input type="hidden" name="csrf_token"   value="{{ csrf_token() }}"/>
           <input type="hidden" name="court_id"     id="f_court_id"/>
-          <input type="hidden" name="booking_date" id="f_booking_date"/>
-          <input type="hidden" name="start_time"   id="f_start_time"/>
-          <input type="hidden" name="end_time"     id="f_end_time"/>
+          <input type="hidden" name="booking_date" id="f_date"/>
+          <input type="hidden" name="start_time"   id="f_start"/>
+          <input type="hidden" name="end_time"     id="f_end"/>
+
           <div class="form-group">
-            <label class="form-label">{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %} <span style="color:#e53935;">*</span></label>
-            <input type="text" name="customer_name" class="form-input" required placeholder="{% if lang == 'en' %}Enter your full name{% else %}أدخل اسمك الكامل{% endif %}"/>
+            <label class="form-lbl">{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %} <span style="color:#e53935;">*</span></label>
+            <input type="text" name="customer_name" class="form-inp" required
+                   placeholder="{% if lang == 'en' %}Enter your full name{% else %}أدخل اسمك الكامل{% endif %}"/>
           </div>
+
           <div class="form-group">
-            <label class="form-label">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:#e53935;">*</span></label>
-            <input type="tel" name="customer_phone" class="form-input" required placeholder="07xx xxx xxxx" dir="ltr"/>
+            <label class="form-lbl">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:#e53935;">*</span></label>
+            <input type="tel" name="customer_phone" class="form-inp" required
+                   placeholder="07xx xxx xxxx" dir="ltr"/>
           </div>
+
           <div class="form-group">
-            <label class="form-label">{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</label>
-            <div class="duration-btns">
-              <button type="button" class="dur-btn active" onclick="setDuration(1,this)">{% if lang == 'en' %}1 Hour{% else %}ساعة{% endif %}</button>
-              <button type="button" class="dur-btn" onclick="setDuration(1.5,this)">{% if lang == 'en' %}1.5 Hours{% else %}ساعة ونص{% endif %}</button>
-              <button type="button" class="dur-btn" onclick="setDuration(2,this)">{% if lang == 'en' %}2 Hours{% else %}ساعتان{% endif %}</button>
+            <label class="form-lbl">{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</label>
+            <div class="dur-row">
+              <button type="button" class="dur-btn active" onclick="setDur(1,this)">{% if lang == 'en' %}1 hr{% else %}ساعة{% endif %}</button>
+              <button type="button" class="dur-btn" onclick="setDur(1.5,this)">{% if lang == 'en' %}1.5 hr{% else %}١.٥ س{% endif %}</button>
+              <button type="button" class="dur-btn" onclick="setDur(2,this)">{% if lang == 'en' %}2 hr{% else %}ساعتان{% endif %}</button>
             </div>
           </div>
+
           <div class="form-group">
-            <label class="form-label">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %} <small style="color:var(--text-muted);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</small></label>
-            <input type="text" name="notes" class="form-input" placeholder="{% if lang == 'en' %}Any notes...{% else %}أي ملاحظات...{% endif %}"/>
+            <label class="form-lbl">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %} <small style="color:var(--muted-light);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</small></label>
+            <input type="text" name="notes" class="form-inp"
+                   placeholder="{% if lang == 'en' %}Any special requests...{% else %}أي ملاحظات خاصة...{% endif %}"/>
           </div>
-          <div class="no-prepay-note">
-            <i class="fas fa-circle-check"></i> {% if lang == 'en' %}No upfront payment — pay on arrival{% else %}بدون دفع مسبق — ادفع عند الحضور{% endif %}
+
+          <div class="no-pay-badge">
+            <i class="fas fa-circle-check"></i>
+            {% if lang == 'en' %}No upfront payment — pay when you arrive{% else %}بدون دفع مسبق — ادفع عند الحضور{% endif %}
           </div>
-          <button type="submit" class="btn-confirm">
-            <i class="fas fa-calendar-check"></i> {% if lang == 'en' %}Confirm Booking{% else %}تأكيد الحجز{% endif %}
+
+          <button type="submit" class="btn-book" id="btnBook">
+            <i class="fas fa-calendar-check"></i>
+            {% if lang == 'en' %}Confirm Booking{% else %}تأكيد الحجز{% endif %}
           </button>
         </form>
       </div>
@@ -396,197 +506,184 @@
 <script>
 const COURTS       = {{ courts_data | tojson }};
 const BOOKED_SLOTS = {{ booked_slots | tojson }};
+const OPEN = 0, CLOSE = 24, DS = 12, DE = 16, DISC = 0.25;
+const IS_EN = '{{ lang }}' === 'en';
 
-// ── 24-hour operation, discount 12:00–16:00 ──
-const OPEN = 0, CLOSE = 24, DS = 12, DE = 16, DPCT = 0.25;
+{% if lang == 'en' %}
+const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+{% else %}
+const DAY_NAMES   = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const MONTH_NAMES = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const MONTH_SHORT = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+{% endif %}
 
+const today = new Date(); today.setHours(0,0,0,0);
 let selDate = null, selCourt = null, selPrice = 25000, selStart = null, dur = 1;
+const todayStr = today.toISOString().split('T')[0];
 
-function buildDateStrip() {
-  const s  = document.getElementById('dateStrip');
-  s.innerHTML = '';
-  const t  = new Date();
-  {% if lang == 'en' %}
-  const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  {% else %}
-  const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const MN = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  {% endif %}
-
-  // Show 30 days starting from today
-  for (let i = 0; i < 30; i++) {
-    const d  = new Date(t);
-    d.setDate(t.getDate() + i);
-    const ds = d.toISOString().split('T')[0];
-    const b  = document.createElement('button');
-    b.className  = 'date-btn' + (i === 0 ? ' today active' : '');
-    b.dataset.date = ds;
-    b.innerHTML  = `<span class="dn">${DN[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dm">${MN[d.getMonth()]}</span>`;
-    b.onclick    = () => selectDate(b, ds);
-    s.appendChild(b);
-    if (i === 0) selDate = ds;
-  }
+function pickDateFromInput(ds) {
+  if (!ds || ds < todayStr) return;
+  selDate = ds; selStart = null;
+  const dt = new Date(ds + 'T00:00:00');
+  updateDateLabel(dt); clearQuickActive(); renderSlots(); updateSummary();
 }
 
-function selectDate(btn, ds) {
-  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  selDate  = ds;
-  selStart = null;
-  renderSlots();
-  updateSummary();
+function updateDateLabel(dt) {
+  document.getElementById('selectedDateLabel').textContent = `${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]} ${dt.getFullYear()}`;
 }
+
+function initQuickChips() {
+  [0,1,2,3].forEach((offset, i) => {
+    const d  = new Date(today); d.setDate(today.getDate() + offset);
+    const el = document.getElementById(['qToday','qTomorrow','qDay3','qDay4'][i]);
+    if (offset >= 2) el.textContent = `${DAY_NAMES[d.getDay()]} ${d.getDate()}`;
+    el.dataset.ds = d.toISOString().split('T')[0];
+  });
+}
+
+function quickDate(offset, btn) {
+  const d = new Date(today); d.setDate(today.getDate() + offset);
+  const ds = d.toISOString().split('T')[0];
+  clearQuickActive(); btn.classList.add('active');
+  selDate = ds; selStart = null;
+  document.getElementById('datePicker').value = ds;
+  updateDateLabel(d); renderSlots(); updateSummary();
+}
+function clearQuickActive() { document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active')); }
 
 function selectCourt(btn) {
   document.querySelectorAll('.court-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  selCourt = btn.dataset.courtId;
-  selPrice = parseFloat(btn.dataset.courtPrice) || 25000;
-  selStart = null;
-  renderSlots();
-  updateSummary();
+  selCourt = btn.dataset.courtId; selPrice = parseFloat(btn.dataset.courtPrice) || 25000;
+  selStart = null; renderSlots(); updateSummary();
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  buildDateStrip();
-  const f = document.querySelector('.court-tab');
-  if (f) {
-    selCourt = f.dataset.courtId;
-    selPrice = parseFloat(f.dataset.courtPrice) || 25000;
-    renderSlots();
-  } else {
-    document.getElementById('slotsContainer').innerHTML =
-      `<div style="text-align:center;padding:32px;color:var(--text-muted);">
-        <i class="fas fa-shield-halved" style="font-size:28px;color:var(--sand-mid);display:block;margin-bottom:8px;"></i>
-        <p style="font-size:13px;">{% if lang == 'en' %}No courts available{% else %}لا توجد ملاعب متاحة{% endif %}</p>
-      </div>`;
-  }
-});
-
 function renderSlots() {
-  if (!selDate || !selCourt) return;
+  const container = document.getElementById('slotsContainer');
+  if (!selDate) { container.innerHTML = `<div class="slots-loading"><i class="fas fa-calendar"></i><span>${IS_EN ? 'Select a date above first' : 'اختر التاريخ أولاً من الأعلى'}</span></div>`; return; }
+  if (!selCourt) { container.innerHTML = `<div class="slots-loading"><i class="fas fa-shield-halved"></i><span>${IS_EN ? 'No courts available' : 'لا توجد ملاعب'}</span></div>`; return; }
 
-  const booked  = (BOOKED_SLOTS[`${selCourt}:${selDate}`]) || [];
-  const now     = new Date();
-  const isToday = selDate === now.toISOString().split('T')[0];
-  const nowH    = now.getHours();
-  const nowM    = now.getMinutes();
+  const booked = BOOKED_SLOTS[`${selCourt}:${selDate}`] || [];
+  const now = new Date(), isToday = selDate === today.toISOString().split('T')[0];
+  const nowH = now.getHours(), nowM = now.getMinutes();
 
-  let html = '<div class="slots-grid">';
-
+  const amSlots = [], pmSlots = [], evSlots = [];
   for (let h = OPEN; h < CLOSE; h++) {
-    const ts   = `${String(h).padStart(2, '0')}:00`;
+    const ts   = `${String(h).padStart(2,'0')}:00`;
     const past = isToday && (h < nowH || (h === nowH && nowM > 0));
     const bkd  = booked.includes(ts);
     const disc = h >= DS && h < DE;
     const sel  = selStart === ts;
 
     let cls = 'slot-btn ';
-    if (sel)        cls += 'selected';
-    else if (past)  cls += 'past';
-    else if (bkd)   cls += 'booked';
-    else if (disc)  cls += 'discount';
-    else            cls += 'free';
+    if (sel) cls += 'selected';
+    else if (past) cls += 'past';
+    else if (bkd)  cls += 'booked';
+    else if (disc) cls += 'discount';
+    else           cls += 'free';
 
-    const price = (disc ? Math.round(selPrice * (1 - DPCT)) : selPrice).toLocaleString();
-    const ok    = !past && !bkd;
+    const rawPrice = disc ? Math.round(selPrice * (1 - DISC)) : selPrice;
+    const ok = !past && !bkd;
 
-    html += `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${disc})"` : ''}>
-      ${disc && !sel && !past && !bkd ? '<span class="slot-tag">{% if lang == "en" %}DISC{% else %}خصم{% endif %}</span>' : ''}
+    const html = `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${disc})"` : ''}>
+      ${disc && !sel && !past && !bkd ? `<span class="disc-pill">${IS_EN ? '-25%' : 'خصم'}</span>` : ''}
       <i class="fas fa-check slot-check"></i>
       <span class="slot-time">${ts}</span>
-      ${bkd
-        ? '<span class="slot-dur" style="color:#EF9A9A;font-size:8px;">{% if lang == "en" %}Booked{% else %}محجوز{% endif %}</span>'
-        : '<span class="slot-dur">{% if lang == "en" %}1h{% else %}1س{% endif %}</span>'}
-      ${!bkd && !past ? `<span class="slot-price">${price}</span>` : ''}
+      ${!bkd && !past ? `<span class="slot-price">${rawPrice.toLocaleString()}</span>` : `<span class="slot-price">${bkd ? (IS_EN?'Booked':'محجوز') : (IS_EN?'Past':'منتهي')}</span>`}
     </div>`;
+
+    if (h < 12) amSlots.push(html);
+    else if (h < 16) pmSlots.push(html);
+    else evSlots.push(html);
   }
 
-  html += '</div>';
-  document.getElementById('slotsContainer').innerHTML = html;
+  container.innerHTML = `
+    <div class="slots-group-label">${IS_EN ? '🌅 Morning — 00:00 to 12:00' : '🌅 الصباح — 00:00 إلى 12:00'}</div>
+    <div class="slots-grid">${amSlots.join('')}</div>
+    <div class="slots-group-label">${IS_EN ? '☀️ Afternoon — 12:00 to 16:00' : '☀️ الظهيرة — 12:00 إلى 16:00'}</div>
+    <div class="slots-grid">${pmSlots.join('')}</div>
+    <div class="slots-group-label">${IS_EN ? '🌙 Evening — 16:00 to 24:00' : '🌙 المساء — 16:00 إلى 24:00'}</div>
+    <div class="slots-grid">${evSlots.join('')}</div>
+  `;
 }
 
 function selectSlot(ts, disc) {
   selStart = ts;
-  const sh  = parseInt(ts);
-  const em  = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60); // clamp at midnight
-  const et  = `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
+  const sh = parseInt(ts);
+  const em = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
+  const et = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
 
-  document.getElementById('f_court_id').value    = selCourt;
-  document.getElementById('f_booking_date').value = selDate;
-  document.getElementById('f_start_time').value  = ts;
-  document.getElementById('f_end_time').value    = et;
+  document.getElementById('f_court_id').value = selCourt;
+  document.getElementById('f_date').value     = selDate;
+  document.getElementById('f_start').value    = ts;
+  document.getElementById('f_end').value      = et;
 
-  renderSlots();
-  updateSummary();
+  renderSlots(); updateSummary();
 
-  const fc = document.getElementById('bookingFormCard');
+  const fc = document.getElementById('formCard');
   fc.style.display = 'block';
-  if (window.innerWidth <= 860) fc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => fc.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 
-function setDuration(h, btn) {
+function setDur(h, btn) {
   dur = h;
   document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   if (selStart) {
     const sh = parseInt(selStart);
     const em = Math.min(sh * 60 + Math.round(h * 60), 24 * 60);
-    document.getElementById('f_end_time').value =
-      `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
+    document.getElementById('f_end').value = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
   }
   updateSummary();
-  renderSlots();
 }
 
 function updateSummary() {
   const body = document.getElementById('summaryBody');
-  if (!selStart || !selCourt) {
-    body.innerHTML = `<div class="summary-empty"><i class="fas fa-calendar-xmark"></i><p>{% if lang == 'en' %}Select a time to view details{% else %}اختر وقتاً لعرض التفاصيل{% endif %}</p></div>`;
+  if (!selDate || !selStart || !selCourt) {
+    body.innerHTML = `<div class="summary-empty"><i class="fas fa-calendar-days"></i><p>${IS_EN ? 'Select a date and time slot to see your booking summary here.' : 'اختر التاريخ والوقت لرؤية ملخص حجزك هنا.'}</p></div>`;
     return;
   }
-
-  const tab  = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
-  const name = tab ? tab.dataset.courtName : '—';
-  const sh   = parseInt(selStart);
-  const disc = sh >= DS && sh < DE;
-  const total = Math.round((disc ? selPrice * (1 - DPCT) : selPrice) * dur);
-  const em   = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
-  const et   = `${String(Math.floor(em / 60)).padStart(2, '0')}:${String(em % 60).padStart(2, '0')}`;
-
-  const d  = new Date(selDate + 'T00:00:00');
-  {% if lang == 'en' %}
-  const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  {% else %}
-  const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const MN = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  {% endif %}
+  const tab   = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
+  const cName = tab ? tab.dataset.courtName : '—';
+  const sh    = parseInt(selStart);
+  const disc  = sh >= DS && sh < DE;
+  const em    = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
+  const et    = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
+  const total = Math.round((disc ? selPrice * (1 - DISC) : selPrice) * dur);
+  const dt    = new Date(selDate + 'T00:00:00');
+  const dateLbl = `${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`;
+  const durLbl  = dur === 1 ? (IS_EN ? '1 Hour' : 'ساعة') : dur === 1.5 ? (IS_EN ? '1.5 Hours' : 'ساعة ونص') : (IS_EN ? '2 Hours' : 'ساعتان');
 
   body.innerHTML = `
-    <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-shield-halved"></i>{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</div>
-      <div class="sf-value">${name}</div>
+    <div class="summary-row"><div class="sr-label"><i class="fas fa-shield-halved"></i>${IS_EN?'Court':'الملعب'}</div><div class="sr-value">${cName}</div></div>
+    <div class="summary-row"><div class="sr-label"><i class="fas fa-calendar-day"></i>${IS_EN?'Date':'التاريخ'}</div><div class="sr-value">${dateLbl}</div></div>
+    <div class="summary-row"><div class="sr-label"><i class="fas fa-clock"></i>${IS_EN?'Time':'الوقت'}</div><div class="sr-value" style="direction:ltr;">${selStart} – ${et}</div></div>
+    <div class="summary-row"><div class="sr-label"><i class="fas fa-hourglass-half"></i>${IS_EN?'Duration':'المدة'}</div><div class="sr-value">${durLbl}</div></div>
+    <div class="price-box">
+      <div>
+        <div class="price-box-label">${IS_EN?'Total':'الإجمالي'}</div>
+        ${disc ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Montserrat',sans-serif;">${IS_EN?'After 25% discount':'بعد خصم 25%'}</div>` : ''}
+        <div class="price-box-val">${total.toLocaleString()}<small>${IS_EN?'IQD':'د.ع'}</small></div>
+      </div>
     </div>
-    <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-calendar-day"></i>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</div>
-      <div class="sf-value">${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</div>
-    </div>
-    <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-clock"></i>{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</div>
-      <div class="sf-value" style="direction:ltr;">${selStart} — ${et}</div>
-    </div>
-    <div class="summary-field">
-      <div class="sf-label"><i class="fas fa-hourglass"></i>{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</div>
-      <div class="sf-value">${dur === 1 ? '{% if lang == "en" %}1 Hour{% else %}ساعة{% endif %}' : dur === 1.5 ? '{% if lang == "en" %}1.5 Hours{% else %}ساعة ونص{% endif %}' : '{% if lang == "en" %}2 Hours{% else %}ساعتان{% endif %}'}</div>
-    </div>
-    <div class="price-total">
-      <div class="price-total-label">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div>
-      <div class="price-total-value">${total.toLocaleString()} <small>{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small></div>
-    </div>
-    ${disc ? '<div class="discount-applied"><i class="fas fa-tag"></i> {% if lang == "en" %}25% discount applied (12–16){% else %}خصم 25% مطبق (12–16){% endif %}</div>' : ''}`;
+    ${disc ? `<div class="discount-tag"><i class="fas fa-tag"></i>${IS_EN?'25% discount applied (12:00–16:00)':'خصم 25% مطبق (12:00–16:00)'}</div>` : ''}
+  `;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  initQuickChips();
+  const dp = document.getElementById('datePicker');
+  dp.min = todayStr;
+  quickDate(0, document.getElementById('qToday'));
+  const firstCourt = document.querySelector('.court-tab');
+  if (firstCourt) {
+    selCourt = firstCourt.dataset.courtId;
+    selPrice = parseFloat(firstCourt.dataset.courtPrice) || 25000;
+    renderSlots();
+  }
+});
 </script>
 </body>
 </html>

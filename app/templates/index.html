@@ -2,13 +2,13 @@
 <html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>{% if lang == 'en' %}Z Padel — Duhok | Professional Padel Courts{% else %}Z Padel — دهوك | ملاعب الباديل الاحترافية{% endif %}</title>
 
-  <!-- Fonts first -->
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet"/>
 
-  <!-- Bootstrap — RTL for Arabic, LTR for English -->
+  <!-- Bootstrap -->
   {% if lang == 'en' %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
   {% else %}
@@ -18,53 +18,75 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-  <!-- Your custom CSS last — overrides Bootstrap -->
+  <!-- Main CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
+
+<!-- Scroll progress bar -->
 <div id="scrollBar"></div>
 
-<!-- MOBILE MENU -->
+<!-- ═══════════ MOBILE MENU ═══════════
+     backdrop-filter removed — causes blur on iOS Safari
+════════════════════════════════════ -->
 <div class="mobile-menu" id="mobileMenu">
-  <button class="mobile-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
+  <button class="mobile-close" onclick="closeMobileMenu()">
+    <i class="fas fa-xmark"></i>
+  </button>
   <a href="#courts"   onclick="closeMobileMenu()">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
   <a href="#features" onclick="closeMobileMenu()">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
-  <a href="#pricing"  onclick="closeMobileMenu()">{% if lang == 'en' %}Pricing{% else %}الأسعار{% endif %}</a>
   <a href="#store"    onclick="closeMobileMenu()">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
   <a href="#contact"  onclick="closeMobileMenu()">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
-  <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()" style="background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;margin-top:12px;border-radius:50px;padding:14px 40px;">
+  <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()"
+     style="background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;margin-top:10px;border-radius:50px;padding:13px 36px;">
     <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
   </a>
-  <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" onclick="closeMobileMenu()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 28px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+  <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" onclick="closeMobileMenu()"
+     style="background:rgba(255,255,255,.10);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 26px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
     <i class="fas fa-globe"></i> {% if lang == 'en' %}العربية{% else %}English{% endif %}
   </a>
 </div>
 
-<!-- NAVBAR -->
+<!-- ═══════════ NAVBAR ═══════════ -->
 <nav class="navbar-z" id="navbar">
   <div class="nav-inner">
+
+    <!-- Brand -->
     <a href="{{ url_for('main.index') }}" class="nav-brand">
-      <img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel" class="nav-brand-icon">
+      <div class="nav-brand-icon">
+        <img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel"/>
+      </div>
       <span class="nav-brand-name">Z Padel</span>
     </a>
+
+    <!-- Desktop links -->
     <div class="nav-links">
-      <a href="#courts"   class="nav-link-item">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
-      <a href="#steps"    class="nav-link-item">{% if lang == 'en' %}How to Book?{% else %}كيف تحجز؟{% endif %}</a>
-      <a href="#store"    class="nav-link-item">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
-      <a href="#contact"  class="nav-link-item">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
+      <a href="#courts"  class="nav-link-item">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
+      <a href="#features" class="nav-link-item">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
+      <a href="#store"   class="nav-link-item">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
+      <a href="#contact" class="nav-link-item">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <a href="{{ url_for('booking.index') }}" class="nav-cta"><i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}</a>
-      <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-btn" title="{% if lang == 'en' %}Switch to Arabic{% else %}Switch to English{% endif %}">
-        <i class="fas fa-globe"></i>
-        <span>{% if lang == 'en' %}العربية{% else %}EN{% endif %}</span>
+
+    <!-- Right actions — all grouped so mobile hides/shows correctly -->
+    <div class="nav-actions">
+      <a href="{{ url_for('booking.index') }}" class="nav-cta">
+        <i class="fas fa-calendar-plus"></i>
+        <span>{% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}</span>
       </a>
-      <button class="nav-toggle" id="navToggle" onclick="openMobileMenu()"><span></span><span></span><span></span></button>
+      <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-btn"
+         title="{% if lang == 'en' %}Switch to Arabic{% else %}Switch to English{% endif %}">
+        <i class="fas fa-globe"></i>
+        <span>{% if lang == 'en' %}عربي{% else %}EN{% endif %}</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" onclick="openMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- ═══════════ HERO ═══════════ -->
 <section class="hero" id="home">
   <div class="hero-video-wrap">
     <video autoplay muted loop playsinline poster="">
@@ -73,36 +95,61 @@
   </div>
   <div class="hero-overlay"></div>
   <div class="hero-fade-bottom"></div>
+
   <div class="container-z hero-content">
     <div class="row">
       <div class="col-lg-7">
+
         <div class="hero-eyebrow">
-          <i class="fas fa-location-dot"></i> {% if lang == 'en' %}Duhok · Kurdistan, Iraq{% else %}دهوك · كردستان العراق{% endif %}
+          <i class="fas fa-location-dot"></i>
+          {% if lang == 'en' %}Duhok · Kurdistan, Iraq{% else %}دهوك · كردستان العراق{% endif %}
         </div>
+
         <h1 class="hero-title">
           <span class="line-sm">{% if lang == 'en' %}Welcome to{% else %}مرحباً بك في{% endif %}</span>
           <span class="line-big">Z <em>Padel</em></span>
         </h1>
-        <p class="hero-sub">{% if lang == 'en' %}Your #1 destination for padel in Duhok — professional courts, easy booking with no upfront payment, and 25% daily discount from 12:00 to 16:00.{% else %}وجهتك الأولى لرياضة الباديل في دهوك — ملاعب بأعلى المواصفات، حجز سهل بدون دفع مسبق، وخصم 25% يومياً من 12 إلى 16.{% endif %}</p>
+
+        <p class="hero-sub">
+          {% if lang == 'en' %}
+            Your #1 destination for padel in Duhok — professional courts, easy booking with no upfront payment, and 25% daily discount from 12:00 to 16:00.
+          {% else %}
+            وجهتك الأولى لرياضة الباديل في دهوك — ملاعب بأعلى المواصفات، حجز سهل بدون دفع مسبق، وخصم 25% يومياً من 12 إلى 16.
+          {% endif %}
+        </p>
+
         <div class="hero-btns">
           <a href="{{ url_for('booking.index') }}" class="btn-main">
-            <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
+            <i class="fas fa-calendar-plus"></i>
+            {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
           </a>
           <a href="#courts" class="btn-ghost">
-            <i class="fas fa-arrow-down"></i> {% if lang == 'en' %}View Courts{% else %}شاهد الملاعب{% endif %}
+            <i class="fas fa-arrow-down"></i>
+            {% if lang == 'en' %}View Courts{% else %}شاهد الملاعب{% endif %}
           </a>
         </div>
+
         <div class="hero-stats">
-          <div class="hst"><div class="hst-val">{{ courts|length }}<em>+</em></div><div class="hst-lbl">{% if lang == 'en' %}Pro Courts{% else %}ملعب احترافي{% endif %}</div></div>
-          <div class="hst"><div class="hst-val">{{ total_bookings|default(0) }}<em>+</em></div><div class="hst-lbl">{% if lang == 'en' %}Bookings Done{% else %}حجز منجز{% endif %}</div></div>
-          <div class="hst"><div class="hst-val">25<em>%</em></div><div class="hst-lbl">{% if lang == 'en' %}Discount 12–16{% else %}خصم 12–16{% endif %}</div></div>
+          <div class="hst">
+            <div class="hst-val">{{ courts|length }}<em>+</em></div>
+            <div class="hst-lbl">{% if lang == 'en' %}Pro Courts{% else %}ملعب احترافي{% endif %}</div>
+          </div>
+          <div class="hst">
+            <div class="hst-val">{{ total_bookings|default(0) }}<em>+</em></div>
+            <div class="hst-lbl">{% if lang == 'en' %}Bookings Done{% else %}حجز منجز{% endif %}</div>
+          </div>
+          <div class="hst">
+            <div class="hst-val">25<em>%</em></div>
+            <div class="hst-lbl">{% if lang == 'en' %}Discount 12–16{% else %}خصم 12–16{% endif %}</div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 </section>
 
-<!-- TICKER -->
+<!-- ═══════════ TICKER ═══════════ -->
 <div class="ticker">
   <div class="ticker-track">
     {% if lang == 'en' %}
@@ -116,17 +163,24 @@
   </div>
 </div>
 
-<!-- COURTS -->
+<!-- ═══════════ COURTS ═══════════ -->
 <section class="section courts-section" id="courts">
   <div class="container-z">
 
     <div class="courts-header reveal">
       <div>
         <span class="sec-eye"><i class="fas fa-shield-halved"></i> {% if lang == 'en' %}Our Courts{% else %}ملاعبنا{% endif %}</span>
-        <h2 class="sec-ttl">{% if lang == 'en' %}<span>Professional</span> Courts for All Levels{% else %}ملاعب <span>احترافية</span> لكل المستويات{% endif %}</h2>
-        <p class="sec-sub">{% if lang == 'en' %}Equipped to the highest standards for an unforgettable playing experience{% else %}مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى{% endif %}</p>
+        <h2 class="sec-ttl">
+          {% if lang == 'en' %}<span>Professional</span> Courts for All Levels{% else %}ملاعب <span>احترافية</span> لكل المستويات{% endif %}
+        </h2>
+        <p class="sec-sub">
+          {% if lang == 'en' %}Equipped to the highest standards for an unforgettable playing experience{% else %}مجهزة بأعلى المواصفات لتجربة لعب لا تُنسى{% endif %}
+        </p>
       </div>
-      <a href="{{ url_for('booking.index') }}" class="btn-blue" style="white-space:nowrap;"></a>
+      <a href="{{ url_for('booking.index') }}" class="btn-blue" style="white-space:nowrap;align-self:flex-end;">
+        <i class="fas fa-calendar-plus"></i>
+        {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
+      </a>
     </div>
 
     <div class="courts-grid">
@@ -140,14 +194,15 @@
           <div class="cc-num">0{{ loop.index }}</div>
           <div class="cc-badge {{ 'available' if court.is_active else 'closed' }}">
             {% if court.is_active %}
-              <span class="cc-badge-dot"></span> {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
+              <span class="cc-badge-dot"></span>
+              {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
             {% else %}
-              <i class="fas fa-lock" style="font-size:9px;"></i> {% if lang == 'en' %}Temporarily Closed{% else %}مؤقتاً مغلق{% endif %}
+              <i class="fas fa-lock" style="font-size:9px;"></i>
+              {% if lang == 'en' %}Temporarily Closed{% else %}مؤقتاً مغلق{% endif %}
             {% endif %}
           </div>
           <div class="cc-ribbon">
-            <i class="fas fa-tag"></i> خصم 25%
-            <span>12–16</span>
+            <i class="fas fa-tag"></i> خصم 25% <span>12–16</span>
           </div>
           <div class="cc-img-bottom">
             <div class="cc-name">{{ court.name }}</div>
@@ -158,13 +213,15 @@
               </div>
               <div class="cc-disc">
                 <i class="fas fa-tag" style="font-size:9px;"></i>
-                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} {% if lang == 'en' %}during discount hours{% else %}في ساعات الخصم{% endif %}
+                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }}
+                {% if lang == 'en' %}during discount hours{% else %}في ساعات الخصم{% endif %}
               </div>
             </div>
           </div>
           <div class="cc-hover-btn">
             <a href="{{ url_for('booking.index') }}" class="cc-hover-link">
-              <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
+              <i class="fas fa-calendar-plus"></i>
+              {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
             </a>
           </div>
         </div>
@@ -173,15 +230,21 @@
             {{ court.description or ('Professional court equipped to the highest standards with LED lighting, suitable for all levels.' if lang == 'en' else 'ملعب احترافي مجهز بأعلى المواصفات وإضاءة LED احترافية، مناسب لجميع المستويات.') }}
           </p>
           <div class="cc-amenities">
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-lightbulb"></i></div><span>{% if lang == 'en' %}LED Lighting{% else %}إضاءة LED{% endif %}</span></div>
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-wind"></i></div><span>{% if lang == 'en' %}Central A/C{% else %}مكيف مركزي{% endif %}</span></div>
-            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-layer-group"></i></div><span>{% if lang == 'en' %}Artificial Turf{% else %}عشب صناعي{% endif %}</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-lightbulb"></i></div><span>{% if lang == 'en' %}LED{% else %}إضاءة{% endif %}</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-wind"></i></div><span>{% if lang == 'en' %}A/C{% else %}تكييف{% endif %}</span></div>
+            <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-layer-group"></i></div><span>{% if lang == 'en' %}Turf{% else %}عشب{% endif %}</span></div>
             <div class="cc-amenity"><div class="cc-amenity-icon"><i class="fas fa-users"></i></div><span>{% if lang == 'en' %}Doubles{% else %}مزدوج{% endif %}</span></div>
           </div>
           <div class="cc-footer">
             <div class="cc-pricing">
-              <div class="cc-price-full">{{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small>{% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small></div>
-              <div class="cc-price-off"><i class="fas fa-clock"></i> {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }} {% if lang == 'en' %}IQD during discount hours{% else %}د.ع في ساعات الخصم{% endif %}</div>
+              <div class="cc-price-full">
+                {{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small> {% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small>
+              </div>
+              <div class="cc-price-off">
+                <i class="fas fa-clock"></i>
+                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }}
+                {% if lang == 'en' %}IQD discount hours{% else %}د.ع ساعات الخصم{% endif %}
+              </div>
             </div>
             <a href="{{ url_for('booking.index') }}" class="cc-book">
               <i class="fas fa-calendar-plus"></i><span>{% if lang == 'en' %}Book{% else %}احجز{% endif %}</span>
@@ -201,36 +264,29 @@
   </div>
 </section>
 
-<!-- FEATURES -->
+<!-- ═══════════ FEATURES ═══════════ -->
 <section class="section section-alt" id="features">
-  <style>
-    :root { --primary-color: #596770; --secondary-color: #D6C3A1; --bg-color: #f9f9f9; }
-    #features { background-color: var(--bg-color); padding: 60px 0; }
-    #features .container-z { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-    #features .features-layout { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; }
-    #features .features-left { flex: 1; min-width: 300px; }
-    #features .features-grid { flex: 1.5; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-    #features .feat-item { background: #fff; padding: 20px; border-radius: 12px; display: flex; align-items: flex-start; gap: 15px; border: 1px solid #eee; transition: 0.3s; }
-    #features .feat-item:hover { transform: translateY(-5px); border-color: var(--primary-color); }
-    #features .fi-icon { font-size: 20px; color: var(--primary-color); background: rgba(255,153,0,.1); padding: 12px; border-radius: 50%; min-width: 45px; text-align: center; }
-    #features .fi-title { font-weight: bold; margin-bottom: 5px; color: var(--secondary-color); }
-    #features .fi-desc { font-size: 0.85rem; color: #666; line-height: 1.4; }
-    #features .sec-ttl { font-size: 2.5rem; margin: 15px 0; color: var(--secondary-color); }
-    #features .sec-ttl span { color: var(--primary-color); }
-    #features .btn-blue { display: inline-block; padding: 12px 25px; background: var(--primary-color); color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
-    #features .btn-blue:hover { opacity: 0.9; }
-  </style>
   <div class="container-z">
     <div class="features-layout">
       <div class="features-left reveal">
-        <span class="sec-eye" style="color:var(--primary-color);font-weight:bold;"><i class="fas fa-star"></i> {% if lang == 'en' %}Why Z Padel?{% else %}لماذا Z Padel؟{% endif %}</span>
-        <h2 class="sec-ttl">{% if lang == 'en' %}An <span>Exceptional</span> Padel Experience in Duhok{% else %}تجربة باديل<br/><span>استثنائية في دهوك</span>{% endif %}</h2>
-        <p class="sec-sub">{% if lang == 'en' %}Elevate your game with world-class facilities and services designed for your comfort.{% else %}ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.{% endif %}</p>
-        <div style="margin-top:28px;">
-          <a href="{{ url_for('booking.index') }}" class="btn-blue"><i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}</a>
+        <span class="sec-eye" style="color:var(--bdk);font-weight:bold;">
+          <i class="fas fa-star"></i> {% if lang == 'en' %}Why Z Padel?{% else %}لماذا Z Padel؟{% endif %}
+        </span>
+        <h2 class="sec-ttl">
+          {% if lang == 'en' %}An <span>Exceptional</span> Padel Experience in Duhok{% else %}تجربة باديل<br/><span>استثنائية في دهوك</span>{% endif %}
+        </h2>
+        <p class="sec-sub">
+          {% if lang == 'en' %}Elevate your game with world-class facilities and services designed for your comfort.{% else %}ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.{% endif %}
+        </p>
+        <div style="margin-top:24px;">
+          <a href="{{ url_for('booking.index') }}" class="btn-blue">
+            <i class="fas fa-calendar-plus"></i>
+            {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
+          </a>
         </div>
       </div>
-      <div class="features-grid">
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;">
         {% if lang == 'en' %}
         {% set features = [
           ('fa-calendar-check','Easy Booking','Book your court in minutes with no pre-registration.'),
@@ -254,10 +310,10 @@
           ('fa-shield-halved','ملاعب دولية','ملاعب مزدوجة بأعلى المعايير العالمية.')
         ] %}
         {% endif %}
-        {% for icon,title,desc in features %}
+        {% for icon, title, desc in features %}
         <div class="feat-item reveal">
           <div class="fi-icon"><i class="fas {{ icon }}"></i></div>
-          <div class="fi-content">
+          <div>
             <div class="fi-title">{{ title }}</div>
             <div class="fi-desc">{{ desc }}</div>
           </div>
@@ -268,60 +324,11 @@
   </div>
 </section>
 
-<!-- ============================================================
-     COACHES SECTION
-     ============================================================ -->
+<!-- ═══════════ COACHES ═══════════ -->
 <section class="section coaches-section" id="coaches">
-  <style>
-    .coach-card-real {
-      background: var(--bsft);
-      border: 1px solid var(--bmid);
-      border-radius: var(--r, 16px);
-      padding: 32px 24px;
-      text-align: center;
-      transition: transform .3s, border-color .3s;
-      cursor: pointer;
-    }
-    .coach-card-real:hover {
-      transform: translateY(-6px);
-      border-color: #D6C3A1;
-    }
-    .coach-avatar-img {
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #D6C3A1;
-      margin: 0 auto 16px;
-      display: block;
-    }
-    .coach-avatar-fallback {
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      background: var(--bdk, #596770);
-      border: 3px solid #D6C3A1;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-    }
-    .coach-avatar-fallback i { font-size: 2rem; color: #D6C3A1; }
-    .coach-name { font-size: 1.1rem; font-weight: 700; color: #D6C3A1; margin-bottom: 8px; }
-    .coach-status-badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      background: var(--bmid, rgba(255,255,255,.08));
-      color: var(--tm, #ccc);
-      margin-bottom: 12px;
-    }
-    .coach-status-badge.available { background: rgba(34,197,94,.15); color: #4ade80; }
-    .coach-status-badge.coming_soon { background: rgba(214,195,161,.15); color: #D6C3A1; }
-    .coach-bio { font-size: 13px; color: #aaa; line-height: 1.6; margin-top: 8px; }
-  </style>
-
   <div class="container-z">
 
-    <!-- Header -->
-    <div class="reveal" style="text-align:center;margin-bottom:64px;">
+    <div class="reveal" style="text-align:center;margin-bottom:56px;">
       <span class="sec-eye"><i class="fas fa-person-running"></i> {% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</span>
       <h2 class="sec-ttl" style="text-align:center;">
         {% if lang == 'en' %}<span>Professional</span> Coaches at Your Service{% else %}مدربون <span>محترفون</span> في خدمتك{% endif %}
@@ -332,186 +339,149 @@
     </div>
 
     {% if coaches %}
-
-      <!-- ✅ Real coaches from DB -->
-      <div class="row g-4 justify-content-center">
-        {% for coach in coaches %}
-        <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-          <div class="coach-card-real" onclick="openCoachBooking({{ coach.id }}, '{{ coach.name }}')">
-
-            {% if coach.image %}
-              <img src="{{ url_for('static', filename=coach.image) }}"
-                   alt="{{ coach.name }}" class="coach-avatar-img">
-            {% else %}
-              <div class="coach-avatar-fallback">
-                <i class="fas fa-user"></i>
-              </div>
-            {% endif %}
-
-            <div class="coach-name">{{ coach.name }}</div>
-
-            <span class="coach-status-badge {{ coach.status }}">
-              {% if coach.status == 'available' %}
-                <i class="fas fa-circle" style="font-size:8px;margin-left:4px;"></i> {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
-              {% else %}
-                <i class="fas fa-clock" style="font-size:10px;margin-left:4px;"></i> {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
-              {% endif %}
-            </span>
-
-            {% if coach.bio %}
-              <p class="coach-bio">{{ coach.bio }}</p>
-            {% endif %}
-
+    <div class="row g-4 justify-content-center">
+      {% for coach in coaches %}
+      <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
+        <div class="coach-card-real" onclick="openCoachBooking({{ coach.id }}, '{{ coach.name }}')">
+          {% if coach.image %}
+            <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-avatar-img">
+          {% else %}
+            <div class="coach-avatar-fallback"><i class="fas fa-user"></i></div>
+          {% endif %}
+          <div class="coach-name">{{ coach.name }}</div>
+          <span class="coach-status-badge {{ coach.status }}">
             {% if coach.status == 'available' %}
-            <div style="margin-top:16px;">
-              <button type="button" class="btn-blue" style="font-size:13px;padding:8px 20px;border:none;cursor:pointer;width:100%;">
-                <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
-              </button>
-            </div>
+              <i class="fas fa-circle" style="font-size:8px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+              {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
+            {% else %}
+              <i class="fas fa-clock" style="font-size:10px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+              {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
             {% endif %}
-
+          </span>
+          {% if coach.bio %}<p class="coach-bio">{{ coach.bio }}</p>{% endif %}
+          {% if coach.status == 'available' %}
+          <div style="margin-top:16px;">
+            <button type="button" class="btn-blue" style="width:100%;justify-content:center;border:none;cursor:pointer;">
+              <i class="fas fa-calendar-plus"></i>
+              {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
+            </button>
           </div>
+          {% endif %}
         </div>
-        {% endfor %}
       </div>
+      {% endfor %}
+    </div>
 
     {% else %}
-
-      <!-- ⏳ Coming Soon fallback (original design) -->
-      <div class="coaches-cs-wrap reveal">
-
-        <div class="coaches-cs-bg" aria-hidden="true">
-          <svg viewBox="0 0 900 500" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="40" width="820" height="420" stroke="rgba(214,195,161,.12)" stroke-width="1.5"/>
-            <line x1="450" y1="40" x2="450" y2="460" stroke="rgba(214,195,161,.10)" stroke-width="1"/>
-            <line x1="40" y1="250" x2="860" y2="250" stroke="rgba(214,195,161,.14)" stroke-width="2"/>
-            <rect x="160" y="40" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
-            <rect x="160" y="250" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
-            <circle cx="450" cy="250" r="70" stroke="rgba(214,195,161,.10)" stroke-width="1.5"/>
-            <circle cx="450" cy="250" r="5" fill="rgba(214,195,161,.15)"/>
-          </svg>
-        </div>
-
-        <div class="coaches-cs-glow"></div>
-
-        <div class="coaches-avatars">
-          <div class="coach-avatar-ph" style="--d:0s">
-            <div class="cap-inner"><i class="fas fa-user"></i></div>
-            <div class="cap-ring"></div>
-          </div>
-          <div class="coach-avatar-ph featured" style="--d:.15s">
-            <div class="cap-inner"><i class="fas fa-user"></i></div>
-            <div class="cap-ring"></div>
-            <div class="cap-badge"><i class="fas fa-star"></i></div>
-          </div>
-          <div class="coach-avatar-ph" style="--d:.3s">
-            <div class="cap-inner"><i class="fas fa-user"></i></div>
-            <div class="cap-ring"></div>
-          </div>
-        </div>
-
-        <div class="coaches-cs-content">
-          <div class="coaches-cs-label">
-            <span class="cs-dot"></span>
-            {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
-          </div>
-          <h3 class="coaches-cs-title">
-            {% if lang == 'en' %}We're bringing you<br/><em>the best coaches</em>{% else %}نعمل على إحضار<br/><em>أفضل المدربين</em> لك{% endif %}
-          </h3>
-          <p class="coaches-cs-sub">
-            {% if lang == 'en' %}You'll soon be able to book private training sessions with certified coaches to develop your padel skills from beginner to pro.{% else %}سيتمكن قريباً من حجز جلسات تدريبية خاصة مع مدربين معتمدين لتطوير مهاراتك في الباديل من الصفر وحتى الاحتراف.{% endif %}
-          </p>
-          <div class="coaches-cs-features">
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-calendar-check"></i></div><span>{% if lang == 'en' %}Direct Booking{% else %}حجز مباشر{% endif %}</span></div>
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-medal"></i></div><span>{% if lang == 'en' %}Certified Coaches{% else %}مدربون معتمدون{% endif %}</span></div>
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-chart-line"></i></div><span>{% if lang == 'en' %}Track Progress{% else %}تتبع التقدم{% endif %}</span></div>
-            <div class="csf-item"><div class="csf-icon"><i class="fas fa-clock"></i></div><span>{% if lang == 'en' %}Flexible Sessions{% else %}جلسات مرنة{% endif %}</span></div>
-          </div>
-          <div class="coaches-cs-notify">
-            <a href="#contact" class="coaches-cs-btn">
-              <i class="fas fa-bell"></i>
-              <span>{% if lang == 'en' %}Notify Me at Launch{% else %}أبلغني عند الإطلاق{% endif %}</span>
-            </a>
-            <p class="coaches-cs-hint">
-              <i class="fas fa-circle-info"></i>
-              {% if lang == 'en' %}Contact us to book a training session now{% else %}تواصل معنا لحجز جلسة تدريبية الآن{% endif %}
-            </p>
-          </div>
-        </div>
-
+    <!-- Coming Soon -->
+    <div class="coaches-cs-wrap reveal">
+      <div class="coaches-cs-bg" aria-hidden="true">
+        <svg viewBox="0 0 900 500" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <rect x="40" y="40" width="820" height="420" stroke="rgba(214,195,161,.12)" stroke-width="1.5"/>
+          <line x1="450" y1="40" x2="450" y2="460" stroke="rgba(214,195,161,.10)" stroke-width="1"/>
+          <line x1="40" y1="250" x2="860" y2="250" stroke="rgba(214,195,161,.14)" stroke-width="2"/>
+          <rect x="160" y="40" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
+          <rect x="160" y="250" width="580" height="210" stroke="rgba(214,195,161,.08)" stroke-width="1"/>
+          <circle cx="450" cy="250" r="70" stroke="rgba(214,195,161,.10)" stroke-width="1.5"/>
+          <circle cx="450" cy="250" r="5" fill="rgba(214,195,161,.15)"/>
+        </svg>
       </div>
-
+      <div class="coaches-cs-glow"></div>
+      <div class="coaches-avatars">
+        <div class="coach-avatar-ph" style="--d:0s"><div class="cap-inner"><i class="fas fa-user"></i></div><div class="cap-ring"></div></div>
+        <div class="coach-avatar-ph featured" style="--d:.15s"><div class="cap-inner"><i class="fas fa-user"></i></div><div class="cap-ring"></div><div class="cap-badge"><i class="fas fa-star"></i></div></div>
+        <div class="coach-avatar-ph" style="--d:.3s"><div class="cap-inner"><i class="fas fa-user"></i></div><div class="cap-ring"></div></div>
+      </div>
+      <div class="coaches-cs-content">
+        <div class="coaches-cs-label"><span class="cs-dot"></span>{% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}</div>
+        <h3 class="coaches-cs-title">
+          {% if lang == 'en' %}We're bringing you<br/><em>the best coaches</em>{% else %}نعمل على إحضار<br/><em>أفضل المدربين</em> لك{% endif %}
+        </h3>
+        <p class="coaches-cs-sub">
+          {% if lang == 'en' %}You'll soon be able to book private training sessions with certified coaches to develop your padel skills from beginner to pro.{% else %}سيتمكن قريباً من حجز جلسات تدريبية خاصة مع مدربين معتمدين لتطوير مهاراتك في الباديل من الصفر وحتى الاحتراف.{% endif %}
+        </p>
+        <div class="coaches-cs-features">
+          <div class="csf-item"><div class="csf-icon"><i class="fas fa-calendar-check"></i></div><span>{% if lang == 'en' %}Direct Booking{% else %}حجز مباشر{% endif %}</span></div>
+          <div class="csf-item"><div class="csf-icon"><i class="fas fa-medal"></i></div><span>{% if lang == 'en' %}Certified Coaches{% else %}مدربون معتمدون{% endif %}</span></div>
+          <div class="csf-item"><div class="csf-icon"><i class="fas fa-chart-line"></i></div><span>{% if lang == 'en' %}Track Progress{% else %}تتبع التقدم{% endif %}</span></div>
+          <div class="csf-item"><div class="csf-icon"><i class="fas fa-clock"></i></div><span>{% if lang == 'en' %}Flexible Sessions{% else %}جلسات مرنة{% endif %}</span></div>
+        </div>
+        <div class="coaches-cs-notify">
+          <a href="#contact" class="coaches-cs-btn">
+            <i class="fas fa-bell"></i>
+            <span>{% if lang == 'en' %}Notify Me at Launch{% else %}أبلغني عند الإطلاق{% endif %}</span>
+          </a>
+          <p class="coaches-cs-hint">
+            <i class="fas fa-circle-info"></i>
+            {% if lang == 'en' %}Contact us to book a training session now{% else %}تواصل معنا لحجز جلسة تدريبية الآن{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
     {% endif %}
 
   </div>
 </section>
 
-<!-- ✅ BOOKING MODAL (opens when clicking coach card) -->
+<!-- Coach Booking Modal -->
 <div class="modal fade" id="bookCoachModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 10px 40px rgba(0,0,0,0.15);">
-      <div class="modal-header" style="background:linear-gradient(135deg,#596770,#D6C3A1);color:white;border:none;padding:20px;">
-        <h5 class="modal-title" style="font-size:16px;font-weight:700;font-family:'Almarai',sans-serif;">
-          <i class="fas fa-calendar-check" style="margin-left:10px;"></i>{% if lang == 'en' %}Book a Training Session{% else %}احجز جلسة تدريب{% endif %}
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 10px 40px rgba(0,0,0,.15);">
+      <div class="modal-header" style="background:linear-gradient(135deg,#596770,#D6C3A1);color:white;border:none;padding:18px 22px;">
+        <h5 class="modal-title" style="font-size:15px;font-weight:700;font-family:'Almarai',sans-serif;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-calendar-check"></i>
+          {% if lang == 'en' %}Book a Training Session{% else %}احجز جلسة تدريب{% endif %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
       </div>
       <form method="POST" action="{{ url_for('admin.add_training_request') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="modal-body" style="padding:24px;">
-
-          <div class="form-group" style="margin-bottom:16px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Your Name{% else %}اسمك{% endif %} <span style="color:red;">*</span></label>
-            <input type="text" name="customer_name" required placeholder="{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}"
-                   style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
-                   onFocus="this.style.borderColor='#D6C3A1'"
-                   onBlur="this.style.borderColor='#ddd'">
+        <div class="modal-body" style="padding:22px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label class="form-label" style="font-weight:600;font-size:13px;">
+                {% if lang == 'en' %}Your Name{% else %}اسمك{% endif %} <span style="color:red;">*</span>
+              </label>
+              <input type="text" name="customer_name" required class="form-control"
+                     placeholder="{% if lang == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}"/>
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;font-size:13px;">
+                {% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:red;">*</span>
+              </label>
+              <input type="tel" name="customer_phone" required class="form-control" placeholder="07xx xxx xxxx" dir="ltr"/>
+            </div>
           </div>
-
-          <div class="form-group" style="margin-bottom:16px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Phone Number{% else %}رقم الهاتف{% endif %} <span style="color:red;">*</span></label>
-            <input type="tel" name="customer_phone" required placeholder="07xx xxx xxxx" dir="ltr"
-                   style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
-                   onFocus="this.style.borderColor='#D6C3A1'"
-                   onBlur="this.style.borderColor='#ddd'">
-          </div>
-
-          <div class="form-group" style="margin-bottom:16px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Coach{% else %}المدرب{% endif %} <span style="color:red;">*</span></label>
-            <input type="text" id="coachNameDisplay" readonly
-                   style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;background:#f5f5f5;color:#666;font-family:inherit;">
+          <div style="margin-bottom:16px;">
+            <label class="form-label" style="font-weight:600;font-size:13px;">
+              {% if lang == 'en' %}Coach{% else %}المدرب{% endif %}
+            </label>
+            <input type="text" id="coachNameDisplay" readonly class="form-control" style="background:#f5f5f5;"/>
             <input type="hidden" name="coach_id" id="coachIdInput" required>
           </div>
-
-          <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-            <div class="form-group">
-              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Preferred Date{% else %}التاريخ المفضل{% endif %}</label>
-              <input type="date" name="preferred_date"
-                     style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
-                     onFocus="this.style.borderColor='#D6C3A1'"
-                     onBlur="this.style.borderColor='#ddd'">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label class="form-label" style="font-weight:600;font-size:13px;">{% if lang == 'en' %}Preferred Date{% else %}التاريخ المفضل{% endif %}</label>
+              <input type="date" name="preferred_date" class="form-control"/>
             </div>
-            <div class="form-group">
-              <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Preferred Time{% else %}الوقت المفضل{% endif %}</label>
-              <input type="time" name="preferred_time"
-                     style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;font-family:inherit;"
-                     onFocus="this.style.borderColor='#D6C3A1'"
-                     onBlur="this.style.borderColor='#ddd'">
+            <div>
+              <label class="form-label" style="font-weight:600;font-size:13px;">{% if lang == 'en' %}Preferred Time{% else %}الوقت المفضل{% endif %}</label>
+              <input type="time" name="preferred_time" class="form-control"/>
             </div>
           </div>
-
-          <div class="form-group" style="margin-bottom:24px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;font-family:'Almarai',sans-serif;">{% if lang == 'en' %}Additional Notes{% else %}ملاحظات إضافية{% endif %}</label>
-            <textarea name="notes" rows="3" placeholder="{% if lang == 'en' %}Tell us about your goals and experience...{% else %}أخبرنا عن أهدافك وخبرتك...{% endif %}"
-                      style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.3s;resize:none;font-family:inherit;"
-                      onFocus="this.style.borderColor='#D6C3A1'"
-                      onBlur="this.style.borderColor='#ddd'"></textarea>
+          <div style="margin-bottom:8px;">
+            <label class="form-label" style="font-weight:600;font-size:13px;">{% if lang == 'en' %}Additional Notes{% else %}ملاحظات إضافية{% endif %}</label>
+            <textarea name="notes" rows="3" class="form-control"
+                      placeholder="{% if lang == 'en' %}Tell us about your goals and experience...{% else %}أخبرنا عن أهدافك وخبرتك...{% endif %}"></textarea>
           </div>
         </div>
-        <div class="modal-footer" style="border-top:1px solid #eee;padding:16px 24px;gap:8px;">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
-          <button type="submit" class="btn-main" style="padding:10px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#D6C3A1,#596770);color:white;font-weight:700;cursor:pointer;font-family:inherit;">
-            <i class="fas fa-paper-plane" style="margin-left:8px;"></i>{% if lang == 'en' %}Send Request{% else %}أرسل الطلب{% endif %}
+        <div class="modal-footer" style="border-top:1px solid #eee;padding:14px 22px;gap:8px;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+          </button>
+          <button type="submit" class="btn-main" style="border:none;padding:10px 24px;">
+            <i class="fas fa-paper-plane"></i>
+            {% if lang == 'en' %}Send Request{% else %}أرسل الطلب{% endif %}
           </button>
         </div>
       </form>
@@ -519,13 +489,17 @@
   </div>
 </div>
 
-<!-- STORE -->
+<!-- ═══════════ STORE ═══════════ -->
 <section class="section" id="store">
   <div class="container-z">
     <div class="reveal" style="text-align:center;">
       <span class="sec-eye"><i class="fas fa-bag-shopping"></i> {% if lang == 'en' %}Our Store{% else %}متجرنا{% endif %}</span>
-      <h2 class="sec-ttl" style="text-align:center;">{% if lang == 'en' %}Shop <span>With Us</span>{% else %}تسوق <span>معنا</span>{% endif %}</h2>
-      <p class="sec-sub" style="margin:0 auto;text-align:center;">{% if lang == 'en' %}Original padel gear and everything you need{% else %}معدات الباديل الأصلية وكل ما تحتاجه{% endif %}</p>
+      <h2 class="sec-ttl" style="text-align:center;">
+        {% if lang == 'en' %}Shop <span>With Us</span>{% else %}تسوق <span>معنا</span>{% endif %}
+      </h2>
+      <p class="sec-sub" style="margin:0 auto;text-align:center;">
+        {% if lang == 'en' %}Original padel gear and everything you need{% else %}معدات الباديل الأصلية وكل ما تحتاجه{% endif %}
+      </p>
     </div>
 
     <div class="store-grid">
@@ -533,7 +507,7 @@
       <a href="{{ url_for('store.shop') }}" class="store-card reveal">
         <div class="store-img">
           {% if p.image %}
-            <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+            <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover;">
           {% else %}
             <i class="fas fa-box"></i>
           {% endif %}
@@ -544,41 +518,59 @@
         </div>
       </a>
       {% else %}
-      <p style="text-align:center; color:#999; grid-column: 1/-1;">{% if lang == 'en' %}No products available currently.{% else %}لا توجد منتجات متاحة حالياً.{% endif %}</p>
+      <p style="text-align:center;color:#999;grid-column:1/-1;padding:40px 0;">
+        {% if lang == 'en' %}No products available currently.{% else %}لا توجد منتجات متاحة حالياً.{% endif %}
+      </p>
       {% endfor %}
     </div>
 
-    <div style="display:flex;justify-content:center;margin-top:40px;" class="reveal">
-      <a href="{{ url_for('store.shop') }}" class="btn-blue"><i class="fas fa-bag-shopping"></i> {% if lang == 'en' %}Browse Full Store{% else %}تصفح المتجر كاملاً{% endif %}</a>
+    <div style="display:flex;justify-content:center;margin-top:36px;" class="reveal">
+      <a href="{{ url_for('store.shop') }}" class="btn-blue">
+        <i class="fas fa-bag-shopping"></i>
+        {% if lang == 'en' %}Browse Full Store{% else %}تصفح المتجر كاملاً{% endif %}
+      </a>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
+<!-- ═══════════ CTA ═══════════ -->
 <section class="cta-band">
   <div class="cta-glow"></div>
   <div class="container-z">
     <div class="cta-inner reveal">
-      <span class="sec-eye" style="margin-bottom:20px;justify-content:center;background:rgba(214,195,161,.15);border-color:rgba(214,195,161,.3);color:var(--ac);"><i class="fas fa-bolt"></i> {% if lang == 'en' %}Start Now{% else %}ابدأ الآن{% endif %}</span>
-      <h2 class="cta-ttl">{% if lang == 'en' %}Ready to Play?<br/><span>Book Now!</span>{% else %}جاهز للعب؟<br/><span>احجز الآن!</span>{% endif %}</h2>
-      <p class="cta-sub">{% if lang == 'en' %}Don't wait — our courts fill up fast. Reserve your spot today for free.{% else %}لا تنتظر — ملاعبنا تمتلئ بسرعة. احجز مكانك اليوم مجاناً.{% endif %}</p>
-      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-        <a href="{{ url_for('booking.index') }}" class="btn-main"><i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}</a>
-        <a href="#contact" class="btn-ghost"><i class="fas fa-phone"></i> {% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
+      <span class="sec-eye" style="margin-bottom:20px;justify-content:center;background:rgba(214,195,161,.15);border-color:rgba(214,195,161,.3);color:var(--ac);">
+        <i class="fas fa-bolt"></i> {% if lang == 'en' %}Start Now{% else %}ابدأ الآن{% endif %}
+      </span>
+      <h2 class="cta-ttl">
+        {% if lang == 'en' %}Ready to Play?<br/><span>Book Now!</span>{% else %}جاهز للعب؟<br/><span>احجز الآن!</span>{% endif %}
+      </h2>
+      <p class="cta-sub">
+        {% if lang == 'en' %}Don't wait — our courts fill up fast. Reserve your spot today for free.{% else %}لا تنتظر — ملاعبنا تمتلئ بسرعة. احجز مكانك اليوم مجاناً.{% endif %}
+      </p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+        <a href="{{ url_for('booking.index') }}" class="btn-main">
+          <i class="fas fa-calendar-plus"></i>
+          {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
+        </a>
+        <a href="#contact" class="btn-ghost">
+          <i class="fas fa-phone"></i>
+          {% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}
+        </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CONTACT -->
+<!-- ═══════════ CONTACT ═══════════ -->
 <section class="section" id="contact">
   <div class="container-z">
-    <div class="reveal" style="text-align: center; margin-bottom: 2rem;">
+    <div class="reveal" style="text-align:center;margin-bottom:36px;">
       <span class="sec-eye"><i class="fas fa-location-dot"></i> {% if lang == 'en' %}Our Location{% else %}موقعنا{% endif %}</span>
-      <h2 class="sec-ttl">{% if lang == 'en' %}Come <span>Visit Us</span>{% else %}تفضل <span>بزيارتنا</span>{% endif %}</h2>
+      <h2 class="sec-ttl">
+        {% if lang == 'en' %}Come <span>Visit Us</span>{% else %}تفضل <span>بزيارتنا</span>{% endif %}
+      </h2>
     </div>
-
-    <div class="reveal" style="border-radius: var(--r); overflow: hidden; border: 1px solid var(--bmid); height: 450px; width: 100%;">
+    <div class="reveal" style="border-radius:var(--r);overflow:hidden;border:1px solid var(--bmid);height:400px;width:100%;">
       <iframe
         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3215.3564756598375!2d42.9845778757962!3d36.8576404722485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40074744d0f1a4ed%3A0x67825d4806a0904!2sDuhok!5e0!3m2!1sen!2siq!4v1717500000000!5m2!1sen!2siq"
         width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
@@ -586,7 +578,8 @@
     </div>
   </div>
 </section>
-<!-- FOOTER -->
+
+<!-- ═══════════ FOOTER ═══════════ -->
 <footer class="footer-z">
   <div class="footer-top-line"></div>
   <div class="container-z">
@@ -599,9 +592,6 @@
             <span class="footer-bsub">{% if lang == 'en' %}Duhok · Kurdistan, Iraq{% else %}دهوك · كردستان العراق{% endif %}</span>
           </div>
         </a>
-        <p class="footer-desc">
-          {% if lang == 'en' %}Your #1 destination for padel in Duhok — professional courts built to the highest standards, and an unforgettable sports atmosphere.{% else %}وجهتك الأولى لرياضة الباديل في دهوك — ملاعب احترافية بأعلى المواصفات، وأجواء رياضية لا تُنسى.{% endif %}
-        </p>
         <div class="footer-status">
           <span class="footer-status-dot"></span>
           <span>{% if lang == 'en' %}Open Now{% else %}مفتوح الآن{% endif %}</span>
@@ -634,38 +624,51 @@
   </div>
 </footer>
 
+<!-- Scroll to top -->
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
   <i class="fas fa-chevron-up"></i>
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ✅ Open coach booking modal with pre-selected coach
+  // ── Coach modal ──
   function openCoachBooking(coachId, coachName) {
-    document.getElementById('coachIdInput').value = coachId;
+    document.getElementById('coachIdInput').value   = coachId;
     document.getElementById('coachNameDisplay').value = coachName;
-    var modal = new bootstrap.Modal(document.getElementById('bookCoachModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('bookCoachModal')).show();
   }
 
+  // ── Scroll progress + navbar ──
   window.addEventListener('scroll', () => {
     const s = document.documentElement;
-    document.getElementById('scrollBar').style.transform = `scaleX(${s.scrollTop/(s.scrollHeight-s.clientHeight)})`;
+    document.getElementById('scrollBar').style.transform =
+      `scaleX(${s.scrollTop / (s.scrollHeight - s.clientHeight)})`;
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
     document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 300);
-  });
-  function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open'); document.body.style.overflow='hidden'; }
-  function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); document.body.style.overflow=''; }
+  }, { passive: true });
+
+  // ── Mobile menu ──
+  function openMobileMenu()  {
+    document.getElementById('mobileMenu').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ── Reveal on scroll ──
   const obs = new IntersectionObserver((entries) => {
-    entries.forEach((e,i) => {
+    entries.forEach((e, i) => {
       if (e.isIntersecting) {
-        e.target.style.transitionDelay = (i * .07) + 's';
+        e.target.style.transitionDelay = (i * .06) + 's';
         e.target.classList.add('visible');
         obs.unobserve(e.target);
       }
     });
-  }, { threshold:.10, rootMargin:'0px 0px -40px 0px' });
+  }, { threshold: .10, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
+
 </body>
 </html>

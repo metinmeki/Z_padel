@@ -6,6 +6,7 @@ from app.models.main import (
     Coach,
     TrainingRequest,
     SystemSetting,
+    PushSubscription,
 )
 
 from app.models.store import (
