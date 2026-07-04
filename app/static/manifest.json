@@ -1,0 +1,17 @@
+{
+  "name": "Z Padel Admin",
+  "short_name": "Z Padel",
+  "description": "Z Padel Booking & Management Admin Panel",
+  "start_url": "/admin/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A2F6B",
+  "theme_color": "#1565C0",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "/static/images/logo/Zpadel.jpeg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "/static/images/logo/Zpadel.jpeg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+  ]
+}

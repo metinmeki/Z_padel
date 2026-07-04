@@ -5,7 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}Z Padel Admin{% endblock %}</title>
 
-  <!-- Bootstrap 5 â€” RTL for Arabic, LTR for English -->
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#1565C0">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" type="image/jpeg">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}">
+
+  <!-- Bootstrap 5 — RTL for Arabic, LTR for English -->
   {% if lang == 'en' %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
   {% else %}
@@ -17,9 +23,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
   <style>
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       CSS VARIABLES â€” Z Padel Blue & White Theme
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    /* ═══════════════════════════════════════════
+       CSS VARIABLES — Z Padel Blue & White Theme
+    ═══════════════════════════════════════════ */
     :root {
       --brand-blue:       #1565C0;
       --brand-blue-dark:  #0D47A1;
@@ -45,9 +51,9 @@
       --transition:       all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        RESET & BASE
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
@@ -58,9 +64,9 @@
       overflow-x: hidden;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        PAGE LOAD ANIMATION
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     @keyframes fadeSlideIn {
       from { opacity: 0; transform: translateY(18px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -81,9 +87,9 @@
       to { transform: rotate(360deg); }
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        SIDEBAR
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .sidebar {
       position: fixed;
       top: 0;
@@ -346,9 +352,9 @@
       transform: translateX(-2px);
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        MAIN LAYOUT
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .main-wrapper {
       margin-right: var(--sidebar-width);
       min-height: 100vh;
@@ -357,9 +363,9 @@
       transition: var(--transition);
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        TOPBAR
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .topbar {
       position: sticky;
       top: 0;
@@ -441,7 +447,7 @@
       border: 2px solid white;
     }
 
-    /* â”€â”€ Notification dropdown â”€â”€ */
+    /* ── Notification dropdown ── */
     .notif-wrapper { position: relative; }
     .notif-dropdown {
       position: absolute;
@@ -508,18 +514,18 @@
     }
     .notif-empty i { font-size: 28px; display: block; margin-bottom: 8px; color: #43A047; }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        PAGE CONTENT
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .page-content {
       flex: 1;
       padding: 24px;
       animation: fadeSlideIn 0.45s ease 0.1s both;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        CARDS
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .card-z {
       background: white;
       border-radius: var(--radius);
@@ -630,9 +636,9 @@
       margin-top: 2px;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        TABLES
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .table-z {
       width: 100%;
       border-collapse: separate;
@@ -666,9 +672,9 @@
       vertical-align: middle;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        BADGES
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .badge-z {
       padding: 4px 10px;
       border-radius: 20px;
@@ -685,9 +691,9 @@
     .badge-z.active     { background: rgba(0,176,255,0.12);  color: #0077B6; }
     .badge-z.blue       { background: var(--brand-blue-soft); color: var(--brand-blue-dark); }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        BUTTONS
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .btn-z-primary {
       background: linear-gradient(135deg, var(--brand-blue-light), var(--brand-blue));
       color: white;
@@ -759,9 +765,9 @@
       color: #B71C1C;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        FORMS
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .form-control-z {
       width: 100%;
       padding: 9px 14px;
@@ -788,9 +794,9 @@
       display: block;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        ALERTS / FLASH MESSAGES
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .alert-z {
       padding: 13px 18px;
       border-radius: var(--radius-sm);
@@ -808,9 +814,9 @@
     .alert-z.info    { background: var(--brand-blue-soft); border: 1px solid var(--brand-blue-mid); color: var(--brand-blue-dark); }
     .alert-z.warning { background: rgba(251,140,0,0.10); border: 1px solid rgba(251,140,0,0.25); color: #E65100; }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        PAGE HEADER BLOCK
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .page-header {
       display: flex;
       align-items: center;
@@ -832,9 +838,9 @@
       margin-top: 2px;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        LOADING OVERLAY
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .loading-overlay {
       position: fixed;
       inset: 0;
@@ -870,9 +876,9 @@
       font-weight: 600;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        MOBILE OVERLAY
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .sidebar-overlay {
       display: none;
       position: fixed;
@@ -882,17 +888,17 @@
       backdrop-filter: blur(2px);
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        SCROLLBAR
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--off-white); }
     ::-webkit-scrollbar-thumb { background: var(--brand-blue-mid); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--brand-blue-light); }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        RESPONSIVE
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     @media (max-width: 992px) {
       .sidebar {
         transform: translateX(100%);
@@ -908,9 +914,9 @@
       .page-content { padding: 16px; }
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        LTR (English) OVERRIDES
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     html[dir="ltr"] body {
       font-family: 'Inter', 'Cairo', sans-serif;
     }
@@ -947,7 +953,7 @@
       }
     }
 
-    /* â”€â”€ Language Toggle Button â”€â”€ */
+    /* ── Language Toggle Button ── */
     .lang-toggle-btn {
       display: inline-flex;
       align-items: center;
@@ -977,9 +983,9 @@
       color: var(--brand-blue);
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    /* ═══════════════════════════════════════════
        PERMISSION-LOCKED NAV ITEM (visual hint)
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    ═══════════════════════════════════════════ */
     .nav-locked {
       display: flex;
       align-items: center;
@@ -1009,13 +1015,13 @@
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div class="loading-text">{% if lang == 'en' %}Loading...{% else %}Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...{% endif %}</div>
+  <div class="loading-text">{% if lang == 'en' %}Loading...{% else %}جاري التحميل...{% endif %}</div>
 </div>
 
 <!-- Sidebar Overlay (mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• SIDEBAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
 <aside class="sidebar" id="sidebar">
 
   <!-- Brand -->
@@ -1025,7 +1031,7 @@
     </div>
     <div class="brand-text">
       <span class="brand-name">Z Padel</span>
-      <span class="brand-sub">{% if lang == 'en' %}Admin Panel{% else %}Ù„ÙˆØ­Ø© Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©{% endif %}</span>
+      <span class="brand-sub">{% if lang == 'en' %}Admin Panel{% else %}لوحة الإدارة{% endif %}</span>
     </div>
   </a>
 
@@ -1038,13 +1044,13 @@
       <div class="admin-name">{{ current_user.username if current_user.is_authenticated else 'Admin' }}</div>
       <div class="admin-role">
         {%- if current_user.role == 'superadmin' -%}
-          {% if lang == 'en' %}Super Admin{% else %}Ù…Ø¯ÙŠØ± Ø¹Ø§Ù…{% endif %}
+          {% if lang == 'en' %}Super Admin{% else %}مدير عام{% endif %}
         {%- elif current_user.role == 'admin' -%}
-          {% if lang == 'en' %}Admin{% else %}Ù…Ø¯ÙŠØ±{% endif %}
+          {% if lang == 'en' %}Admin{% else %}مدير{% endif %}
         {%- elif current_user.role == 'staff' -%}
-          {% if lang == 'en' %}Staff{% else %}Ù…ÙˆØ¸Ù{% endif %}
+          {% if lang == 'en' %}Staff{% else %}موظف{% endif %}
         {%- else -%}
-          {% if lang == 'en' %}Viewer{% else %}Ù…Ø´Ø§Ù‡Ø¯{% endif %}
+          {% if lang == 'en' %}Viewer{% else %}مشاهد{% endif %}
         {%- endif -%}
       </div>
     </div>
@@ -1053,30 +1059,26 @@
   <!-- Nav -->
   <nav class="sidebar-nav">
 
-    {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       DASHBOARD â€” always visible
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
-    <div class="nav-section-label">{% if lang == 'en' %}Main{% else %}Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©{% endif %}</div>
+    {# DASHBOARD — always visible #}
+    <div class="nav-section-label">{% if lang == 'en' %}Main{% else %}الرئيسية{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.dashboard') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
         <i class="fas fa-gauge-high nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Dashboard{% else %}Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Dashboard{% else %}لوحة التحكم{% endif %}</span>
       </a>
     </div>
 
-    {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       BOOKINGS â€” perm_bookings
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+    {# BOOKINGS — perm_bookings #}
     {% if current_user.has_perm('perm_bookings') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Bookings{% else %}Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.bookings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.bookings' %}active{% endif %}">
         <i class="fas fa-calendar-check nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Bookings{% else %}Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}</span>
       </a>
     </div>
 
@@ -1084,7 +1086,7 @@
       <a href="{{ url_for('admin.pending_bookings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.pending_bookings' %}active{% endif %}">
         <i class="fas fa-clock nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Pending Bookings{% else %}Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù‚Ø©{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Pending Bookings{% else %}الحجوزات المعلقة{% endif %}</span>
         {% set pending_count = pending_bookings_count|default(0) %}
         {% if pending_count > 0 %}
           <span class="nav-badge">{{ pending_count }}</span>
@@ -1093,17 +1095,15 @@
     </div>
     {% endif %}
 
-    {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       COURTS â€” perm_courts
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+    {# COURTS — perm_courts #}
     {% if current_user.has_perm('perm_courts') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Courts & Training{% else %}Ø§Ù„Ù…Ù„Ø§Ø¹Ø¨ ÙˆØ§Ù„ØªØ¯Ø±ÙŠØ¨{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Courts & Training{% else %}الملاعب والتدريب{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.courts') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.courts' %}active{% endif %}">
         <i class="fas fa-shield-halved nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Courts{% else %}Ø§Ù„Ù…Ù„Ø§Ø¹Ø¨{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</span>
       </a>
     </div>
 
@@ -1111,7 +1111,7 @@
       <a href="{{ url_for('admin.coaches') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.coaches' %}active{% endif %}">
         <i class="fas fa-person-running nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Coaches{% else %}Ø§Ù„Ù…Ø¯Ø±Ø¨ÙˆÙ†{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</span>
       </a>
     </div>
 
@@ -1119,23 +1119,21 @@
       <a href="{{ url_for('admin.training_requests') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.training_requests' %}active{% endif %}">
         <i class="fas fa-dumbbell nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Training Requests{% else %}Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØªØ¯Ø±ÙŠØ¨{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Training Requests{% else %}طلبات التدريب{% endif %}</span>
       </a>
     </div>
     {% endif %}
 
-    {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       STORE â€” perm_products and/or perm_orders
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+    {# STORE — perm_products and/or perm_orders #}
     {% if current_user.has_perm('perm_products') or current_user.has_perm('perm_orders') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Store & Sales{% else %}Ø§Ù„Ù…ØªØ¬Ø± ÙˆØ§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Store & Sales{% else %}المتجر والمبيعات{% endif %}</div>
 
     {% if current_user.has_perm('perm_products') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.products') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.products' %}active{% endif %}">
         <i class="fas fa-box-open nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Products{% else %}Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}</span>
       </a>
     </div>
 
@@ -1143,7 +1141,7 @@
       <a href="{{ url_for('admin.categories') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.categories' %}active{% endif %}">
         <i class="fas fa-tags nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Categories{% else %}Ø§Ù„ÙØ¦Ø§Øª{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Categories{% else %}الفئات{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1153,7 +1151,7 @@
       <a href="{{ url_for('admin.orders') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.orders' %}active{% endif %}">
         <i class="fas fa-bag-shopping nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Orders{% else %}Ø§Ù„Ø·Ù„Ø¨Ø§Øª{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Orders{% else %}الطلبات{% endif %}</span>
       </a>
     </div>
 
@@ -1161,24 +1159,22 @@
       <a href="{{ url_for('pos.quick_sale') }}"
          class="nav-link-custom {% if 'pos' in request.endpoint %}active{% endif %}">
         <i class="fas fa-cash-register nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% else %}Ù†Ù‚Ø·Ø© Ø§Ù„Ø¨ÙŠØ¹ (POS){% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% else %}نقطة البيع (POS){% endif %}</span>
       </a>
     </div>
     {% endif %}
     {% endif %}
 
-    {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       FINANCE â€” perm_expenses and/or perm_reports
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+    {# FINANCE — perm_expenses and/or perm_reports #}
     {% if current_user.has_perm('perm_expenses') or current_user.has_perm('perm_reports') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Finance & Reports{% else %}Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„ØªÙ‚Ø§Ø±ÙŠØ±{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Finance & Reports{% else %}المالية والتقارير{% endif %}</div>
 
     {% if current_user.has_perm('perm_expenses') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.expenses') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.expenses' %}active{% endif %}">
         <i class="fas fa-receipt nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Expenses{% else %}Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Expenses{% else %}المصروفات{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1188,35 +1184,33 @@
       <a href="{{ url_for('admin.reports') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.reports' %}active{% endif %}">
         <i class="fas fa-chart-line nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Reports{% else %}Ø§Ù„ØªÙ‚Ø§Ø±ÙŠØ±{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Reports{% else %}التقارير{% endif %}</span>
       </a>
     </div>
     {% endif %}
     {% endif %}
 
-    {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       MANAGEMENT â€” perm_users and/or perm_settings
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+    {# MANAGEMENT — perm_users and/or perm_settings #}
     {% if current_user.has_perm('perm_users') or current_user.has_perm('perm_settings') or current_user.role in ('admin','superadmin') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Management{% else %}Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Management{% else %}الإدارة{% endif %}</div>
 
     {% if current_user.has_perm('perm_users') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.users') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.users' %}active{% endif %}">
         <i class="fas fa-users nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Users{% else %}Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙˆÙ†{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Users{% else %}المستخدمون{% endif %}</span>
       </a>
     </div>
     {% endif %}
 
-    {# Barcodes â€” available to admins and those with products perm #}
+    {# Barcodes — available to admins and those with products perm #}
     {% if current_user.has_perm('perm_products') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.print_barcodes') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.print_barcodes' %}active{% endif %}">
         <i class="fas fa-barcode nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Barcodes{% else %}Ø§Ù„Ø¨Ø§Ø±ÙƒÙˆØ¯{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Barcodes{% else %}الباركود{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1226,7 +1220,7 @@
       <a href="{{ url_for('admin.settings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.settings' %}active{% endif %}">
         <i class="fas fa-gear nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Settings{% else %}Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Settings{% else %}الإعدادات{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1238,13 +1232,13 @@
   <div class="sidebar-footer">
     <a href="{{ url_for('auth.logout') }}" class="logout-btn">
       <i class="fas fa-right-from-bracket"></i>
-      <span>{% if lang == 'en' %}Logout{% else %}ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬{% endif %}</span>
+      <span>{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}</span>
     </a>
   </div>
 
 </aside>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
 <div class="main-wrapper" id="mainWrapper">
 
   <!-- Topbar -->
@@ -1253,44 +1247,49 @@
       <div class="title-icon">
         <i class="{% block page_icon %}fas fa-gauge-high{% endblock %}"></i>
       </div>
-      {% block page_title %}Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…{% endblock %}
+      {% block page_title %}لوحة التحكم{% endblock %}
     </div>
 
     <div class="topbar-right">
       <!-- Toggle sidebar (mobile) -->
-      <button class="topbar-btn d-lg-none" onclick="toggleSidebar()" title="{{ 'Menu' if lang == 'en' else 'Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©' }}">
+      <button class="topbar-btn d-lg-none" onclick="toggleSidebar()" title="{{ 'Menu' if lang == 'en' else 'القائمة' }}">
         <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Install App -->
+      <button class="topbar-btn" id="installBtn" style="display:none;" title="{{ 'Install App' if lang == 'en' else 'تثبيت التطبيق' }}">
+        <i class="fas fa-download"></i>
       </button>
 
       <!-- Notifications -->
       <div class="notif-wrapper">
-        <button class="topbar-btn" id="notifBtn" onclick="toggleNotif(event)" title="{{ 'Notifications' if lang == 'en' else 'Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' }}">
+        <button class="topbar-btn" id="notifBtn" onclick="toggleNotif(event)" title="{{ 'Notifications' if lang == 'en' else 'الإشعارات' }}">
           <i class="fas fa-bell"></i>
           <span class="badge-dot" id="notifDot" style="display:none;"></span>
         </button>
         <div class="notif-dropdown" id="notifDropdown">
           <div class="notif-header">
-            <span><i class="fas fa-bell" style="margin-{% if lang == 'en' %}right{% else %}left{% endif %}:7px;"></i>{% if lang == 'en' %}Notifications{% else %}Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª{% endif %}</span>
+            <span><i class="fas fa-bell" style="margin-{% if lang == 'en' %}right{% else %}left{% endif %}:7px;"></i>{% if lang == 'en' %}Notifications{% else %}الإشعارات{% endif %}</span>
             <span class="notif-badge" id="notifCount">0</span>
           </div>
           <div class="notif-list" id="notifList">
             <div class="notif-empty">
               <i class="fas fa-circle-check"></i>
-              {% if lang == 'en' %}All caught up!{% else %}Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©{% endif %}
+              {% if lang == 'en' %}All caught up!{% else %}لا توجد إشعارات جديدة{% endif %}
             </div>
           </div>
         </div>
       </div>
 
       <!-- Home -->
-      <a href="{{ url_for('main.index') }}" class="topbar-btn" title="{{ 'Main Website' if lang == 'en' else 'Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ' }}">
+      <a href="{{ url_for('main.index') }}" class="topbar-btn" title="{{ 'Main Website' if lang == 'en' else 'الموقع الرئيسي' }}">
         <i class="fas fa-globe"></i>
       </a>
 
       <!-- Language switcher -->
       <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-toggle-btn">
         <i class="fas fa-language"></i>
-        {% if lang == 'en' %}Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©{% else %}English{% endif %}
+        {% if lang == 'en' %}العربية{% else %}English{% endif %}
       </a>
     </div>
   </header>
@@ -1358,7 +1357,7 @@
     document.body.appendChild(m);
   });
 
-  // â”€â”€ Notifications â”€â”€
+  // ── Notifications ──
   const LANG = '{{ lang }}';
 
   function toggleNotif(e) {
@@ -1382,7 +1381,7 @@
         if (data.total === 0) {
           list.innerHTML = `<div class="notif-empty">
             <i class="fas fa-circle-check"></i>
-            ${LANG === 'en' ? 'All caught up!' : 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©'}
+            ${LANG === 'en' ? 'All caught up!' : 'لا توجد إشعارات جديدة'}
           </div>`;
           return;
         }
@@ -1416,6 +1415,27 @@
     })
     .catch(() => {});
 
+  // ── PWA Install ──
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'flex';
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
+  });
 </script>
 
 {% block extra_scripts %}{% endblock %}
@@ -1438,25 +1458,5 @@ async function subscribeToPush(){
 }
 subscribeToPush();
 </script>
-<script>
-const VAPID_PUBLIC = "BHyuLMem1RurSQhZza9zWn32gE_b0lt3-7bLVxxYTc4Ki9XjIzvLLS9m-6fQxSFul6BrATK1T4qN0ZxABDhMSdo";
-function urlBase64ToUint8Array(b){const p="=".repeat((4-b.length%4)%4);const base64=(b+p).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
-async function subscribeToPush(){
-  if(!("serviceWorker" in navigator)||!("PushManager" in window))return;
-  try{
-    const reg=await navigator.serviceWorker.register("/sw.js");
-    const permission=await Notification.requestPermission();
-    if(permission!=="granted")return;
-    const existing=await reg.pushManager.getSubscription();
-    if(existing)return;
-    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});
-    await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(sub.toJSON())});
-    console.log("Push subscribed.");
-  }catch(err){console.error("Push error:",err);}
-}
-subscribeToPush();
-</script>
 </body>
 </html>
-
-
