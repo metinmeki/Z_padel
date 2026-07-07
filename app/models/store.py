@@ -2,9 +2,6 @@ from datetime import datetime
 from app import db
 
 
-# ═══════════════════════════════════════════
-# PRODUCT CATEGORY
-# ═══════════════════════════════════════════
 class Category(db.Model):
     __tablename__ = 'categories'
 
@@ -19,9 +16,6 @@ class Category(db.Model):
         return f'<Category {self.name}>'
 
 
-# ═══════════════════════════════════════════
-# PRODUCT
-# ═══════════════════════════════════════════
 class Product(db.Model):
     __tablename__ = 'products'
 
@@ -35,7 +29,7 @@ class Product(db.Model):
     barcode         = db.Column(db.String(50),  unique=True, nullable=True)
     image           = db.Column(db.String(200), nullable=True)
     is_active       = db.Column(db.Boolean,     default=True)
-    show_on_website = db.Column(db.Boolean,     default=False)   # ← NEW
+    show_on_website = db.Column(db.Boolean,     default=False)
     created_at      = db.Column(db.DateTime,    default=datetime.utcnow)
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
@@ -44,9 +38,6 @@ class Product(db.Model):
         return f'<Product {self.name}>'
 
 
-# ═══════════════════════════════════════════
-# ORDER
-# ═══════════════════════════════════════════
 class Order(db.Model):
     __tablename__ = 'orders'
 
@@ -55,7 +46,6 @@ class Order(db.Model):
     customer_phone = db.Column(db.String(20),  nullable=True)
     total_price    = db.Column(db.Float,       default=0)
     status         = db.Column(db.String(20),  default='pending')
-    # pending | processing | completed | cancelled
     notes          = db.Column(db.Text,        nullable=True)
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
     updated_at     = db.Column(db.DateTime,    default=datetime.utcnow,
@@ -68,9 +58,6 @@ class Order(db.Model):
         return f'<Order #{self.id}>'
 
 
-# ═══════════════════════════════════════════
-# ORDER ITEM
-# ═══════════════════════════════════════════
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
 
@@ -78,16 +65,13 @@ class OrderItem(db.Model):
     order_id   = db.Column(db.Integer, db.ForeignKey('orders.id'),   nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     quantity   = db.Column(db.Integer, default=1)
-    price      = db.Column(db.Float,   default=0)   # unit price at time of sale
+    price      = db.Column(db.Float,   default=0)
     subtotal   = db.Column(db.Float,   default=0)
 
     def __repr__(self):
         return f'<OrderItem order#{self.order_id} product#{self.product_id}>'
 
 
-# ═══════════════════════════════════════════
-# EXPENSE CATEGORY
-# ═══════════════════════════════════════════
 class ExpenseCategory(db.Model):
     __tablename__ = 'expense_categories'
 
@@ -105,9 +89,6 @@ class ExpenseCategory(db.Model):
         return f'<ExpenseCategory {self.name}>'
 
 
-# ═══════════════════════════════════════════
-# EXPENSE
-# ═══════════════════════════════════════════
 class Expense(db.Model):
     __tablename__ = 'expenses'
 

@@ -1,4 +1,4 @@
-{% extends 'pos/base_pos.html' %}
+﻿{% extends 'pos/base_pos.html' %}
 {% block title %}{% if lang == 'en' %}Receipt{% else %}فاتورة{% endif %} #{{ order.id }} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
@@ -98,7 +98,7 @@
           {% for item in order.items %}
           <div class="receipt-item">
             <span class="item-name">{{ item.product.name }} × {{ item.quantity }}</span>
-            <span class="item-price">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} IQD</span>
+            <span class="item-price">{{ '{:,.0f}'.format(item.price * item.quantity) }} IQD</span>
           </div>
           {% endfor %}
           <div class="receipt-item subtotal">

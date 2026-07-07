@@ -1,4 +1,4 @@
-{% extends 'pos/base_pos.html' %}
+﻿{% extends 'pos/base_pos.html' %}
 {% block title %}{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
@@ -74,7 +74,7 @@
            data-name="{{ p.name|lower }}"
            data-id="{{ p.id }}">
         <div class="product-card {% if p.stock == 0 %}opacity-50{% endif %}"
-             onclick="{% if p.stock != 0 %}addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price }}, {{ (p.image or '')|tojson }}, this){% endif %}">
+             onclick='{% if p.stock != 0 %}addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price }}, {{ (p.image or "")|tojson }}, this){% endif %}'>
           <div class="product-img-wrap">
             {% if p.image %}
               <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
@@ -204,6 +204,7 @@
 <script>
 let cart = [];
 const isEn = '{{ lang }}' === 'en';
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 /* ── Helpers ── */
 function fmt(n) { return Number(n||0).toLocaleString('en-IQ'); }
@@ -301,7 +302,10 @@ function checkout(method) {
 
   fetch('/pos/checkout', {
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRFToken': csrfToken
+    },
     body:JSON.stringify({ items:cart.map(i=>({product_id:i.id,quantity:i.qty,unit_price:i.price})), payment_method:method })
   })
   .then(r=>r.json())
@@ -341,7 +345,10 @@ function submitDebt() {
 
   fetch('/pos/debt', {
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRFToken': csrfToken
+    },
     body:JSON.stringify({
       name, phone:document.getElementById('debtPhone').value.trim(),
       note:document.getElementById('debtNote').value.trim(),
