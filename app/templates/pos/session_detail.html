@@ -1,0 +1,379 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}{{ session.court.name }} — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+<style>
+  .session-layout { display:grid; grid-template-columns: 340px 1fr; gap: 1.2rem; align-items:start; }
+  @media (max-width: 991px) { .session-layout { grid-template-columns: 1fr; } }
+
+  .invoice-panel { position: sticky; top: 76px; }
+  .invoice-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: .9rem; }
+  .invoice-title { font-weight:800; font-size:1rem; display:flex; align-items:center; gap:.5rem; }
+  .invoice-time { font-size:.8rem; color:var(--text-muted); font-weight:700; }
+
+  .time-row {
+    background: var(--warning-bg); border:1px solid var(--warning-border); border-radius:12px;
+    padding: .9rem 1rem; display:flex; justify-content:space-between; align-items:center; margin-bottom: .9rem;
+  }
+  .time-row-price { font-weight:900; color: var(--warning); font-size:1.1rem; }
+  .time-row-label { font-size:.78rem; color: var(--text-secondary); font-weight:700; text-align:{{ 'left' if lang == 'en' else 'right' }}; }
+
+  .invoice-items { max-height: 30vh; overflow-y:auto; margin-bottom:.8rem; }
+  .invoice-item-row { display:flex; justify-content:space-between; align-items:center; padding:.55rem 0; border-bottom:1px solid var(--border); font-size:.85rem; }
+  .invoice-item-row:last-child { border-bottom:none; }
+  .invoice-item-name { font-weight:700; color:var(--text-primary); }
+  .invoice-item-sub { font-size:.72rem; color:var(--text-muted); }
+  .invoice-item-price { font-weight:800; color:var(--primary); white-space:nowrap; }
+  .invoice-item-remove { color: var(--danger); cursor:pointer; padding: 0 .3rem; }
+
+  .invoice-empty { text-align:center; padding:1.6rem 1rem; color:var(--text-muted); }
+  .invoice-empty i { font-size:2rem; opacity:.25; display:block; margin-bottom:.5rem; }
+
+  .invoice-summary-row { display:flex; justify-content:space-between; font-size:.85rem; color:var(--text-secondary); padding:.3rem 0; }
+  .invoice-total-row {
+    display:flex; justify-content:space-between; align-items:center;
+    background: var(--primary-subtle); border:1.5px solid var(--border-strong); border-radius:10px;
+    padding:.8rem 1rem; margin:.8rem 0; font-weight:900; font-size:1.2rem; color:var(--primary-dark);
+  }
+
+  .invoice-actions .btn { width:100%; margin-bottom:.5rem; font-weight:800; }
+
+  .session-header {
+    background: var(--bg-surface); border:1px solid var(--border); border-radius:14px;
+    padding: 1rem 1.3rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;
+  }
+  .session-timer-box { text-align:center; }
+  .session-timer { font-size:2rem; font-weight:900; font-feature-settings:'tnum'; color:var(--primary); letter-spacing:1px; }
+  .session-rate { font-size:.75rem; color:var(--text-muted); font-weight:700; }
+  .session-court-info { text-align:{{ 'left' if lang == 'en' else 'right' }}; }
+  .session-court-name { font-weight:800; font-size:1.1rem; display:flex; align-items:center; gap:.5rem; justify-content:flex-end; }
+  .session-start-time { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+
+  .search-row { display:grid; grid-template-columns: 1fr 1fr; gap:.6rem; margin-bottom:1rem; }
+  .category-tabs { display:flex; gap:.5rem; overflow-x:auto; padding:.2rem 0 .8rem; scrollbar-width:none; }
+  .category-tabs::-webkit-scrollbar { display:none; }
+
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.85rem; }
+  .product-img-wrap { width:56px;height:56px;margin:0 auto .5rem;border-radius:10px;overflow:hidden;background:var(--bg-base);display:flex;align-items:center;justify-content:center; }
+  .product-img-wrap img { width:100%;height:100%;object-fit:cover; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="session-layout">
+
+  <div class="invoice-panel pos-card">
+    <div class="invoice-head">
+      <span class="invoice-title"><i class="fas fa-receipt" style="color:var(--primary);"></i>{% if lang == 'en' %}Invoice{% else %}الفاتورة{% endif %}</span>
+      <span class="invoice-time" id="clockNow">--:--</span>
+    </div>
+
+    <div class="time-row">
+      <span class="time-row-price" id="timePriceDisplay">{{ '{:,.0f}'.format(session.time_amount) }} IQD</span>
+      <span class="time-row-label"><i class="fas fa-clock me-1"></i>{% if lang == 'en' %}Play time{% else %}وقت اللعب{% endif %}</span>
+    </div>
+
+    <div class="invoice-items" id="invoiceItems">
+      {% if session.items %}
+        {% for item in session.items %}
+        <div class="invoice-item-row" id="item-row-{{ item.id }}">
+          <div>
+            <div class="invoice-item-name">{{ item.product_name }}</div>
+            <div class="invoice-item-sub">{{ '{:,.0f}'.format(item.price) }} × {{ item.quantity }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem;">
+            <span class="invoice-item-price">{{ '{:,.0f}'.format(item.subtotal) }}</span>
+            {% if session.status == 'active' %}
+            <span class="invoice-item-remove" onclick="removeItem({{ item.id }})"><i class="fas fa-times"></i></span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="invoice-empty" id="invoiceEmpty">
+          <i class="fas fa-basket-shopping"></i>
+          <p style="margin:0;font-size:.82rem;">{% if lang == 'en' %}No products yet{% else %}لا توجد منتجات بعد{% endif %}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="invoice-summary-row">
+      <span>{% if lang == 'en' %}Play time{% else %}وقت اللعب{% endif %}</span>
+      <span id="summaryTime">{{ '{:,.0f}'.format(session.time_amount) }} IQD</span>
+    </div>
+    <div class="invoice-summary-row">
+      <span>{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}</span>
+      <span id="summaryItems">{{ '{:,.0f}'.format(session.items_total) }} IQD</span>
+    </div>
+
+    <div class="invoice-total-row">
+      <span>{% if lang == 'en' %}Total{% else %}المجموع{% endif %}</span>
+      <span id="grandTotalDisplay">{{ '{:,.0f}'.format(session.grand_total) }} IQD</span>
+    </div>
+
+    {% if session.status == 'active' %}
+    <div class="invoice-actions">
+      <button class="btn btn-outline-secondary" onclick="endPlayTime()" id="endTimeBtn" {% if session.end_time %}disabled{% endif %}>
+        <i class="fas fa-check me-2"></i>{% if lang == 'en' %}End Play Time{% else %}إنهاء وقت اللعب{% endif %}
+      </button>
+      <button class="btn btn-success" onclick="finishSession('cash')">
+        <i class="fas fa-money-bill-wave me-2"></i>{% if lang == 'en' %}Finish & Pay (Cash){% else %}إنهاء ودفع (نقدي){% endif %}
+      </button>
+      <button class="btn btn-primary" onclick="finishSession('card')">
+        <i class="fas fa-credit-card me-2"></i>{% if lang == 'en' %}Finish & Pay (Card){% else %}إنهاء ودفع (بطاقة){% endif %}
+      </button>
+      <button class="btn btn-warning" onclick="openDebtPrompt()">
+        <i class="fas fa-user-clock me-2"></i>{% if lang == 'en' %}Finish as Debt{% else %}إنهاء كدين{% endif %}
+      </button>
+      <a href="{{ url_for('pos.courts') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back{% else %}رجوع{% endif %}
+      </a>
+      <button class="btn btn-outline-danger" onclick="cancelSession()">
+        <i class="fas fa-times me-2"></i>{% if lang == 'en' %}Cancel Session{% else %}إلغاء الجلسة{% endif %}
+      </button>
+    </div>
+    {% else %}
+    <div class="alert alert-success text-center" style="margin-top:1rem;">
+      <i class="fas fa-check-circle me-2"></i>{% if lang == 'en' %}Session completed{% else %}تم إنهاء الجلسة{% endif %}
+    </div>
+    <a href="{{ url_for('pos.courts') }}" class="btn btn-outline-secondary w-100">
+      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back to Courts{% else %}رجوع للملاعب{% endif %}
+    </a>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="session-header">
+      <div class="session-court-info">
+        <div class="session-court-name">
+          <i class="fas fa-futbol" style="color:{{ session.court.color }};"></i>
+          {{ session.court.name }}
+        </div>
+        <div class="session-start-time">{% if lang == 'en' %}Started{% else %}البداية{% endif %}: {{ session.start_time.strftime('%H:%M') }}</div>
+      </div>
+      <div class="session-timer-box">
+        <div class="session-timer" id="liveTimer" data-start="{{ session.start_time.isoformat() }}Z" data-frozen="{{ '1' if session.end_time else '0' }}">00:00</div>
+        <div class="session-rate">{% if lang == 'en' %}Rate{% else %}سعر الساعة{% endif %}: {{ '{:,.0f}'.format(session.court.price_per_hour) }} IQD</div>
+      </div>
+    </div>
+
+    {% if session.status == 'active' %}
+    <div class="search-row">
+      <div style="position:relative;">
+        <i class="fas fa-search" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
+        <input type="text" id="searchInput" class="form-control" style="padding-{{ 'left' if lang == 'en' else 'right' }}:2.3rem;" placeholder="{% if lang == 'en' %}Search by name...{% else %}بحث بالاسم...{% endif %}">
+      </div>
+      <div style="position:relative;">
+        <i class="fas fa-barcode" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:14px;top:50%;transform:translateY(-50%);color:var(--primary);pointer-events:none;"></i>
+        <input type="text" id="barcodeInput" class="form-control barcode-input" style="padding-{{ 'left' if lang == 'en' else 'right' }}:2.3rem;" placeholder="{% if lang == 'en' %}Scan barcode...{% else %}امسح الباركود...{% endif %}" autofocus>
+      </div>
+    </div>
+
+    <div class="category-tabs">
+      <button class="category-tab active" data-cat="all" onclick="filterCategory('all', this)">
+        <i class="fas fa-th me-1"></i>{% if lang == 'en' %}All{% else %}الكل{% endif %}
+      </button>
+      {% for cat in categories %}
+      <button class="category-tab" data-cat="{{ cat.id }}" onclick="filterCategory('{{ cat.id }}', this)">{{ cat.name }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="product-grid" id="prodGrid">
+      {% for p in products %}
+      <div class="product-item" data-name="{{ p.name|lower }}" data-id="{{ p.id }}" data-cat="{{ p.category_id or '' }}">
+        <div class="product-card {% if p.stock == 0 %}opacity-50{% endif %}"
+             onclick='{% if p.stock != 0 %}addItem({{ p.id }}){% endif %}'>
+          <div class="product-img-wrap">
+            {% if p.image %}
+              <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
+            {% else %}
+              <i class="fas fa-box" style="font-size:1.4rem;color:var(--text-muted);"></i>
+            {% endif %}
+          </div>
+          <h6>{{ p.name }}</h6>
+          <div class="price">{{ '{:,.0f}'.format(p.price) }} IQD</div>
+          {% if p.stock == 0 %}
+            <div style="font-size:.62rem;color:var(--danger);font-weight:700;">{% if lang == 'en' %}Out of Stock{% else %}نفذ{% endif %}</div>
+          {% elif p.stock <= 5 %}
+            <div style="font-size:.62rem;color:var(--warning);font-weight:700;">{% if lang == 'en' %}{{ p.stock }} left{% else %}متبقي {{ p.stock }}{% endif %}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<div class="modal fade" id="debtNameModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#EF4444,#C01E1E);border-bottom:none;">
+        <h5 class="modal-title" style="color:#fff;">{% if lang == 'en' %}Record Debt{% else %}تسجيل دين{% endif %}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">{% if lang == 'en' %}Person's Name{% else %}اسم الشخص{% endif %}</label>
+        <input type="text" id="debtNameInput" class="form-control">
+        <div id="debtNameError" style="display:none;color:var(--danger);font-size:.82rem;margin-top:.4rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+        <button class="btn btn-danger" onclick="submitDebtSession()">{% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const isEn = '{{ lang }}' === 'en';
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+const sessionId = {{ session.id }};
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmt(n) { return Number(n||0).toLocaleString('en-IQ'); }
+
+function updateClock() {
+  const el = document.getElementById('clockNow');
+  if (el) { const n = new Date(); el.textContent = pad(n.getHours()) + ':' + pad(n.getMinutes()); }
+}
+function tickTimer() {
+  const el = document.getElementById('liveTimer');
+  if (!el || el.dataset.frozen === '1') return;
+  const start = new Date(el.dataset.start);
+  const secs = Math.max(0, Math.floor((new Date() - start) / 1000));
+  const h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
+  el.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+
+  const rate = {{ session.court.price_per_hour }};
+  const price = Math.round((secs/3600) * rate);
+  const priceEl = document.getElementById('timePriceDisplay');
+  const sumEl = document.getElementById('summaryTime');
+  if (priceEl) priceEl.textContent = fmt(price) + ' IQD';
+  if (sumEl) sumEl.textContent = fmt(price) + ' IQD';
+}
+setInterval(() => { updateClock(); tickTimer(); }, 1000);
+updateClock(); tickTimer();
+
+function addItem(productId) {
+  fetch(`/pos/courts/session/${sessionId}/add-item`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ product_id: productId, quantity: 1 })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) location.reload();
+    else alert(d.message || (isEn?'Error':'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function removeItem(itemId) {
+  fetch(`/pos/courts/session/${sessionId}/remove-item/${itemId}`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken }
+  })
+  .then(r => r.json())
+  .then(d => { if (d.success) location.reload(); else alert(d.message || (isEn?'Error':'خطأ')); })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function endPlayTime() {
+  fetch(`/pos/courts/session/${sessionId}/end-time`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken }
+  })
+  .then(r => r.json())
+  .then(d => { if (d.success) location.reload(); else alert(d.message || (isEn?'Error':'خطأ')); })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function finishSession(method) {
+  const msg = isEn ? 'Finish this session?' : 'إنهاء هذه الجلسة؟';
+  if (!confirm(msg)) return;
+  fetch(`/pos/courts/session/${sessionId}/finish`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ payment_method: method })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
+    else alert(d.message || (isEn?'Error':'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function openDebtPrompt() {
+  document.getElementById('debtNameInput').value = '';
+  document.getElementById('debtNameError').style.display = 'none';
+  new bootstrap.Modal(document.getElementById('debtNameModal')).show();
+}
+function submitDebtSession() {
+  const name = document.getElementById('debtNameInput').value.trim();
+  const err = document.getElementById('debtNameError');
+  if (!name) {
+    err.textContent = isEn ? "Please enter the person's name" : 'الرجاء كتابة اسم الشخص';
+    err.style.display = 'block';
+    return;
+  }
+  fetch(`/pos/courts/session/${sessionId}/finish-debt`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ name })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
+    else { err.textContent = d.message || (isEn?'Error':'خطأ'); err.style.display = 'block'; }
+  })
+  .catch(() => { err.textContent = isEn ? 'Connection failed' : 'فشل الاتصال'; err.style.display = 'block'; });
+}
+
+function cancelSession() {
+  const msg = isEn ? 'Cancel this session with no charge?' : 'إلغاء الجلسة بدون دفع؟';
+  if (!confirm(msg)) return;
+  fetch(`/pos/courts/session/${sessionId}/cancel`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
+    else alert(d.message || (isEn?'Error':'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function applyFilters() {
+  const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+  const activeCat = document.querySelector('.category-tab.active')?.dataset.cat || 'all';
+  document.querySelectorAll('.product-item').forEach(el => {
+    const nameMatch = !q || el.dataset.name.includes(q);
+    const catMatch = activeCat === 'all' || el.dataset.cat === activeCat;
+    el.style.display = (nameMatch && catMatch) ? '' : 'none';
+  });
+}
+function filterCategory(catId, btnEl) {
+  document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+  applyFilters();
+}
+document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+
+document.getElementById('barcodeInput')?.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const code = this.value.trim();
+  this.value = '';
+  if (!code) return;
+  const item = document.querySelector(`.product-item[data-id="${code}"]`);
+  if (item) { item.querySelector('.product-card').click(); return; }
+  alert(isEn ? 'Product not found!' : 'المنتج غير موجود!');
+});
+</script>
+{% endblock %}
