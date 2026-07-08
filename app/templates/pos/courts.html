@@ -2,7 +2,6 @@
 {% block title %}{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
-<style>
   .courts-summary { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem; }
   .courts-count-pill {
     display:inline-flex; align-items:center; gap:.4rem;
@@ -38,7 +37,6 @@
   .btn-start:hover { color:#fff; transform: translateY(-1px); }
   .btn-view-session { background: linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; font-weight:800; }
   .btn-view-session:hover { color:#fff; }
-</style>
 {% endblock %}
 
 {% block content %}
