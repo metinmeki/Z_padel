@@ -5,7 +5,10 @@
   .session-layout { display:grid; grid-template-columns: 340px 1fr; gap: 1.2rem; align-items:start; }
   @media (max-width: 991px) { .session-layout { grid-template-columns: 1fr; } }
 
-  .invoice-panel { position: sticky; top: 76px; }
+  .invoice-panel { position: static; }
+  @media (min-width: 992px) {
+    .invoice-panel { position: sticky; top: 76px; }
+  }
   .invoice-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: .9rem; }
   .invoice-title { font-weight:800; font-size:1rem; display:flex; align-items:center; gap:.5rem; }
   .invoice-time { font-size:.8rem; color:var(--text-muted); font-weight:700; }
@@ -183,7 +186,7 @@
              onclick='{% if p.stock != 0 %}addItem({{ p.id }}){% endif %}'>
           <div class="product-img-wrap">
             {% if p.image %}
-              <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
+              <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
             {% else %}
               <i class="fas fa-box" style="font-size:1.4rem;color:var(--text-muted);"></i>
             {% endif %}

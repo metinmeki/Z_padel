@@ -77,7 +77,7 @@
              onclick='{% if p.stock != 0 %}addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price }}, {{ (p.image or "")|tojson }}, this){% endif %}'>
           <div class="product-img-wrap">
             {% if p.image %}
-              <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
+              <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}" alt="{{ p.name }}" loading="lazy">
             {% else %}
               <i class="fas fa-box" style="font-size:1.7rem;color:var(--text-muted);"></i>
             {% endif %}

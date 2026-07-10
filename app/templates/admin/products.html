@@ -81,7 +81,7 @@
           <td>
             <div style="display:flex;align-items:center;gap:10px;">
               {% if p.image %}
-                <img src="{{ url_for('static', filename='images/products/' ~ p.image) }}"
+                <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}"
                      style="width:38px;height:38px;object-fit:cover;border-radius:8px;border:1px solid var(--border-color);">
               {% else %}
                 <div style="width:38px;height:38px;border-radius:8px;background:var(--brand-blue-soft);display:flex;align-items:center;justify-content:center;color:var(--brand-blue);font-size:16px;">

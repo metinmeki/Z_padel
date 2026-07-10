@@ -352,7 +352,7 @@
       <button class="btn-z-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal">
         <i class="fas fa-plus"></i> {% if lang == 'en' %}New Booking{% else %}حجز جديد{% endif %}
       </button>
-      <a href="{{ url_for('admin.bookings', export='csv', **request.args) }}" class="btn-z-outline">
+      <a href="{{ url_for('admin.bookings', export='csv') }}" class="btn-z-outline">
         <i class="fas fa-file-export"></i> {% if lang == 'en' %}Export{% else %}تصدير{% endif %}
       </a>
     </div>
