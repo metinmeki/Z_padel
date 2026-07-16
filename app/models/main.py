@@ -260,9 +260,10 @@ class CourtSession(db.Model):
         return max(0, int(delta.total_seconds() // 60))
 
     def calc_price(self):
-        hours = self.elapsed_minutes / 60
+        import math
+        hours_billed = max(1, math.ceil(self.elapsed_minutes / 60))
         rate = self.court.price_per_hour if self.court else 40000
-        return round(hours * rate)
+        return round(hours_billed * rate)
 
     @property
     def items_total(self):

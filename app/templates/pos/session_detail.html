@@ -1,4 +1,4 @@
-{% extends 'pos/base_pos.html' %}
+﻿{% extends 'pos/base_pos.html' %}
 {% block title %}{{ session.court.name }} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
@@ -137,6 +137,9 @@
     <div class="alert alert-success text-center" style="margin-top:1rem;">
       <i class="fas fa-check-circle me-2"></i>{% if lang == 'en' %}Session completed{% else %}تم إنهاء الجلسة{% endif %}
     </div>
+    <a href="{{ url_for('pos.session_receipt', session_id=session.id) }}" class="btn btn-primary w-100" style="margin-bottom:.5rem;">
+      <i class="fas fa-receipt me-2"></i>{% if lang == 'en' %}View Receipt{% else %}عرض الفاتورة{% endif %}
+    </a>
     <a href="{{ url_for('pos.courts') }}" class="btn btn-outline-secondary w-100">
       <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back to Courts{% else %}رجوع للملاعب{% endif %}
     </a>
@@ -250,7 +253,8 @@ function tickTimer() {
   el.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 
   const rate = {{ session.court.price_per_hour }};
-  const price = Math.round((secs/3600) * rate);
+  const hoursBilled = Math.max(1, Math.ceil(secs/3600));
+  const price = Math.round(hoursBilled * rate);
   const priceEl = document.getElementById('timePriceDisplay');
   const sumEl = document.getElementById('summaryTime');
   if (priceEl) priceEl.textContent = fmt(price) + ' IQD';
@@ -303,7 +307,7 @@ function finishSession(method) {
   })
   .then(r => r.json())
   .then(d => {
-    if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
+    if (d.success) window.location.href = `/pos/courts/session/${sessionId}/receipt?autoprint=1`;
     else alert(d.message || (isEn?'Error':'خطأ'));
   })
   .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
@@ -329,7 +333,7 @@ function submitDebtSession() {
   })
   .then(r => r.json())
   .then(d => {
-    if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
+    if (d.success) window.location.href = `/pos/courts/session/${sessionId}/receipt?autoprint=1`;
     else { err.textContent = d.message || (isEn?'Error':'خطأ'); err.style.display = 'block'; }
   })
   .catch(() => { err.textContent = isEn ? 'Connection failed' : 'فشل الاتصال'; err.style.display = 'block'; });
@@ -378,3 +382,4 @@ document.getElementById('barcodeInput')?.addEventListener('keydown', function(e)
 });
 </script>
 {% endblock %}
+

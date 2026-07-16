@@ -306,3 +306,11 @@ def receipt(order_id):
     order = Order.query.get_or_404(order_id)
     autoprint = request.args.get('autoprint', '0') == '1'
     return render_template('pos/receipt.html', order=order, autoprint=autoprint)
+
+
+@pos_bp.route('/courts/session/<int:session_id>/receipt')
+@login_required
+def session_receipt(session_id):
+    session_row = CourtSession.query.get_or_404(session_id)
+    autoprint = request.args.get('autoprint', '0') == '1'
+    return render_template('pos/session_receipt.html', session=session_row, autoprint=autoprint)
