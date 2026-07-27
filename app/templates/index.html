@@ -35,6 +35,7 @@
   </button>
   <a href="#courts"   onclick="closeMobileMenu()">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
   <a href="#features" onclick="closeMobileMenu()">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
+  <a href="#clips"    onclick="closeMobileMenu()">{% if lang == 'en' %}Match Moments{% else %}لحظات المباراة{% endif %}</a>
   <a href="#store"    onclick="closeMobileMenu()">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
   <a href="#contact"  onclick="closeMobileMenu()">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
   <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()"
@@ -63,6 +64,7 @@
     <div class="nav-links">
       <a href="#courts"  class="nav-link-item">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
       <a href="#features" class="nav-link-item">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
+      <a href="#clips" class="nav-link-item">{% if lang == 'en' %}Match Moments{% else %}لحظات المباراة{% endif %}</a>
       <a href="#store"   class="nav-link-item">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
       <a href="#contact" class="nav-link-item">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
     </div>
@@ -148,6 +150,120 @@
     </div>
   </div>
 </section>
+
+<!-- ═══════════ CLIPS DOWNLOAD ═══════════ -->
+<section class="section" id="clips">
+  <div class="container-z">
+
+    <div class="reveal" style="text-align:center;margin-bottom:36px;">
+      <span class="sec-eye"><i class="fas fa-video"></i> {% if lang == 'en' %}Match Moments{% else %}لحظات المباراة{% endif %}</span>
+      <h2 class="sec-ttl" style="text-align:center;">
+        {% if lang == 'en' %}Watch <span>Live</span> & Save Your Best Point{% else %}شاهد <span>مباشرة</span> واحفظ أفضل نقطة{% endif %}
+      </h2>
+      <p class="sec-sub" style="margin:0 auto;text-align:center;">
+        {% if lang == 'en' %}Pick your court, watch the live feed, then download the moment{% else %}اختر ملعبك، شاهد البث المباشر، وحمّل اللحظة{% endif %}
+      </p>
+    </div>
+
+    <div class="reveal" style="max-width:900px;margin:0 auto;">
+
+      <!-- Court selector tabs -->
+      <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;">
+        <button type="button" class="clip-court-tab active" data-court="court1">
+          <i class="fas fa-table-tennis-paddle-ball"></i>
+          {% if lang == 'en' %}Court 1{% else %}ملعب ١{% endif %}
+        </button>
+        <button type="button" class="clip-court-tab" data-court="court2">
+          <i class="fas fa-table-tennis-paddle-ball"></i>
+          {% if lang == 'en' %}Court 2{% else %}ملعب ٢{% endif %}
+        </button>
+      </div>
+
+      <!-- Live player -->
+      <div style="position:relative;background:#111;border-radius:var(--r);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);aspect-ratio:16/9;">
+        <video id="liveVideo" controls autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;background:#000;"></video>
+        <div style="position:absolute;top:14px;{{ 'right' if lang == 'en' else 'left' }}:14px;background:rgba(220,50,50,.9);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:pulseLive 1.4s infinite;"></span>
+          LIVE
+        </div>
+      </div>
+
+      <!-- Download form -->
+      <div style="background:#fff;border:1px solid var(--bmid);border-radius:var(--r);padding:28px;box-shadow:0 6px 24px rgba(0,0,0,.06);margin-top:20px;">
+        <form id="clipForm">
+          <input type="hidden" name="court" id="clipCourt" value="court1">
+
+          <div class="clip-fields-grid">
+            <div>
+              <label class="form-label" style="font-weight:700;font-size:13px;">
+                {% if lang == 'en' %}Date{% else %}التاريخ{% endif %}
+              </label>
+              <input type="date" name="date" id="clipDate" class="form-control" required>
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:700;font-size:13px;">
+                {% if lang == 'en' %}Time{% else %}الوقت{% endif %}
+              </label>
+              <input type="time" name="start_time" id="clipTime" class="form-control" step="1" required>
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:700;font-size:13px;">
+                {% if lang == 'en' %}Duration{% else %}مدة المقطع{% endif %}
+              </label>
+              <select name="duration" id="clipDuration" class="form-select">
+                <option value="30">30 {% if lang == 'en' %}sec{% else %}ثانية{% endif %}</option>
+                <option value="60" selected>1 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+                <option value="120">2 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+                <option value="180">3 {% if lang == 'en' %}min{% else %}دقايق{% endif %}</option>
+                <option value="300">5 {% if lang == 'en' %}min{% else %}دقايق{% endif %}</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-main" id="clipSubmitBtn" style="width:100%;justify-content:center;border:none;cursor:pointer;">
+            <i class="fas fa-download"></i>
+            <span id="clipBtnText">{% if lang == 'en' %}Download Clip{% else %}تحميل اللقطة{% endif %}</span>
+          </button>
+
+          <div id="clipMessage" style="margin-top:16px;font-size:14px;text-align:center;display:none;"></div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes pulseLive { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .clip-court-tab {
+    padding:10px 26px;border-radius:50px;border:1px solid var(--bmid);background:#fff;
+    font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;
+    transition:.25s;color:#333;
+  }
+  .clip-court-tab.active {
+    background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;border-color:transparent;
+  }
+  .clip-fields-grid {
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;
+  }
+  @media (max-width: 640px) {
+    .clip-fields-grid {
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+    .clip-court-tab {
+      flex:1;justify-content:center;padding:12px 10px;font-size:13px;
+    }
+    #clips .form-control,
+    #clips .form-select {
+      font-size:16px;
+      padding:12px 14px;
+    }
+    #clipSubmitBtn {
+      padding:14px;font-size:15px;
+    }
+  }
+</style>
 
 <!-- ═══════════ TICKER ═══════════ -->
 <div class="ticker">
@@ -293,7 +409,7 @@
           ('fa-tag','25% Discount','Daily discount from 12:00 PM until 4:00 PM.'),
           ('fa-person-running','Pro Coaches','A team of coaches to develop your skills.'),
           ('fa-wind','Comfortable Environment','Modern A/C and professional LED lighting.'),
-          ('fa-clock','Flexible Hours','Open daily from 8 AM until 11 PM.'),
+          ('fa-clock','Open 24/7','Open around the clock, every day of the week.'),
           ('fa-bag-shopping','Full Store','Original padel gear for all your needs.'),
           ('fa-location-dot','Prime Location','In the heart of Duhok with parking available.'),
           ('fa-shield-halved','International Courts','Doubles courts built to the highest global standards.')
@@ -304,7 +420,7 @@
           ('fa-tag','خصم 25%','خصم يومي من 12:00 ظهراً حتى 4:00 عصراً.'),
           ('fa-person-running','مدربون محترفون','فريق من المدربين لتطوير مهاراتك.'),
           ('fa-wind','بيئة مريحة','تكييف حديث وإضاءة LED احترافية.'),
-          ('fa-clock','ساعات مرنة','مفتوح يومياً من 8 صباحاً حتى 11 مساءً.'),
+          ('fa-clock','مفتوح 24 ساعة','مفتوح على مدار الساعة، طوال أيام الأسبوع.'),
           ('fa-bag-shopping','متجر متكامل','معدات باديل أصلية لكل احتياجاتك.'),
           ('fa-location-dot','موقع استراتيجي','في قلب دهوك مع توفر مواقف سيارات.'),
           ('fa-shield-halved','ملاعب دولية','ملاعب مزدوجة بأعلى المعايير العالمية.')
@@ -572,7 +688,7 @@
     </div>
     <div class="reveal" style="border-radius:var(--r);overflow:hidden;border:1px solid var(--bmid);height:400px;width:100%;">
       <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3215.3564756598375!2d42.9845778757962!3d36.8576404722485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40074744d0f1a4ed%3A0x67825d4806a0904!2sDuhok!5e0!3m2!1sen!2siq!4v1717500000000!5m2!1sen!2siq"
+        src="https://www.google.com/maps?q=36.862247467041016,42.958412170410156&z=17&hl=en&output=embed"
         width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
       </iframe>
     </div>
@@ -596,7 +712,7 @@
           <span class="footer-status-dot"></span>
           <span>{% if lang == 'en' %}Open Now{% else %}مفتوح الآن{% endif %}</span>
           <span class="footer-status-sep">·</span>
-          <span>8:00 AM — 11:00 PM</span>
+          <span>{% if lang == 'en' %}Open 24/7{% else %}مفتوح 24 ساعة{% endif %}</span>
         </div>
         <div class="footer-social">
           <a href="#" class="fs-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -668,6 +784,97 @@
     });
   }, { threshold: .10, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // ── HLS.js loader for live view ──
+  const hlsScript = document.createElement('script');
+  hlsScript.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+  document.head.appendChild(hlsScript);
+
+  let currentHls = null;
+  const liveVideo = document.getElementById('liveVideo');
+
+  const HLS_BASE_URL = 'https://YOUR-VPS-DOMAIN.com:8888'; // ⚠️ بدّل هذا برابط الـ VPS تبعك
+
+  function loadLiveStream(court) {
+    if (currentHls) {
+      currentHls.destroy();
+      currentHls = null;
+    }
+    const streamUrl = `${HLS_BASE_URL}/${court}/index.m3u8`;
+
+    if (window.Hls && Hls.isSupported()) {
+      currentHls = new Hls();
+      currentHls.loadSource(streamUrl);
+      currentHls.attachMedia(liveVideo);
+    } else if (liveVideo.canPlayType('application/vnd.apple.mpegurl')) {
+      liveVideo.src = streamUrl; // Safari native support
+    }
+  }
+
+  hlsScript.onload = () => loadLiveStream('court1');
+
+  // ── Court tab switching ──
+  document.querySelectorAll('.clip-court-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.clip-court-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const court = tab.dataset.court;
+      document.getElementById('clipCourt').value = court;
+      loadLiveStream(court);
+    });
+  });
+
+  // ── Clip download ──
+  document.getElementById('clipForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('clipSubmitBtn');
+    const btnText = document.getElementById('clipBtnText');
+    const msg = document.getElementById('clipMessage');
+    const originalText = btnText.textContent;
+
+    btn.disabled = true;
+    btnText.textContent = '{% if lang == "en" %}Preparing...{% else %}جاري التحضير...{% endif %}';
+    msg.style.display = 'none';
+
+    const formData = new FormData(this);
+
+    try {
+      const res = await fetch("{{ url_for('main.download_clip') }}", {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        msg.style.display = 'block';
+        msg.style.color = '#c0392b';
+        msg.textContent = err.message || '{% if lang == "en" %}No recording found for this time{% else %}لا يوجد تسجيل بهذا الوقت{% endif %}';
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `padel-moment-${formData.get('court')}-${formData.get('date')}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      msg.style.display = 'block';
+      msg.style.color = '#2e7d32';
+      msg.textContent = '{% if lang == "en" %}Clip downloaded successfully{% else %}تم تحميل المقطع بنجاح{% endif %}';
+
+    } catch (err) {
+      msg.style.display = 'block';
+      msg.style.color = '#c0392b';
+      msg.textContent = '{% if lang == "en" %}Something went wrong, try again{% else %}صار خطأ، حاول مرة ثانية{% endif %}';
+    } finally {
+      btn.disabled = false;
+      btnText.textContent = originalText;
+    }
+  });
 </script>
 
 </body>
