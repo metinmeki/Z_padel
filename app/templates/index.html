@@ -114,9 +114,9 @@
 
         <p class="hero-sub">
           {% if lang == 'en' %}
-            Your #1 destination for padel in Duhok — professional courts, easy booking with no upfront payment, and 25% daily discount from 12:00 to 16:00.
+            Your #1 destination for padel in Duhok — professional courts and easy booking with no upfront payment.
           {% else %}
-            وجهتك الأولى لرياضة الباديل في دهوك — ملاعب بأعلى المواصفات، حجز سهل بدون دفع مسبق، وخصم 25% يومياً من 12 إلى 16.
+            وجهتك الأولى لرياضة الباديل في دهوك — ملاعب بأعلى المواصفات وحجز سهل بدون دفع مسبق.
           {% endif %}
         </p>
 
@@ -140,10 +140,6 @@
             <div class="hst-val">{{ total_bookings|default(0) }}<em>+</em></div>
             <div class="hst-lbl">{% if lang == 'en' %}Bookings Done{% else %}حجز منجز{% endif %}</div>
           </div>
-          <div class="hst">
-            <div class="hst-val">25<em>%</em></div>
-            <div class="hst-lbl">{% if lang == 'en' %}Discount 12–16{% else %}خصم 12–16{% endif %}</div>
-          </div>
         </div>
 
       </div>
@@ -161,7 +157,7 @@
         {% if lang == 'en' %}Watch <span>Live</span> & Save Your Best Point{% else %}شاهد <span>مباشرة</span> واحفظ أفضل نقطة{% endif %}
       </h2>
       <p class="sec-sub" style="margin:0 auto;text-align:center;">
-        {% if lang == 'en' %}Pick your court, watch the live feed, then download the moment{% else %}اختر ملعبك، شاهد البث المباشر، وحمّل اللحظة{% endif %}
+        {% if lang == 'en' %}Live 24/7 — identity blurred for your privacy. Ask staff to save your best moment.{% else %}بث مباشر 24/7 — الوجوه محجوبة لحماية خصوصيتك. اطلب من الفريق حفظ أفضل لحظاتك.{% endif %}
       </p>
     </div>
 
@@ -181,52 +177,23 @@
 
       <!-- Live player -->
       <div style="position:relative;background:#111;border-radius:var(--r);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);aspect-ratio:16/9;">
-        <video id="liveVideo" controls autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;background:#000;"></video>
+        <video id="liveVideo" controls autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;background:#000;filter:blur(6px);transform:scale(1.04);"></video>
         <div style="position:absolute;top:14px;{{ 'right' if lang == 'en' else 'left' }}:14px;background:rgba(220,50,50,.9);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;">
           <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:pulseLive 1.4s infinite;"></span>
           LIVE
         </div>
+        <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;white-space:nowrap;backdrop-filter:blur(4px);">
+          <i class="fas fa-eye-slash" style="margin-{{ 'right' if lang == 'en' else 'left' }}:5px;"></i>
+          {% if lang == 'en' %}Live view — identity protected{% else %}بث مباشر — الهوية محمية{% endif %}
+        </div>
       </div>
 
-      <!-- Download form -->
-      <div style="background:#fff;border:1px solid var(--bmid);border-radius:var(--r);padding:28px;box-shadow:0 6px 24px rgba(0,0,0,.06);margin-top:20px;">
-        <form id="clipForm">
-          <input type="hidden" name="court" id="clipCourt" value="court1">
-
-          <div class="clip-fields-grid">
-            <div>
-              <label class="form-label" style="font-weight:700;font-size:13px;">
-                {% if lang == 'en' %}Date{% else %}التاريخ{% endif %}
-              </label>
-              <input type="date" name="date" id="clipDate" class="form-control" required>
-            </div>
-            <div>
-              <label class="form-label" style="font-weight:700;font-size:13px;">
-                {% if lang == 'en' %}Time{% else %}الوقت{% endif %}
-              </label>
-              <input type="time" name="start_time" id="clipTime" class="form-control" step="1" required>
-            </div>
-            <div>
-              <label class="form-label" style="font-weight:700;font-size:13px;">
-                {% if lang == 'en' %}Duration{% else %}مدة المقطع{% endif %}
-              </label>
-              <select name="duration" id="clipDuration" class="form-select">
-                <option value="30">30 {% if lang == 'en' %}sec{% else %}ثانية{% endif %}</option>
-                <option value="60" selected>1 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
-                <option value="120">2 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
-                <option value="180">3 {% if lang == 'en' %}min{% else %}دقايق{% endif %}</option>
-                <option value="300">5 {% if lang == 'en' %}min{% else %}دقايق{% endif %}</option>
-              </select>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-main" id="clipSubmitBtn" style="width:100%;justify-content:center;border:none;cursor:pointer;">
-            <i class="fas fa-download"></i>
-            <span id="clipBtnText">{% if lang == 'en' %}Download Clip{% else %}تحميل اللقطة{% endif %}</span>
-          </button>
-
-          <div id="clipMessage" style="margin-top:16px;font-size:14px;text-align:center;display:none;"></div>
-        </form>
+      <!-- Info note -->
+      <div style="background:#f0f4ff;border:1px solid #c7d9f5;border-radius:var(--r);padding:18px 22px;margin-top:20px;display:flex;align-items:center;gap:12px;">
+        <i class="fas fa-circle-info" style="color:#1565C0;font-size:18px;flex-shrink:0;"></i>
+        <p style="margin:0;font-size:13px;color:#2a4a7f;line-height:1.6;">
+          {% if lang == 'en' %}Want to save a moment from your game? Ask our staff and we'll prepare a clip for you.{% else %}تريد حفظ لحظة من مبارتك؟ اطلب من فريقنا وسنجهّز لك المقطع.{% endif %}
+        </p>
       </div>
 
     </div>
@@ -269,9 +236,9 @@
 <div class="ticker">
   <div class="ticker-track">
     {% if lang == 'en' %}
-    {% set ticker_items = ['Z PADEL DUHOK','PROFESSIONAL COURTS','25% DISCOUNT 12–16','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','PROFESSIONAL COURTS','25% DISCOUNT 12–16','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% set ticker_items = ['Z PADEL DUHOK','PROFESSIONAL COURTS','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','PROFESSIONAL COURTS','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE'] %}
     {% else %}
-    {% set ticker_items = ['Z PADEL DUHOK','ملاعب احترافية','خصم 25% من 12–16','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','ملاعب احترافية','خصم 25% من 12–16','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% set ticker_items = ['Z PADEL DUHOK','ملاعب احترافية','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','ملاعب احترافية','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE'] %}
     {% endif %}
     {% for item in ticker_items %}
     <span class="ticker-item">{{ item }} <span class="ticker-dot"></span></span>
@@ -327,11 +294,6 @@
                 {{ "{:,.0f}".format(court.price_per_hour or 25000) }}
                 <small>{% if lang == 'en' %}IQD/hr{% else %}د.ع/ساعة{% endif %}</small>
               </div>
-              <div class="cc-disc">
-                <i class="fas fa-tag" style="font-size:9px;"></i>
-                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }}
-                {% if lang == 'en' %}during discount hours{% else %}في ساعات الخصم{% endif %}
-              </div>
             </div>
           </div>
           <div class="cc-hover-btn">
@@ -355,11 +317,6 @@
             <div class="cc-pricing">
               <div class="cc-price-full">
                 {{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small> {% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small>
-              </div>
-              <div class="cc-price-off">
-                <i class="fas fa-clock"></i>
-                {{ "{:,.0f}".format((court.price_per_hour or 25000)*0.75) }}
-                {% if lang == 'en' %}IQD discount hours{% else %}د.ع ساعات الخصم{% endif %}
               </div>
             </div>
             <a href="{{ url_for('booking.index') }}" class="cc-book">
@@ -406,7 +363,6 @@
         {% if lang == 'en' %}
         {% set features = [
           ('fa-calendar-check','Easy Booking','Book your court in minutes with no pre-registration.'),
-          ('fa-tag','25% Discount','Daily discount from 12:00 PM until 4:00 PM.'),
           ('fa-person-running','Pro Coaches','A team of coaches to develop your skills.'),
           ('fa-wind','Comfortable Environment','Modern A/C and professional LED lighting.'),
           ('fa-clock','Open 24/7','Open around the clock, every day of the week.'),
@@ -417,7 +373,6 @@
         {% else %}
         {% set features = [
           ('fa-calendar-check','حجز سهل','احجز ملعبك في دقائق بدون تسجيل مسبق.'),
-          ('fa-tag','خصم 25%','خصم يومي من 12:00 ظهراً حتى 4:00 عصراً.'),
           ('fa-person-running','مدربون محترفون','فريق من المدربين لتطوير مهاراتك.'),
           ('fa-wind','بيئة مريحة','تكييف حديث وإضاءة LED احترافية.'),
           ('fa-clock','مفتوح 24 ساعة','مفتوح على مدار الساعة، طوال أيام الأسبوع.'),
@@ -824,57 +779,6 @@
     });
   });
 
-  // ── Clip download ──
-  document.getElementById('clipForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('clipSubmitBtn');
-    const btnText = document.getElementById('clipBtnText');
-    const msg = document.getElementById('clipMessage');
-    const originalText = btnText.textContent;
-
-    btn.disabled = true;
-    btnText.textContent = '{% if lang == "en" %}Preparing...{% else %}جاري التحضير...{% endif %}';
-    msg.style.display = 'none';
-
-    const formData = new FormData(this);
-
-    try {
-      const res = await fetch("{{ url_for('main.download_clip') }}", {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        msg.style.display = 'block';
-        msg.style.color = '#c0392b';
-        msg.textContent = err.message || '{% if lang == "en" %}No recording found for this time{% else %}لا يوجد تسجيل بهذا الوقت{% endif %}';
-        return;
-      }
-
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `padel-moment-${formData.get('court')}-${formData.get('date')}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      msg.style.display = 'block';
-      msg.style.color = '#2e7d32';
-      msg.textContent = '{% if lang == "en" %}Clip downloaded successfully{% else %}تم تحميل المقطع بنجاح{% endif %}';
-
-    } catch (err) {
-      msg.style.display = 'block';
-      msg.style.color = '#c0392b';
-      msg.textContent = '{% if lang == "en" %}Something went wrong, try again{% else %}صار خطأ، حاول مرة ثانية{% endif %}';
-    } finally {
-      btn.disabled = false;
-      btnText.textContent = originalText;
-    }
-  });
 </script>
 
 </body>

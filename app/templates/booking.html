@@ -140,16 +140,6 @@
     .court-tab.active { background: var(--ink); border-color: var(--ink); color: white; }
     .court-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-    /* ── DISCOUNT BANNER ── */
-    .discount-banner {
-      margin: 12px 16px 0; padding: 9px 13px;
-      background: #FDFAF5; border: 1px solid #EDD98A; border-radius: var(--radius-xs);
-      display: flex; align-items: center; gap: 9px; font-size: 12px;
-    }
-    .discount-banner i { color: #C9A227; font-size: 14px; flex-shrink: 0; }
-    .discount-banner strong { color: #7A5C0A; }
-    .discount-banner span { color: #B08E52; }
-
     /* ── TIME GRID ── */
     .slots-wrap { padding: 14px 16px; }
     .slots-legend { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -157,7 +147,6 @@
     .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
     .legend-dot.free     { background: #F0FAF0; border: 1px solid #90C490; }
     .legend-dot.booked   { background: #FFF5F5; border: 1px solid #EF9A9A; }
-    .legend-dot.discount { background: #FDFAF5; border: 1px solid #D6C3A1; }
     .legend-dot.selected { background: var(--ink); }
     .legend-dot.past     { background: #F5F5F5; border: 1px solid #E0E0E0; }
 
@@ -175,34 +164,24 @@
       font-family: 'Montserrat', sans-serif; user-select: none; min-width: 0;
     }
     .slot-btn.free     { background: #F0FAF0; border-color: #90C490; }
-    .slot-btn.discount { background: #FDFAF5; border-color: #D6C3A1; }
     .slot-btn.booked   { background: #FFF5F5; border-color: #EF9A9A; cursor: not-allowed; }
     .slot-btn.past     { background: #F8F8F8; border-color: #E0E0E0; cursor: not-allowed; opacity: .5; }
     .slot-btn.free:hover     { background: #D4EDD4; border-color: #5FAF5F; transform: translateY(-2px); }
-    .slot-btn.discount:hover { background: #F0E5CC; border-color: var(--gold-deep); transform: translateY(-2px); }
     .slot-btn.selected {
       background: var(--ink) !important; border-color: var(--ink-soft) !important;
       color: white !important; transform: translateY(-2px) !important;
     }
     .slot-time  { font-size: 12.5px; font-weight: 800; line-height: 1; }
     .slot-btn.free .slot-time     { color: #2E6B2E; }
-    .slot-btn.discount .slot-time { color: #7A5C0A; }
     .slot-btn.booked .slot-time   { color: #C62828; }
     .slot-btn.past .slot-time     { color: #BDBDBD; }
     .slot-btn.selected .slot-time { color: white; }
     .slot-price { font-size: 9.5px; font-weight: 700; margin-top: 3px; opacity: .8; }
     .slot-btn.free .slot-price     { color: #2E6B2E; }
-    .slot-btn.discount .slot-price { color: #7A5C0A; }
     .slot-btn.booked .slot-price, .slot-btn.past .slot-price { color: #BDBDBD; }
     .slot-btn.selected .slot-price { color: rgba(255,255,255,.6); }
     .slot-check { display: none; position: absolute; top: 5px; right: 5px; font-size: 8px; color: rgba(255,255,255,.7); }
     .slot-btn.selected .slot-check { display: block; }
-    .disc-pill {
-      position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
-      background: var(--gold); color: #3a2f00; font-size: 7px; font-weight: 800;
-      padding: 2px 5px; border-radius: 4px; white-space: nowrap; z-index: 1;
-      font-family: 'Montserrat', sans-serif;
-    }
     .slots-loading { display: flex; align-items: center; justify-content: center; padding: 40px; gap: 10px; color: var(--muted); font-size: 13px; }
     .slots-loading i { animation: spin .8s linear infinite; color: var(--slate); font-size: 18px; }
 
@@ -228,14 +207,6 @@
     }
     .price-box-val { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 900; color: var(--ink); line-height: 1; letter-spacing: -1px; }
     .price-box-val small { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 3px; }
-    .discount-tag {
-      display: flex; align-items: center; gap: 6px; margin-top: 8px;
-      background: #FDFAF5; border: 1px solid #EDD98A;
-      border-radius: var(--radius-xs); padding: 7px 11px;
-      font-size: 11px; font-weight: 700; color: #7A5C0A;
-      font-family: 'Montserrat', sans-serif;
-    }
-
     /* ── FORM ── */
     .form-group { margin-bottom: 12px; }
     .form-lbl { display: block; font-family: 'Montserrat', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--slate); margin-bottom: 5px; letter-spacing: .3px; }
@@ -400,20 +371,10 @@
         {% endfor %}
       </div>
 
-      <!-- Discount banner -->
-      <div class="discount-banner">
-        <i class="fas fa-bolt"></i>
-        <div>
-          {% if lang == 'en' %}<strong>25% OFF</strong><span> automatically from </span><strong>12:00 to 16:00</strong><span> daily</span>
-          {% else %}<strong>خصم 25%</strong><span> تلقائياً من </span><strong>12:00 إلى 16:00</strong><span> يومياً</span>{% endif %}
-        </div>
-      </div>
-
       <!-- Slots -->
       <div class="slots-wrap">
         <div class="slots-legend">
           <div class="legend-item"><div class="legend-dot free"></div>{% if lang == 'en' %}Available{% else %}متاح{% endif %}</div>
-          <div class="legend-item"><div class="legend-dot discount"></div>{% if lang == 'en' %}Discount{% else %}خصم{% endif %}</div>
           <div class="legend-item"><div class="legend-dot booked"></div>{% if lang == 'en' %}Booked{% else %}محجوز{% endif %}</div>
           <div class="legend-item"><div class="legend-dot selected"></div>{% if lang == 'en' %}Selected{% else %}مختار{% endif %}</div>
           <div class="legend-item"><div class="legend-dot past"></div>{% if lang == 'en' %}Past{% else %}منتهي{% endif %}</div>
@@ -506,7 +467,7 @@
 <script>
 const COURTS       = {{ courts_data | tojson }};
 const BOOKED_SLOTS = {{ booked_slots | tojson }};
-const OPEN = 0, CLOSE = 24, DS = 12, DE = 16, DISC = 0.25;
+const OPEN = 0, CLOSE = 24;
 const IS_EN = '{{ lang }}' === 'en';
 
 {% if lang == 'en' %}
@@ -574,21 +535,18 @@ function renderSlots() {
     const ts   = `${String(h).padStart(2,'0')}:00`;
     const past = isToday && (h < nowH || (h === nowH && nowM > 0));
     const bkd  = booked.includes(ts);
-    const disc = h >= DS && h < DE;
     const sel  = selStart === ts;
 
     let cls = 'slot-btn ';
     if (sel) cls += 'selected';
     else if (past) cls += 'past';
     else if (bkd)  cls += 'booked';
-    else if (disc) cls += 'discount';
     else           cls += 'free';
 
-    const rawPrice = disc ? Math.round(selPrice * (1 - DISC)) : selPrice;
+    const rawPrice = selPrice;
     const ok = !past && !bkd;
 
-    const html = `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${disc})"` : ''}>
-      ${disc && !sel && !past && !bkd ? `<span class="disc-pill">${IS_EN ? '-25%' : 'خصم'}</span>` : ''}
+    const html = `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}')"` : ''}>
       <i class="fas fa-check slot-check"></i>
       <span class="slot-time">${ts}</span>
       ${!bkd && !past ? `<span class="slot-price">${rawPrice.toLocaleString()}</span>` : `<span class="slot-price">${bkd ? (IS_EN?'Booked':'محجوز') : (IS_EN?'Past':'منتهي')}</span>`}
@@ -609,7 +567,7 @@ function renderSlots() {
   `;
 }
 
-function selectSlot(ts, disc) {
+function selectSlot(ts) {
   selStart = ts;
   const sh = parseInt(ts);
   const em = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
@@ -648,10 +606,9 @@ function updateSummary() {
   const tab   = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
   const cName = tab ? tab.dataset.courtName : '—';
   const sh    = parseInt(selStart);
-  const disc  = sh >= DS && sh < DE;
   const em    = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
   const et    = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
-  const total = Math.round((disc ? selPrice * (1 - DISC) : selPrice) * dur);
+  const total = Math.round(selPrice * dur);
   const dt    = new Date(selDate + 'T00:00:00');
   const dateLbl = `${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`;
   const durLbl  = dur === 1 ? (IS_EN ? '1 Hour' : 'ساعة') : dur === 1.5 ? (IS_EN ? '1.5 Hours' : 'ساعة ونص') : (IS_EN ? '2 Hours' : 'ساعتان');
@@ -664,11 +621,9 @@ function updateSummary() {
     <div class="price-box">
       <div>
         <div class="price-box-label">${IS_EN?'Total':'الإجمالي'}</div>
-        ${disc ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Montserrat',sans-serif;">${IS_EN?'After 25% discount':'بعد خصم 25%'}</div>` : ''}
         <div class="price-box-val">${total.toLocaleString()}<small>${IS_EN?'IQD':'د.ع'}</small></div>
       </div>
     </div>
-    ${disc ? `<div class="discount-tag"><i class="fas fa-tag"></i>${IS_EN?'25% discount applied (12:00–16:00)':'خصم 25% مطبق (12:00–16:00)'}</div>` : ''}
   `;
 }
 

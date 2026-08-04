@@ -33,18 +33,34 @@ def checkout():
 
         total = 0
         for it in items:
-            prod = Product.query.get(it.get('product_id'))
+            pid = it.get('product_id')
             qty = int(it.get('quantity', 0))
-            if not prod or qty <= 0:
-                db.session.rollback()
-                return jsonify(success=False, message='منتج غير صالح'), 400
-            if prod.stock < qty:
-                db.session.rollback()
-                return jsonify(success=False, message=f'الكمية غير متوفرة: {prod.name}'), 400
-            unit_price = prod.price
-            subtotal = unit_price * qty
-            db.session.add(OrderItem(order=order, product_id=prod.id, quantity=qty, price=unit_price, subtotal=subtotal))
-            prod.stock -= qty
+            if qty <= 0:
+                continue
+            if pid:
+                prod = Product.query.get(pid)
+                if not prod:
+                    db.session.rollback()
+                    return jsonify(success=False, message='منتج غير صالح'), 400
+                if prod.stock < qty:
+                    db.session.rollback()
+                    return jsonify(success=False, message=f'الكمية غير متوفرة: {prod.name}'), 400
+                unit_price = prod.price
+                subtotal   = unit_price * qty
+                db.session.add(OrderItem(order=order, product_id=prod.id,
+                                         product_name=prod.name,
+                                         quantity=qty, price=unit_price, subtotal=subtotal))
+                prod.stock -= qty
+            else:
+                vname      = (it.get('name') or '').strip()
+                unit_price = float(it.get('unit_price', 0))
+                if not vname or unit_price <= 0:
+                    db.session.rollback()
+                    return jsonify(success=False, message='بيانات النشاط غير صحيحة'), 400
+                subtotal = unit_price * qty
+                db.session.add(OrderItem(order=order, product_id=None,
+                                         product_name=vname,
+                                         quantity=qty, price=unit_price, subtotal=subtotal))
             total += subtotal
 
         order.total_price = total
@@ -79,18 +95,34 @@ def debt():
 
         total = 0
         for it in items:
-            prod = Product.query.get(it.get('product_id'))
+            pid = it.get('product_id')
             qty = int(it.get('quantity', 0))
-            if not prod or qty <= 0:
-                db.session.rollback()
-                return jsonify(success=False, message='منتج غير صالح'), 400
-            if prod.stock < qty:
-                db.session.rollback()
-                return jsonify(success=False, message=f'الكمية غير متوفرة: {prod.name}'), 400
-            unit_price = prod.price
-            subtotal = unit_price * qty
-            db.session.add(OrderItem(order=order, product_id=prod.id, quantity=qty, price=unit_price, subtotal=subtotal))
-            prod.stock -= qty
+            if qty <= 0:
+                continue
+            if pid:
+                prod = Product.query.get(pid)
+                if not prod:
+                    db.session.rollback()
+                    return jsonify(success=False, message='منتج غير صالح'), 400
+                if prod.stock < qty:
+                    db.session.rollback()
+                    return jsonify(success=False, message=f'الكمية غير متوفرة: {prod.name}'), 400
+                unit_price = prod.price
+                subtotal   = unit_price * qty
+                db.session.add(OrderItem(order=order, product_id=prod.id,
+                                         product_name=prod.name,
+                                         quantity=qty, price=unit_price, subtotal=subtotal))
+                prod.stock -= qty
+            else:
+                vname      = (it.get('name') or '').strip()
+                unit_price = float(it.get('unit_price', 0))
+                if not vname or unit_price <= 0:
+                    db.session.rollback()
+                    return jsonify(success=False, message='بيانات النشاط غير صحيحة'), 400
+                subtotal = unit_price * qty
+                db.session.add(OrderItem(order=order, product_id=None,
+                                         product_name=vname,
+                                         quantity=qty, price=unit_price, subtotal=subtotal))
             total += subtotal
 
         order.total_price = total

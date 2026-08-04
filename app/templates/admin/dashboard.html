@@ -145,7 +145,6 @@
 }
 .slot-cell.free     { background: rgba(67,160,71,0.12);  color: #2E7D32; border: 1px solid rgba(67,160,71,0.20); }
 .slot-cell.booked   { background: rgba(229,57,53,0.12);  color: #C62828; border: 1px solid rgba(229,57,53,0.20); }
-.slot-cell.discount { background: rgba(251,140,0,0.12);  color: #E65100; border: 1px solid rgba(251,140,0,0.20); }
 .slot-cell.past     { background: var(--off-white);       color: var(--text-muted); border: 1px solid var(--border-color); opacity: 0.5; }
 .slot-cell:hover { transform: scale(1.15); z-index: 2; }
 .slots-legend {
@@ -156,7 +155,6 @@
 .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
 .legend-dot.free     { background: rgba(67,160,71,0.55); }
 .legend-dot.booked   { background: rgba(229,57,53,0.55); }
-.legend-dot.discount { background: rgba(251,140,0,0.55); }
 
 /* ── Recent bookings mini table ── */
 .mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -434,10 +432,9 @@
           {% for h in range(6, 24) %}
             {% set slot_label = '%02d'|format(h) %}
             {% set is_booked  = slot_label in (court.today_booked_slots|default([])) %}
-            {% set is_discount = h >= 12 and h < 16 %}
             {% set is_past    = h < current_hour|default(0) %}
-            <div class="slot-cell {{ 'booked' if is_booked else 'discount' if is_discount else 'past' if is_past else 'free' }}"
-                 title="{{ slot_label }}:00 — {{ ('Booked' if lang == 'en' else 'محجوز') if is_booked else ('25% Discount' if lang == 'en' else 'خصم 25%') if is_discount else ('Available' if lang == 'en' else 'متاح') }}">
+            <div class="slot-cell {{ 'booked' if is_booked else 'past' if is_past else 'free' }}"
+                 title="{{ slot_label }}:00 — {{ ('Booked' if lang == 'en' else 'محجوز') if is_booked else ('Available' if lang == 'en' else 'متاح') }}">
               {{ slot_label }}
             </div>
           {% endfor %}
@@ -445,7 +442,6 @@
         <div class="slots-legend">
           <div class="legend-item"><div class="legend-dot free"></div>{% if lang == 'en' %}Available{% else %}متاح{% endif %}</div>
           <div class="legend-item"><div class="legend-dot booked"></div>{% if lang == 'en' %}Booked{% else %}محجوز{% endif %}</div>
-          <div class="legend-item"><div class="legend-dot discount"></div>{% if lang == 'en' %}25% Discount{% else %}خصم 25%{% endif %}</div>
         </div>
       </div>
       {% else %}

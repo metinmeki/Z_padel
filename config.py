@@ -24,14 +24,12 @@ class Config:
     # ── Uploads ──
     UPLOAD_FOLDER        = os.path.join(BASE_DIR, 'app', 'static', 'images', 'products')
     RECEIPTS_FOLDER      = os.path.join(BASE_DIR, 'app', 'static', 'receipts')
+    CLIPS_FOLDER         = os.path.join(BASE_DIR, 'clips')
     MAX_CONTENT_LENGTH   = 4 * 1024 * 1024   # 4 MB
     ALLOWED_EXTENSIONS   = {'png', 'jpg', 'jpeg', 'webp', 'pdf'}
 
     # ── Business defaults (overridden by DB settings) ──
     DEFAULT_PRICE_PER_HOUR = 25_000   # IQD
-    DISCOUNT_PERCENT       = 25
-    DISCOUNT_START_HOUR    = 12
-    DISCOUNT_END_HOUR      = 16
     OPEN_HOUR              = 6
     CLOSE_HOUR             = 23
 

@@ -125,20 +125,13 @@ class Booking(db.Model):
         delta = datetime.utcnow() - self.created_at
         return int(delta.total_seconds() / 60)
 
-    @property
-    def is_discount_slot(self):
-        if self.start_time:
-            return 12 <= self.start_time.hour < 16
-        return False
-
-    def calc_price(self, base_price: float, discount_pct: int = 25) -> float:
+    def calc_price(self, base_price: float) -> float:
         if not self.start_time or not self.end_time:
             return 0
         start_m = self.start_time.hour * 60 + self.start_time.minute
         end_m   = self.end_time.hour   * 60 + self.end_time.minute
         hours   = (end_m - start_m) / 60
-        rate    = base_price * (1 - discount_pct / 100) if self.is_discount_slot else base_price
-        return round(hours * rate)
+        return round(hours * base_price)
 
     def __repr__(self):
         return f'<Booking #{self.id} {self.customer_name}>'
@@ -225,6 +218,38 @@ class SystemSetting(db.Model):
     def __repr__(self):
         return f'<Setting {self.key}={self.value}>'
 
+
+
+# ═══════════════════════════════════════════
+# GAME CLIP (admin-saved recordings for customers)
+# ═══════════════════════════════════════════
+class GameClip(db.Model):
+    __tablename__ = 'game_clips'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    court          = db.Column(db.String(20),  nullable=False)
+    clip_date      = db.Column(db.Date,        nullable=False)
+    start_time     = db.Column(db.String(8),   nullable=False)   # HH:MM:SS
+    duration_sec   = db.Column(db.Integer,     default=60)
+    customer_name  = db.Column(db.String(100), nullable=True)
+    customer_phone = db.Column(db.String(30),  nullable=True)
+    note           = db.Column(db.Text,        nullable=True)
+    filename       = db.Column(db.String(200), nullable=True)
+    token          = db.Column(db.String(36),  unique=True, nullable=False)
+    created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
+    expires_at     = db.Column(db.DateTime,    nullable=False)
+
+    @property
+    def is_expired(self):
+        return datetime.utcnow() > self.expires_at
+
+    @property
+    def court_label(self):
+        labels = {'court1': 'Court 1 / ملعب ١', 'court2': 'Court 2 / ملعب ٢'}
+        return labels.get(self.court, self.court)
+
+    def __repr__(self):
+        return f'<GameClip #{self.id} {self.court} {self.clip_date}>'
 
 
 class PushSubscription(db.Model):

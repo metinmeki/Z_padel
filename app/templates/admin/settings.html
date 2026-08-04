@@ -361,8 +361,8 @@
           <div class="settings-card-header">
             <div class="settings-card-icon"><i class="fas fa-coins"></i></div>
             <div>
-              <div class="settings-card-title">{% if lang == 'en' %}Pricing & Discounts{% else %}التسعير والخصومات{% endif %}</div>
-              <div class="settings-card-sub">{% if lang == 'en' %}Court prices and discount rules{% else %}أسعار الملاعب وقواعد الخصم{% endif %}</div>
+              <div class="settings-card-title">{% if lang == 'en' %}Pricing{% else %}التسعير{% endif %}</div>
+              <div class="settings-card-sub">{% if lang == 'en' %}Court prices{% else %}أسعار الملاعب{% endif %}</div>
             </div>
           </div>
           <div class="settings-card-body">
@@ -375,47 +375,6 @@
               <div class="setting-control">
                 <input type="number" name="default_price" class="setting-input setting-input-sm"
                        value="{{ settings.default_price|default(25000) }}" min="0" step="500"/>
-              </div>
-            </div>
-
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">{% if lang == 'en' %}Enable Hourly Discount{% else %}تفعيل خصم ساعات معينة{% endif %}</div>
-                <div class="setting-desc">{% if lang == 'en' %}Apply automatic discount in a specific time range{% else %}تطبيق خصم تلقائي في نطاق زمني محدد{% endif %}</div>
-              </div>
-              <div class="setting-control">
-                <label class="toggle-switch">
-                  <input type="checkbox" name="enable_discount"
-                         {{ 'checked' if settings.enable_discount|default(true) else '' }}/>
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">{% if lang == 'en' %}Discount Percentage (%){% else %}نسبة الخصم (%){% endif %}</div>
-                <div class="setting-desc">{% if lang == 'en' %}Percentage discount during specified hours{% else %}النسبة المئوية للخصم في الساعات المحددة{% endif %}</div>
-              </div>
-              <div class="setting-control">
-                <input type="number" name="discount_percent" class="setting-input setting-input-sm"
-                       value="{{ settings.discount_percent|default(25) }}" min="1" max="99"/>
-              </div>
-            </div>
-
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">{% if lang == 'en' %}Discount Period{% else %}فترة الخصم{% endif %}</div>
-                <div class="setting-desc">{% if lang == 'en' %}Hours during which the discount applies{% else %}الساعات التي تُطبَّق فيها نسبة الخصم{% endif %}</div>
-              </div>
-              <div class="setting-control">
-                <div class="time-range">
-                  <input type="time" name="discount_start" class="setting-input setting-input-sm"
-                         value="{{ settings.discount_start|default('12:00') }}"/>
-                  <span>—</span>
-                  <input type="time" name="discount_end" class="setting-input setting-input-sm"
-                         value="{{ settings.discount_end|default('16:00') }}"/>
-                </div>
               </div>
             </div>
 

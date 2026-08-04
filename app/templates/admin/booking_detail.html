@@ -119,9 +119,6 @@
         {{ booking.start_time.strftime('%H:%M') if booking.start_time else '—' }}
         –
         {{ booking.end_time.strftime('%H:%M') if booking.end_time else '—' }}
-        {% if booking.is_discount_slot %}
-          <span class="discount-tag" style="margin-{{ 'left' if lang == 'en' else 'right' }}:8px;display:inline-flex;align-items:center;gap:4px;background:rgba(251,140,0,0.12);color:#E65100;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;"><i class="fas fa-tag" style="font-size:9px;"></i>25%</span>
-        {% endif %}
       </span>
     </div>
 

@@ -1,14 +1,14 @@
-import os, uuid
+import os, uuid, subprocess
 from datetime import datetime, date, timedelta
 from flask import (Blueprint, render_template, redirect, url_for,
-                   request, flash, current_app, send_file)
+                   request, flash, current_app, send_file, jsonify)
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
-                               Coach, TrainingRequest, SystemSetting)
+                               Coach, TrainingRequest, SystemSetting, GameClip)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory)
 from sqlalchemy import func, case
@@ -649,10 +649,6 @@ def reports():
     pend_bks   = sum(1 for b in bks if b.status == 'pending')
     canc_bks   = sum(1 for b in bks if b.status == 'cancelled')
     avg_val    = round(total_rev / conf_bks) if conf_bks else 0
-    disc_bks   = sum(1 for b in bks if b.is_discount_slot and b.status == 'confirmed')
-    disc_rev   = sum(b.total_price or 0 for b in bks if b.is_discount_slot and b.status == 'confirmed')
-    disc_rate  = round(disc_bks / conf_bks * 100) if conf_bks else 0
-
     courts     = Court.query.all()
     court_names   = [c.name for c in courts]
     court_counts  = [Booking.query.filter_by(court_id=c.id, status='confirmed').count() for c in courts]
@@ -700,8 +696,6 @@ def reports():
         cancelled_bookings=canc_bks, avg_booking_value=avg_val,
         total_orders=total_ords, store_revenue=store_rev,
         total_expenses=total_exp, occupancy_rate=occ_rate,
-        discount_bookings=disc_bks, discount_revenue=disc_rev,
-        discount_rate=disc_rate,
         chart_labels=labels, bookings_data=bk_data, revenue_data=rev_data,
         hourly_data=hourly,
         court_names=court_names, court_counts=court_counts, court_colors=court_colors,
@@ -839,8 +833,7 @@ def settings():
             'open_time','close_time','allow_midnight_bookings','late_close_time',
             'default_duration','max_advance_days','require_prepayment',
             'auto_confirm','allow_self_cancel','cancel_window_hours',
-            'default_price','enable_discount','discount_percent',
-            'discount_start','discount_end','monthly_budget',
+            'default_price','monthly_budget',
             'store_enabled','min_order_amount','low_stock_alert','pos_enabled',
             'notif_new_booking','notif_cancel_request','notif_new_order',
             'notif_low_stock','notif_pending_review',
@@ -861,7 +854,7 @@ def save_settings(section):
     checkbox_keys = {
         'general':       ['allow_midnight_bookings'],
         'booking':       ['require_prepayment','auto_confirm','allow_self_cancel'],
-        'pricing':       ['enable_discount'],
+        'pricing':       [],
         'store':         ['store_enabled','pos_enabled'],
         'notifications': ['notif_new_booking','notif_cancel_request',
                           'notif_new_order','notif_low_stock','notif_pending_review'],
@@ -1148,3 +1141,127 @@ def edit_category(cat_id):
     db.session.commit()
     flash('تم تحديث الفئة.', 'success')
     return redirect(url_for('admin.categories'))
+
+
+# ════════════════════════════════════════════
+# GAME CLIPS
+# ════════════════════════════════════════════
+RECORD_DIR_CLIPS = r"C:\recordings"
+
+
+@admin_bp.route('/clips')
+@login_required
+def clips():
+    all_clips = GameClip.query.order_by(GameClip.created_at.desc()).all()
+    courts = Court.query.filter_by(is_active=True).all()
+    return render_template('admin/clips.html', clips=all_clips, courts=courts)
+
+
+@admin_bp.route('/clips/save', methods=['POST'])
+@login_required
+def save_clip():
+    court      = request.form.get('court', '').strip()
+    date_str   = request.form.get('clip_date', '').strip()
+    start_time = request.form.get('start_time', '').strip()
+    duration   = min(int(request.form.get('duration', 60)), 3600)  # max 1 hour
+    cust_name  = request.form.get('customer_name', '').strip()
+    cust_phone = request.form.get('customer_phone', '').strip()
+    note       = request.form.get('note', '').strip()
+
+    if court not in ('court1', 'court2'):
+        flash('يرجى اختيار ملعب صحيح', 'danger')
+        return redirect(url_for('admin.clips'))
+
+    try:
+        # Accept HH:MM or HH:MM:SS
+        fmt = "%Y-%m-%d %H:%M:%S" if start_time.count(':') == 2 else "%Y-%m-%d %H:%M"
+        requested_dt = datetime.strptime(f"{date_str} {start_time}", fmt)
+    except ValueError:
+        flash('تنسيق التاريخ أو الوقت غير صحيح', 'danger')
+        return redirect(url_for('admin.clips'))
+
+    court_dir = os.path.join(RECORD_DIR_CLIPS, court)
+    if not os.path.isdir(court_dir):
+        flash('لا توجد تسجيلات لهذا الملعب', 'danger')
+        return redirect(url_for('admin.clips'))
+
+    files = sorted(f for f in os.listdir(court_dir) if f.endswith('.mp4'))
+    target_file, file_start_dt = None, None
+    for f in files:
+        try:
+            f_dt = datetime.strptime(f.replace('.mp4', ''), "%Y-%m-%d_%H-%M-%S")
+        except ValueError:
+            continue
+        if f_dt <= requested_dt:
+            target_file, file_start_dt = f, f_dt
+        else:
+            break
+
+    if not target_file:
+        flash('لا يوجد تسجيل بهذا الوقت', 'danger')
+        return redirect(url_for('admin.clips'))
+
+    clips_dir = current_app.config['CLIPS_FOLDER']
+    os.makedirs(clips_dir, exist_ok=True)
+
+    token    = str(uuid.uuid4())
+    filename = f"clip_{token[:8]}.mp4"
+    output_path = os.path.join(clips_dir, filename)
+
+    offset_sec  = (requested_dt - file_start_dt).total_seconds()
+    input_path  = os.path.join(court_dir, target_file)
+
+    cmd = ["ffmpeg", "-y", "-ss", str(offset_sec), "-i", input_path,
+           "-t", str(duration), "-c", "copy", output_path]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, timeout=120)
+    except Exception:
+        flash('فشل استخراج المقطع — تأكد من وجود ffmpeg وصحة التسجيل', 'danger')
+        return redirect(url_for('admin.clips'))
+
+    clip = GameClip(
+        court=court,
+        clip_date=datetime.strptime(date_str, '%Y-%m-%d').date(),
+        start_time=start_time,
+        duration_sec=duration,
+        customer_name=cust_name or None,
+        customer_phone=cust_phone or None,
+        note=note or None,
+        filename=filename,
+        token=token,
+        expires_at=datetime.utcnow() + timedelta(hours=1),
+    )
+    db.session.add(clip)
+    db.session.commit()
+
+    flash('✅ تم حفظ المقطع بنجاح! يمكنك الآن مشاركة الرابط مع اللاعب.', 'success')
+    return redirect(url_for('admin.clips'))
+
+
+@admin_bp.route('/clips/<int:clip_id>/download')
+@login_required
+def download_admin_clip(clip_id):
+    clip = GameClip.query.get_or_404(clip_id)
+    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename)
+    if not os.path.exists(filepath):
+        flash('الملف غير موجود على السيرفر', 'danger')
+        return redirect(url_for('admin.clips'))
+    return send_file(filepath, as_attachment=True,
+                     download_name=f"padel-{clip.court}-{clip.clip_date}.mp4",
+                     mimetype='video/mp4')
+
+
+@admin_bp.route('/clips/<int:clip_id>/delete', methods=['POST'])
+@login_required
+def delete_clip(clip_id):
+    clip = GameClip.query.get_or_404(clip_id)
+    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
+    if filepath and os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+        except OSError:
+            pass
+    db.session.delete(clip)
+    db.session.commit()
+    flash('تم حذف المقطع', 'success')
+    return redirect(url_for('admin.clips'))

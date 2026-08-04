@@ -1,0 +1,310 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %} — Z Padel Admin{% endblock %}
+{% block page_icon %}fas fa-video{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %}{% endblock %}
+
+{% block styles %}
+<style>
+/* ── Stats strip ── */
+.stats-strip { display:flex; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
+.stat-card   { background:#fff; border-radius:var(--radius); padding:20px 24px;
+               box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:16px;
+               flex:1; min-width:160px; border:1.5px solid var(--border-color); }
+.stat-icon   { width:48px; height:48px; border-radius:12px; display:flex;
+               align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.stat-icon.blue { background:var(--brand-blue-soft); color:var(--brand-blue); }
+.stat-icon.green { background:rgba(67,160,71,.12); color:#388E3C; }
+.stat-icon.red  { background:rgba(229,57,53,.10); color:#C62828; }
+.stat-value  { font-size:28px; font-weight:900; color:var(--text-dark); line-height:1; }
+.stat-label  { font-size:12px; color:var(--text-muted); margin-top:3px; }
+
+/* ── Section cards ── */
+.section-card {
+  background:#fff; border-radius:var(--radius); border:1.5px solid var(--border-color);
+  box-shadow:var(--shadow-sm); margin-bottom:28px; overflow:hidden;
+}
+.section-hd {
+  padding:18px 24px; border-bottom:1.5px solid var(--border-color);
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,var(--brand-blue-soft),#fff);
+}
+.section-hd i { color:var(--brand-blue); font-size:18px; }
+.section-hd-title { font-size:15px; font-weight:800; color:var(--brand-blue-dark); }
+.section-body { padding:24px; }
+
+/* ── Form grid ── */
+.clip-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;
+}
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-label-z { font-size:13px; font-weight:700; color:var(--text-dark); }
+.form-control-z {
+  border:1.5px solid var(--border-color); border-radius:8px;
+  padding:10px 13px; font-size:13px; color:var(--text-dark);
+  background:#fff; outline:none; font-family:inherit; width:100%;
+  transition:border-color .2s;
+}
+.form-control-z:focus { border-color:var(--brand-blue); box-shadow:0 0 0 3px rgba(21,101,192,.10); }
+.btn-save-clip {
+  background:var(--brand-blue); color:#fff; border:none; border-radius:8px;
+  padding:11px 28px; font-size:14px; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; gap:8px; transition:background .2s;
+  margin-top:20px;
+}
+.btn-save-clip:hover { background:var(--brand-blue-dark); }
+
+/* ── Clips table ── */
+.table-wrapper { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border-color); box-shadow:var(--shadow-sm); overflow:hidden; }
+.table-z { width:100%; border-collapse:collapse; }
+.table-z thead tr { background:var(--brand-blue-soft); }
+.table-z th { padding:12px 16px; font-size:12px; font-weight:800; color:var(--brand-blue-dark); text-transform:uppercase; letter-spacing:.7px; white-space:nowrap; }
+.table-z td { padding:13px 16px; border-bottom:1px solid var(--border-color); font-size:13px; vertical-align:middle; }
+.table-z tr:last-child td { border-bottom:none; }
+.table-z tr:hover td { background:var(--off-white); }
+
+.badge-active  { background:rgba(67,160,71,.12); color:#2E7D32; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+.badge-expired { background:rgba(229,57,53,.10);  color:#C62828; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+
+.btn-sm-z {
+  border:none; border-radius:6px; padding:5px 12px; font-size:12px;
+  font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+  text-decoration:none; transition:opacity .15s;
+}
+.btn-dl  { background:rgba(21,101,192,.10); color:var(--brand-blue); }
+.btn-del { background:rgba(229,57,53,.10); color:#C62828; }
+.btn-cp  { background:rgba(67,160,71,.12); color:#2E7D32; }
+.btn-sm-z:hover { opacity:.75; }
+
+.share-url {
+  font-size:11px; color:var(--text-muted); word-break:break-all;
+  background:var(--off-white); border-radius:6px; padding:4px 8px;
+  display:block; margin-top:4px; max-width:280px;
+}
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
+.empty-state i { font-size:48px; opacity:.3; display:block; margin-bottom:14px; }
+
+/* ── Countdown ── */
+.countdown { font-size:11px; font-weight:700; color:#FB8C00; }
+.expired-txt { font-size:11px; color:#C62828; font-weight:700; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats strip -->
+<div class="stats-strip">
+  {% set active_c = clips|selectattr('is_expired','equalto',false)|list|length %}
+  {% set expired_c = clips|selectattr('is_expired','equalto',true)|list|length %}
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-film"></i></div>
+    <div>
+      <div class="stat-value">{{ clips|length }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Total Clips{% else %}إجمالي المقاطع{% endif %}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div>
+      <div class="stat-value">{{ active_c }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Active (< 1h){% else %}نشطة (أقل من ساعة){% endif %}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i class="fas fa-clock-rotate-left"></i></div>
+    <div>
+      <div class="stat-value">{{ expired_c }}</div>
+      <div class="stat-label">{% if lang == 'en' %}Expired{% else %}منتهية الصلاحية{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Save new clip form -->
+<div class="section-card">
+  <div class="section-hd">
+    <i class="fas fa-scissors"></i>
+    <div class="section-hd-title">{% if lang == 'en' %}Save a Game Clip{% else %}حفظ مقطع مباراة{% endif %}</div>
+  </div>
+  <div class="section-body">
+    <form method="POST" action="{{ url_for('admin.save_clip') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="clip-grid">
+
+        <div class="form-group">
+          <label class="form-label-z">{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</label>
+          <select name="court" class="form-control-z" required>
+            <option value="">— {% if lang == 'en' %}Select{% else %}اختر{% endif %} —</option>
+            <option value="court1">{% if lang == 'en' %}Court 1{% else %}ملعب ١{% endif %}</option>
+            <option value="court2">{% if lang == 'en' %}Court 2{% else %}ملعب ٢{% endif %}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-z">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</label>
+          <input type="date" name="clip_date" class="form-control-z" required id="clipDateInput"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-z">{% if lang == 'en' %}Start Time{% else %}وقت البداية{% endif %}</label>
+          <input type="time" name="start_time" class="form-control-z" step="1" required/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-z">{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</label>
+          <select name="duration" class="form-control-z">
+            <option value="30">30 {% if lang == 'en' %}sec{% else %}ثانية{% endif %}</option>
+            <option value="60">1 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+            <option value="120">2 {% if lang == 'en' %}min{% else %}دقيقتان{% endif %}</option>
+            <option value="180">3 {% if lang == 'en' %}min{% else %}دقائق{% endif %}</option>
+            <option value="300">5 {% if lang == 'en' %}min{% else %}دقائق{% endif %}</option>
+            <option value="600">10 {% if lang == 'en' %}min{% else %}دقائق{% endif %}</option>
+            <option value="1800">30 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
+            <option value="3600" selected>1 {% if lang == 'en' %}hour (max){% else %}ساعة (الحد الأقصى){% endif %}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-z">{% if lang == 'en' %}Customer Name{% else %}اسم اللاعب{% endif %} <span style="color:var(--text-muted);font-weight:400">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span></label>
+          <input type="text" name="customer_name" class="form-control-z" placeholder="{% if lang == 'en' %}e.g. Ahmed{% else %}مثال: أحمد{% endif %}"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-z">{% if lang == 'en' %}Phone{% else %}رقم الهاتف{% endif %} <span style="color:var(--text-muted);font-weight:400">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span></label>
+          <input type="text" name="customer_phone" class="form-control-z" placeholder="07xx xxx xxxx"/>
+        </div>
+
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label-z">{% if lang == 'en' %}Note{% else %}ملاحظة{% endif %} <span style="color:var(--text-muted);font-weight:400">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span></label>
+        <input type="text" name="note" class="form-control-z" placeholder="{% if lang == 'en' %}e.g. Final point, great rally...{% else %}مثال: نقطة ختامية، تبادل رائع...{% endif %}"/>
+      </div>
+
+      <button type="submit" class="btn-save-clip">
+        <i class="fas fa-scissors"></i>
+        {% if lang == 'en' %}Save Clip (1h link){% else %}حفظ المقطع (رابط ساعة واحدة){% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Clips list -->
+<div class="table-wrapper">
+  <div class="section-hd" style="border-bottom:1.5px solid var(--border-color);">
+    <i class="fas fa-list-video"></i>
+    <div class="section-hd-title">{% if lang == 'en' %}Saved Clips{% else %}المقاطع المحفوظة{% endif %}</div>
+  </div>
+  {% if clips %}
+  <table class="table-z">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>{% if lang == 'en' %}Court / Date / Time{% else %}الملعب / التاريخ / الوقت{% endif %}</th>
+        <th>{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</th>
+        <th>{% if lang == 'en' %}Customer{% else %}اللاعب{% endif %}</th>
+        <th>{% if lang == 'en' %}Share Link{% else %}رابط المشاركة{% endif %}</th>
+        <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+        <th>{% if lang == 'en' %}Actions{% else %}إجراءات{% endif %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for clip in clips %}
+      <tr>
+        <td style="color:var(--text-muted);font-weight:700;">{{ clip.id }}</td>
+        <td>
+          <div style="font-weight:800;font-size:13px;">{{ clip.court_label }}</div>
+          <div style="font-size:12px;color:var(--text-muted);">{{ clip.clip_date.strftime('%Y-%m-%d') }} — {{ clip.start_time }}</div>
+        </td>
+        <td>
+          {% if clip.duration_sec < 60 %}{{ clip.duration_sec }}s
+          {% else %}{{ (clip.duration_sec // 60) }}{% if lang == 'en' %} min{% else %} د{% endif %}{% endif %}
+        </td>
+        <td>
+          {% if clip.customer_name %}
+          <div style="font-weight:700;">{{ clip.customer_name }}</div>
+          {% if clip.customer_phone %}<div style="font-size:11px;color:var(--text-muted);">{{ clip.customer_phone }}</div>{% endif %}
+          {% else %}
+          <span style="color:var(--text-muted);">—</span>
+          {% endif %}
+          {% if clip.note %}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ clip.note }}</div>{% endif %}
+        </td>
+        <td>
+          {% if not clip.is_expired %}
+          <button class="btn-sm-z btn-cp" onclick="copyLink('{{ request.host_url }}clip/{{ clip.token }}', this)"
+                  title="{% if lang == 'en' %}Copy link{% else %}نسخ الرابط{% endif %}">
+            <i class="fas fa-copy"></i>
+            {% if lang == 'en' %}Copy Link{% else %}نسخ الرابط{% endif %}
+          </button>
+          <span class="share-url">{{ request.host_url }}clip/{{ clip.token }}</span>
+          {% else %}
+          <span class="expired-txt"><i class="fas fa-ban"></i> {% if lang == 'en' %}Expired{% else %}منتهي{% endif %}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if clip.is_expired %}
+          <span class="badge-expired">{% if lang == 'en' %}Expired{% else %}منتهية{% endif %}</span>
+          {% else %}
+          <span class="badge-active">{% if lang == 'en' %}Active{% else %}نشطة{% endif %}</span>
+          <div class="countdown" data-expires="{{ clip.expires_at.isoformat() }}">—</div>
+          {% endif %}
+        </td>
+        <td style="white-space:nowrap;">
+          <a href="{{ url_for('admin.download_admin_clip', clip_id=clip.id) }}"
+             class="btn-sm-z btn-dl" title="{% if lang == 'en' %}Download{% else %}تحميل{% endif %}">
+            <i class="fas fa-download"></i>
+          </a>
+          <form method="POST" action="{{ url_for('admin.delete_clip', clip_id=clip.id) }}"
+                style="display:inline;"
+                onsubmit="return confirm('{% if lang == 'en' %}Delete this clip?{% else %}حذف هذا المقطع؟{% endif %}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-sm-z btn-del" title="{% if lang == 'en' %}Delete{% else %}حذف{% endif %}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-film"></i>
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px;">{% if lang == 'en' %}No clips saved yet{% else %}لا توجد مقاطع محفوظة بعد{% endif %}</div>
+    <div style="font-size:13px;">{% if lang == 'en' %}Use the form above to save a game clip and share it with a player{% else %}استخدم النموذج أعلاه لحفظ مقطع مباراة ومشاركته مع اللاعب{% endif %}</div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+// Set today as default date
+document.getElementById('clipDateInput').value = new Date().toISOString().split('T')[0];
+
+// Copy share link
+function copyLink(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> {% if lang == "en" %}Copied!{% else %}تم النسخ!{% endif %}';
+    btn.style.background = 'rgba(67,160,71,.2)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
+  });
+}
+
+// Live countdown timers
+function updateCountdowns() {
+  document.querySelectorAll('.countdown[data-expires]').forEach(el => {
+    const exp = new Date(el.dataset.expires + 'Z');
+    const diff = exp - new Date();
+    if (diff <= 0) {
+      el.textContent = '';
+      return;
+    }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${h}h ${m}m ${s}s`;
+  });
+}
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+</script>
+{% endblock %}

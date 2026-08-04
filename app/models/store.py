@@ -61,12 +61,13 @@ class Order(db.Model):
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
 
-    id         = db.Column(db.Integer, primary_key=True)
-    order_id   = db.Column(db.Integer, db.ForeignKey('orders.id'),   nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
-    quantity   = db.Column(db.Integer, default=1)
-    price      = db.Column(db.Float,   default=0)
-    subtotal   = db.Column(db.Float,   default=0)
+    id           = db.Column(db.Integer, primary_key=True)
+    order_id     = db.Column(db.Integer, db.ForeignKey('orders.id'),   nullable=False)
+    product_id   = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_name = db.Column(db.String(120), nullable=True)   # for virtual/activity items
+    quantity     = db.Column(db.Integer, default=1)
+    price        = db.Column(db.Float,   default=0)
+    subtotal     = db.Column(db.Float,   default=0)
 
     def __repr__(self):
         return f'<OrderItem order#{self.order_id} product#{self.product_id}>'

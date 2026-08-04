@@ -32,11 +32,12 @@ def create_app(config_name: str = None):
     # ── Ensure upload folders exist ──
     os.makedirs(app.config['UPLOAD_FOLDER'],   exist_ok=True)
     os.makedirs(app.config['RECEIPTS_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['CLIPS_FOLDER'],    exist_ok=True)
 
     # ── Language middleware ──
     @app.before_request
     def set_lang():
-        g.lang = session.get('lang', 'ar')
+        g.lang = session.get('lang', 'en')
 
     @app.context_processor
     def inject_lang():
@@ -60,9 +61,24 @@ def create_app(config_name: str = None):
     # ── Create DB tables ──
     with app.app_context():
         db.create_all()
+        _add_missing_columns(app)
         _seed_admin(app)
 
     return app
+
+
+def _add_missing_columns(app):
+    """Add any new columns that db.create_all() won't add to existing tables."""
+    from sqlalchemy import text
+    with app.app_context():
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE order_items ADD COLUMN product_name VARCHAR(120)"
+                ))
+                conn.commit()
+        except Exception:
+            pass  # column already exists
 
 
 def _seed_admin(app):

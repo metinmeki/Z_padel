@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Z Padel — Clip Expired</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Cairo:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: #f0f4ff; font-family: 'Cairo', sans-serif;
+    }
+    .card {
+      background: #fff; border-radius: 20px; padding: 56px 40px;
+      text-align: center; box-shadow: 0 8px 40px rgba(21,101,192,.12);
+      max-width: 420px; width: 90%;
+    }
+    .icon { font-size: 60px; color: #E53935; margin-bottom: 20px; }
+    h1 { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #0D1B3E; margin-bottom: 12px; }
+    p  { font-size: 14px; color: #6B8BB5; line-height: 1.7; }
+    .home-btn {
+      display: inline-block; margin-top: 28px;
+      background: #1565C0; color: #fff; text-decoration: none;
+      padding: 12px 32px; border-radius: 40px;
+      font-weight: 700; font-size: 14px;
+      transition: background .2s;
+    }
+    .home-btn:hover { background: #0D47A1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon"><i class="fas fa-clock"></i></div>
+    <h1>{% if lang == 'en' %}Link Expired{% else %}انتهت صلاحية الرابط{% endif %}</h1>
+    <p>{% if lang == 'en' %}This clip download link was valid for 1 hour and has now expired. Please contact Z Padel to request a new link.{% else %}رابط التحميل هذا كان صالحاً لمدة ساعة واحدة وقد انتهت صلاحيته. تواصل مع Z Padel للحصول على رابط جديد.{% endif %}</p>
+    <a href="/" class="home-btn">{% if lang == 'en' %}Go to Homepage{% else %}العودة للرئيسية{% endif %}</a>
+  </div>
+</body>
+</html>

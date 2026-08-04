@@ -33,12 +33,6 @@ const TRANSLATIONS = {
     stat_players: 'لاعب مسجل',
     stat_booking: 'حجز إلكتروني',
 
-    /* Discount */
-    disc_pct:   '25%',
-    disc_title: 'خصم خاص على الحجوزات النهارية',
-    disc_sub:   'استمتع بخصم 25% على جميع الحجوزات من الساعة 12:00 ظهراً حتى 4:00 عصراً يومياً',
-    disc_btn:   'احجز بالخصم',
-
     /* Courts section */
     sec_courts_eye: 'ملاعبنا',
     sec_courts_h:   'اختر ملعبك المناسب',
@@ -88,7 +82,6 @@ const TRANSLATIONS = {
     step_time:    'الوقت',
     step_info:    'بياناتك',
     date_lbl:     'التاريخ',
-    disc_tag:     'خصم 25% من 12:00 — 16:00',
     leg_avail:    'متاح',
     leg_booked:   'محجوز',
     leg_sel:      'اختيارك',
@@ -166,12 +159,6 @@ const TRANSLATIONS = {
     stat_players: 'یاریزانی تۆمارکراو',
     stat_booking: 'حجزی ئەلیکترۆنی',
 
-    /* Discount */
-    disc_pct:   '٪25',
-    disc_title: 'داشکاندنی تایبەت بۆ حجزی ڕۆژانە',
-    disc_sub:   'داشکاندنی ٪25 بۆ هەموو حجزەکان لە کاتژمێر 12:00 تا 4:00 دوا نیوەڕۆ',
-    disc_btn:   'بە داشکاندن حجز بکە',
-
     /* Courts */
     sec_courts_eye: 'زەمینەکانمان',
     sec_courts_h:   'زەمینەی گونجاوت هەڵبژێرە',
@@ -221,7 +208,6 @@ const TRANSLATIONS = {
     step_time:    'کات',
     step_info:    'زانیارییەکانت',
     date_lbl:     'بەروار',
-    disc_tag:     'داشکاندنی ٪25 لە 12:00 — 16:00',
     leg_avail:    'بەردەست',
     leg_booked:   'حجزکراو',
     leg_sel:      'هەڵبژاردنت',
@@ -299,12 +285,6 @@ const TRANSLATIONS = {
     stat_players: 'Registered Players',
     stat_booking: 'Online Booking',
 
-    /* Discount */
-    disc_pct:   '25%',
-    disc_title: 'Special Daytime Discount',
-    disc_sub:   'Enjoy 25% off all bookings from 12:00 PM to 4:00 PM daily',
-    disc_btn:   'Book with Discount',
-
     /* Courts */
     sec_courts_eye: 'Our Courts',
     sec_courts_h:   'Choose Your Court',
@@ -354,7 +334,6 @@ const TRANSLATIONS = {
     step_time:    'Time',
     step_info:    'Details',
     date_lbl:     'Date',
-    disc_tag:     '25% discount 12:00 — 16:00',
     leg_avail:    'Available',
     leg_booked:   'Booked',
     leg_sel:      'Your selection',

@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, session, redirect, request, send_file, jsonify, current_app, send_from_directory
-from app.models.main import Court, Booking, Coach
-from app.models.store import Product  # Import at the top
+from flask import Blueprint, render_template, session, redirect, request, send_file, jsonify, current_app, send_from_directory, abort
+from app.models.main import Court, Booking, Coach, GameClip
+from app.models.store import Product
 
 import os
 import subprocess
@@ -107,5 +107,21 @@ def download_clip():
         output_path,
         as_attachment=True,
         download_name=f"padel-{court}-{date_str}.mp4",
+        mimetype="video/mp4"
+    )
+
+
+@main_bp.route('/clip/<token>')
+def share_clip(token):
+    clip = GameClip.query.filter_by(token=token).first_or_404()
+    if clip.is_expired:
+        return render_template('clip_expired.html'), 410
+    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
+    if not os.path.exists(filepath):
+        abort(404)
+    return send_file(
+        filepath,
+        as_attachment=True,
+        download_name=f"padel-{clip.court}-{clip.clip_date}.mp4",
         mimetype="video/mp4"
     )

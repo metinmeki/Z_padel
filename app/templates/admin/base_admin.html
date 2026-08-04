@@ -1122,6 +1122,14 @@
         <span class="nav-label">{% if lang == 'en' %}Training Requests{% else %}طلبات التدريب{% endif %}</span>
       </a>
     </div>
+
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.clips') }}"
+         class="nav-link-custom {% if request.endpoint in ('admin.clips','admin.save_clip','admin.download_admin_clip','admin.delete_clip') %}active{% endif %}">
+        <i class="fas fa-video nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %}</span>
+      </a>
+    </div>
     {% endif %}
 
     {# STORE — perm_products and/or perm_orders #}

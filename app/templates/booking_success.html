@@ -247,16 +247,6 @@
     }
     .btn-outline-z:hover { color:var(--gold); border-color:var(--gold); background:rgba(214,195,161,.06); }
 
-    /* Discount note */
-    .discount-note {
-      display:inline-flex; align-items:center; gap:5px;
-      background:rgba(214,195,161,.12);
-      border:1px solid rgba(214,195,161,.25);
-      color:var(--gold-deep); font-family:'Montserrat',sans-serif;
-      font-size:.75rem; font-weight:700;
-      padding:2px 9px; border-radius:20px;
-      margin-top:5px;
-    }
 
     @media(max-width:480px) {
       .success-card { padding:28px 16px; border-radius:18px; }
@@ -321,9 +311,6 @@
           <span style="color:var(--muted);font-size:.8rem;margin:0 4px;">—</span>
           {{ booking.end_time.strftime('%H:%M') if booking.end_time else '—' }}
         </span>
-        {% if booking.start_time and 12 <= booking.start_time.hour < 16 %}
-        <span class="discount-note"><i class="fas fa-tag" style="font-size:9px;"></i>{% if lang == 'en' %}25% discount applied{% else %}خصم 25% مطبق{% endif %}</span>
-        {% endif %}
       </div>
     </div>
   </div>

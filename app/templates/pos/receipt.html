@@ -97,7 +97,7 @@
         <div class="receipt-items">
           {% for item in order.items %}
           <div class="receipt-item">
-            <span class="item-name">{{ item.product.name }} × {{ item.quantity }}</span>
+            <span class="item-name">{{ (item.product.name if item.product else item.product_name) }} × {{ item.quantity }}</span>
             <span class="item-price">{{ '{:,.0f}'.format(item.price * item.quantity) }} IQD</span>
           </div>
           {% endfor %}
