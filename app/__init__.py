@@ -34,6 +34,14 @@ def create_app(config_name: str = None):
     os.makedirs(app.config['RECEIPTS_FOLDER'], exist_ok=True)
     os.makedirs(app.config['CLIPS_FOLDER'],    exist_ok=True)
 
+    # ── Static file caching (1 week) ──
+    @app.after_request
+    def add_cache_headers(response):
+        if flask_request.path.startswith('/static/'):
+            response.cache_control.max_age = 604800  # 7 days
+            response.cache_control.public = True
+        return response
+
     # ── Language middleware ──
     @app.before_request
     def set_lang():
