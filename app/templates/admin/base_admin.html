@@ -1060,25 +1060,25 @@
   <nav class="sidebar-nav">
 
     {# DASHBOARD — always visible #}
-    <div class="nav-section-label">{% if lang == 'en' %}Main{% else %}الرئيسية{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Main{% elif lang == 'ku' %}سەرەکی{% else %}الرئيسية{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.dashboard') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
         <i class="fas fa-gauge-high nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Dashboard{% else %}لوحة التحكم{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Dashboard{% elif lang == 'ku' %}داشبۆرد{% else %}لوحة التحكم{% endif %}</span>
       </a>
     </div>
 
     {# BOOKINGS — perm_bookings #}
     {% if current_user.has_perm('perm_bookings') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Bookings{% elif lang == 'ku' %}حجزەکان{% else %}الحجوزات{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.bookings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.bookings' %}active{% endif %}">
         <i class="fas fa-calendar-check nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Bookings{% elif lang == 'ku' %}حجزەکان{% else %}الحجوزات{% endif %}</span>
       </a>
     </div>
 
@@ -1086,7 +1086,7 @@
       <a href="{{ url_for('admin.pending_bookings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.pending_bookings' %}active{% endif %}">
         <i class="fas fa-clock nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Pending Bookings{% else %}الحجوزات المعلقة{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Pending Bookings{% elif lang == 'ku' %}حجزی چاوەڕوان{% else %}الحجوزات المعلقة{% endif %}</span>
         {% set pending_count = pending_bookings_count|default(0) %}
         {% if pending_count > 0 %}
           <span class="nav-badge">{{ pending_count }}</span>
@@ -1097,13 +1097,13 @@
 
     {# COURTS — perm_courts #}
     {% if current_user.has_perm('perm_courts') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Courts & Training{% else %}الملاعب والتدريب{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Courts & Training{% elif lang == 'ku' %}زەوی و ئەندێشە{% else %}الملاعب والتدريب{% endif %}</div>
 
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.courts') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.courts' %}active{% endif %}">
         <i class="fas fa-shield-halved nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Courts{% elif lang == 'ku' %}زەوییەکان{% else %}الملاعب{% endif %}</span>
       </a>
     </div>
 
@@ -1111,7 +1111,7 @@
       <a href="{{ url_for('admin.coaches') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.coaches' %}active{% endif %}">
         <i class="fas fa-person-running nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Coaches{% elif lang == 'ku' %}ئەندێشەکاران{% else %}المدربون{% endif %}</span>
       </a>
     </div>
 
@@ -1119,7 +1119,7 @@
       <a href="{{ url_for('admin.training_requests') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.training_requests' %}active{% endif %}">
         <i class="fas fa-dumbbell nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Training Requests{% else %}طلبات التدريب{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Training Requests{% elif lang == 'ku' %}داواکاری ئەندێشە{% else %}طلبات التدريب{% endif %}</span>
       </a>
     </div>
 
@@ -1127,21 +1127,29 @@
       <a href="{{ url_for('admin.clips') }}"
          class="nav-link-custom {% if request.endpoint in ('admin.clips','admin.save_clip','admin.download_admin_clip','admin.delete_clip') %}active{% endif %}">
         <i class="fas fa-video nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Game Clips{% elif lang == 'ku' %}کلیپی یاری{% else %}مقاطع المباريات{% endif %}</span>
+      </a>
+    </div>
+
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.activity_tables') }}"
+         class="nav-link-custom {% if request.endpoint in ('admin.activity_tables','admin.add_activity_table','admin.edit_activity_table','admin.delete_activity_table') %}active{% endif %}">
+        <i class="fas fa-gamepad nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Activity Tables{% elif lang == 'ku' %}مێزی چالاکی{% else %}طاولات الأنشطة{% endif %}</span>
       </a>
     </div>
     {% endif %}
 
     {# STORE — perm_products and/or perm_orders #}
     {% if current_user.has_perm('perm_products') or current_user.has_perm('perm_orders') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Store & Sales{% else %}المتجر والمبيعات{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Store & Sales{% elif lang == 'ku' %}فرۆشگا و فرۆشتن{% else %}المتجر والمبيعات{% endif %}</div>
 
     {% if current_user.has_perm('perm_products') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.products') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.products' %}active{% endif %}">
         <i class="fas fa-box-open nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Products{% else %}المنتجات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Products{% elif lang == 'ku' %}بەرهەمەکان{% else %}المنتجات{% endif %}</span>
       </a>
     </div>
 
@@ -1149,7 +1157,7 @@
       <a href="{{ url_for('admin.categories') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.categories' %}active{% endif %}">
         <i class="fas fa-tags nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Categories{% else %}الفئات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Categories{% elif lang == 'ku' %}جۆرەکان{% else %}الفئات{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1159,7 +1167,7 @@
       <a href="{{ url_for('admin.orders') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.orders' %}active{% endif %}">
         <i class="fas fa-bag-shopping nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Orders{% else %}الطلبات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Orders{% elif lang == 'ku' %}فرمانەکان{% else %}الطلبات{% endif %}</span>
       </a>
     </div>
 
@@ -1167,7 +1175,7 @@
       <a href="{{ url_for('pos.quick_sale') }}"
          class="nav-link-custom {% if 'pos' in request.endpoint %}active{% endif %}">
         <i class="fas fa-cash-register nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% else %}نقطة البيع (POS){% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% elif lang == 'ku' %}فرۆشگای ڕاستەوخۆ{% else %}نقطة البيع (POS){% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1175,14 +1183,14 @@
 
     {# FINANCE — perm_expenses and/or perm_reports #}
     {% if current_user.has_perm('perm_expenses') or current_user.has_perm('perm_reports') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Finance & Reports{% else %}المالية والتقارير{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Finance & Reports{% elif lang == 'ku' %}دارایی و ڕاپۆرت{% else %}المالية والتقارير{% endif %}</div>
 
     {% if current_user.has_perm('perm_expenses') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.expenses') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.expenses' %}active{% endif %}">
         <i class="fas fa-receipt nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Expenses{% else %}المصروفات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Expenses{% elif lang == 'ku' %}خەرجیەکان{% else %}المصروفات{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1192,7 +1200,7 @@
       <a href="{{ url_for('admin.reports') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.reports' %}active{% endif %}">
         <i class="fas fa-chart-line nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Reports{% else %}التقارير{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Reports{% elif lang == 'ku' %}ڕاپۆرتەکان{% else %}التقارير{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1200,14 +1208,14 @@
 
     {# MANAGEMENT — perm_users and/or perm_settings #}
     {% if current_user.has_perm('perm_users') or current_user.has_perm('perm_settings') or current_user.role in ('admin','superadmin') %}
-    <div class="nav-section-label">{% if lang == 'en' %}Management{% else %}الإدارة{% endif %}</div>
+    <div class="nav-section-label">{% if lang == 'en' %}Management{% elif lang == 'ku' %}کاربەرپرسی{% else %}الإدارة{% endif %}</div>
 
     {% if current_user.has_perm('perm_users') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.users') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.users' %}active{% endif %}">
         <i class="fas fa-users nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Users{% else %}المستخدمون{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Users{% elif lang == 'ku' %}بەکارهێنەران{% else %}المستخدمون{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1218,7 +1226,7 @@
       <a href="{{ url_for('admin.print_barcodes') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.print_barcodes' %}active{% endif %}">
         <i class="fas fa-barcode nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Barcodes{% else %}الباركود{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Barcodes{% elif lang == 'ku' %}باڕکۆد{% else %}الباركود{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1228,7 +1236,7 @@
       <a href="{{ url_for('admin.settings') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.settings' %}active{% endif %}">
         <i class="fas fa-gear nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Settings{% else %}الإعدادات{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Settings{% elif lang == 'ku' %}ڕێکخستن{% else %}الإعدادات{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1240,7 +1248,7 @@
   <div class="sidebar-footer">
     <a href="{{ url_for('auth.logout') }}" class="logout-btn">
       <i class="fas fa-right-from-bracket"></i>
-      <span>{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}</span>
+      <span>{% if lang == 'en' %}Logout{% elif lang == 'ku' %}دەرچوون{% else %}تسجيل الخروج{% endif %}</span>
     </a>
   </div>
 
@@ -1295,10 +1303,17 @@
       </a>
 
       <!-- Language switcher -->
-      <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-toggle-btn">
-        <i class="fas fa-language"></i>
-        {% if lang == 'en' %}العربية{% else %}English{% endif %}
-      </a>
+      <div class="dropdown">
+        <button class="lang-toggle-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border:none;cursor:pointer;">
+          <i class="fas fa-language"></i>
+          {% if lang == 'en' %}EN{% elif lang == 'ku' %}کو{% else %}عر{% endif %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" style="min-width:140px;">
+          <li><a class="dropdown-item {% if lang=='en' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='en') }}">🇬🇧 English</a></li>
+          <li><a class="dropdown-item {% if lang=='ar' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ar') }}">🇮🇶 العربية</a></li>
+          <li><a class="dropdown-item {% if lang=='ku' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ku') }}">🏔️ کوردی</a></li>
+        </ul>
+      </div>
     </div>
   </header>
 

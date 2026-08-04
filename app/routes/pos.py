@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required
 from app import db
 from app.models.store import Product, Category, Order, OrderItem
-from app.models.main import Court, CourtSession, CourtSessionItem
+from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META
 
 pos_bp = Blueprint('pos', __name__)
 
@@ -346,3 +346,165 @@ def session_receipt(session_id):
     session_row = CourtSession.query.get_or_404(session_id)
     autoprint = request.args.get('autoprint', '0') == '1'
     return render_template('pos/session_receipt.html', session=session_row, autoprint=autoprint)
+
+
+# ══════════════════════════════════════════════════════
+#  ACTIVITY SESSIONS  (Snooker / Billiard / Table Tennis)
+# ══════════════════════════════════════════════════════
+
+@pos_bp.route('/activities')
+@login_required
+def activities():
+    tables = ActivityTable.query.filter_by(is_active=True).order_by(
+        ActivityTable.activity, ActivityTable.name).all()
+    active_sessions = {s.table_id: s for s in ActivitySession.query.filter_by(status='active').all()}
+    return render_template('pos/activities.html',
+                           tables=tables,
+                           active_sessions=active_sessions,
+                           activity_meta=ACTIVITY_META,
+                           activities_order=['snooker', 'billiard', 'table_tennis'])
+
+
+@pos_bp.route('/activities/table/<int:table_id>/start', methods=['POST'])
+@login_required
+def start_activity_session(table_id):
+    table = ActivityTable.query.get_or_404(table_id)
+    existing = ActivitySession.query.filter_by(table_id=table_id, status='active').first()
+    if existing:
+        return jsonify(success=False, message='Table is already in use'), 400
+    data = request.get_json(silent=True) or {}
+    customer_name = (data.get('customer_name') or '').strip() or None
+    sess = ActivitySession(table_id=table.id, start_time=datetime.utcnow(), customer_name=customer_name)
+    db.session.add(sess)
+    db.session.commit()
+    return jsonify(success=True, session_id=sess.id)
+
+
+@pos_bp.route('/activities/session/<int:session_id>')
+@login_required
+def activity_session(session_id):
+    sess = ActivitySession.query.get_or_404(session_id)
+    products   = Product.query.filter_by(is_active=True).all()
+    categories = Category.query.all()
+    return render_template('pos/activity_session.html', session=sess,
+                           activity_meta=ACTIVITY_META,
+                           products=products, categories=categories)
+
+
+@pos_bp.route('/activities/session/<int:session_id>/end-time', methods=['POST'])
+@login_required
+def end_activity_time(session_id):
+    sess = ActivitySession.query.get_or_404(session_id)
+    if sess.status != 'active':
+        return jsonify(success=False, message='Session not active'), 400
+    if sess.end_time:
+        return jsonify(success=False, message='End time already set'), 400
+    sess.end_time = datetime.utcnow()
+    sess.total_price = sess.calc_price()
+    db.session.commit()
+    return jsonify(success=True, total=sess.total_price, elapsed=sess.elapsed_seconds)
+
+
+@pos_bp.route('/activities/session/<int:session_id>/finish', methods=['POST'])
+@login_required
+def finish_activity_session(session_id):
+    try:
+        data = request.get_json(force=True) or {}
+        payment_method = data.get('payment_method', 'cash')
+        sess = ActivitySession.query.get_or_404(session_id)
+        if sess.status == 'completed':
+            return jsonify(success=False, message='Already paid'), 400
+        if not sess.end_time:
+            sess.end_time = datetime.utcnow()
+            sess.total_price = sess.calc_price()
+        sess.payment_method = payment_method
+        sess.status = 'completed'
+        db.session.commit()
+        return jsonify(success=True, session_id=sess.id)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=str(e)), 500
+
+
+@pos_bp.route('/activities/session/<int:session_id>/cancel', methods=['POST'])
+@login_required
+def cancel_activity_session(session_id):
+    sess = ActivitySession.query.get_or_404(session_id)
+    if sess.status == 'completed':
+        return jsonify(success=False, message='Cannot cancel a paid session'), 400
+    db.session.delete(sess)
+    db.session.commit()
+    return jsonify(success=True)
+
+
+@pos_bp.route('/activities/session/<int:session_id>/add-item', methods=['POST'])
+@login_required
+def add_activity_item(session_id):
+    sess = ActivitySession.query.get_or_404(session_id)
+    if sess.status != 'active':
+        return jsonify(success=False, message='Session not active'), 400
+    data = request.get_json(force=True) or {}
+    product_id = data.get('product_id')
+    qty = int(data.get('quantity', 1))
+    prod = Product.query.get(product_id)
+    if not prod or qty <= 0:
+        return jsonify(success=False, message='Invalid product'), 400
+    if prod.stock < qty:
+        return jsonify(success=False, message=f'Stock unavailable: {prod.name}'), 400
+    existing = ActivitySessionItem.query.filter_by(session_id=session_id, product_id=prod.id).first()
+    if existing:
+        existing.quantity += qty
+        existing.subtotal  = existing.quantity * existing.price
+    else:
+        db.session.add(ActivitySessionItem(
+            session_id=session_id, product_id=prod.id, product_name=prod.name,
+            quantity=qty, price=prod.price, subtotal=prod.price * qty))
+    prod.stock -= qty
+    db.session.commit()
+    return jsonify(success=True, grand_total=sess.grand_total)
+
+
+@pos_bp.route('/activities/session/<int:session_id>/remove-item/<int:item_id>', methods=['POST'])
+@login_required
+def remove_activity_item(session_id, item_id):
+    item = ActivitySessionItem.query.get_or_404(item_id)
+    prod = Product.query.get(item.product_id)
+    if prod:
+        prod.stock += item.quantity
+    db.session.delete(item)
+    db.session.commit()
+    sess = ActivitySession.query.get_or_404(session_id)
+    return jsonify(success=True, grand_total=sess.grand_total)
+
+
+@pos_bp.route('/activities/session/<int:session_id>/finish-debt', methods=['POST'])
+@login_required
+def finish_activity_session_debt(session_id):
+    try:
+        data = request.get_json(force=True) or {}
+        name = (data.get('name') or '').strip()
+        if not name:
+            return jsonify(success=False, message='Please enter name'), 400
+        sess = ActivitySession.query.get_or_404(session_id)
+        if sess.status == 'completed':
+            return jsonify(success=False, message='Already paid'), 400
+        if not sess.end_time:
+            sess.end_time    = datetime.utcnow()
+            sess.total_price = sess.calc_price()
+        sess.customer_name  = name
+        sess.payment_method = 'debt'
+        sess.status         = 'completed'
+        db.session.commit()
+        return jsonify(success=True, session_id=sess.id)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=str(e)), 500
+
+
+@pos_bp.route('/activities/session/<int:session_id>/receipt')
+@login_required
+def activity_receipt(session_id):
+    sess = ActivitySession.query.get_or_404(session_id)
+    autoprint = request.args.get('autoprint', '0') == '1'
+    return render_template('pos/activity_receipt.html', session=sess,
+                           activity_meta=ACTIVITY_META, autoprint=autoprint)

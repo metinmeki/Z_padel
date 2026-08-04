@@ -8,7 +8,8 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
-                               Coach, TrainingRequest, SystemSetting, GameClip)
+                               Coach, TrainingRequest, SystemSetting, GameClip,
+                               ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory)
 from sqlalchemy import func, case
@@ -1265,3 +1266,57 @@ def delete_clip(clip_id):
     db.session.commit()
     flash('تم حذف المقطع', 'success')
     return redirect(url_for('admin.clips'))
+
+# ════════════════════════════════════════════
+# ACTIVITY TABLES  (Snooker / Billiard / Table Tennis)
+# ════════════════════════════════════════════
+
+@admin_bp.route('/activity-tables')
+@login_required
+def activity_tables():
+    tables   = ActivityTable.query.order_by(ActivityTable.activity, ActivityTable.name).all()
+    sessions = ActivitySession.query.order_by(ActivitySession.created_at.desc()).limit(50).all()
+    return render_template('admin/activity_tables.html',
+                           tables=tables, sessions=sessions,
+                           activity_meta=ACTIVITY_META,
+                           activities_order=['snooker', 'billiard', 'table_tennis'])
+
+
+@admin_bp.route('/activity-tables/add', methods=['POST'])
+@login_required
+def add_activity_table():
+    name        = (request.form.get('name') or '').strip()
+    activity    = request.form.get('activity', '').strip()
+    hourly_rate = float(request.form.get('hourly_rate', 0) or 0)
+    if not name or activity not in ACTIVITY_META:
+        flash('Invalid data', 'danger')
+        return redirect(url_for('admin.activity_tables'))
+    db.session.add(ActivityTable(name=name, activity=activity, hourly_rate=hourly_rate))
+    db.session.commit()
+    flash('Table added successfully', 'success')
+    return redirect(url_for('admin.activity_tables'))
+
+
+@admin_bp.route('/activity-tables/<int:table_id>/edit', methods=['POST'])
+@login_required
+def edit_activity_table(table_id):
+    table = ActivityTable.query.get_or_404(table_id)
+    table.name        = (request.form.get('name') or table.name).strip()
+    table.hourly_rate = float(request.form.get('hourly_rate', table.hourly_rate) or 0)
+    table.is_active   = request.form.get('is_active') == '1'
+    db.session.commit()
+    flash('Table updated', 'success')
+    return redirect(url_for('admin.activity_tables'))
+
+
+@admin_bp.route('/activity-tables/<int:table_id>/delete', methods=['POST'])
+@login_required
+def delete_activity_table(table_id):
+    table = ActivityTable.query.get_or_404(table_id)
+    if ActivitySession.query.filter_by(table_id=table_id, status='active').first():
+        flash('Cannot delete — table has an active session', 'danger')
+        return redirect(url_for('admin.activity_tables'))
+    db.session.delete(table)
+    db.session.commit()
+    flash('Table deleted', 'success')
+    return redirect(url_for('admin.activity_tables'))

@@ -248,12 +248,17 @@
       <ul class="navbar-nav me-auto gap-1">
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('pos.quick_sale') }}">
-            <i class="fas fa-bolt"></i>{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %}
+            <i class="fas fa-bolt"></i>{% if lang == 'en' %}Quick Sale{% elif lang == 'ku' %}فرۆشتنی خێرا{% else %}بيع سريع{% endif %}
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('pos.courts') }}">
-            <i class="fas fa-table-tennis"></i>{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}
+            <i class="fas fa-table-tennis"></i>{% if lang == 'en' %}Courts{% elif lang == 'ku' %}زەوییەکان{% else %}الملاعب{% endif %}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pos.activities') }}">
+            <i class="fas fa-gamepad"></i>{% if lang == 'en' %}Activities{% elif lang == 'ku' %}چالاکیەکان{% else %}الأنشطة{% endif %}
           </a>
         </li>
       </ul>
@@ -265,14 +270,25 @@
             <span id="clockTime">--:--</span>
           </span>
         </li>
+        <li class="nav-item dropdown">
+          <button class="nav-link border-0 bg-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;">
+            <i class="fas fa-language"></i>
+            {% if lang == 'en' %}EN{% elif lang == 'ku' %}کو{% else %}عر{% endif %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" style="min-width:140px;">
+            <li><a class="dropdown-item {% if lang=='en' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='en') }}">🇬🇧 English</a></li>
+            <li><a class="dropdown-item {% if lang=='ar' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ar') }}">🇮🇶 العربية</a></li>
+            <li><a class="dropdown-item {% if lang=='ku' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ku') }}">🏔️ کوردی</a></li>
+          </ul>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-            <i class="fas fa-cog"></i>{% if lang == 'en' %}Admin{% else %}الإدارة{% endif %}
+            <i class="fas fa-cog"></i>{% if lang == 'en' %}Admin{% elif lang == 'ku' %}کاربەرپرسی{% else %}الإدارة{% endif %}
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout" style="color:var(--danger)!important;">
-            <i class="fas fa-sign-out-alt"></i>{% if lang == 'en' %}Logout{% else %}خروج{% endif %}
+            <i class="fas fa-sign-out-alt"></i>{% if lang == 'en' %}Logout{% elif lang == 'ku' %}دەرچوون{% else %}خروج{% endif %}
           </a>
         </li>
       </ul>

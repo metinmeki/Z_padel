@@ -1,0 +1,285 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{% if lang == 'en' %}Activity Tables{% else %}طاولات الأنشطة{% endif %} — Z Padel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-content">
+    <h1 class="page-title">
+      <i class="fas fa-gamepad page-icon"></i>
+      {% if lang == 'en' %}Activity Tables{% else %}طاولات الأنشطة{% endif %}
+    </h1>
+    <p class="page-subtitle">
+      {% if lang == 'en' %}Manage Snooker, Billiard, and Table Tennis tables{% else %}إدارة طاولات السنوكر والبلياردو وتنس الطاولة{% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  {% for act in activities_order %}
+  {% set meta = activity_meta[act] %}
+  {% set act_tables = tables | selectattr('activity','equalto',act) | list %}
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid {{ meta.color }};">
+      <div class="stat-content">
+        <div class="stat-label">{% if lang == 'en' %}{{ meta.en }}{% else %}{{ meta.ar }}{% endif %}</div>
+        <div class="stat-value">{{ act_tables|length }} {% if lang == 'en' %}Tables{% else %}طاولة{% endif %}</div>
+        <div class="stat-sub" style="color:{{ meta.color }};">
+          {{ act_tables|selectattr('active_session')|list|length }} {% if lang == 'en' %}in use{% else %}مشغولة{% endif %}
+        </div>
+      </div>
+      <div class="stat-icon" style="background:{{ meta.color }}22;color:{{ meta.color }};">
+        <i class="fas {{ meta.icon }}"></i>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Table list -->
+<div class="content-card mb-4">
+  <div class="card-header-custom d-flex justify-content-between align-items-center">
+    <h3 class="card-title-custom">
+      <i class="fas fa-list me-2"></i>{% if lang == 'en' %}All Tables{% else %}جميع الطاولات{% endif %}
+    </h3>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+      <i class="fas fa-plus me-1"></i>{% if lang == 'en' %}Add Table{% else %}أضف طاولة{% endif %}
+    </button>
+  </div>
+  <div class="card-body-custom">
+    {% if tables %}
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>{% if lang == 'en' %}Activity{% else %}النشاط{% endif %}</th>
+            <th>{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</th>
+            <th>{% if lang == 'en' %}Rate/hr{% else %}السعر/ساعة{% endif %}</th>
+            <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+            <th>{% if lang == 'en' %}Current Session{% else %}الجلسة الحالية{% endif %}</th>
+            <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tbl in tables %}
+          {% set meta = activity_meta[tbl.activity] %}
+          {% set sess = tbl.active_session %}
+          <tr>
+            <td>
+              <span style="display:inline-flex;align-items:center;gap:.4rem;font-weight:700;">
+                <i class="fas {{ meta.icon }}" style="color:{{ meta.color }};"></i>
+                {% if lang == 'en' %}{{ meta.en }}{% else %}{{ meta.ar }}{% endif %}
+              </span>
+            </td>
+            <td><strong>{{ tbl.name }}</strong></td>
+            <td>{{ '{:,.0f}'.format(tbl.hourly_rate) }} IQD</td>
+            <td>
+              {% if not tbl.is_active %}
+                <span class="badge bg-secondary">{% if lang == 'en' %}Inactive{% else %}غير نشط{% endif %}</span>
+              {% elif sess %}
+                <span class="badge bg-danger">{% if lang == 'en' %}In Use{% else %}مشغول{% endif %}</span>
+              {% else %}
+                <span class="badge bg-success">{% if lang == 'en' %}Available{% else %}متاح{% endif %}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if sess %}
+                <a href="{{ url_for('pos.activity_session', session_id=sess.id) }}" class="text-primary" style="font-size:.85rem;">
+                  <i class="fas fa-external-link-alt me-1"></i>
+                  {{ sess.start_time.strftime('%H:%M') }}
+                  {% if sess.customer_name %} — {{ sess.customer_name }}{% endif %}
+                </a>
+              {% else %}
+                <span style="color:var(--text-muted);font-size:.85rem;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm"
+                        onclick="openEdit({{ tbl.id }}, '{{ tbl.name }}', {{ tbl.hourly_rate }}, {{ '1' if tbl.is_active else '0' }})">
+                  <i class="fas fa-edit"></i>
+                </button>
+                {% if not sess %}
+                <form method="POST" action="{{ url_for('admin.delete_activity_table', table_id=tbl.id) }}"
+                      onsubmit="return confirm('{% if lang == 'en' %}Delete this table?{% else %}حذف هذه الطاولة؟{% endif %}')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4" style="color:var(--text-muted);">
+      <i class="fas fa-gamepad fa-2x mb-3" style="opacity:.3;display:block;"></i>
+      <p>{% if lang == 'en' %}No tables yet. Add one to get started.{% else %}لا توجد طاولات بعد.{% endif %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent sessions -->
+{% if sessions %}
+<div class="content-card">
+  <div class="card-header-custom">
+    <h3 class="card-title-custom">
+      <i class="fas fa-history me-2"></i>{% if lang == 'en' %}Recent Sessions{% else %}آخر الجلسات{% endif %}
+    </h3>
+  </div>
+  <div class="card-body-custom">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>{% if lang == 'en' %}Activity / Table{% else %}النشاط / الطاولة{% endif %}</th>
+            <th>{% if lang == 'en' %}Customer{% else %}الزبون{% endif %}</th>
+            <th>{% if lang == 'en' %}Start{% else %}البداية{% endif %}</th>
+            <th>{% if lang == 'en' %}End{% else %}النهاية{% endif %}</th>
+            <th>{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</th>
+            <th>{% if lang == 'en' %}Total{% else %}المجموع{% endif %}</th>
+            <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sess in sessions %}
+          {% set meta = activity_meta[sess.table.activity] %}
+          <tr>
+            <td>
+              <i class="fas {{ meta.icon }}" style="color:{{ meta.color }};margin-right:4px;"></i>
+              {% if lang == 'en' %}{{ meta.en }}{% else %}{{ meta.ar }}{% endif %}
+              — {{ sess.table.name }}
+            </td>
+            <td>{{ sess.customer_name or '—' }}</td>
+            <td>{{ sess.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ sess.end_time.strftime('%H:%M') if sess.end_time else '—' }}</td>
+            <td>
+              {% if sess.end_time %}
+                {% set dur = (sess.end_time - sess.start_time).total_seconds()|int %}
+                {{ (dur // 3600) }}h {{ ((dur % 3600) // 60) }}m
+              {% else %}
+                <span style="color:var(--danger);font-weight:700;">
+                  <i class="fas fa-circle me-1" style="font-size:.5rem;"></i>Live
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if sess.total_price %}{{ '{:,.0f}'.format(sess.total_price) }} IQD{% else %}—{% endif %}
+            </td>
+            <td>
+              {% if sess.status == 'active' %}
+                <a href="{{ url_for('pos.activity_session', session_id=sess.id) }}" class="badge bg-warning text-dark">
+                  {% if lang == 'en' %}Active{% else %}جارية{% endif %}
+                </a>
+              {% else %}
+                <span class="badge bg-success">{% if lang == 'en' %}Completed{% else %}مكتملة{% endif %}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.add_activity_table') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-plus me-2"></i>{% if lang == 'en' %}Add Activity Table{% else %}أضف طاولة{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">{% if lang == 'en' %}Activity{% else %}النشاط{% endif %} *</label>
+            <select name="activity" class="form-select" required>
+              {% for act in activities_order %}
+              {% set meta = activity_meta[act] %}
+              <option value="{{ act }}">{% if lang == 'en' %}{{ meta.en }}{% else %}{{ meta.ar }}{% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{% if lang == 'en' %}Table Name{% else %}اسم الطاولة{% endif %} *</label>
+            <input type="text" name="name" class="form-control" placeholder="Table 1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{% if lang == 'en' %}Price per Hour (IQD){% else %}السعر / ساعة{% endif %} *</label>
+            <input type="number" name="hourly_rate" class="form-control" min="0" step="500" value="12000" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>{% if lang == 'en' %}Add{% else %}إضافة{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="editForm" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-edit me-2"></i>{% if lang == 'en' %}Edit Table{% else %}تعديل الطاولة{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">{% if lang == 'en' %}Table Name{% else %}اسم الطاولة{% endif %} *</label>
+            <input type="text" name="name" id="editName" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{% if lang == 'en' %}Price per Hour (IQD){% else %}السعر / ساعة{% endif %} *</label>
+            <input type="number" name="hourly_rate" id="editRate" class="form-control" min="0" step="500" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
+            <select name="is_active" id="editActive" class="form-select">
+              <option value="1">{% if lang == 'en' %}Active{% else %}نشط{% endif %}</option>
+              <option value="0">{% if lang == 'en' %}Inactive{% else %}غير نشط{% endif %}</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>{% if lang == 'en' %}Save{% else %}حفظ{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openEdit(id, name, rate, isActive) {
+  document.getElementById('editForm').action = `/admin/activity-tables/${id}/edit`;
+  document.getElementById('editName').value   = name;
+  document.getElementById('editRate').value   = rate;
+  document.getElementById('editActive').value = String(isActive);
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+</script>
+{% endblock %}

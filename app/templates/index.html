@@ -42,9 +42,17 @@
      style="background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;margin-top:10px;border-radius:50px;padding:13px 36px;">
     <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
   </a>
-  <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" onclick="closeMobileMenu()"
-     style="background:rgba(255,255,255,.10);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 26px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-    <i class="fas fa-globe"></i> {% if lang == 'en' %}العربية{% else %}English{% endif %}
+  <a href="{{ url_for('main.set_lang', lang='en') }}" onclick="closeMobileMenu()"
+     style="background:rgba(255,255,255,.10);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 26px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;{% if lang=='en' %}opacity:.5;pointer-events:none;{% endif %}">
+    🇬🇧 English
+  </a>
+  <a href="{{ url_for('main.set_lang', lang='ar') }}" onclick="closeMobileMenu()"
+     style="background:rgba(255,255,255,.10);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 26px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;{% if lang=='ar' %}opacity:.5;pointer-events:none;{% endif %}">
+    🇮🇶 العربية
+  </a>
+  <a href="{{ url_for('main.set_lang', lang='ku') }}" onclick="closeMobileMenu()"
+     style="background:rgba(255,255,255,.10);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 26px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;{% if lang=='ku' %}opacity:.5;pointer-events:none;{% endif %}">
+    🏔️ کوردی
   </a>
 </div>
 
@@ -75,11 +83,17 @@
         <i class="fas fa-calendar-plus"></i>
         <span>{% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}</span>
       </a>
-      <a href="{{ url_for('main.set_lang', lang='en' if lang == 'ar' else 'ar') }}" class="lang-btn"
-         title="{% if lang == 'en' %}Switch to Arabic{% else %}Switch to English{% endif %}">
-        <i class="fas fa-globe"></i>
-        <span>{% if lang == 'en' %}عربي{% else %}EN{% endif %}</span>
-      </a>
+      <div class="dropdown">
+        <button class="lang-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border:none;cursor:pointer;">
+          <i class="fas fa-globe"></i>
+          <span>{% if lang == 'en' %}EN{% elif lang == 'ku' %}کو{% else %}عر{% endif %}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" style="min-width:140px;">
+          <li><a class="dropdown-item {% if lang=='en' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='en') }}">🇬🇧 English</a></li>
+          <li><a class="dropdown-item {% if lang=='ar' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ar') }}">🇮🇶 العربية</a></li>
+          <li><a class="dropdown-item {% if lang=='ku' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ku') }}">🏔️ کوردی</a></li>
+        </ul>
+      </div>
       <button class="nav-toggle" id="navToggle" onclick="openMobileMenu()">
         <span></span><span></span><span></span>
       </button>

@@ -252,6 +252,102 @@ class GameClip(db.Model):
         return f'<GameClip #{self.id} {self.court} {self.clip_date}>'
 
 
+# ═══════════════════════════════════════════
+# ACTIVITY TABLE (Snooker, Billiard, Table Tennis)
+# ═══════════════════════════════════════════
+ACTIVITY_META = {
+    'snooker':      {'en': 'Snooker',      'ar': 'سنوكر',       'icon': 'fa-bullseye',    'color': '#10b981', 'default_rate': 12000},
+    'billiard':     {'en': 'Billiard',     'ar': 'بلياردو',      'icon': 'fa-circle',      'color': '#8b5cf6', 'default_rate': 10000},
+    'table_tennis': {'en': 'Table Tennis', 'ar': 'تنس الطاولة',  'icon': 'fa-table-tennis','color': '#0ea5e9', 'default_rate': 5000},
+}
+
+
+class ActivityTable(db.Model):
+    __tablename__ = 'activity_tables'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(80),  nullable=False)
+    activity    = db.Column(db.String(30),  nullable=False)
+    hourly_rate = db.Column(db.Float,       default=0)
+    is_active   = db.Column(db.Boolean,     default=True)
+    created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    sessions = db.relationship('ActivitySession', backref='table',
+                               lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def active_session(self):
+        return ActivitySession.query.filter_by(
+            table_id=self.id, status='active').first()
+
+    def __repr__(self):
+        return f'<ActivityTable {self.activity}:{self.name}>'
+
+
+class ActivitySession(db.Model):
+    __tablename__ = 'activity_sessions'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    table_id       = db.Column(db.Integer, db.ForeignKey('activity_tables.id'), nullable=False)
+    customer_name  = db.Column(db.String(100), nullable=True)
+    start_time     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    end_time       = db.Column(db.DateTime, nullable=True)
+    status         = db.Column(db.String(20), default='active')
+    payment_method = db.Column(db.String(20), nullable=True)
+    total_price    = db.Column(db.Float,  default=0)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @property
+    def elapsed_seconds(self):
+        end = self.end_time or datetime.utcnow()
+        return max(0, int((end - self.start_time).total_seconds()))
+
+    @property
+    def elapsed_minutes(self):
+        return self.elapsed_seconds // 60
+
+    def calc_price(self):
+        hours = self.elapsed_seconds / 3600
+        rate  = self.table.hourly_rate if self.table else 0
+        return round(hours * rate)
+
+    @property
+    def items_total(self):
+        return sum(i.subtotal for i in self.items) if self.items else 0
+
+    @property
+    def time_amount(self):
+        if self.status == 'active' and not self.end_time:
+            return self.calc_price()
+        return self.total_price or 0
+
+    @property
+    def grand_total(self):
+        return round(self.time_amount + self.items_total)
+
+    def __repr__(self):
+        return f'<ActivitySession table#{self.table_id} status={self.status}>'
+
+
+class ActivitySessionItem(db.Model):
+    __tablename__ = 'activity_session_items'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    session_id   = db.Column(db.Integer, db.ForeignKey('activity_sessions.id'), nullable=False)
+    product_id   = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_name = db.Column(db.String(120), nullable=False)
+    quantity     = db.Column(db.Integer, default=1)
+    price        = db.Column(db.Float,   default=0)
+    subtotal     = db.Column(db.Float,   default=0)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    session = db.relationship('ActivitySession',
+                              backref=db.backref('items', lazy=True, cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<ActivitySessionItem session#{self.session_id} {self.product_name}>'
+
+
 class PushSubscription(db.Model):
     __tablename__ = 'push_subscriptions'
     id        = db.Column(db.Integer, primary_key=True)

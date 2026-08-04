@@ -1,0 +1,159 @@
+{% extends 'pos/base_pos.html' %}
+{% set meta = activity_meta[session.table.activity] %}
+{% block title %}{% if lang == 'en' %}Receipt{% else %}فاتورة{% endif %} — {{ session.table.name }} — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+<style>
+  *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+  body{ background:#f5f5f5; }
+  .receipt-wrapper{ background:#fff;border-radius:15px;padding:2rem;box-shadow:0 4px 6px rgba(0,0,0,.1); }
+  .receipt-container{ background:#fff;color:#000;max-width:350px;margin:0 auto;padding:20px;border:2px dashed #e9ecef;border-radius:10px;font-family:Arial,sans-serif;direction:rtl;text-align:right; }
+  .receipt-container *{ line-height:1.3; }
+  .receipt-header{ text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px;direction:ltr; }
+  .receipt-header h3{ color:var(--primary);font-weight:700;margin-bottom:6px;font-size:1.3rem;letter-spacing:.5px; }
+  .receipt-header p{ color:#333;font-size:.9rem;margin:3px 0; }
+  .receipt-info{ background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:8px; }
+  .info-row{ display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px; }
+  .info-row:last-child{ margin-bottom:0; }
+  .info-label{ color:#6c757d;white-space:nowrap; }
+  .info-value{ font-weight:700;color:#000;white-space:nowrap; }
+  .receipt-items{ border-top:1px dashed #000;border-bottom:1px dashed #000;padding:10px 0;margin:10px 0; }
+  .receipt-item{ display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.9rem;padding:4px 0; }
+  .item-name{ flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .item-price{ font-weight:700;white-space:nowrap;text-align:left; }
+  .receipt-item.subtotal{ border-top:1px dashed #999;margin-top:8px;padding-top:8px;font-weight:700; }
+  .receipt-total{ background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;font-size:1.2rem;font-weight:900;text-align:center;padding:10px 12px;border-radius:10px;margin:10px 0;display:flex;justify-content:space-between;gap:10px;direction:rtl; }
+  .receipt-total span:last-child{ direction:ltr;unicode-bidi:bidi-override;font-weight:900; }
+  .payment-method{ text-align:center;padding:8px 10px;background:#f8f9fa;border-radius:8px;margin:8px 0;font-weight:700; }
+  .receipt-footer{ text-align:center;padding-top:10px;font-size:.8rem;border-top:1px dashed #000;color:#111;direction:ltr; }
+  .receipt-footer hr{ border:0;border-top:1px dashed #000;margin:8px 0; }
+  .success-badge{ background:#d4edda;color:#155724;padding:10px 20px;border-radius:25px;display:inline-block;font-weight:700;margin-bottom:1rem; }
+  @media print{
+    @page{ size:80mm auto; margin:0; }
+    body{ margin:0;background:#fff!important; }
+    body *{ visibility:hidden!important; }
+    #receipt, #receipt *{ visibility:visible!important; }
+    #receipt{ position:absolute!important;left:0!important;top:0!important;width:80mm!important;max-width:80mm!important;margin:0!important;padding:5mm!important;border:none!important;border-radius:0!important;box-shadow:none!important;background:#fff!important; }
+    .receipt-wrapper{ background:transparent!important;box-shadow:none!important;border:none!important;padding:0!important; }
+    .receipt-total,.receipt-total span{ background:#000!important;color:#fff!important; }
+    .no-print,.no-print *{ display:none!important;visibility:hidden!important; }
+    #receipt .info-row,#receipt .receipt-item,#receipt .receipt-total{ display:flex!important;justify-content:space-between!important;align-items:center!important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-6">
+
+  <div class="text-center mb-4 no-print">
+    <span class="success-badge">
+      <i class="fas fa-check-circle me-2"></i>{% if lang == 'en' %}Session Completed{% else %}تم إنهاء الجلسة{% endif %}
+    </span>
+  </div>
+
+  <div class="d-flex justify-content-between mb-4 no-print gap-2">
+    <a href="{{ url_for('pos.activities') }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>
+      {% if lang == 'en' %}Activities{% else %}الأنشطة{% endif %}
+    </a>
+    <button onclick="printReceipt(false)" class="btn btn-primary">
+      <i class="fas fa-print me-2"></i>{% if lang == 'en' %}Print{% else %}طباعة{% endif %}
+    </button>
+  </div>
+
+  <div class="receipt-wrapper">
+    <div class="receipt-container" id="receipt">
+
+      <div class="receipt-header">
+        <h3>Z PADEL</h3>
+        <p>{% if lang == 'en' %}Duhok, Iraq{% else %}دهوك، العراق{% endif %}</p>
+      </div>
+
+      <div class="receipt-info">
+        <div class="info-row">
+          <span class="info-label">{% if lang == 'en' %}Activity:{% else %}النشاط:{% endif %}</span>
+          <strong class="info-value">
+            {% if lang == 'en' %}{{ meta.en }}{% else %}{{ meta.ar }}{% endif %} — {{ session.table.name }}
+          </strong>
+        </div>
+        <div class="info-row">
+          <span class="info-label">{% if lang == 'en' %}Date:{% else %}التاريخ:{% endif %}</span>
+          <strong class="info-value">{{ session.start_time.strftime('%Y-%m-%d') }}</strong>
+        </div>
+        <div class="info-row">
+          <span class="info-label">{% if lang == 'en' %}Time:{% else %}الوقت:{% endif %}</span>
+          <strong class="info-value">{{ session.start_time.strftime('%H:%M') }} — {{ session.end_time.strftime('%H:%M') if session.end_time else '—' }}</strong>
+        </div>
+        <div class="info-row">
+          <span class="info-label">{% if lang == 'en' %}Duration:{% else %}المدة:{% endif %}</span>
+          <strong class="info-value">{{ session.elapsed_minutes // 60 }}h {{ session.elapsed_minutes % 60 }}m</strong>
+        </div>
+        {% if session.customer_name %}
+        <div class="info-row">
+          <span class="info-label">{% if lang == 'en' %}Customer:{% else %}الزبون:{% endif %}</span>
+          <strong class="info-value">{{ session.customer_name }}</strong>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="receipt-items">
+        <div class="receipt-item">
+          <span class="item-name">{% if lang == 'en' %}Play time{% else %}وقت اللعب{% endif %}</span>
+          <span class="item-price">{{ '{:,.0f}'.format(session.time_amount) }} IQD</span>
+        </div>
+        {% for item in session.items %}
+        <div class="receipt-item">
+          <span class="item-name">{{ item.product_name }} × {{ item.quantity }}</span>
+          <span class="item-price">{{ '{:,.0f}'.format(item.subtotal) }} IQD</span>
+        </div>
+        {% endfor %}
+        <div class="receipt-item subtotal">
+          <span class="item-name">{% if lang == 'en' %}Subtotal:{% else %}المجموع:{% endif %}</span>
+          <span class="item-price">{{ '{:,.0f}'.format(session.grand_total) }} IQD</span>
+        </div>
+      </div>
+
+      <div class="receipt-total">
+        <span>{% if lang == 'en' %}Net Total:{% else %}الصافي:{% endif %}</span>
+        <span>{{ '{:,.0f}'.format(session.grand_total) }} IQD</span>
+      </div>
+
+      <div class="payment-method">
+        <i class="fas fa-{{ 'money-bill-wave' if session.payment_method == 'cash' else 'credit-card' if session.payment_method == 'card' else 'user-clock' }} me-2"></i>
+        {% if lang == 'en' %}
+          Payment: {{ 'Cash' if session.payment_method == 'cash' else 'Card' if session.payment_method == 'card' else 'Debt' }}
+        {% else %}
+          طريقة الدفع: {{ 'نقدي' if session.payment_method == 'cash' else 'بطاقة' if session.payment_method == 'card' else 'دين' }}
+        {% endif %}
+      </div>
+
+      <div class="receipt-footer">
+        <hr>
+        <p><i class="fas fa-heart"></i> {% if lang == 'en' %}Thank you for your visit{% else %}شكراً لزيارتكم{% endif %}</p>
+        <p><strong>Z PADEL</strong></p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function printReceipt(autoBack=false) {
+  const r = document.getElementById('receipt');
+  if (r) { r.style.display='block'; r.style.visibility='visible'; }
+  if (autoBack) {
+    window.onafterprint = () => window.location.replace("{{ url_for('pos.activities') }}");
+    setTimeout(() => window.location.replace("{{ url_for('pos.activities') }}"), 2500);
+  }
+  setTimeout(() => window.print(), 150);
+}
+{% if autoprint %}
+window.addEventListener('load', () => setTimeout(() => printReceipt(true), 400));
+{% endif %}
+</script>
+{% endblock %}

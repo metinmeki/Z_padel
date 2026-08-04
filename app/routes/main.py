@@ -15,7 +15,7 @@ RECORD_DIR = r"C:\recordings"
 
 @main_bp.route('/set-lang/<lang>')
 def set_lang(lang):
-    if lang in ('ar', 'en'):
+    if lang in ('ar', 'en', 'ku'):
         session['lang'] = lang
         session.permanent = True
     return redirect(request.referrer or '/')

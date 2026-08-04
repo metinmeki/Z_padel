@@ -63,6 +63,7 @@ def create_app(config_name: str = None):
         db.create_all()
         _add_missing_columns(app)
         _seed_admin(app)
+        _seed_activities(app)
 
     return app
 
@@ -96,3 +97,19 @@ def _seed_admin(app):
             db.session.add(admin)
             db.session.commit()
             print('✅  Default admin created  →  admin / admin123')
+
+
+def _seed_activities(app):
+    """Create default activity tables if none exist."""
+    from app.models.main import ActivityTable
+    with app.app_context():
+        if ActivityTable.query.count() == 0:
+            defaults = [
+                ActivityTable(name='Table 1', activity='snooker',      hourly_rate=12000),
+                ActivityTable(name='Table 2', activity='snooker',      hourly_rate=12000),
+                ActivityTable(name='Table 1', activity='billiard',     hourly_rate=10000),
+                ActivityTable(name='Table 1', activity='table_tennis', hourly_rate=5000),
+            ]
+            db.session.add_all(defaults)
+            db.session.commit()
+            print('✅  Default activity tables created')
