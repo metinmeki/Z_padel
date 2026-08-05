@@ -3,73 +3,328 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Z Padel - {% if lang == 'en' %}Cart{% else %}السلة{% endif %}</title>
+  <title>Z Padel — {% if lang == 'en' %}Cart{% else %}السلة{% endif %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
   {% if lang == 'en' %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   {% else %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   {% endif %}
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+
   <style>
-    :root { --gold: #D6C3A1; --bg: #1E2528; --card: #262E32; --border: #344048; --text: #EEE8DF; --muted: #7A8A93; }
-    body { background: var(--bg); color: var(--text); font-family: 'Almarai', sans-serif; min-height: 100vh; }
+    :root {
+      --gold:      #D6C3A1;
+      --gold-d:    #b8a07e;
+      --gold-deep: #9a8060;
+      --slate:     #596770;
+      --slate-d:   #2C3539;
+      --bg:        #F5F7FA;
+      --card:      #FFFFFF;
+      --border:    #EAECF0;
+      --text:      #1A202C;
+      --muted:     #718096;
+      --success:   #16a34a;
+      --danger:    #dc2626;
+      --radius:    14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 120px;
+    }
 
-    .store-nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-    .page-wrap { max-width: 700px; margin: 0 auto; padding: 2rem 1rem; }
+    /* ── Navbar ── */
+    .store-nav {
+      background: #fff;
+      border-bottom: 1.5px solid var(--border);
+      padding: .75rem 1rem;
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .brand {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.2rem; font-weight: 900;
+      color: var(--gold-d); text-decoration: none;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: .4rem;
+      color: var(--slate); text-decoration: none;
+      font-size: .88rem; font-weight: 700;
+      padding: .45rem .9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 50px; transition: all .2s;
+      background: #fff;
+    }
+    .back-btn:hover { background: var(--bg); color: var(--slate-d); }
 
-    .cart-item { display: flex; align-items: center; gap: 15px; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--card); margin-bottom: 10px; border-radius: 12px; }
-    .item-img { width: 60px; height: 60px; border-radius: 9px; object-fit: cover; }
+    /* ── Page wrapper ── */
+    .page-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem;
+    }
+    .page-title {
+      font-size: 1.25rem; font-weight: 800;
+      margin-bottom: 1rem; color: var(--slate-d);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .page-title i { color: var(--gold-deep); }
 
-    .btn-qty { background: var(--slate-deep); color: var(--gold); border: 1px solid var(--border); width: 32px; height: 32px; }
-    .btn-checkout { width: 100%; background: linear-gradient(135deg, var(--gold), #596770); color: #fff; border: none; border-radius: 12px; padding: 1rem; font-weight: 800; margin-top: 1rem; }
+    /* ── Cart item ── */
+    .cart-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .85rem;
+      margin-bottom: .75rem;
+      display: flex; align-items: center; gap: .85rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+      transition: box-shadow .2s;
+    }
+    .cart-item:hover { box-shadow: 0 4px 14px rgba(0,0,0,.09); }
+    .item-img {
+      width: 70px; height: 70px;
+      border-radius: 10px; object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .item-img-placeholder {
+      width: 70px; height: 70px;
+      border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+      display: flex; align-items: center; justify-content: center;
+      color: #bbb; font-size: 1.4rem;
+      border: 1px solid var(--border);
+    }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name {
+      font-weight: 700; font-size: .92rem;
+      color: var(--text); margin-bottom: .2rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .item-unit-price {
+      font-size: .8rem; color: var(--muted);
+    }
+    .item-subtotal {
+      font-weight: 800; font-size: .95rem;
+      color: var(--gold-deep); white-space: nowrap;
+    }
+
+    /* ── Qty controls ── */
+    .qty-row {
+      display: flex; align-items: center; gap: .4rem;
+      margin-top: .45rem;
+    }
+    .qty-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--bg); color: var(--slate-d);
+      font-size: .95rem; font-weight: 800;
+      cursor: pointer; transition: all .18s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { border-color: var(--slate); background: var(--slate); color: #fff; }
+    .qty-btn.remove { border-color: #fecaca; color: var(--danger); }
+    .qty-btn.remove:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .qty-num {
+      min-width: 28px; text-align: center;
+      font-weight: 800; font-size: .92rem;
+      color: var(--text);
+    }
+
+    /* ── Summary card ── */
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      margin-top: 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: .9rem; color: var(--muted);
+      padding: .35rem 0; border-bottom: 1px solid var(--border);
+    }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-total {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 1.1rem; font-weight: 800;
+      color: var(--slate-d); padding-top: .75rem;
+      margin-top: .25rem; border-top: 2px solid var(--border);
+    }
+    .total-amount { color: var(--gold-deep); font-size: 1.2rem; }
+
+    /* ── Checkout button (sticky on mobile) ── */
+    .checkout-wrap {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1.5px solid var(--border);
+      padding: .9rem 1.25rem;
+      z-index: 200;
+      box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+    }
+    .btn-checkout {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      width: 100%; padding: .9rem;
+      background: linear-gradient(135deg, var(--gold), var(--slate));
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 800;
+      text-decoration: none; cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 4px 14px rgba(89,103,112,.35);
+    }
+    .btn-checkout:hover { opacity: .92; transform: translateY(-1px); color: #fff; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 4rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: linear-gradient(135deg, #f5f0e8, #e8dfd0);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 2.2rem; color: var(--gold-deep);
+    }
+    .empty-state h5 { font-weight: 700; color: var(--slate-d); margin-bottom: .4rem; }
+    .empty-state p { font-size: .9rem; }
+    .btn-shop {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: linear-gradient(135deg, var(--gold), var(--slate));
+      color: #fff; padding: .65rem 1.5rem;
+      border-radius: 50px; text-decoration: none;
+      font-weight: 700; font-size: .9rem; margin-top: .75rem;
+      transition: all .2s;
+    }
+    .btn-shop:hover { opacity: .9; color: #fff; }
+
+    /* ── Item removing animation ── */
+    .cart-item.removing {
+      opacity: 0; transform: translateX(30px);
+      transition: all .3s ease;
+    }
   </style>
 </head>
 <body>
 
+<!-- Navbar -->
 <nav class="store-nav">
-  <a href="{{ url_for('store.shop') }}" class="btn btn-outline-light">
+  <a href="{{ url_for('store.shop') }}" class="back-btn">
     <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i>
     {% if lang == 'en' %}Continue Shopping{% else %}متابعة التسوق{% endif %}
   </a>
+  <span class="brand">Z PADEL</span>
 </nav>
 
 <div class="page-wrap">
-  <h3 class="mb-4">{% if lang == 'en' %}Shopping Cart{% else %}سلة التسوق{% endif %}</h3>
+
+  <div class="page-title">
+    <i class="fas fa-shopping-cart"></i>
+    {% if lang == 'en' %}Shopping Cart{% else %}سلة التسوق{% endif %}
+    {% if items %}
+    <span style="font-size:.82rem;font-weight:600;color:var(--muted);margin-inline-start:.25rem;">
+      ({{ items|length }} {% if lang == 'en' %}item{{ 's' if items|length != 1 }}{% else %}منتج{% endif %})
+    </span>
+    {% endif %}
+  </div>
+
   {% if items %}
   <div id="cartList">
     {% for item in items %}
     <div class="cart-item" id="item-{{ item.product.id }}">
-      <img src="{{ url_for('static', filename='images/uploads/' ~ item.product.image) }}" class="item-img" alt="{{ item.product.name }}">
-      <div class="flex-grow-1">
-        <div class="fw-bold">{{ item.product.name }}</div>
-        <div class="text-muted">{{ "{:,.0f}".format(item.product.price) }} IQD</div>
+
+      {% if item.product.image %}
+        <img src="{{ url_for('static', filename='images/uploads/' ~ item.product.image) }}"
+             class="item-img" alt="{{ item.product.name }}">
+      {% else %}
+        <div class="item-img-placeholder"><i class="fas fa-box-open"></i></div>
+      {% endif %}
+
+      <div class="item-info">
+        <div class="item-name">{{ item.product.name }}</div>
+        <div class="item-unit-price">{{ "{:,.0f}".format(item.product.price) }} IQD</div>
+        <div class="qty-row">
+          <button class="qty-btn remove" onclick="updateQty({{ item.product.id }}, -1)" title="{% if lang == 'en' %}Remove one{% else %}إزالة{% endif %}">
+            {% if item.qty == 1 %}<i class="fas fa-trash" style="font-size:.7rem;"></i>{% else %}−{% endif %}
+          </button>
+          <span class="qty-num" id="qn-{{ item.product.id }}">{{ item.qty }}</span>
+          <button class="qty-btn" onclick="updateQty({{ item.product.id }}, 1)">+</button>
+        </div>
       </div>
-      <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-sm btn-qty" onclick="updateQty({{ item.product.id }}, -1)">-</button>
-        <span id="qn-{{ item.product.id }}" class="fw-bold">{{ item.qty }}</span>
-        <button class="btn btn-sm btn-qty" onclick="updateQty({{ item.product.id }}, 1)">+</button>
+
+      <div class="item-subtotal" id="sub-{{ item.product.id }}">
+        {{ "{:,.0f}".format(item.subtotal) }}<br><small style="font-size:.7rem;font-weight:600;">IQD</small>
       </div>
-      <div class="fw-bold text-gold" id="sub-{{ item.product.id }}" style="color:var(--gold)">{{ "{:,.0f}".format(item.subtotal) }} IQD</div>
+
     </div>
     {% endfor %}
   </div>
 
-  <div class="mt-4 p-3 bg-dark rounded">
-    <h5>{% if lang == 'en' %}Total:{% else %}الإجمالي:{% endif %} <span id="totalVal">{{ "{:,.0f}".format(total) }}</span> IQD</h5>
-    <a href="{{ url_for('store.checkout') }}" class="btn-checkout text-center text-decoration-none d-block">
-      {% if lang == 'en' %}Place Order{% else %}إتمام الطلب{% endif %}
+  <!-- Summary -->
+  <div class="summary-card">
+    {% set item_count = items|sum(attribute='qty') %}
+    <div class="summary-row">
+      <span>{% if lang == 'en' %}Items{% else %}المنتجات{% endif %}</span>
+      <span>{{ item_count }}</span>
+    </div>
+    <div class="summary-row">
+      <span>{% if lang == 'en' %}Delivery{% else %}التوصيل{% endif %}</span>
+      <span style="color:var(--success);font-weight:700;">{% if lang == 'en' %}Free{% else %}مجاني{% endif %}</span>
+    </div>
+    <div class="summary-total">
+      <span>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</span>
+      <span class="total-amount">
+        <span id="totalVal">{{ "{:,.0f}".format(total) }}</span> IQD
+      </span>
+    </div>
+  </div>
+
+  <!-- spacer so sticky button doesn't cover content -->
+  <div style="height:80px;"></div>
+
+  {% else %}
+
+  <!-- Empty cart -->
+  <div class="empty-state">
+    <div class="empty-icon"><i class="fas fa-shopping-cart"></i></div>
+    <h5>{% if lang == 'en' %}Your cart is empty{% else %}السلة فارغة{% endif %}</h5>
+    <p>{% if lang == 'en' %}Add some products to get started{% else %}أضف منتجات للبدء{% endif %}</p>
+    <a href="{{ url_for('store.shop') }}" class="btn-shop">
+      <i class="fas fa-store"></i>
+      {% if lang == 'en' %}Browse Store{% else %}تصفح المتجر{% endif %}
     </a>
   </div>
-  {% else %}
-  <p class="text-center mt-5">{% if lang == 'en' %}Your cart is empty{% else %}السلة فارغة{% endif %}</p>
+
   {% endif %}
 </div>
 
+<!-- Sticky checkout bar -->
+{% if items %}
+<div class="checkout-wrap">
+  <a href="{{ url_for('store.checkout') }}" class="btn-checkout">
+    <i class="fas fa-lock"></i>
+    {% if lang == 'en' %}Place Order{% else %}إتمام الطلب{% endif %}
+    &nbsp;—&nbsp;
+    <span id="stickyTotal">{{ "{:,.0f}".format(total) }}</span> IQD
+  </a>
+</div>
+{% endif %}
+
 <script>
 function updateQty(id, delta) {
-  const qnEl = document.getElementById(`qn-${id}`);
-  const newQty = Math.max(0, parseInt(qnEl.textContent) + delta);
+  const qnEl  = document.getElementById(`qn-${id}`);
+  const curQty = parseInt(qnEl.textContent);
+  const newQty = Math.max(0, curQty + delta);
 
   fetch(`/store/cart/update/${id}`, {
     method: 'POST',
@@ -77,20 +332,34 @@ function updateQty(id, delta) {
       'Content-Type': 'application/json',
       'X-CSRFToken': '{{ csrf_token() }}'
     },
-    body: JSON.stringify({qty: newQty})
+    body: JSON.stringify({ qty: newQty })
   })
   .then(r => r.json())
   .then(d => {
-    if(newQty === 0) {
-        document.getElementById(`item-${id}`).remove();
+    if (newQty === 0) {
+      const el = document.getElementById(`item-${id}`);
+      el.classList.add('removing');
+      setTimeout(() => {
+        el.remove();
+        if (d.cart_count === 0) location.reload();
+      }, 300);
     } else {
-        qnEl.textContent = newQty;
-        document.getElementById(`sub-${id}`).textContent = d.subtotal.toLocaleString() + ' IQD';
+      qnEl.textContent = newQty;
+      // update remove button icon if qty changed to/from 1
+      const removeBtn = qnEl.previousElementSibling;
+      removeBtn.innerHTML = newQty === 1
+        ? '<i class="fas fa-trash" style="font-size:.7rem;"></i>'
+        : '−';
+      document.getElementById(`sub-${id}`).innerHTML =
+        Number(d.subtotal).toLocaleString() + '<br><small style="font-size:.7rem;font-weight:600;">IQD</small>';
     }
-    document.getElementById('totalVal').textContent = d.total.toLocaleString();
-    if(d.cart_count === 0) location.reload();
+    const total = Number(d.total).toLocaleString();
+    const tv = document.getElementById('totalVal');
+    const sv = document.getElementById('stickyTotal');
+    if (tv) tv.textContent = total;
+    if (sv) sv.textContent = total;
   })
-  .catch(err => console.error("Error:", err));
+  .catch(err => console.error('Error:', err));
 }
 </script>
 </body>
