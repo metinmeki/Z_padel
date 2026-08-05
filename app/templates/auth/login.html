@@ -9,7 +9,7 @@
   {% else %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
   {% endif %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet"/>
 
   <style>
@@ -141,7 +141,7 @@
     .input-z:focus ~ .input-icon { color:var(--slate); }
     .input-z::placeholder { color:#C8BEB0; }
 
-    .pwd-toggle { position:absolute;left:14px;color:var(--text-muted);font-size:15px;cursor:pointer;transition:var(--transition);background:none;border:none;padding:0; }
+    .pwd-toggle { position:absolute;inset-inline-end:14px;color:var(--text-muted);font-size:15px;cursor:pointer;transition:var(--transition);background:none;border:none;padding:0; }
     .pwd-toggle:hover { color:var(--slate); }
 
     .remember-row { display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;animation:fadeUp .5s ease .25s both; }
@@ -298,7 +298,6 @@
           <label for="password">{% if lang == 'en' %}Password{% else %}كلمة المرور{% endif %}</label>
           <div class="input-wrap">
             <input type="password" name="password" id="password" class="input-z" required autocomplete="current-password" placeholder="••••••••"/>
-            <i class="fas fa-lock input-icon"></i>
             <button type="button" class="pwd-toggle" id="pwdToggle" onclick="togglePwd()" title="{% if lang == 'en' %}Show / Hide{% else %}إظهار / إخفاء{% endif %}">
               <i class="fas fa-eye" id="pwdEyeIcon"></i>
             </button>

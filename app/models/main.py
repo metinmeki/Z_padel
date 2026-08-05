@@ -372,7 +372,7 @@ class CourtSession(db.Model):
     customer_name  = db.Column(db.String(100), nullable=True)
     created_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
-    court = db.relationship('Court', backref='sessions')
+    court = db.relationship('Court', backref=db.backref('sessions', cascade='all, delete-orphan', lazy=True))
 
     @property
     def elapsed_minutes(self):
