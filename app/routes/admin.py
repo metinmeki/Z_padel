@@ -420,8 +420,8 @@ def new_product():
         p = Product(
             name=request.form['name'],
             category_id=request.form.get('category_id') or None,
-            price=float(request.form.get('price', 0)),
-            stock=int(request.form.get('stock', 0)),
+            price=float(request.form.get('price') or 0),
+            stock=int(request.form.get('stock') or 0),
             description=request.form.get('description', ''),
             description_ar=request.form.get('description_ar', ''),
             description_ku=request.form.get('description_ku', ''),
@@ -444,8 +444,8 @@ def edit_product(product_id):
     cats = Category.query.all()
     if request.method == 'POST':
         p.name            = request.form.get('name', p.name)
-        p.price           = float(request.form.get('price', p.price))
-        p.stock           = int(request.form.get('stock', p.stock))
+        p.price           = float(request.form.get('price') or p.price)
+        p.stock           = int(request.form.get('stock') or p.stock)
         p.description     = request.form.get('description', p.description)
         p.description_ar  = request.form.get('description_ar', p.description_ar)
         p.description_ku  = request.form.get('description_ku', p.description_ku)
