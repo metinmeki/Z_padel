@@ -27,12 +27,43 @@ def save_upload(file, folder_key='UPLOAD_FOLDER'):
     ext = file.filename.rsplit('.', 1)[1].lower()
     if ext not in ['jpg', 'jpeg', 'png', 'webp', 'gif']:
         return None
-    name = f"{uuid.uuid4().hex}.{ext}"
-    # Always save to static/images/uploads/ so url_for('static') works
+
     upload_dir = os.path.join(current_app.static_folder, 'images', 'uploads')
     os.makedirs(upload_dir, exist_ok=True)
-    file.save(os.path.join(upload_dir, name))
-    return name
+
+    # Save as WebP for all non-gif uploads (50-80% smaller)
+    from PIL import Image
+    import io
+
+    try:
+        img = Image.open(file.stream)
+
+        # Convert palette/RGBA to RGB for WebP compatibility
+        if img.mode in ('RGBA', 'LA'):
+            bg = Image.new('RGB', img.size, (255, 255, 255))
+            bg.paste(img, mask=img.split()[-1])
+            img = bg
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        # Resize: keep aspect ratio, max 900px on longest side
+        img.thumbnail((900, 900), Image.LANCZOS)
+
+        out_name = f"{uuid.uuid4().hex}.webp"
+        img.save(
+            os.path.join(upload_dir, out_name),
+            format='WEBP',
+            quality=82,
+            method=4,    # compression effort (0=fast, 6=best)
+        )
+        return out_name
+
+    except Exception:
+        # Fallback: save original if Pillow fails
+        name = f"{uuid.uuid4().hex}.{ext}"
+        file.seek(0)
+        file.save(os.path.join(upload_dir, name))
+        return name
 
 def admin_required(f):
     from functools import wraps
