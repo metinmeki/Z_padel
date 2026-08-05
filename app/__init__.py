@@ -79,15 +79,19 @@ def create_app(config_name: str = None):
 def _add_missing_columns(app):
     """Add any new columns that db.create_all() won't add to existing tables."""
     from sqlalchemy import text
+    alters = [
+        "ALTER TABLE order_items ADD COLUMN product_name VARCHAR(120)",
+        "ALTER TABLE products ADD COLUMN max_stock INTEGER DEFAULT 50",
+        "ALTER TABLE products ADD COLUMN show_on_website BOOLEAN DEFAULT 0",
+    ]
     with app.app_context():
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(text(
-                    "ALTER TABLE order_items ADD COLUMN product_name VARCHAR(120)"
-                ))
-                conn.commit()
-        except Exception:
-            pass  # column already exists
+        with db.engine.connect() as conn:
+            for stmt in alters:
+                try:
+                    conn.execute(text(stmt))
+                    conn.commit()
+                except Exception:
+                    pass  # column already exists
 
 
 def _seed_admin(app):
