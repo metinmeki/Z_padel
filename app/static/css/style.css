@@ -840,6 +840,9 @@ body {
 }
 .fs-btn:hover { background: var(--ac); border-color: var(--ac); color: var(--bd); transform: translateY(-3px); }
 .fs-btn-wa:hover { background: #25D366; border-color: #25D366; color: #fff; }
+.fs-btn-ig:hover { background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); border-color: #dc2743; color: #fff; }
+.fs-btn-sc:hover { background: #FFFC00; border-color: #FFFC00; color: #000; }
+.fs-btn-tt:hover { background: #000; border-color: #69C9D0; color: #fff; }
 .footer-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent); }
 .footer-bottom {
   display: flex; align-items: center; justify-content: space-between;
