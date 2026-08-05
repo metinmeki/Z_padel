@@ -65,6 +65,27 @@ def save_upload(file, folder_key='UPLOAD_FOLDER'):
         file.save(os.path.join(upload_dir, name))
         return name
 
+def save_b64_image(b64_data):
+    """Decode a browser-compressed base64 image and save as WebP."""
+    if not b64_data:
+        return None
+    import base64, io
+    from PIL import Image
+    try:
+        # strip data:image/jpeg;base64, prefix
+        header, data = b64_data.split(',', 1)
+        raw = base64.b64decode(data)
+        img = Image.open(io.BytesIO(raw))
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        upload_dir = os.path.join(current_app.static_folder, 'images', 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+        out_name = f"{uuid.uuid4().hex}.webp"
+        img.save(os.path.join(upload_dir, out_name), format='WEBP', quality=82, method=4)
+        return out_name
+    except Exception:
+        return None
+
 def admin_required(f):
     from functools import wraps
     @wraps(f)
@@ -395,7 +416,7 @@ def products():
 def new_product():
     cats = Category.query.all()
     if request.method == 'POST':
-        img = save_upload(request.files.get('image'))
+        img = save_b64_image(request.form.get('image_b64')) or save_upload(request.files.get('image'))
         p = Product(
             name=request.form['name'],
             category_id=request.form.get('category_id') or None,
@@ -432,7 +453,7 @@ def edit_product(product_id):
         p.category_id     = request.form.get('category_id') or p.category_id
         p.show_on_website = request.form.get('show_on_website') == '1'
         p.is_active       = 'is_active' in request.form
-        new_img = save_upload(request.files.get('image'))
+        new_img = save_b64_image(request.form.get('image_b64')) or save_upload(request.files.get('image'))
         if new_img:
             p.image = new_img
         db.session.commit()
