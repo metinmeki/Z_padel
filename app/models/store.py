@@ -23,6 +23,8 @@ class Product(db.Model):
     category_id     = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
     name            = db.Column(db.String(120), nullable=False)
     description     = db.Column(db.Text,        nullable=True)
+    description_ar  = db.Column(db.Text,        nullable=True)
+    description_ku  = db.Column(db.Text,        nullable=True)
     price           = db.Column(db.Float,       nullable=False, default=0)
     stock           = db.Column(db.Integer,     default=0)
     max_stock       = db.Column(db.Integer,     default=50)

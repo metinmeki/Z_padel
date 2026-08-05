@@ -83,6 +83,8 @@ def _add_missing_columns(app):
         "ALTER TABLE order_items ADD COLUMN product_name VARCHAR(120)",
         "ALTER TABLE products ADD COLUMN max_stock INTEGER DEFAULT 50",
         "ALTER TABLE products ADD COLUMN show_on_website BOOLEAN DEFAULT 0",
+        "ALTER TABLE products ADD COLUMN description_ar TEXT",
+        "ALTER TABLE products ADD COLUMN description_ku TEXT",
     ]
     with app.app_context():
         with db.engine.connect() as conn:

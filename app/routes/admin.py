@@ -402,6 +402,8 @@ def new_product():
             price=float(request.form.get('price', 0)),
             stock=int(request.form.get('stock', 0)),
             description=request.form.get('description', ''),
+            description_ar=request.form.get('description_ar', ''),
+            description_ku=request.form.get('description_ku', ''),
             barcode=request.form.get('barcode') or None,
             show_on_website=request.form.get('show_on_website') == '1',
             is_active='is_active' in request.form,
@@ -424,6 +426,8 @@ def edit_product(product_id):
         p.price           = float(request.form.get('price', p.price))
         p.stock           = int(request.form.get('stock', p.stock))
         p.description     = request.form.get('description', p.description)
+        p.description_ar  = request.form.get('description_ar', p.description_ar)
+        p.description_ku  = request.form.get('description_ku', p.description_ku)
         p.barcode         = request.form.get('barcode') or p.barcode
         p.category_id     = request.form.get('category_id') or p.category_id
         p.show_on_website = request.form.get('show_on_website') == '1'

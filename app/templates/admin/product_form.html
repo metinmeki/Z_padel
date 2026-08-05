@@ -117,9 +117,21 @@
       </div>
 
       <div class="mb-3">
-        <label class="f-label">{% if lang == 'en' %}Description{% else %}الوصف{% endif %}</label>
-        <textarea name="description" class="f-ctrl" rows="2"
-                  placeholder="{% if lang == 'en' %}Product description...{% else %}وصف المنتج...{% endif %}">{{ product.description or '' if product else '' }}</textarea>
+        <label class="f-label">{% if lang == 'en' %}Description (English){% elif lang == 'ku' %}وەسف (ئینگلیزی){% else %}الوصف (إنجليزي){% endif %}</label>
+        <textarea name="description" class="f-ctrl" rows="2" dir="ltr"
+                  placeholder="Product description...">{{ product.description or '' if product else '' }}</textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="f-label">{% if lang == 'en' %}Description (Arabic){% elif lang == 'ku' %}وەسف (عەرەبی){% else %}الوصف (عربي){% endif %}</label>
+        <textarea name="description_ar" class="f-ctrl" rows="2" dir="rtl"
+                  placeholder="وصف المنتج بالعربي...">{{ product.description_ar or '' if product else '' }}</textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="f-label">{% if lang == 'en' %}Description (Kurdish){% elif lang == 'ku' %}وەسف (کوردی){% else %}الوصف (كردي){% endif %}</label>
+        <textarea name="description_ku" class="f-ctrl" rows="2" dir="rtl"
+                  placeholder="وەسفی بەرهەم بە کوردی...">{{ product.description_ku or '' if product else '' }}</textarea>
       </div>
 
       <div class="row g-3 mb-3">
