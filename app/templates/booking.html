@@ -570,33 +570,35 @@ function renderSlots() {
     const isSelStart = selStart === ts;
     const isCovered  = selStart && h > selH && h < selEndH;
 
-    // Check if starting here would conflict (any covered hour is booked/past)
+    // Check if starting here would conflict (any covered hour is booked/past/overflow)
     let hasConflict = false;
     for (let i = 0; i < selSpan; i++) {
       const ch = h + i;
-      if (ch >= CLOSE) { hasConflict = true; break; }
+      if (ch >= CLOSE || ch >= 24) { hasConflict = true; break; }
       const cts = `${String(ch).padStart(2,'0')}:00`;
       if (booked.includes(cts)) { hasConflict = true; break; }
       if (isToday && (ch < nowH || (ch === nowH && nowM > 0))) { hasConflict = true; break; }
     }
 
-    const bkd  = booked.includes(ts);
-    const past = isToday && (h < nowH || (h === nowH && nowM > 0));
-    const ok   = !past && !bkd && !hasConflict;
+    const bkd      = booked.includes(ts);
+    const past     = isToday && (h < nowH || (h === nowH && nowM > 0));
+    const overflow = (h + dur) > 24;  // duration would cross midnight
+    const ok       = !past && !overflow && !bkd && !hasConflict;
 
     let cls = 'slot-btn ';
     if (isSelStart) cls += 'selected';
     else if (isCovered) cls += 'covered';
-    else if (past)  cls += 'past';
+    else if (past || overflow) cls += 'past';
     else if (bkd)   cls += 'booked';
     else if (hasConflict) cls += 'conflict';
     else            cls += 'free';
 
     let priceLabel;
-    if (bkd)       priceLabel = IS_EN ? 'Booked' : 'محجوز';
-    else if (past)  priceLabel = IS_EN ? 'Past'   : 'منتهي';
+    if (bkd)              priceLabel = IS_EN ? 'Booked' : 'محجوز';
+    else if (past)        priceLabel = IS_EN ? 'Past'   : 'منتهي';
+    else if (overflow)    priceLabel = '—';
     else if (hasConflict) priceLabel = '—';
-    else            priceLabel = selPrice.toLocaleString();
+    else                  priceLabel = selPrice.toLocaleString();
 
     const html = `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}')"` : ''}>
       <i class="fas fa-check slot-check"></i>
