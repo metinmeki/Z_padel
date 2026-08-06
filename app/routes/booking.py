@@ -53,6 +53,17 @@ def create():
         s_time = _parse_time(request.form['start_time'])
         e_time = _parse_time(request.form['end_time'])
 
+        # Reject if another non-cancelled booking already occupies this slot
+        conflict = Booking.query.filter(
+            Booking.court_id    == court.id,
+            Booking.booking_date == b_date,
+            Booking.start_time   == s_time,
+            Booking.status       != 'cancelled',
+        ).first()
+        if conflict:
+            flash('عذراً، هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
+            return redirect(url_for('booking.index'))
+
         bk = Booking(
             court_id=court.id,
             customer_name=request.form['customer_name'],
