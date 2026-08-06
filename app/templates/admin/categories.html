@@ -108,8 +108,7 @@
     <form method="POST" action="{{ url_for('admin.add_category') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
-        <label class="form-label-z">{% if lang == 'en' %}Category Name *{% else %}اسم الفئة *{% endif %}</label>
-        <input type="text" name="name" class="form-control-z" required placeholder="{% if lang == 'en' %}e.g. Beverages{% else %}مثال: مشروبات{% endif %}">
+
       </div>
       <div class="mb-4">
         <label class="form-label-z">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</label>
