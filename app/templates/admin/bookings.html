@@ -393,7 +393,11 @@
                 </a>
                 <button type="button" class="action-btn edit" title="{% if lang == 'en' %}Edit{% else %}تعديل{% endif %}"
                         data-bs-toggle="modal" data-bs-target="#editBookingModal"
-                        onclick="openEditModal({{ b.id }}, {{ b.customer_name|tojson }}, {{ b.customer_phone|tojson }}, {{ b.status|tojson }}, {{ (b.notes or '')|tojson }})">
+                        data-bid="{{ b.id }}"
+                        data-bname="{{ b.customer_name | e }}"
+                        data-bphone="{{ b.customer_phone | e }}"
+                        data-bstatus="{{ b.status | e }}"
+                        data-bnotes="{{ (b.notes or '') | e }}">
                   <i class="fas fa-pen"></i>
                 </button>
                 {% if b.status != 'cancelled' %}
@@ -628,14 +632,20 @@ function filterTable() {
 }
 
 // ── Edit modal ──
-function openEditModal(id, name, phone, status, notes) {
+document.getElementById('editBookingModal').addEventListener('show.bs.modal', function(event) {
+  const btn = event.relatedTarget;
+  const id     = btn.dataset.bid;
+  const name   = btn.dataset.bname;
+  const phone  = btn.dataset.bphone;
+  const status = btn.dataset.bstatus;
+  const notes  = btn.dataset.bnotes;
   document.getElementById('editBookingId').value = id;
   document.getElementById('editBookingForm').action = '/admin/bookings/' + id + '/edit';
   document.getElementById('editName').value = name;
   document.getElementById('editPhone').value = phone;
   document.getElementById('editStatus').value = status;
-  document.getElementById('editNotes').value = notes;
-}
+  document.getElementById('editNotes').value = notes || '';
+});
 
 // ── Price calculator ──
 const HOURLY_RATE = {{ court_price|default(25000) }};
