@@ -255,9 +255,11 @@
 <div class="ticker">
   <div class="ticker-track">
     {% if lang == 'en' %}
-    {% set ticker_items = ['Z PADEL DUHOK','PROFESSIONAL COURTS','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','PROFESSIONAL COURTS','FREE BOOKING','DUHOK KURDISTAN','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% set ticker_items = ['Z PADEL DUHOK','PROFESSIONAL COURTS','FREE BOOKING','DUHOK KURDISTAN','OPEN 24/7','BOOK NOW FREE','Z PADEL DUHOK','PROFESSIONAL COURTS','FREE BOOKING','DUHOK KURDISTAN','OPEN 24/7','BOOK NOW FREE'] %}
+    {% elif lang == 'ku' %}
+    {% set ticker_items = ['Z PADEL DUHOK','زەوییە پیشەیییەکان','حجزی بەخۆڕایی','دهۆک کوردستان','کراوەیە ٢٤/٧','ئێستا حجز بکە','Z PADEL DUHOK','زەوییە پیشەیییەکان','حجزی بەخۆڕایی','دهۆک کوردستان','کراوەیە ٢٤/٧','ئێستا حجز بکە'] %}
     {% else %}
-    {% set ticker_items = ['Z PADEL DUHOK','ملاعب احترافية','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE','Z PADEL DUHOK','ملاعب احترافية','حجز مجاني','دهوك كردستان','OPEN 8AM–11PM','BOOK NOW FREE'] %}
+    {% set ticker_items = ['Z PADEL DUHOK','ملاعب احترافية','حجز مجاني','دهوك كردستان','مفتوح 24/7','احجز الآن مجاناً','Z PADEL DUHOK','ملاعب احترافية','حجز مجاني','دهوك كردستان','مفتوح 24/7','احجز الآن مجاناً'] %}
     {% endif %}
     {% for item in ticker_items %}
     <span class="ticker-item">{{ item }} <span class="ticker-dot"></span></span>
