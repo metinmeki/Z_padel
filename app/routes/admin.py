@@ -1,5 +1,10 @@
 import os, uuid, subprocess
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time as dtime
+
+def _parse_time(t):
+    if t == '24:00':
+        return dtime(23, 59)
+    return datetime.strptime(t, '%H:%M').time()
 from flask import (Blueprint, render_template, redirect, url_for,
                    request, flash, current_app, send_file, jsonify)
 from flask_login import login_required, current_user
@@ -187,8 +192,8 @@ def add_booking():
     try:
         court  = Court.query.get_or_404(request.form['court_id'])
         b_date = datetime.strptime(request.form['booking_date'], '%Y-%m-%d').date()
-        s_time = datetime.strptime(request.form['start_time'], '%H:%M').time()
-        e_time = datetime.strptime(request.form['end_time'],   '%H:%M').time()
+        s_time = _parse_time(request.form['start_time'])
+        e_time = _parse_time(request.form['end_time'])
 
         bk = Booking(
             court_id=court.id,

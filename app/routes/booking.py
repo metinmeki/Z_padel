@@ -1,7 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-from datetime import datetime, date
+from datetime import datetime, date, time as dtime
 from app import db
 from app.models.main import Court, Booking
+
+def _parse_time(t):
+    """Parse HH:MM, treating 24:00 as 23:59."""
+    if t == '24:00':
+        return dtime(23, 59)
+    return datetime.strptime(t, '%H:%M').time()
 
 booking_bp = Blueprint('booking', __name__)
 
@@ -44,8 +50,8 @@ def create():
     try:
         court  = Court.query.get_or_404(request.form['court_id'])
         b_date = datetime.strptime(request.form['booking_date'], '%Y-%m-%d').date()
-        s_time = datetime.strptime(request.form['start_time'], '%H:%M').time()
-        e_time = datetime.strptime(request.form['end_time'],   '%H:%M').time()
+        s_time = _parse_time(request.form['start_time'])
+        e_time = _parse_time(request.form['end_time'])
 
         bk = Booking(
             court_id=court.id,
