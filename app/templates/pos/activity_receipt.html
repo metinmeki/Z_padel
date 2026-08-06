@@ -140,43 +140,101 @@
 
 {% block extra_js %}
 <script>
-function printReceipt(autoBack=false) {
-  const r = document.getElementById('receipt');
-  if (!r) return;
-  const w = window.open('', '', 'width=380,height=700');
-  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
-<style>
-@page{size:80mm auto;margin:0;}
-*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box;line-height:1.4;font-family:Arial,sans-serif;}
-body{margin:0;padding:4mm;background:#fff;color:#000;width:72mm;direction:rtl;text-align:right;}
-h3,p,span,div{margin:0;padding:0;}
-.receipt-header{text-align:center;border-bottom:1px dashed #000;padding-bottom:8px;margin-bottom:8px;direction:ltr;}
-.receipt-header h3{color:#0ea5e9;font-weight:700;font-size:1.2rem;margin-bottom:4px;}
-.receipt-header p{color:#333;font-size:.85rem;margin:2px 0;}
-.receipt-info{background:#f8f9fa;padding:10px;border-radius:6px;margin-bottom:8px;}
-.info-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;font-size:.85rem;}
-.info-row:last-child{margin-bottom:0;}
-.info-label{color:#6c757d;}
-.info-value{font-weight:700;color:#000;}
-.receipt-items{border-top:1px dashed #000;border-bottom:1px dashed #000;padding:8px 0;margin:8px 0;}
-.receipt-item{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.85rem;padding:3px 0;}
-.item-name{flex:1;text-align:right;}
-.item-price{font-weight:700;white-space:nowrap;text-align:left;}
-.receipt-item.subtotal{border-top:1px dashed #999;margin-top:6px;padding-top:6px;font-weight:700;}
-.receipt-total{background:#111;color:#fff;font-size:1rem;font-weight:900;padding:8px 10px;border-radius:8px;margin:8px 0;display:flex;justify-content:space-between;gap:8px;direction:rtl;}
-.receipt-total span:last-child{direction:ltr;unicode-bidi:bidi-override;}
-.payment-method{text-align:center;padding:6px 10px;background:#f8f9fa;border-radius:6px;margin:6px 0;font-weight:700;font-size:.85rem;}
-.receipt-footer{text-align:center;padding-top:8px;font-size:.78rem;border-top:1px dashed #000;color:#111;direction:ltr;}
-.receipt-footer hr{border:0;border-top:1px dashed #000;margin:6px 0;}
-</style></head><body>${r.innerHTML}</body></html>`);
-  w.document.close();
-  w.focus();
-  setTimeout(() => { w.print(); w.close(); }, 500);
-  if (autoBack) setTimeout(() => window.location.replace("{{ url_for('pos.activities') }}"), 1200);
+const BACK_URL = "{{ url_for('pos.activities') }}";
+
+const D = {
+  id:       "{{ '%05d' % session.id }}",
+  date:     "{{ session.start_time.strftime('%Y-%m-%d') }}",
+  time:     "{{ session.start_time.strftime('%H:%M') }}{% if session.end_time %} – {{ session.end_time.strftime('%H:%M') }}{% endif %}",
+  activity: {{ (meta.ar ~ ' — ' ~ session.table.name) | tojson }},
+  duration: "{{ session.elapsed_minutes // 60 }}h {{ session.elapsed_minutes % 60 }}m",
+  customer: {{ (session.customer_name or '') | tojson }},
+  timeAmt:  "{{ '{:,.0f}'.format(session.time_amount) }}",
+  total:    "{{ '{:,.0f}'.format(session.grand_total) }}",
+  payment:  "{{ 'نقدي' if session.payment_method == 'cash' else 'بطاقة' if session.payment_method == 'card' else 'دين' }}",
+  items: [
+    {% for item in session.items %}
+    { name: {{ item.product_name | tojson }}, qty: {{ item.quantity }}, price: "{{ '{:,.0f}'.format(item.subtotal) }}" },
+    {% endfor %}
+  ]
+};
+
+function buildReceiptHTML() {
+  let rows = `
+    <tr>
+      <td style="text-align:right;padding:4px 0;">وقت اللعب</td>
+      <td style="text-align:left;white-space:nowrap;"><bdi>${D.timeAmt}&nbsp;IQD</bdi></td>
+    </tr>`;
+  D.items.forEach(it => {
+    rows += `<tr>
+      <td style="text-align:right;padding:4px 0;">${it.name} × ${it.qty}</td>
+      <td style="text-align:left;white-space:nowrap;"><bdi>${it.price}&nbsp;IQD</bdi></td>
+    </tr>`;
+  });
+  return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#fff;width:600px;font-family:'Tajawal',sans-serif;color:#000;padding:20px;}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    td{vertical-align:top;word-wrap:break-word;}
+    bdi{unicode-bidi:isolate;direction:ltr;display:inline-block;}
+    .bb{border-bottom:2px solid #000;} .bt{border-top:2px solid #000;}
+    .total-box{border-top:5px solid #000;border-bottom:5px solid #000;margin:12px 0;padding:10px 0;}
+  </style></head><body>
+  <div style="text-align:center;padding-bottom:10px;margin-bottom:10px;" class="bb">
+    <div style="font-size:38px;font-weight:900;letter-spacing:2px;">Z PADEL</div>
+    <div style="font-size:22px;">دهوك، العراق</div>
+  </div>
+  <table style="font-size:28px;margin-bottom:10px;">
+    <tr><td style="text-align:right;width:40%;">رقم الفاتورة:</td><td style="text-align:left;font-weight:900;"><bdi>#${D.id}</bdi></td></tr>
+    <tr><td style="text-align:right;">التاريخ:</td><td style="text-align:left;"><bdi>${D.date}</bdi></td></tr>
+    <tr><td style="text-align:right;">الوقت:</td><td style="text-align:left;"><bdi>${D.time}</bdi></td></tr>
+    <tr><td style="text-align:right;">النشاط:</td><td style="text-align:left;">${D.activity}</td></tr>
+    <tr><td style="text-align:right;">المدة:</td><td style="text-align:left;">${D.duration}</td></tr>
+    ${D.customer ? `<tr><td style="text-align:right;">الزبون:</td><td style="text-align:left;">${D.customer}</td></tr>` : ''}
+  </table>
+  <div class="bt" style="padding-top:10px;">
+    <table style="font-size:28px;">${rows}</table>
+  </div>
+  <div class="total-box">
+    <table><tr>
+      <td style="text-align:right;font-size:42px;font-weight:900;width:35%;">الصافي:</td>
+      <td style="text-align:left;font-size:42px;font-weight:900;width:65%;"><bdi>${D.total}&nbsp;&nbsp;IQD</bdi></td>
+    </tr></table>
+  </div>
+  <div style="font-size:28px;text-align:center;margin-bottom:8px;">الدفع: ${D.payment}</div>
+  <div class="bt" style="text-align:center;font-size:22px;padding-top:10px;">
+    <div style="font-weight:900;font-size:26px;">Z PADEL — دهوك</div>
+    <div style="margin-top:4px;font-style:italic;">شكراً لزيارتكم</div>
+  </div>
+  </body></html>`;
 }
+
+function printReceipt(autoBack) {
+  var iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;width:650px;height:1000px;';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(buildReceiptHTML());
+  iframe.contentDocument.close();
+  setTimeout(function() {
+    html2canvas(iframe.contentDocument.body, {
+      scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#ffffff'
+    }).then(function(canvas) {
+      document.body.removeChild(iframe);
+      var img = canvas.toDataURL('image/png');
+      var w = window.open('', '_blank', 'width=400,height=800');
+      w.document.write(`<html><head><style>body{margin:0;padding:0;}img{width:74mm;display:block;margin:0 auto;}@page{margin:0;}</style></head><body><img src="${img}"><script>window.onload=function(){window.print();setTimeout(window.close,1000);};<\/script></body></html>`);
+      w.document.close();
+      if (autoBack) setTimeout(() => window.location.replace(BACK_URL), 3000);
+    });
+  }, 1000);
+}
+
 {% if autoprint %}
-window.addEventListener('load', () => setTimeout(() => printReceipt(true), 400));
+window.addEventListener('load', () => setTimeout(() => printReceipt(true), 1000));
 {% endif %}
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 {% endblock %}
