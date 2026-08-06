@@ -27,15 +27,25 @@ def index():
             'color':          c.color or '#1565C0',
         })
 
-    # Build booked slots dict: {"court_id:date": ["HH:MM", ...]}
+    # Build booked slots dict: {"court_id:date": ["HH:MM", ...]} covering every 30-min interval
     booked_slots = {}
     bookings = Booking.query.filter(Booking.status != 'cancelled').all()
     for b in bookings:
+        if not b.start_time or not b.end_time:
+            continue
         key = f"{b.court_id}:{b.booking_date.isoformat()}"
         if key not in booked_slots:
             booked_slots[key] = []
-        if b.start_time:
-            booked_slots[key].append(b.start_time.strftime('%H:%M'))
+        start_m = b.start_time.hour * 60 + b.start_time.minute
+        end_m   = b.end_time.hour   * 60 + b.end_time.minute
+        if end_m <= start_m:  # cross-midnight segment stored as 23:59 end
+            end_m = 24 * 60
+        m = start_m
+        while m < end_m:
+            ts = f"{m//60:02d}:{m%60:02d}"
+            if ts not in booked_slots[key]:
+                booked_slots[key].append(ts)
+            m += 30
 
     return render_template('booking.html',
         courts=courts,
@@ -62,8 +72,8 @@ def create():
             # Split into two bookings: tonight → 23:59, tomorrow 00:00 → end
             tomorrow = b_date + timedelta(days=1)
             midnight = dtime(23, 59)
-            c1 = Booking.query.filter(Booking.court_id == court.id, Booking.booking_date == b_date,    Booking.start_time == s_time,       Booking.status != 'cancelled').first()
-            c2 = Booking.query.filter(Booking.court_id == court.id, Booking.booking_date == tomorrow,  Booking.start_time == dtime(0, 0),  Booking.status != 'cancelled').first()
+            c1 = Booking.query.filter(Booking.court_id == court.id, Booking.booking_date == b_date,    Booking.status != 'cancelled', Booking.start_time < midnight,    Booking.end_time > s_time).first()
+            c2 = Booking.query.filter(Booking.court_id == court.id, Booking.booking_date == tomorrow,  Booking.status != 'cancelled', Booking.start_time < e_time,       Booking.end_time > dtime(0, 0)).first()
             if c1 or c2:
                 flash('عذراً، هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
                 return redirect(url_for('booking.index'))
@@ -76,12 +86,13 @@ def create():
             flash('تم استلام طلب حجزك بنجاح! سيتم التأكيد قريباً.', 'success')
             return redirect(url_for('booking.success', booking_id=bk1.id))
 
-        # Normal (same-day) booking
+        # Normal (same-day) booking — overlap detection
         conflict = Booking.query.filter(
             Booking.court_id     == court.id,
             Booking.booking_date == b_date,
-            Booking.start_time   == s_time,
             Booking.status       != 'cancelled',
+            Booking.start_time   < e_time,
+            Booking.end_time     > s_time,
         ).first()
         if conflict:
             flash('عذراً، هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')

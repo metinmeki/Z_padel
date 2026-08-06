@@ -142,61 +142,63 @@
 
     /* ── TIME GRID ── */
     .slots-wrap { padding: 14px 16px; }
-    .slots-legend { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 12px; }
-    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: var(--muted); }
-    .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
-    .legend-dot.free     { background: #F0FAF0; border: 1px solid #90C490; }
-    .legend-dot.booked   { background: #FFF5F5; border: 1px solid #EF9A9A; }
+    .slots-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--muted); font-family: 'Montserrat', sans-serif; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .legend-dot.free     { background: #4CAF50; }
+    .legend-dot.booked   { background: #e53935; }
     .legend-dot.selected { background: var(--ink); }
-    .legend-dot.past     { background: #F5F5F5; border: 1px solid #E0E0E0; }
+    .legend-dot.past     { background: #ccc; }
 
-    .slots-group-label {
-      font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 800;
-      color: var(--muted-light); letter-spacing: 1.5px; text-transform: uppercase;
-      margin: 12px 0 8px; padding: 0 2px;
-    }
-    .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; direction: ltr; }
+    .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; direction: ltr; margin-bottom: 4px; }
 
     .slot-btn {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 9px 4px; border-radius: var(--radius-xs); border: 1.5px solid;
-      cursor: pointer; transition: var(--transition); position: relative;
-      font-family: 'Montserrat', sans-serif; user-select: none; min-width: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 11px; border-radius: 10px; border: 1.5px solid #E8E8E8;
+      background: #fff; cursor: pointer; transition: all .15s ease;
+      font-family: 'Montserrat', sans-serif; user-select: none;
     }
-    .slot-btn.free     { background: #F0FAF0; border-color: #90C490; }
-    .slot-btn.booked   { background: #FFF5F5; border-color: #EF9A9A; cursor: not-allowed; }
-    .slot-btn.past     { background: #F8F8F8; border-color: #E0E0E0; cursor: not-allowed; opacity: .5; }
-    .slot-btn.free:hover     { background: #D4EDD4; border-color: #5FAF5F; transform: translateY(-2px); }
-    .slot-btn.selected {
-      background: var(--ink) !important; border-color: var(--ink-soft) !important;
-      color: white !important; transform: translateY(-2px) !important;
+    .slot-btn.free:hover  { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,.15); transform: translateY(-1px); }
+    .slot-btn.booked      { cursor: not-allowed; opacity: .75; }
+    .slot-btn.past        { cursor: not-allowed; opacity: .4; }
+    .slot-btn.selected    { background: var(--ink) !important; border-color: var(--ink) !important; }
+    .slot-btn.covered     { background: rgba(30,30,40,.65) !important; border-color: rgba(30,30,40,.65) !important; }
+
+    .slot-time { font-size: 13px; font-weight: 800; color: #222; line-height: 1; }
+    .slot-btn.past .slot-time { color: #bbb; }
+    .slot-btn.selected .slot-time, .slot-btn.covered .slot-time { color: #fff; }
+
+    .slot-dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
     }
-    .slot-btn.conflict { background: #F8F8F8; border-color: #E0E0E0; cursor: not-allowed; opacity: .45; }
-    .slot-btn.covered  { background: rgba(30,30,40,.65) !important; border-color: var(--ink-soft) !important; color: white !important; }
-    .slot-time  { font-size: 12.5px; font-weight: 800; line-height: 1; }
-    .slot-range { font-size: 8.5px; font-weight: 600; margin-top: 2px; opacity: .7; }
-    .slot-btn.free .slot-time     { color: #2E6B2E; }
-    .slot-btn.free .slot-range    { color: #4A8B4A; }
-    .slot-btn.booked .slot-time   { color: #C62828; }
-    .slot-btn.past .slot-time     { color: #BDBDBD; }
-    .slot-btn.past .slot-range    { color: #BDBDBD; }
-    .slot-btn.selected .slot-time { color: white; }
-    .slot-btn.selected .slot-range { color: rgba(255,255,255,.75); }
-    .slot-btn.covered .slot-time  { color: white; }
-    .slot-btn.covered .slot-range { color: rgba(255,255,255,.6); }
-    .slot-price { font-size: 9.5px; font-weight: 700; margin-top: 3px; opacity: .8; }
-    .slot-btn.free .slot-price     { color: #2E6B2E; }
-    .slot-btn.booked .slot-price, .slot-btn.past .slot-price, .slot-btn.conflict .slot-price { color: #BDBDBD; }
-    .slot-btn.selected .slot-price, .slot-btn.covered .slot-price { color: rgba(255,255,255,.6); }
-    .slot-check { display: none; position: absolute; top: 5px; right: 5px; font-size: 8px; color: rgba(255,255,255,.7); }
-    .slot-btn.selected .slot-check { display: block; }
-    /* Duration picker inside slots area */
-    .dur-picker { display: flex; gap: 6px; margin-bottom: 12px; }
-    .dur-pill { flex:1; padding: 7px 4px; border-radius: 20px; border: 1.5px solid var(--sand-mid);
-      background: var(--white); font-size: 11px; font-weight: 700; color: var(--muted);
-      cursor: pointer; transition: var(--transition); text-align: center; font-family: 'Montserrat',sans-serif; }
-    .dur-pill:hover { border-color: var(--gold); color: var(--slate); }
-    .dur-pill.active { background: var(--slate); border-color: var(--slate); color: white; }
+    .slot-btn.free .slot-dot     { background: #4CAF50; }
+    .slot-btn.booked .slot-dot   { background: #e53935; }
+    .slot-btn.past .slot-dot     { background: #ccc; }
+    .slot-btn.selected .slot-dot { background: rgba(255,255,255,.9); }
+    .slot-btn.covered .slot-dot  { background: rgba(255,255,255,.5); }
+
+    /* Duration selection panel */
+    .dur-panel {
+      margin-top: 14px; background: var(--white); border: 1.5px solid var(--sand-mid);
+      border-radius: var(--radius-sm); padding: 14px 12px; display: none;
+    }
+    .dur-panel-title {
+      font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .8px; margin-bottom: 10px;
+    }
+    .dur-opt {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; border-radius: var(--radius-xs);
+      border: 1.5px solid var(--sand-mid); margin-bottom: 7px;
+      cursor: pointer; transition: var(--transition); background: var(--white);
+      font-family: 'Montserrat', sans-serif;
+    }
+    .dur-opt:last-child { margin-bottom: 0; }
+    .dur-opt:hover { border-color: var(--slate); background: var(--sand); }
+    .dur-opt.blocked { opacity: .4; cursor: not-allowed; background: #f5f5f5; }
+    .dur-opt-range { font-size: 13px; font-weight: 800; color: var(--slate-deep); }
+    .dur-opt-meta  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .dur-opt-price { font-size: 13px; font-weight: 900; color: var(--gold-deep); }
     .slots-loading { display: flex; align-items: center; justify-content: center; padding: 40px; gap: 10px; color: var(--muted); font-size: 13px; }
     .slots-loading i { animation: spin .8s linear infinite; color: var(--slate); font-size: 18px; }
 
@@ -278,7 +280,7 @@
       .hero-badge   { font-size: 10px; padding: 4px 9px; }
       .slots-grid   { grid-template-columns: repeat(3, 1fr); gap: 5px; }
       .slot-time    { font-size: 11.5px; }
-      .slot-price   { font-size: 9px; }
+      .slot-btn     { padding: 8px 9px; }
       .card-body    { padding: 12px; }
       .price-box-val { font-size: 24px; }
     }
@@ -388,27 +390,16 @@
       <!-- Slots -->
       <div class="slots-wrap">
 
-        <!-- Duration picker — choose before selecting a slot -->
-        <div style="margin-bottom:10px;">
-          <div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;">
-            <i class="fas fa-hourglass-half" style="margin-inline-end:5px;"></i>{% if lang == 'en' %}How long?{% elif lang == 'ku' %}چەند کات?{% else %}كم ساعة؟{% endif %}
-          </div>
-          <div class="dur-picker">
-            <button type="button" class="dur-pill active" onclick="setDur(1,this)">{% if lang == 'en' %}1 hr{% elif lang == 'ku' %}١ کات{% else %}ساعة{% endif %}</button>
-            <button type="button" class="dur-pill" onclick="setDur(1.5,this)">{% if lang == 'en' %}1.5 hr{% elif lang == 'ku' %}١.٥ کات{% else %}١.٥ س{% endif %}</button>
-            <button type="button" class="dur-pill" onclick="setDur(2,this)">{% if lang == 'en' %}2 hr{% elif lang == 'ku' %}٢ کات{% else %}ساعتان{% endif %}</button>
-          </div>
-        </div>
-
         <div class="slots-legend">
           <div class="legend-item"><div class="legend-dot free"></div>{% if lang == 'en' %}Available{% elif lang == 'ku' %}بەردەستە{% else %}متاح{% endif %}</div>
           <div class="legend-item"><div class="legend-dot booked"></div>{% if lang == 'en' %}Booked{% elif lang == 'ku' %}حجزکراو{% else %}محجوز{% endif %}</div>
           <div class="legend-item"><div class="legend-dot selected"></div>{% if lang == 'en' %}Selected{% elif lang == 'ku' %}هەڵبژێردراو{% else %}مختار{% endif %}</div>
-          <div class="legend-item"><div class="legend-dot past"></div>{% if lang == 'en' %}Past{% elif lang == 'ku' %}تێپەڕیوە{% else %}منتهي{% endif %}</div>
+          <div class="legend-item"><div class="legend-dot past"></div>{% if lang == 'en' %}Unavailable{% elif lang == 'ku' %}تێپەڕیوە{% else %}غير متاح{% endif %}</div>
         </div>
         <div id="slotsContainer">
           <div class="slots-loading"><i class="fas fa-spinner"></i><span>{% if lang == 'en' %}Select a date first...{% else %}اختر التاريخ أولاً...{% endif %}</span></div>
         </div>
+        <div class="dur-panel" id="durPanel"></div>
       </div>
     </div>
 
@@ -485,7 +476,7 @@
 <script>
 const COURTS       = {{ courts_data | tojson }};
 const BOOKED_SLOTS = {{ booked_slots | tojson }};
-const OPEN = 0, CLOSE = 24;
+const OPEN = 8, CLOSE = 27;  // 08:00 → 03:00 next day
 const IS_EN = '{{ lang }}' === 'en';
 
 {% if lang == 'en' %}
@@ -499,7 +490,7 @@ const MONTH_SHORT = ['يناير','فبراير','مارس','أبريل','ماي
 {% endif %}
 
 const today = new Date(); today.setHours(0,0,0,0);
-let selDate = null, selCourt = null, selPrice = 25000, selStart = null, dur = 1;
+let selDate = null, selCourt = null, selPrice = 25000, selStart = null, selStartRealMin = -1, dur = 1;
 function localDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
@@ -542,11 +533,8 @@ function selectCourt(btn) {
   selStart = null; renderSlots(); updateSummary();
 }
 
-function slotEndLabel(h) {
-  const endMin = h * 60 + Math.round(dur * 60);
-  const endH = Math.floor(endMin / 60) % 24;
-  const endM = endMin % 60;
-  return `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'00')}`;
+function minsToTs(m) {
+  return `${String(Math.floor(m/60)%24).padStart(2,'0')}:${String(m%60).padStart(2,'00')}`;
 }
 
 function renderSlots() {
@@ -555,102 +543,116 @@ function renderSlots() {
   if (!selCourt) { container.innerHTML = `<div class="slots-loading"><i class="fas fa-shield-halved"></i><span>${IS_EN ? 'No courts available' : 'لا توجد ملاعب'}</span></div>`; return; }
 
   const booked = BOOKED_SLOTS[`${selCourt}:${selDate}`] || [];
+  const nextDayStr = (() => { const d = new Date(selDate+'T00:00:00'); d.setDate(d.getDate()+1); return localDate(d); })();
+  const bookedNext = BOOKED_SLOTS[`${selCourt}:${nextDayStr}`] || [];
   const now = new Date(), isToday = selDate === todayStr;
-  const nowH = now.getHours(), nowM = now.getMinutes();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
 
-  // Selected range in hours
-  const selH    = selStart ? parseInt(selStart) : -1;
-  const selSpan = Math.ceil(dur); // how many hour-slots the booking covers
-  const selEndH = selH + selSpan; // exclusive
+  // Selected range in real minutes (selStartRealMin handles night slots correctly)
+  const selEndMin = selStartRealMin >= 0 ? selStartRealMin + Math.round(dur * 60) : -1;
 
-  const amSlots = [], pmSlots = [], evSlots = [];
-  for (let h = OPEN; h < CLOSE; h++) {
-    const ts     = `${String(h).padStart(2,'0')}:00`;
-    const endLbl = slotEndLabel(h);
+  const slots = [];
+  for (let m = OPEN*60; m < CLOSE*60; m += 30) {
+    const ts   = minsToTs(m);
+    const bkd  = m >= 24*60 ? bookedNext.includes(ts) : booked.includes(ts);
+    const past = isToday && m < nowMins;
 
-    // Is this slot inside the selected range?
-    const isSelStart = selStart === ts;
-    const isCovered  = selStart && h > selH && h < selEndH;
-
-    // Check if starting here would conflict (any covered hour is booked/past)
-    let hasConflict = false;
-    for (let i = 0; i < selSpan; i++) {
-      const ch = h + i;
-      if (ch >= CLOSE) { hasConflict = true; break; }
-      const cts = `${String(ch).padStart(2,'0')}:00`;
-      if (booked.includes(cts)) { hasConflict = true; break; }
-      if (isToday && (ch < nowH || (ch === nowH && nowM > 0))) { hasConflict = true; break; }
-    }
-
-    const bkd  = booked.includes(ts);
-    const past = isToday && (h < nowH || (h === nowH && nowM > 0));
-    const ok   = !past && !bkd && !hasConflict;
+    const isSelStart = selStartRealMin === m;
+    const isCovered  = selStartRealMin >= 0 && m > selStartRealMin && m < selEndMin;
+    const ok = !past && !bkd;
 
     let cls = 'slot-btn ';
-    if (isSelStart) cls += 'selected';
+    if (isSelStart)     cls += 'selected';
     else if (isCovered) cls += 'covered';
-    else if (past)  cls += 'past';
-    else if (bkd)   cls += 'booked';
-    else if (hasConflict) cls += 'conflict';
-    else            cls += 'free';
+    else if (past)      cls += 'past';
+    else if (bkd)       cls += 'booked';
+    else                cls += 'free';
 
-    let priceLabel;
-    if (bkd)            priceLabel = IS_EN ? 'Booked' : 'محجوز';
-    else if (past)      priceLabel = IS_EN ? 'Past'   : 'منتهي';
-    else if (hasConflict) priceLabel = '—';
-    else                priceLabel = selPrice.toLocaleString();
-
-    const html = `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}')"` : ''}>
-      <i class="fas fa-check slot-check"></i>
+    slots.push(`<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${m})"` : ''}>
       <span class="slot-time">${ts}</span>
-      <span class="slot-range">→ ${endLbl}</span>
-      <span class="slot-price">${priceLabel}</span>
-    </div>`;
-
-    if (h < 12) amSlots.push(html);
-    else if (h < 16) pmSlots.push(html);
-    else evSlots.push(html);
+      <span class="slot-dot"></span>
+    </div>`);
   }
 
-  container.innerHTML = `
-    <div class="slots-group-label">${IS_EN ? '🌅 Morning — 00:00 to 12:00' : '🌅 الصباح — 00:00 إلى 12:00'}</div>
-    <div class="slots-grid">${amSlots.join('')}</div>
-    <div class="slots-group-label">${IS_EN ? '☀️ Afternoon — 12:00 to 16:00' : '☀️ الظهيرة — 12:00 إلى 16:00'}</div>
-    <div class="slots-grid">${pmSlots.join('')}</div>
-    <div class="slots-group-label">${IS_EN ? '🌙 Evening — 16:00 to 24:00' : '🌙 المساء — 16:00 إلى 24:00'}</div>
-    <div class="slots-grid">${evSlots.join('')}</div>
-  `;
+  container.innerHTML = `<div class="slots-grid">${slots.join('')}</div>`;
 }
 
-function selectSlot(ts) {
+function selectSlot(ts, realMin) {
   selStart = ts;
-  const sh = parseInt(ts);
-  const em = sh * 60 + Math.round(dur * 60);
-  const et = `${String(Math.floor(em/60) % 24).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
+  selStartRealMin = realMin;
+  dur = 1;
+  renderSlots();
+  showDurPanel(ts, realMin);
+  document.getElementById('formCard').style.display = 'none';
+}
+
+function showDurPanel(startTs, startRealMin) {
+  const booked = BOOKED_SLOTS[`${selCourt}:${selDate}`] || [];
+  // For night slots (after midnight), also check tomorrow's booked slots
+  const nextDay = (() => { const d = new Date(selDate+'T00:00:00'); d.setDate(d.getDate()+1); return localDate(d); })();
+  const bookedNext = BOOKED_SLOTS[`${selCourt}:${nextDay}`] || [];
+  const now = new Date(), isToday = selDate === todayStr;
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  const panel = document.getElementById('durPanel');
+  let html = `<div class="dur-panel-title"><i class="fas fa-hourglass-half" style="margin-inline-end:5px;"></i>${IS_EN ? 'Choose duration' : 'اختر المدة'}</div>`;
+
+  [1, 1.5, 2].forEach(d => {
+    const endRealMin = startRealMin + Math.round(d * 60);
+    const endTs      = minsToTs(endRealMin);  // wraps mod 24
+    const price      = Math.round(selPrice * d);
+    const dLabel     = d === 1 ? (IS_EN ? '1 hour' : 'ساعة') : d === 1.5 ? (IS_EN ? '1.5 hours' : 'ساعة ونص') : (IS_EN ? '2 hours' : 'ساعتان');
+
+    // Verify all intermediate 30-min intervals are free
+    let blocked = endRealMin > CLOSE * 60;  // past closing time
+    if (!blocked) {
+      for (let m = startRealMin + 30; m < endRealMin; m += 30) {
+        const cts  = minsToTs(m);
+        const pool = m >= 24*60 ? bookedNext : booked;
+        if (pool.includes(cts)) { blocked = true; break; }
+        if (isToday && m < nowMins) { blocked = true; break; }
+      }
+    }
+
+    if (blocked) {
+      html += `<div class="dur-opt blocked">
+        <div><div class="dur-opt-range">${startTs} → ${endTs}</div><div class="dur-opt-meta">${dLabel}</div></div>
+        <div class="dur-opt-price">—</div>
+      </div>`;
+    } else {
+      html += `<div class="dur-opt" onclick="selectDuration(${d},${endRealMin})">
+        <div><div class="dur-opt-range">${startTs} → ${endTs}</div><div class="dur-opt-meta">${dLabel}</div></div>
+        <div class="dur-opt-price">${price.toLocaleString()} ${IS_EN ? 'IQD' : 'د.ع'}</div>
+      </div>`;
+    }
+  });
+
+  panel.innerHTML = html;
+  panel.style.display = 'block';
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+}
+
+function selectDuration(d, endRealMin) {
+  dur = d;
+  const endTs = minsToTs(endRealMin);
+
+  // Night slots (≥24:00 real) belong to next calendar day
+  let bookingDate = selDate;
+  let startTs = selStart;
+  if (selStartRealMin >= 24*60) {
+    const nd = new Date(selDate+'T00:00:00'); nd.setDate(nd.getDate()+1);
+    bookingDate = localDate(nd);
+  }
 
   document.getElementById('f_court_id').value = selCourt;
-  document.getElementById('f_date').value     = selDate;
-  document.getElementById('f_start').value    = ts;
-  document.getElementById('f_end').value      = et;
-
-  renderSlots(); updateSummary();
-
+  document.getElementById('f_date').value     = bookingDate;
+  document.getElementById('f_start').value    = startTs;
+  document.getElementById('f_end').value      = endTs;
+  renderSlots();
+  updateSummary();
   const fc = document.getElementById('formCard');
   fc.style.display = 'block';
   setTimeout(() => fc.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
-}
-
-function setDur(h, btn) {
-  dur = h;
-  document.querySelectorAll('.dur-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (selStart) {
-    const sh = parseInt(selStart);
-    const em = sh * 60 + Math.round(h * 60);
-    document.getElementById('f_end').value = `${String(Math.floor(em/60) % 24).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
-  }
-  renderSlots();
-  updateSummary();
 }
 
 function updateSummary() {
@@ -659,11 +661,10 @@ function updateSummary() {
     body.innerHTML = `<div class="summary-empty"><i class="fas fa-calendar-days"></i><p>${IS_EN ? 'Select a date and time slot to see your booking summary here.' : 'اختر التاريخ والوقت لرؤية ملخص حجزك هنا.'}</p></div>`;
     return;
   }
-  const tab   = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
-  const cName = tab ? tab.dataset.courtName : '—';
-  const sh    = parseInt(selStart);
-  const em    = sh * 60 + Math.round(dur * 60);
-  const et    = `${String(Math.floor(em/60) % 24).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
+  const tab    = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
+  const cName  = tab ? tab.dataset.courtName : '—';
+  const em     = selStartRealMin + Math.round(dur * 60);
+  const et     = minsToTs(em);
   const total = Math.round(selPrice * dur);
   const dt    = new Date(selDate + 'T00:00:00');
   const dateLbl = `${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`;
