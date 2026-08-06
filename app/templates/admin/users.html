@@ -575,6 +575,7 @@
           <div class="perms-grid">
             {% if lang == 'en' %}
               {% set perms = [
+                ('perm_pos',       'fa-cash-register',  'Access POS'),
                 ('perm_bookings',  'fa-calendar-check', 'Manage Bookings'),
                 ('perm_courts',    'fa-shield-halved',  'Manage Courts'),
                 ('perm_products',  'fa-box-open',       'Manage Products'),
@@ -586,6 +587,7 @@
               ] %}
             {% else %}
               {% set perms = [
+                ('perm_pos',       'fa-cash-register',  'الوصول لنقطة البيع'),
                 ('perm_bookings',  'fa-calendar-check', 'إدارة الحجوزات'),
                 ('perm_courts',    'fa-shield-halved',  'إدارة الملاعب'),
                 ('perm_products',  'fa-box-open',       'إدارة المنتجات'),

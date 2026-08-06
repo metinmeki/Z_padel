@@ -33,7 +33,15 @@ def login():
         db.session.commit()
 
         next_page = request.args.get('next')
-        return redirect(next_page or url_for('admin.dashboard'))
+        if not next_page:
+            pos_only = (user.role not in ('superadmin', 'admin')
+                        and user.has_perm('perm_pos')
+                        and not any(user.has_perm(p) for p in [
+                            'perm_bookings', 'perm_courts', 'perm_products',
+                            'perm_orders', 'perm_expenses', 'perm_reports',
+                            'perm_users', 'perm_settings']))
+            next_page = url_for('pos.quick_sale') if pos_only else url_for('admin.dashboard')
+        return redirect(next_page)
 
     return render_template('auth/login.html')
 

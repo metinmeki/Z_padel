@@ -1186,6 +1186,13 @@
       </a>
     </div>
 
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {# POS — perm_pos #}
+    {% if current_user.has_perm('perm_pos') %}
+    <div class="nav-section-label">POS</div>
     <div class="nav-item-wrapper">
       <a href="{{ url_for('pos.quick_sale') }}"
          class="nav-link-custom {% if 'pos' in request.endpoint %}active{% endif %}">
@@ -1193,7 +1200,6 @@
         <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% elif lang == 'ku' %}فرۆشگای ڕاستەوخۆ{% else %}نقطة البيع (POS){% endif %}</span>
       </a>
     </div>
-    {% endif %}
     {% endif %}
 
     {# FINANCE — perm_expenses and/or perm_reports #}

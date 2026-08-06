@@ -890,7 +890,7 @@ def edit_permissions(user_id):
         return redirect(url_for('admin.dashboard'))
 
     # Only superadmin can assign perm_users and perm_settings to others
-    perm_keys = ['perm_bookings', 'perm_courts', 'perm_products', 'perm_orders',
+    perm_keys = ['perm_pos', 'perm_bookings', 'perm_courts', 'perm_products', 'perm_orders',
                  'perm_expenses', 'perm_reports', 'perm_users', 'perm_settings']
 
     if current_user.role != 'superadmin':
