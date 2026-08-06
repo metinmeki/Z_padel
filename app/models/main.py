@@ -130,7 +130,10 @@ class Booking(db.Model):
             return 0
         start_m = self.start_time.hour * 60 + self.start_time.minute
         end_m   = self.end_time.hour   * 60 + self.end_time.minute
-        hours   = (end_m - start_m) / 60
+        # 23:59 is stored as a proxy for midnight (24:00) — treat as 1440 min
+        if self.end_time.hour == 23 and self.end_time.minute == 59:
+            end_m = 24 * 60
+        hours = (end_m - start_m) / 60
         return round(hours * base_price)
 
     def __repr__(self):
