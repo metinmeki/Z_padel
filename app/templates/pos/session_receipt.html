@@ -28,11 +28,10 @@
   .success-badge{ background:#d4edda;color:#155724;padding:10px 20px;border-radius:25px;display:inline-block;font-weight:700;margin-bottom:1rem; }
   @media print{
     @page{ size:80mm auto; margin:0; }
-    body{ margin:0;background:#fff!important; }
+    html,body{ margin:0!important;padding:0!important;min-height:0!important;height:auto!important;background:#fff!important;overflow:hidden!important; }
     body *{ visibility:hidden!important; }
     #receipt, #receipt *{ visibility:visible!important; }
-    #receipt{ position:absolute!important;left:0!important;top:0!important;width:80mm!important;max-width:80mm!important;margin:0!important;padding:5mm!important;border:none!important;border-radius:0!important;box-shadow:none!important;background:#fff!important; }
-    .receipt-wrapper{ background:transparent!important;box-shadow:none!important;border:none!important;padding:0!important; }
+    #receipt{ position:fixed!important;left:0!important;top:0!important;width:80mm!important;max-width:80mm!important;margin:0!important;padding:5mm!important;border:none!important;border-radius:0!important;box-shadow:none!important;background:#fff!important; }
     .receipt-total,.receipt-total span{ background:#000!important;color:#fff!important; }
     .no-print,.no-print *{ display:none!important;visibility:hidden!important; }
     #receipt .info-row,#receipt .receipt-item,#receipt .receipt-total{ display:flex!important;justify-content:space-between!important;align-items:center!important; }
@@ -140,10 +139,14 @@
 {% block extra_js %}
 <script>
   function printReceipt(autoBack=false) {
-    const r=document.getElementById('receipt');
-    if(r){ r.style.display='block'; r.style.visibility='visible'; }
-    if(autoBack){ window.onafterprint=()=>window.location.replace("{{ url_for('pos.courts') }}"); setTimeout(()=>window.location.replace("{{ url_for('pos.courts') }}"),2500); }
-    setTimeout(()=>window.print(),150);
+    const r = document.getElementById('receipt');
+    if (!r) return;
+    const hMm = Math.ceil(r.scrollHeight * 25.4 / 96) + 8;
+    let ps = document.getElementById('_pgsize');
+    if (!ps) { ps = document.createElement('style'); ps.id = '_pgsize'; document.head.appendChild(ps); }
+    ps.textContent = `@page { size: 80mm ${hMm}mm; margin: 0; }`;
+    if (autoBack) { window.onafterprint = () => window.location.replace("{{ url_for('pos.courts') }}"); setTimeout(() => window.location.replace("{{ url_for('pos.courts') }}"), 2500); }
+    setTimeout(() => window.print(), 200);
   }
   {% if autoprint %}
   window.addEventListener('load', ()=>setTimeout(()=>printReceipt(true),400));
