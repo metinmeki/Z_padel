@@ -241,11 +241,28 @@ def edit_booking(booking_id):
     return redirect(url_for('admin.bookings'))
 
 
+def _find_midnight_continuation(b):
+    """If booking ends at 23:59, find its next-day continuation (cross-midnight split)."""
+    from datetime import timedelta, time as dtime
+    if b.end_time and b.end_time.hour == 23 and b.end_time.minute == 59:
+        tomorrow = b.booking_date + timedelta(days=1)
+        return Booking.query.filter_by(
+            court_id=b.court_id,
+            booking_date=tomorrow,
+            start_time=dtime(0, 0),
+            customer_phone=b.customer_phone,
+        ).filter(Booking.status != 'cancelled').first()
+    return None
+
+
 @admin_bp.route('/bookings/<int:booking_id>/confirm', methods=['GET', 'POST'])
 @login_required
 def confirm_booking(booking_id):
     b = Booking.query.get_or_404(booking_id)
     b.status = 'confirmed'
+    linked = _find_midnight_continuation(b)
+    if linked:
+        linked.status = 'confirmed'
     db.session.commit()
     flash('تم تأكيد الحجز.', 'success')
     return redirect(url_for('admin.pending_bookings'))
@@ -256,6 +273,9 @@ def confirm_booking(booking_id):
 def reject_booking(booking_id):
     b = Booking.query.get_or_404(booking_id)
     b.status = 'cancelled'
+    linked = _find_midnight_continuation(b)
+    if linked:
+        linked.status = 'cancelled'
     db.session.commit()
     flash('تم رفض الحجز.', 'success')
     return redirect(url_for('admin.pending_bookings'))

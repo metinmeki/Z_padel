@@ -104,4 +104,14 @@ def create():
 @booking_bp.route('/success/<int:booking_id>')
 def success(booking_id):
     bk = Booking.query.get_or_404(booking_id)
-    return render_template('booking_success.html', booking=bk)
+    # Detect cross-midnight split: part 1 ends at 23:59, look for continuation tomorrow
+    linked = None
+    if bk.end_time and bk.end_time.hour == 23 and bk.end_time.minute == 59:
+        tomorrow = bk.booking_date + timedelta(days=1)
+        linked = Booking.query.filter_by(
+            court_id=bk.court_id,
+            booking_date=tomorrow,
+            start_time=dtime(0, 0),
+            customer_phone=bk.customer_phone,
+        ).filter(Booking.status != 'cancelled').first()
+    return render_template('booking_success.html', booking=bk, linked=linked)

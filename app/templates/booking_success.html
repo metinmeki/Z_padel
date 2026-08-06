@@ -280,7 +280,7 @@
   <div class="info-table">
     <div class="info-row">
       <span class="info-lbl"><i class="fas fa-hashtag"></i>{% if lang == 'en' %}Booking #{% else %}رقم الحجز{% endif %}</span>
-      <span class="booking-id">#{{ booking.id }}</span>
+      <span class="booking-id">#{{ booking.id }}{% if linked %} + #{{ linked.id }}{% endif %}</span>
     </div>
     <div class="info-row">
       <span class="info-lbl"><i class="fas fa-user"></i>{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</span>
@@ -309,17 +309,23 @@
         <span class="info-val" style="direction:ltr;display:block;">
           {{ booking.start_time.strftime('%H:%M') if booking.start_time else '—' }}
           <span style="color:var(--muted);font-size:.8rem;margin:0 4px;">—</span>
-          {{ booking.end_time.strftime('%H:%M') if booking.end_time else '—' }}
+          {% if linked %}
+            {{ linked.end_time.strftime('%H:%M') if linked.end_time else '—' }}
+            <span style="color:var(--muted);font-size:.75rem;margin-inline-start:4px;">({% if lang == 'en' %}next day{% else %}اليوم التالي{% endif %})</span>
+          {% else %}
+            {{ booking.end_time.strftime('%H:%M') if booking.end_time else '—' }}
+          {% endif %}
         </span>
       </div>
     </div>
   </div>
 
-  {% if booking.total_price %}
+  {% set total = (booking.total_price or 0) + (linked.total_price if linked else 0) %}
+  {% if total %}
   <div class="total-box">
     <div class="total-lbl">{% if lang == 'en' %}Total Amount{% else %}المبلغ الإجمالي{% endif %}</div>
     <div class="total-val">
-      {{ "{:,.0f}".format(booking.total_price) }}
+      {{ "{:,.0f}".format(total) }}
       <span style="font-size:1rem;color:var(--muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>
     </div>
   </div>
