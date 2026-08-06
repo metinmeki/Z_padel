@@ -543,8 +543,10 @@ function selectCourt(btn) {
 }
 
 function slotEndLabel(h) {
-  const endMin = Math.min(h * 60 + Math.round(dur * 60), 24 * 60);
-  return `${String(Math.floor(endMin/60)).padStart(2,'0')}:${String(endMin%60).padStart(2,'00')}`;
+  const endMin = h * 60 + Math.round(dur * 60);
+  const endH = Math.floor(endMin / 60) % 24;
+  const endM = endMin % 60;
+  return `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'00')}`;
 }
 
 function renderSlots() {
@@ -570,35 +572,33 @@ function renderSlots() {
     const isSelStart = selStart === ts;
     const isCovered  = selStart && h > selH && h < selEndH;
 
-    // Check if starting here would conflict (any covered hour is booked/past/overflow)
+    // Check if starting here would conflict (any covered hour is booked/past)
     let hasConflict = false;
     for (let i = 0; i < selSpan; i++) {
       const ch = h + i;
-      if (ch >= CLOSE || ch >= 24) { hasConflict = true; break; }
+      if (ch >= CLOSE) { hasConflict = true; break; }
       const cts = `${String(ch).padStart(2,'0')}:00`;
       if (booked.includes(cts)) { hasConflict = true; break; }
       if (isToday && (ch < nowH || (ch === nowH && nowM > 0))) { hasConflict = true; break; }
     }
 
-    const bkd      = booked.includes(ts);
-    const past     = isToday && (h < nowH || (h === nowH && nowM > 0));
-    const overflow = (h + dur) > 24;  // duration would cross midnight
-    const ok       = !past && !overflow && !bkd && !hasConflict;
+    const bkd  = booked.includes(ts);
+    const past = isToday && (h < nowH || (h === nowH && nowM > 0));
+    const ok   = !past && !bkd && !hasConflict;
 
     let cls = 'slot-btn ';
     if (isSelStart) cls += 'selected';
     else if (isCovered) cls += 'covered';
-    else if (past || overflow) cls += 'past';
+    else if (past)  cls += 'past';
     else if (bkd)   cls += 'booked';
     else if (hasConflict) cls += 'conflict';
     else            cls += 'free';
 
     let priceLabel;
-    if (bkd)              priceLabel = IS_EN ? 'Booked' : 'محجوز';
-    else if (past)        priceLabel = IS_EN ? 'Past'   : 'منتهي';
-    else if (overflow)    priceLabel = '—';
+    if (bkd)            priceLabel = IS_EN ? 'Booked' : 'محجوز';
+    else if (past)      priceLabel = IS_EN ? 'Past'   : 'منتهي';
     else if (hasConflict) priceLabel = '—';
-    else                  priceLabel = selPrice.toLocaleString();
+    else                priceLabel = selPrice.toLocaleString();
 
     const html = `<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}')"` : ''}>
       <i class="fas fa-check slot-check"></i>
@@ -625,8 +625,8 @@ function renderSlots() {
 function selectSlot(ts) {
   selStart = ts;
   const sh = parseInt(ts);
-  const em = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
-  const et = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
+  const em = sh * 60 + Math.round(dur * 60);
+  const et = `${String(Math.floor(em/60) % 24).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
 
   document.getElementById('f_court_id').value = selCourt;
   document.getElementById('f_date').value     = selDate;
@@ -646,8 +646,8 @@ function setDur(h, btn) {
   btn.classList.add('active');
   if (selStart) {
     const sh = parseInt(selStart);
-    const em = Math.min(sh * 60 + Math.round(h * 60), 24 * 60);
-    document.getElementById('f_end').value = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
+    const em = sh * 60 + Math.round(h * 60);
+    document.getElementById('f_end').value = `${String(Math.floor(em/60) % 24).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
   }
   renderSlots();
   updateSummary();
@@ -662,8 +662,8 @@ function updateSummary() {
   const tab   = document.querySelector(`.court-tab[data-court-id="${selCourt}"]`);
   const cName = tab ? tab.dataset.courtName : '—';
   const sh    = parseInt(selStart);
-  const em    = Math.min(sh * 60 + Math.round(dur * 60), 24 * 60);
-  const et    = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
+  const em    = sh * 60 + Math.round(dur * 60);
+  const et    = `${String(Math.floor(em/60) % 24).padStart(2,'0')}:${String(em%60).padStart(2,'00')}`;
   const total = Math.round(selPrice * dur);
   const dt    = new Date(selDate + 'T00:00:00');
   const dateLbl = `${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`;
