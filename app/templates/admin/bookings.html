@@ -576,7 +576,7 @@
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form method="POST" id="editBookingForm" action="">
+      <form method="POST" id="editBookingForm" action="" onsubmit="return this.action !== '' && this.action !== window.location.href">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-body">
           <div class="row g-3">

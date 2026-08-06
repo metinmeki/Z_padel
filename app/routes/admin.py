@@ -166,9 +166,11 @@ def dashboard():
 # ════════════════════════════════════════════
 # BOOKINGS
 # ════════════════════════════════════════════
-@admin_bp.route('/bookings')
+@admin_bp.route('/bookings', methods=['GET', 'POST'])
 @login_required
 def bookings():
+    if request.method == 'POST':
+        return redirect(url_for('admin.bookings'))
     q = Booking.query
     if request.args.get('date'):
         q = q.filter_by(booking_date=datetime.strptime(request.args['date'], '%Y-%m-%d').date())
