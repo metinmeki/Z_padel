@@ -1389,7 +1389,7 @@ def activity_tables():
     return render_template('admin/activity_tables.html',
                            tables=tables, sessions=sessions,
                            activity_meta=ACTIVITY_META,
-                           activities_order=['snooker', 'billiard', 'table_tennis'])
+                           activities_order=['snooker', 'billiard', 'table_tennis', 'spectator'])
 
 
 @admin_bp.route('/activity-tables/add', methods=['POST'])

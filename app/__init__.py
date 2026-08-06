@@ -127,3 +127,13 @@ def _seed_activities(app):
             db.session.add_all(defaults)
             db.session.commit()
             print('✅  Default activity tables created')
+        # Seed spectator tables if none exist yet
+        if ActivityTable.query.filter_by(activity='spectator').count() == 0:
+            spectators = [
+                ActivityTable(name='طاولة 1', activity='spectator', hourly_rate=0),
+                ActivityTable(name='طاولة 2', activity='spectator', hourly_rate=0),
+                ActivityTable(name='طاولة 3', activity='spectator', hourly_rate=0),
+            ]
+            db.session.add_all(spectators)
+            db.session.commit()
+            print('✅  Spectator tables created')

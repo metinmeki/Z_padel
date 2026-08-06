@@ -265,6 +265,7 @@ ACTIVITY_META = {
     'snooker':      {'en': 'Snooker',      'ar': 'سنوكر',       'icon': 'fa-bullseye',    'color': '#10b981', 'default_rate': 12000},
     'billiard':     {'en': 'Billiard',     'ar': 'بلياردو',      'icon': 'fa-circle',      'color': '#8b5cf6', 'default_rate': 10000},
     'table_tennis': {'en': 'Table Tennis', 'ar': 'تنس الطاولة',  'icon': 'fa-table-tennis','color': '#0ea5e9', 'default_rate': 5000},
+    'spectator':    {'en': 'Spectator',    'ar': 'مشاهد',        'icon': 'fa-eye',         'color': '#f59e0b', 'default_rate': 0},
 }
 
 
