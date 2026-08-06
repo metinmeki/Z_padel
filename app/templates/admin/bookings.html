@@ -650,6 +650,7 @@ function calcPrice() {
 }
 
 // ── Set today as default date in modal ──
-document.getElementById('bookingDate').value = new Date().toISOString().split('T')[0];
+const _n = new Date();
+document.getElementById('bookingDate').value = _n.getFullYear() + '-' + String(_n.getMonth()+1).padStart(2,'0') + '-' + String(_n.getDate()).padStart(2,'0');
 </script>
 {% endblock %}

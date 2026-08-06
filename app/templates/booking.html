@@ -500,7 +500,10 @@ const MONTH_SHORT = ['يناير','فبراير','مارس','أبريل','ماي
 
 const today = new Date(); today.setHours(0,0,0,0);
 let selDate = null, selCourt = null, selPrice = 25000, selStart = null, dur = 1;
-const todayStr = today.toISOString().split('T')[0];
+function localDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+const todayStr = localDate(today);
 
 function pickDateFromInput(ds) {
   if (!ds || ds < todayStr) return;
@@ -518,13 +521,13 @@ function initQuickChips() {
     const d  = new Date(today); d.setDate(today.getDate() + offset);
     const el = document.getElementById(['qToday','qTomorrow','qDay3','qDay4'][i]);
     if (offset >= 2) el.textContent = `${DAY_NAMES[d.getDay()]} ${d.getDate()}`;
-    el.dataset.ds = d.toISOString().split('T')[0];
+    el.dataset.ds = localDate(d);
   });
 }
 
 function quickDate(offset, btn) {
   const d = new Date(today); d.setDate(today.getDate() + offset);
-  const ds = d.toISOString().split('T')[0];
+  const ds = localDate(d);
   clearQuickActive(); btn.classList.add('active');
   selDate = ds; selStart = null;
   document.getElementById('datePicker').value = ds;
@@ -550,7 +553,7 @@ function renderSlots() {
   if (!selCourt) { container.innerHTML = `<div class="slots-loading"><i class="fas fa-shield-halved"></i><span>${IS_EN ? 'No courts available' : 'لا توجد ملاعب'}</span></div>`; return; }
 
   const booked = BOOKED_SLOTS[`${selCourt}:${selDate}`] || [];
-  const now = new Date(), isToday = selDate === today.toISOString().split('T')[0];
+  const now = new Date(), isToday = selDate === todayStr;
   const nowH = now.getHours(), nowM = now.getMinutes();
 
   // Selected range in hours
