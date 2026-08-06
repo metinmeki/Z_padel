@@ -397,7 +397,8 @@
                         data-bname="{{ b.customer_name | e }}"
                         data-bphone="{{ b.customer_phone | e }}"
                         data-bstatus="{{ b.status | e }}"
-                        data-bnotes="{{ (b.notes or '') | e }}">
+                        data-bnotes="{{ (b.notes or '') | e }}"
+                        onclick="openEditModal(this)">
                   <i class="fas fa-pen"></i>
                 </button>
                 {% if b.status != 'cancelled' %}
@@ -632,20 +633,19 @@ function filterTable() {
 }
 
 // ── Edit modal ──
-document.getElementById('editBookingModal').addEventListener('show.bs.modal', function(event) {
-  const btn = event.relatedTarget;
+function openEditModal(btn) {
   const id     = btn.dataset.bid;
-  const name   = btn.dataset.bname;
-  const phone  = btn.dataset.bphone;
-  const status = btn.dataset.bstatus;
-  const notes  = btn.dataset.bnotes;
+  const name   = btn.dataset.bname   || '';
+  const phone  = btn.dataset.bphone  || '';
+  const status = btn.dataset.bstatus || 'pending';
+  const notes  = btn.dataset.bnotes  || '';
   document.getElementById('editBookingId').value = id;
   document.getElementById('editBookingForm').action = '/admin/bookings/' + id + '/edit';
-  document.getElementById('editName').value = name;
-  document.getElementById('editPhone').value = phone;
+  document.getElementById('editName').value   = name;
+  document.getElementById('editPhone').value  = phone;
   document.getElementById('editStatus').value = status;
-  document.getElementById('editNotes').value = notes || '';
-});
+  document.getElementById('editNotes').value  = notes;
+}
 
 // ── Price calculator ──
 const HOURLY_RATE = {{ court_price|default(25000) }};
