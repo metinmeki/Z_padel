@@ -13,8 +13,9 @@ pos_bp = Blueprint('pos', __name__)
 @pos_bp.route('/quick-sale')
 @login_required
 def quick_sale():
-    products = Product.query.filter_by(is_active=True).all()
-    return render_template('pos/quick_sale.html', products=products)
+    products   = Product.query.filter_by(is_active=True).all()
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('pos/quick_sale.html', products=products, categories=categories)
 
 
 @pos_bp.route('/checkout', methods=['POST'])

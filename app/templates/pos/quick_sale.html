@@ -65,6 +65,11 @@
       <button class="category-tab active" data-cat="all">
         <i class="fas fa-th me-1"></i>{% if lang == 'en' %}All{% else %}الكل{% endif %}
       </button>
+      {% for cat in categories %}
+      <button class="category-tab" data-cat="{{ cat.id }}">
+        {% if cat.icon %}<i class="fas {{ cat.icon }} me-1"></i>{% endif %}{{ cat.name }}
+      </button>
+      {% endfor %}
     </div>
 
     <!-- Activity buttons (virtual items – no stock) -->
@@ -103,7 +108,8 @@
       {% for p in products %}
       <div class="product-item"
            data-name="{{ p.name|lower }}"
-           data-id="{{ p.id }}">
+           data-id="{{ p.id }}"
+           data-cat="{{ p.category_id or '' }}">
         <div class="product-card {% if p.stock == 0 %}opacity-50{% endif %}"
              onclick='{% if p.stock != 0 %}addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price }}, {{ (p.image or "")|tojson }}, this){% endif %}'>
           <div class="product-img-wrap">
@@ -245,11 +251,23 @@ function getScrollY() { return window.scrollY||0; }
 function restoreScroll(y) { requestAnimationFrame(()=>{ window.scrollTo(0,y); setTimeout(()=>window.scrollTo(0,y),60); }); }
 
 /* ── Filter ── */
+let activeCat = 'all';
+document.querySelectorAll('.category-tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    activeCat = this.dataset.cat;
+    applyFilters();
+  });
+});
+
 function applyFilters() {
   const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
   let vis = 0;
   document.querySelectorAll('.product-item').forEach(el => {
-    const show = !q || el.dataset.name.includes(q);
+    const nameMatch = !q || el.dataset.name.includes(q);
+    const catMatch  = activeCat === 'all' || el.dataset.cat === activeCat;
+    const show = nameMatch && catMatch;
     el.style.display = show ? '' : 'none';
     if (show) vis++;
   });
