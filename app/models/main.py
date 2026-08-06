@@ -2,6 +2,9 @@ from datetime import datetime, date, time
 from flask_login import UserMixin
 from app import db, login_manager
 
+# 40% discount on all time-based services (courts, billiards, table tennis, snooker)
+TIME_DISCOUNT = 0.60  # customer pays 60% of the base rate
+
 
 # ── User loader ──
 @login_manager.user_loader
@@ -134,7 +137,7 @@ class Booking(db.Model):
         if self.end_time.hour == 23 and self.end_time.minute == 59:
             end_m = 24 * 60
         hours = (end_m - start_m) / 60
-        return round(hours * base_price)
+        return round(hours * base_price * TIME_DISCOUNT)
 
     def __repr__(self):
         return f'<Booking #{self.id} {self.customer_name}>'
@@ -312,7 +315,7 @@ class ActivitySession(db.Model):
     def calc_price(self):
         hours = self.elapsed_seconds / 3600
         rate  = self.table.hourly_rate if self.table else 0
-        return round(hours * rate)
+        return round(hours * rate * TIME_DISCOUNT)
 
     @property
     def items_total(self):
@@ -387,7 +390,7 @@ class CourtSession(db.Model):
         import math
         hours_billed = max(1, math.ceil(self.elapsed_minutes / 60))
         rate = self.court.price_per_hour if self.court else 40000
-        return round(hours_billed * rate)
+        return round(hours_billed * rate * TIME_DISCOUNT)
 
     @property
     def items_total(self):
