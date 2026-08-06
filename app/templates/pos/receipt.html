@@ -209,7 +209,7 @@ function printReceipt(autoBack) {
       document.body.removeChild(iframe);
       var img = canvas.toDataURL('image/png');
       var w = window.open('', '_blank', 'width=400,height=800');
-      w.document.write(`<html><head><style>body{margin:0;padding:0;}img{width:74mm;display:block;margin:0 auto;}@page{margin:0;}</style></head><body><img src="${img}"><script>window.onload=function(){window.print();setTimeout(window.close,1000);};<\/script></body></html>`);
+      w.document.write(`<html><head><style>@page{size:58mm auto;margin:0;}body{margin:0;padding:0;width:58mm;}img{width:58mm;display:block;}</style></head><body><img src="${img}"><script>window.onload=function(){window.print();setTimeout(window.close,1000);};<\/script></body></html>`);
       w.document.close();
       if (autoBack) setTimeout(() => window.location.replace(BACK_URL), 3000);
     });
