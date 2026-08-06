@@ -576,8 +576,9 @@
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form method="POST" id="editBookingForm" action="#">
+      <form method="POST" id="editBookingForm" action="/admin/bookings/0/edit">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="booking_id" id="editBookingId" value="0"/>
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-12">
@@ -628,7 +629,8 @@ function filterTable() {
 
 // ── Edit modal ──
 function openEditModal(id, name, phone, status, notes) {
-  document.getElementById('editBookingForm').action = `/admin/bookings/${id}/edit`;
+  document.getElementById('editBookingId').value = id;
+  document.getElementById('editBookingForm').action = '/admin/bookings/' + id + '/edit';
   document.getElementById('editName').value = name;
   document.getElementById('editPhone').value = phone;
   document.getElementById('editStatus').value = status;
