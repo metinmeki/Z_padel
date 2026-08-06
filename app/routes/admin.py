@@ -233,6 +233,14 @@ def edit_booking(booking_id):
         b.customer_phone = request.form.get('customer_phone', b.customer_phone)
         b.status         = request.form.get('status', b.status)
         b.notes          = request.form.get('notes', b.notes)
+        s_str = request.form.get('start_time', '')
+        e_str = request.form.get('end_time', '')
+        if s_str and e_str:
+            b.start_time = _parse_time(s_str)
+            b.end_time   = _parse_time(e_str)
+            court = b.court
+            if court:
+                b.total_price = b.calc_price(court.price_per_hour)
         db.session.commit()
         flash('تم تحديث الحجز.', 'success')
     except Exception as e:
