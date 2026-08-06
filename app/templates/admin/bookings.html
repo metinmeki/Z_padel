@@ -440,20 +440,23 @@
       {% endif %}
     </div>
     <div class="pagination-btns">
+      {% set f_date = request.args.get('date','') %}
+      {% set f_court = request.args.get('court_id','') %}
+      {% set f_status = request.args.get('status','') %}
       {% if pagination.has_prev %}
-        <a href="{{ url_for('admin.bookings', page=pagination.prev_num, **request.args) }}"
+        <a href="{{ url_for('admin.bookings', page=pagination.prev_num, date=f_date, court_id=f_court, status=f_status) }}"
            class="page-btn"><i class="fas fa-chevron-right"></i></a>
       {% endif %}
       {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
-          <a href="{{ url_for('admin.bookings', page=p, **request.args) }}"
+          <a href="{{ url_for('admin.bookings', page=p, date=f_date, court_id=f_court, status=f_status) }}"
              class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
         {% else %}
           <span class="page-btn" style="cursor:default;color:var(--text-muted);">…</span>
         {% endif %}
       {% endfor %}
       {% if pagination.has_next %}
-        <a href="{{ url_for('admin.bookings', page=pagination.next_num, **request.args) }}"
+        <a href="{{ url_for('admin.bookings', page=pagination.next_num, date=f_date, court_id=f_court, status=f_status) }}"
            class="page-btn"><i class="fas fa-chevron-left"></i></a>
       {% endif %}
     </div>
