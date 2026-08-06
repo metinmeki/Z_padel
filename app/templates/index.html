@@ -662,11 +662,21 @@
         {% if lang == 'en' %}Come <span>Visit Us</span>{% else %}تفضل <span>بزيارتنا</span>{% endif %}
       </h2>
     </div>
-    <div class="reveal" style="border-radius:var(--r);overflow:hidden;border:1px solid var(--bmid);height:400px;width:100%;">
+    <div class="reveal" style="border-radius:var(--r);overflow:hidden;border:1px solid var(--bmid);height:400px;width:100%;position:relative;">
       <iframe
-        src="https://www.google.com/maps?q=36.862247467041016,42.958412170410156&z=17&hl=en&output=embed"
+        src="https://www.google.com/maps?q=36.8621245,42.957642&z=18&hl=en&output=embed"
         width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
       </iframe>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=36.8621245,42.957642"
+         target="_blank" rel="noopener"
+         style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#C9A84C,#8B6914);color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:50px;text-decoration:none;box-shadow:0 4px 20px rgba(201,168,76,.35);transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(201,168,76,.45)'"
+         onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(201,168,76,.35)'">
+        <i class="fas fa-location-arrow"></i>
+        {% if lang == 'en' %}Get Directions{% elif lang == 'ku' %}ئامرازی ئاڕاستەکردن{% else %}احصل على الاتجاهات{% endif %}
+      </a>
     </div>
   </div>
 </section>
