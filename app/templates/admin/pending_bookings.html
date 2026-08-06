@@ -318,6 +318,9 @@
     {% for b in pending_bookings %}
     {% set waiting_mins = b.waiting_minutes|default(0) %}
     {% set is_urgent = waiting_mins > 120 %}
+    {% set cont = linked_map.get(b.id) %}
+    {% set display_end = cont.end_time if cont else b.end_time %}
+    {% set display_total = (b.total_price or 0) + (cont.total_price if cont else 0) %}
     <div class="pending-card {{ 'urgent' if is_urgent else '' }}"
          data-name="{{ b.customer_name|lower }}"
          data-phone="{{ b.customer_phone }}"
@@ -348,15 +351,15 @@
           <div class="pc-field-value">
             <span class="time-pill">
               <i class="fas fa-clock" style="font-size:10px;"></i>
-              {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}
+              {{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ display_end.strftime('%H:%M') if display_end else '—' }}{% if cont %} <span style="font-size:9px;opacity:.7;">(+1)</span>{% endif %}
             </span>
           </div>
         </div>
         <div class="pc-field">
           <div class="pc-field-label">{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</div>
           <div class="pc-field-value" style="color:var(--brand-blue);font-size:14px;font-weight:800;">
-            {{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}
-            {% if b.total_price %}<span style="font-size:11px;color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>{% endif %}
+            {{ "{:,.0f}".format(display_total) if display_total else '—' }}
+            {% if display_total %}<span style="font-size:11px;color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>{% endif %}
           </div>
         </div>
         {% if b.notes %}
@@ -427,14 +430,14 @@
         <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
       </tr></thead>
       <tbody>
-        {% if pending_bookings %}{% for b in pending_bookings %}{% set waiting_mins = b.waiting_minutes|default(0) %}
+        {% if pending_bookings %}{% for b in pending_bookings %}{% set waiting_mins = b.waiting_minutes|default(0) %}{% set cont = linked_map.get(b.id) %}{% set display_end = cont.end_time if cont else b.end_time %}{% set display_total = (b.total_price or 0) + (cont.total_price if cont else 0) %}
         <tr>
           <td style="color:var(--text-muted);font-size:12px;">#{{ b.id }}</td>
           <td><div style="font-weight:700;font-size:13.5px;">{{ b.customer_name }}</div><div style="font-size:11.5px;color:var(--text-muted);direction:ltr;display:inline-block;">{{ b.customer_phone }}</div></td>
           <td><span class="court-pill" style="background:{{ (b.court.color~'22') if b.court and b.court.color else 'var(--brand-blue-soft)' }};color:{{ b.court.color if b.court and b.court.color else 'var(--brand-blue-dark)' }};"><i class="fas fa-circle" style="font-size:7px;"></i>{{ b.court.name if b.court else '—' }}</span></td>
           <td style="font-size:13px;white-space:nowrap;">{{ b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '—' }}</td>
-          <td><span class="time-pill">{{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ b.end_time.strftime('%H:%M') if b.end_time else '—' }}</span></td>
-          <td style="font-weight:700;color:var(--brand-blue-dark);">{{ "{:,.0f}".format(b.total_price) if b.total_price else '—' }}{% if b.total_price %}<small style="color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>{% endif %}</td>
+          <td><span class="time-pill">{{ b.start_time.strftime('%H:%M') if b.start_time else '—' }} – {{ display_end.strftime('%H:%M') if display_end else '—' }}{% if cont %} <small>(+1)</small>{% endif %}</span></td>
+          <td style="font-weight:700;color:var(--brand-blue-dark);">{{ "{:,.0f}".format(display_total) if display_total else '—' }}{% if display_total %}<small style="color:var(--text-muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>{% endif %}</td>
           <td><span style="font-size:12px;font-weight:600;color:{{ '#C62828' if waiting_mins>120 else '#E65100' if waiting_mins>60 else '#2E7D32' }};">{% if waiting_mins>=60 %}{{ waiting_mins//60 }}{% if lang == 'en' %}h {% else %}س {% endif %}{{ waiting_mins%60 }}{% if lang == 'en' %}m{% else %}د{% endif %}{% else %}{{ waiting_mins }}{% if lang == 'en' %}m{% else %}د{% endif %}{% endif %}</span></td>
           <td>
             <div style="display:flex;gap:6px;">

@@ -303,15 +303,34 @@ def confirm_all_pending():
 @admin_bp.route('/pending-bookings')
 @login_required
 def pending_bookings():
+    from datetime import timedelta, time as dtime
     pending = Booking.query.filter_by(status='pending').order_by(Booking.created_at.asc()).all()
     courts  = Court.query.filter_by(is_active=True).all()
     today   = date.today()
     now     = datetime.utcnow()
 
-    urgent  = sum(1 for b in pending if (now - b.created_at).total_seconds() > 7200)
-    today_p = sum(1 for b in pending if b.booking_date == today)
+    # Group cross-midnight split bookings: hide continuation, augment parent
+    continuation_ids = set()
+    linked_map = {}  # parent booking id → continuation booking
+    for b in pending:
+        if b.end_time and b.end_time.hour == 23 and b.end_time.minute == 59:
+            tomorrow = b.booking_date + timedelta(days=1)
+            cont = next((
+                x for x in pending
+                if x.court_id == b.court_id
+                and x.booking_date == tomorrow
+                and x.start_time and x.start_time.hour == 0 and x.start_time.minute == 0
+                and x.customer_phone == b.customer_phone
+            ), None)
+            if cont:
+                continuation_ids.add(cont.id)
+                linked_map[b.id] = cont
 
-    # Fix: use datetime(today.year, today.month, today.day) instead of datetime.combine
+    display = [b for b in pending if b.id not in continuation_ids]
+
+    urgent  = sum(1 for b in display if (now - b.created_at).total_seconds() > 7200)
+    today_p = sum(1 for b in display if b.booking_date == today)
+
     today_start = datetime(today.year, today.month, today.day, 0, 0, 0)
     conf_t = Booking.query.filter(
         Booking.status == 'confirmed',
@@ -319,7 +338,7 @@ def pending_bookings():
     ).count()
 
     return render_template('admin/pending_bookings.html',
-        pending_bookings=pending, courts=courts,
+        pending_bookings=display, linked_map=linked_map, courts=courts,
         urgent_count=urgent, today_pending=today_p, confirmed_today=conf_t)
 
 # ════════════════════════════════════════════
