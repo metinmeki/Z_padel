@@ -629,7 +629,7 @@
 {% if sponsors %}
 <style>
 @keyframes sponsors-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.sponsors-section{background:#F5F2ED;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
+.sponsors-section{background:#fff;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
 .sponsors-inner{display:flex;align-items:stretch;height:72px}
 .sponsors-title{text-align:center;padding:14px 0 4px;font-size:.62rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#596770}
 .sponsors-title i{color:#C9B48E;margin-right:6px}
@@ -649,7 +649,7 @@
   <div class="sponsors-inner">
     <div class="sponsor-track-wrap" style="flex:1">
       <div class="sponsor-track" id="sponsorTrack">
-        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
+        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="sponsor-logo-name" style="display:none">{{ s.name }}</span>{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
       </div>
     </div>
   </div>
