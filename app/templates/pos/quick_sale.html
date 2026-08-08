@@ -51,7 +51,7 @@
       <div class="row g-2">
         <div class="col-md-6" style="position:relative;">
           <i class="fas fa-barcode" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:22px;top:50%;transform:translateY(-50%);color:var(--primary);font-size:1.05rem;pointer-events:none;"></i>
-          <input type="text" id="barcodeInput" class="form-control barcode-input" style="padding-{{ 'left' if lang == 'en' else 'right' }}:2.5rem;" placeholder="{% if lang == 'en' %}Scan barcode...{% else %}امسح الباركود...{% endif %}" autofocus>
+          <input type="text" id="barcodeInput" class="form-control barcode-input" style="padding-{{ 'left' if lang == 'en' else 'right' }}:2.5rem;" placeholder="{% if lang == 'en' %}Scan barcode...{% else %}امسح الباركود...{% endif %}" inputmode="none">
         </div>
         <div class="col-md-6" style="position:relative;">
           <i class="fas fa-search" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:22px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
@@ -246,7 +246,7 @@ const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 /* ── Helpers ── */
 function fmt(n) { return Number(n||0).toLocaleString('en-IQ'); }
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function focusBarcode() { const el=document.getElementById('barcodeInput'); if(el) el.focus({preventScroll:true}); }
+function focusBarcode() { if (navigator.maxTouchPoints > 0) return; const el=document.getElementById('barcodeInput'); if(el) el.focus({preventScroll:true}); }
 function getScrollY() { return window.scrollY||0; }
 function restoreScroll(y) { requestAnimationFrame(()=>{ window.scrollTo(0,y); setTimeout(()=>window.scrollTo(0,y),60); }); }
 
