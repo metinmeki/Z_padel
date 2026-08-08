@@ -629,18 +629,19 @@
 {% if sponsors %}
 <style>
 @keyframes sponsors-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.sponsors-section{background:#0b1f42;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);overflow:hidden}
-.sponsors-inner{display:flex;align-items:stretch;height:90px}
-.sponsors-label{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 22px;border-right:1px solid rgba(255,255,255,.1);gap:4px}
-.sponsors-label i{font-size:1rem;color:#60a5fa}
-.sponsors-label span{font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);white-space:nowrap}
-.sponsor-track-wrap{flex:1;overflow:hidden;height:90px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 80px,black calc(100% - 80px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 80px,black calc(100% - 80px),transparent 100%)}
-.sponsor-track{display:flex;flex-wrap:nowrap;align-items:center;animation:sponsors-scroll 22s linear infinite;will-change:transform}
+.sponsors-section{background:#F5F2ED;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
+.sponsors-inner{display:flex;align-items:stretch;height:88px}
+.sponsors-label{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;border-right:2px solid #E4DDD3;gap:5px;min-width:90px}
+.sponsors-label i{font-size:1.1rem;color:#C9B48E}
+.sponsors-label span{font-size:.58rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#596770;white-space:nowrap}
+.sponsor-track-wrap{flex:1;overflow:hidden;height:88px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%)}
+.sponsor-track{display:flex;flex-wrap:nowrap;align-items:center;animation:sponsors-scroll 20s linear infinite;will-change:transform}
 .sponsor-track:hover{animation-play-state:paused}
-.sponsor-logo{flex:0 0 auto;padding:0 28px;display:flex;align-items:center;justify-content:center;height:90px;border-right:1px solid rgba(255,255,255,.06);text-decoration:none}
-.sponsor-logo img{height:38px;width:auto;max-width:110px;object-fit:contain;display:block;filter:brightness(0) invert(1);opacity:.6;transition:opacity .3s}
-.sponsor-logo:hover img{opacity:1}
-.sponsor-logo-name{font-size:.85rem;font-weight:800;color:rgba(255,255,255,.6);white-space:nowrap}
+.sponsor-logo{flex:0 0 auto;padding:0 32px;display:flex;align-items:center;justify-content:center;height:88px;border-right:1px solid #E4DDD3;text-decoration:none}
+.sponsor-logo img{height:44px;width:auto;max-width:130px;object-fit:contain;display:block;filter:grayscale(1);opacity:.55;transition:filter .35s,opacity .35s}
+.sponsor-logo:hover img{filter:grayscale(0);opacity:1}
+.sponsor-logo-name{font-size:.9rem;font-weight:800;color:#2C3539;opacity:.5;white-space:nowrap;transition:opacity .3s}
+.sponsor-logo:hover .sponsor-logo-name{opacity:1}
 </style>
 <div class="sponsors-section" id="sponsors">
   <div class="sponsors-inner">
