@@ -529,7 +529,7 @@ function clearQuickActive() { document.querySelectorAll('.quick-btn').forEach(b 
 function selectCourt(btn) {
   document.querySelectorAll('.court-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  selCourt = btn.dataset.courtId; selPrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 0.60);
+  selCourt = btn.dataset.courtId; selPrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 1);
   selStart = null; renderSlots(); updateSummary();
 }
 
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const firstCourt = document.querySelector('.court-tab');
   if (firstCourt) {
     selCourt = firstCourt.dataset.courtId;
-    selPrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 0.60);
+    selPrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 1);
     renderSlots();
   }
 });
