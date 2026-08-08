@@ -174,8 +174,16 @@ def start_court_session(court_id):
 @login_required
 def session_detail(session_id):
     session_row = CourtSession.query.get_or_404(session_id)
-    products = Product.query.filter_by(is_active=True).all()
-    categories = Category.query.all()
+    if current_user.username.lower() == 'barista':
+        all_cats = Category.query.order_by(Category.name).all()
+        categories = [c for c in all_cats if c.name.strip().lower() in BARISTA_CATEGORIES]
+        cat_ids = [c.id for c in categories]
+        products = Product.query.filter_by(is_active=True).filter(
+            Product.category_id.in_(cat_ids)
+        ).all()
+    else:
+        products = Product.query.filter_by(is_active=True).all()
+        categories = Category.query.all()
     return render_template('pos/session_detail.html', session=session_row, products=products, categories=categories)
 
 
