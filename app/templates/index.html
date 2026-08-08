@@ -450,34 +450,32 @@
           }|tojson }}'
           onclick="openCoachProfile(JSON.parse(this.dataset.coach))">
           {% if coach.image %}
-            <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-avatar-img">
+            <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-card-photo">
           {% else %}
-            <div class="coach-avatar-fallback"><i class="fas fa-user"></i></div>
+            <div class="coach-card-photo-fallback"><i class="fas fa-user"></i></div>
           {% endif %}
-          <div class="coach-name">{{ coach.name }}</div>
-          {% if coach.specialty %}
-          <div class="coach-specialty">{{ coach.specialty }}</div>
-          {% endif %}
-          <span class="coach-status-badge {{ coach.status }}">
-            {% if coach.status == 'available' %}
-              <i class="fas fa-circle" style="font-size:8px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
-              {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
-            {% else %}
-              <i class="fas fa-clock" style="font-size:10px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
-              {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
-            {% endif %}
-          </span>
-          {% if coach.price_per_hour %}
-          <div class="coach-price-pill">
-            <i class="fas fa-tag"></i>
-            {{ '{:,.0f}'.format(coach.price_per_hour) }} {% if lang == 'en' %}IQD / session{% else %}د.ع / جلسة{% endif %}
-          </div>
-          {% endif %}
-          <div style="margin-top:14px;">
-            <span class="coach-view-profile">
-              <i class="fas fa-user-circle me-1"></i>
-              {% if lang == 'en' %}View Profile{% else %}عرض الملف{% endif %}
+          <div class="coach-card-body">
+            <div class="coach-name">{{ coach.name }}</div>
+            {% if coach.specialty %}<div class="coach-specialty">{{ coach.specialty }}</div>{% endif %}
+            <span class="coach-status-badge {{ coach.status }}">
+              {% if coach.status == 'available' %}
+                <i class="fas fa-circle" style="font-size:7px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+                {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
+              {% else %}
+                <i class="fas fa-clock" style="font-size:9px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+                {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
+              {% endif %}
             </span>
+            {% if coach.price_per_hour %}
+            <div class="coach-price-pill">
+              <i class="fas fa-tag" style="font-size:10px;"></i>
+              {{ '{:,.0f}'.format(coach.price_per_hour) }} {% if lang == 'en' %}IQD / session{% else %}د.ع / جلسة{% endif %}
+            </div>
+            {% endif %}
+            <div class="coach-view-profile">
+              <i class="fas fa-eye"></i>
+              {% if lang == 'en' %}View Profile & Book{% else %}عرض الملف والحجز{% endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -540,17 +538,13 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content coach-profile-modal">
 
-      <!-- Hero Banner -->
+      <!-- Hero Banner — full image -->
       <div class="cpm-hero" id="cpmHero">
+        <img id="cpmHeroImg" src="" alt="" class="cpm-hero-img" style="display:none">
         <div class="cpm-hero-overlay"></div>
         <button type="button" class="cpm-close-btn" data-bs-dismiss="modal">
           <i class="fas fa-times"></i>
         </button>
-        <div class="cpm-avatar-wrap">
-          <img id="cpmAvatar" src="" alt="" class="cpm-avatar">
-          <div class="cpm-avatar-fallback" id="cpmAvatarFallback"><i class="fas fa-user"></i></div>
-          <div class="cpm-status-ring" id="cpmStatusRing"></div>
-        </div>
         <div class="cpm-hero-info">
           <h3 class="cpm-name" id="cpmName"></h3>
           <div class="cpm-specialty" id="cpmSpecialty"></div>
@@ -883,14 +877,10 @@
     _activeCoachName = c.name;
 
     // Avatar
-    var av = document.getElementById('cpmAvatar');
-    var af = document.getElementById('cpmAvatarFallback');
-    if (c.image) { av.src = c.image; av.style.display = 'block'; af.style.display = 'none'; }
-    else         { av.style.display = 'none'; af.style.display = 'flex'; }
-
-    // Status ring
-    var ring = document.getElementById('cpmStatusRing');
-    ring.className = 'cpm-status-ring ' + (c.status || '');
+    // Full hero image
+    var heroImg = document.getElementById('cpmHeroImg');
+    if (c.image) { heroImg.src = c.image; heroImg.style.display = 'block'; }
+    else         { heroImg.style.display = 'none'; }
 
     // Name & specialty
     document.getElementById('cpmName').textContent = c.name;
