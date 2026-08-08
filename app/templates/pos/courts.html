@@ -96,9 +96,21 @@
     <span>{% if lang == 'en' %}Selected Total{% else %}المجموع المختار{% endif %}</span>
     <span id="pendingSelectedTotal">0 IQD</span>
   </div>
+
+  <div style="margin:.5rem 0;">
+    <label style="font-size:.78rem;font-weight:700;color:#92400e;display:block;margin-bottom:.25rem;">
+      <i class="fas fa-tag me-1"></i>{% if lang == 'en' %}Discount (IQD){% else %}خصم (IQD){% endif %}
+    </label>
+    <input type="number" id="pendingDiscountInput" class="form-control" min="0" placeholder="0"
+           oninput="updatePendingTotal()" style="text-align:center;font-weight:800;background:#fffbeb;border-color:#fde68a;">
+  </div>
+  <div id="pendingAfterDiscountRow" style="display:none;justify-content:space-between;font-weight:900;color:#16a34a;font-size:.95rem;padding:.3rem 0;">
+    <span>{% if lang == 'en' %}After discount:{% else %}بعد الخصم:{% endif %}</span>
+    <span id="pendingAfterDiscount">0 IQD</span>
+  </div>
+
   <div class="pending-actions">
     <button class="btn btn-success" onclick="payPending('cash')"><i class="fas fa-money-bill-wave me-1"></i>{% if lang == 'en' %}Cash{% else %}نقدي{% endif %}</button>
-    <button class="btn btn-primary" onclick="payPending('card')"><i class="fas fa-credit-card me-1"></i>{% if lang == 'en' %}Card{% else %}بطاقة{% endif %}</button>
     <button class="btn btn-danger" onclick="openPendingDebt()"><i class="fas fa-user-clock me-1"></i>{% if lang == 'en' %}Debt{% else %}دين{% endif %}</button>
   </div>
 </div>
@@ -192,6 +204,18 @@ function updatePendingTotal() {
   });
   const el = document.getElementById('pendingSelectedTotal');
   if (el) el.textContent = total.toLocaleString('en-IQ') + ' IQD';
+
+  const discount = Math.max(0, parseFloat(document.getElementById('pendingDiscountInput')?.value || 0) || 0);
+  const afterRow = document.getElementById('pendingAfterDiscountRow');
+  const afterEl  = document.getElementById('pendingAfterDiscount');
+  if (afterRow && afterEl) {
+    if (discount > 0) {
+      afterRow.style.display = 'flex';
+      afterEl.textContent = Math.max(0, total - discount).toLocaleString('en-IQ') + ' IQD';
+    } else {
+      afterRow.style.display = 'none';
+    }
+  }
 }
 
 function getSelectedIds() {
@@ -203,6 +227,10 @@ function getSelectedIds() {
   return { court_ids, activity_ids };
 }
 
+function getPendingDiscount() {
+  return Math.max(0, parseFloat(document.getElementById('pendingDiscountInput')?.value || 0) || 0);
+}
+
 function payPending(method) {
   const { court_ids, activity_ids } = getSelectedIds();
   if (!court_ids.length && !activity_ids.length) {
@@ -210,7 +238,7 @@ function payPending(method) {
     return;
   }
   if (!confirm(isEn ? 'Process payment?' : 'تأكيد الدفع؟')) return;
-  doCombinedCheckout({ court_ids, activity_ids, payment_method: method });
+  doCombinedCheckout({ court_ids, activity_ids, payment_method: method, discount: getPendingDiscount() });
 }
 
 function openPendingDebt() {
@@ -232,7 +260,7 @@ function submitPendingDebt() {
     err.style.display = 'block'; return;
   }
   const { court_ids, activity_ids } = getSelectedIds();
-  doCombinedCheckout({ court_ids, activity_ids, payment_method: 'debt', debt_name: name });
+  doCombinedCheckout({ court_ids, activity_ids, payment_method: 'debt', debt_name: name, discount: getPendingDiscount() });
 }
 
 function doCombinedCheckout(payload) {

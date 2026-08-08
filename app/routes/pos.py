@@ -600,11 +600,16 @@ def combined_checkout():
         activity_ids = data.get('activity_ids', [])
         payment_method = data.get('payment_method', 'cash')
         debt_name = (data.get('debt_name') or '').strip()
+        discount = max(0, float(data.get('discount', 0) or 0))
 
         if payment_method == 'debt' and not debt_name:
             return jsonify(success=False, message='الرجاء كتابة اسم الشخص'), 400
 
         done_court_ids, done_activity_ids = [], []
+
+        # Spread discount proportionally across sessions
+        all_sessions_count = len(court_ids) + len(activity_ids)
+        discount_per_session = round(discount / all_sessions_count) if all_sessions_count else 0
 
         for sid in court_ids:
             s = CourtSession.query.get(int(sid))
@@ -612,6 +617,8 @@ def combined_checkout():
                 if not s.end_time:
                     s.end_time = datetime.utcnow()
                     s.total_price = s.calc_price()
+                if discount_per_session > 0:
+                    s.total_price = max(0, (s.total_price or 0) - discount_per_session)
                 s.payment_method = payment_method
                 s.status = 'completed'
                 if debt_name:
@@ -624,6 +631,8 @@ def combined_checkout():
                 if not s.end_time:
                     s.end_time = datetime.utcnow()
                     s.total_price = s.calc_price()
+                if discount_per_session > 0:
+                    s.total_price = max(0, (s.total_price or 0) - discount_per_session)
                 s.payment_method = payment_method
                 s.status = 'completed'
                 if debt_name:
