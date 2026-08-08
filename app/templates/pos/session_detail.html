@@ -372,7 +372,8 @@ function freeCourt() {
   if (!confirm(msg)) return;
   fetch(`/pos/courts/session/${sessionId}/free`, {
     method: 'POST',
-    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken }
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ discount: getDiscount() })
   })
   .then(r => r.json())
   .then(d => {
