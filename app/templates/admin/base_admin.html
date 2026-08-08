@@ -1183,6 +1183,14 @@
         <span class="nav-label">{% if lang == 'en' %}Sponsors{% elif lang == 'ku' %}سپۆنسەرەکان{% else %}الرعاة{% endif %}</span>
       </a>
     </div>
+
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.cameras') }}"
+         class="nav-link-custom {% if request.endpoint == 'admin.cameras' %}active{% endif %}">
+        <i class="fas fa-video nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Cameras{% elif lang == 'ku' %}کامێرا{% else %}الكاميرات{% endif %}</span>
+      </a>
+    </div>
     {% endif %}
 
     {% if current_user.has_perm('perm_orders') %}

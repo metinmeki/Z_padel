@@ -1602,6 +1602,13 @@ def delete_activity_table(table_id):
 # ════════════════════════════════════════════
 # SPONSORS
 # ════════════════════════════════════════════
+@admin_bp.route('/cameras')
+@login_required
+def cameras():
+    nvr_url = current_app.config.get('NVR_URL', 'http://45.81.147.210:65021')
+    return render_template('admin/cameras.html', nvr_url=nvr_url)
+
+
 @admin_bp.route('/sponsors', methods=['GET', 'POST'])
 @login_required
 def sponsors():
