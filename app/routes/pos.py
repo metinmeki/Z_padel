@@ -153,7 +153,8 @@ def courts():
     pending_activity_sessions = ActivitySession.query.filter_by(status='pending_payment').all()
     return render_template('pos/courts.html', courts=court_list, active_sessions=active_sessions,
                            pending_court_sessions=pending_court_sessions,
-                           pending_activity_sessions=pending_activity_sessions)
+                           pending_activity_sessions=pending_activity_sessions,
+                           activity_meta=ACTIVITY_META)
 
 
 @pos_bp.route('/courts/<int:court_id>/start', methods=['POST'])
