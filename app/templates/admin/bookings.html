@@ -721,5 +721,59 @@ function calcPrice() {
 // ── Set today as default date in modal ──
 const _n = new Date();
 document.getElementById('bookingDate').value = _n.getFullYear() + '-' + String(_n.getMonth()+1).padStart(2,'0') + '-' + String(_n.getDate()).padStart(2,'0');
+
+// ── Availability check ──
+let _bookedRanges = [];
+
+function _toMins(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// Returns the booked customer name if slot overlaps a booking, else false
+function _isBooked(slotMins, ranges) {
+  for (const r of ranges) {
+    let s = _toMins(r.start);
+    let e = _toMins(r.end);
+    if (e <= s) e += 24 * 60;            // cross-midnight
+    let sm = slotMins;
+    if (sm < s && e > 24 * 60) sm += 24 * 60;  // adjust cross-midnight slot
+    if (sm >= s && sm < e) return r.name;
+  }
+  return false;
+}
+
+function _applyAvailability() {
+  ['startTime', 'endTime'].forEach(id => {
+    document.querySelectorAll(`#${id} option`).forEach(opt => {
+      if (!opt.value) return;
+      const who = _isBooked(_toMins(opt.value), _bookedRanges);
+      if (who) {
+        opt.disabled = true;
+        opt.textContent = opt.value + ' — {% if lang == "en" %}Booked{% else %}محجوز{% endif %} (' + who + ')';
+        opt.style.color = '#aaa';
+      } else {
+        opt.disabled = false;
+        opt.textContent = opt.value;
+        opt.style.color = '';
+      }
+    });
+  });
+}
+
+function fetchAvailability() {
+  const courtId = document.getElementById('courtSelect').value;
+  const date    = document.getElementById('bookingDate').value;
+  if (!courtId || !date) { _bookedRanges = []; _applyAvailability(); return; }
+  fetch(`/admin/bookings/booked-slots?court_id=${courtId}&date=${date}`)
+    .then(r => r.json())
+    .then(data => { _bookedRanges = data.booked || []; _applyAvailability(); });
+}
+
+document.getElementById('courtSelect').addEventListener('change', fetchAvailability);
+document.getElementById('bookingDate').addEventListener('change', fetchAvailability);
+
+// Run on modal open so today's date pre-fill triggers correctly
+document.getElementById('addBookingModal').addEventListener('shown.bs.modal', fetchAvailability);
 </script>
 {% endblock %}

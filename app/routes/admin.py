@@ -281,6 +281,34 @@ def bookings():
         tomorrow=tomorrow, court_price=25000)
 
 
+@admin_bp.route('/bookings/booked-slots')
+@login_required
+def booked_slots():
+    """Return booked time ranges for a court+date so the frontend can disable them."""
+    court_id = request.args.get('court_id', type=int)
+    date_str  = request.args.get('date', '')
+    if not court_id or not date_str:
+        return jsonify(booked=[])
+    try:
+        bk_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify(booked=[])
+    bks = Booking.query.filter(
+        Booking.court_id == court_id,
+        Booking.booking_date == bk_date,
+        Booking.status.in_(['confirmed', 'pending'])
+    ).all()
+    booked = []
+    for b in bks:
+        if b.start_time and b.end_time:
+            booked.append({
+                'start': b.start_time.strftime('%H:%M'),
+                'end':   b.end_time.strftime('%H:%M'),
+                'name':  b.customer_name
+            })
+    return jsonify(booked=booked)
+
+
 @admin_bp.route('/bookings/add', methods=['POST'])
 @login_required
 def add_booking():
