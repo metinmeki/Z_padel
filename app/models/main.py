@@ -2,8 +2,7 @@ from datetime import datetime, date, time
 from flask_login import UserMixin
 from app import db, login_manager
 
-# 40% discount on all time-based services (courts, billiards, table tennis, snooker)
-TIME_DISCOUNT = 0.60  # customer pays 60% of the base rate
+TIME_DISCOUNT = 1.0  # price_per_hour IS the final price — no extra multiplier
 
 
 # ── User loader ──
