@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app import db
 from app.models.store import Product, Category, Order, OrderItem
-from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META
+from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META, Booking
 
 pos_bp = Blueprint('pos', __name__)
 
@@ -167,6 +167,20 @@ def start_court_session(court_id):
 
     data = request.get_json(silent=True) or {}
     customer_name = (data.get('customer_name') or '').strip() or None
+
+    if not customer_name:
+        from datetime import date as date_type
+        now_local = datetime.now()
+        booking = Booking.query.filter_by(
+            court_id=court_id,
+            booking_date=now_local.date(),
+            status='confirmed'
+        ).filter(
+            Booking.start_time <= now_local.time(),
+            Booking.end_time > now_local.time()
+        ).first()
+        if booking:
+            customer_name = booking.customer_name
 
     session_row = CourtSession(court_id=court.id, start_time=datetime.utcnow(), status='active', customer_name=customer_name)
     db.session.add(session_row)

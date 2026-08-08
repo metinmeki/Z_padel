@@ -161,6 +161,11 @@
         <span class="court-live-price">{{ '{:,.0f}'.format(session.grand_total) }} IQD</span>
         <span class="court-live-time"><i class="fas fa-clock me-1"></i>{% if lang == 'en' %}Playing{% else %}وقت اللعب{% endif %}</span>
       </div>
+      {% if session.customer_name %}
+      <div style="text-align:center;font-weight:800;font-size:.85rem;color:var(--danger);margin-bottom:.5rem;">
+        <i class="fas fa-user me-1"></i>{{ session.customer_name }}
+      </div>
+      {% endif %}
       <a href="{{ url_for('pos.session_detail', session_id=session.id) }}" class="btn btn-view-session w-100">
         <i class="fas fa-eye me-2"></i>{% if lang == 'en' %}View Session{% else %}عرض الجلسة{% endif %}
       </a>
