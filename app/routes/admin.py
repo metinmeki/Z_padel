@@ -26,6 +26,48 @@ def allowed_file(filename):
             filename.rsplit('.', 1)[1].lower()
             in current_app.config['ALLOWED_EXTENSIONS'])
 
+def _remove_dark_bg(img):
+    """Replace dark background with white using edge-connected flood fill.
+    Only pixels reachable from image edges with R,G,B < 60 are replaced."""
+    from collections import deque
+    from PIL import Image as _Image
+    rgb = img.convert('RGB')
+    w, h = rgb.size
+    px = rgb.load()
+    # Sample corners — if not dark, skip processing
+    corners = [px[0,0], px[w-1,0], px[0,h-1], px[w-1,h-1]]
+    if sum(r+g+b for r,g,b in corners) / (len(corners)*3) > 80:
+        return img
+    rgba = img.convert('RGBA')
+    data = rgba.load()
+    visited = [[False]*h for _ in range(w)]
+    queue = deque()
+    def is_dark(x, y):
+        r, g, b = data[x, y][:3]
+        return r < 60 and g < 60 and b < 60
+    for x in range(w):
+        for y in (0, h-1):
+            if not visited[x][y] and is_dark(x, y):
+                visited[x][y] = True
+                queue.append((x, y))
+    for y in range(h):
+        for x in (0, w-1):
+            if not visited[x][y] and is_dark(x, y):
+                visited[x][y] = True
+                queue.append((x, y))
+    while queue:
+        x, y = queue.popleft()
+        data[x, y] = (255, 255, 255, 255)
+        for dx, dy in ((-1,0),(1,0),(0,-1),(0,1)):
+            nx, ny = x+dx, y+dy
+            if 0 <= nx < w and 0 <= ny < h and not visited[nx][ny] and is_dark(nx, ny):
+                visited[nx][ny] = True
+                queue.append((nx, ny))
+    result = _Image.new('RGB', rgba.size, (255, 255, 255))
+    result.paste(rgba, mask=rgba.split()[3])
+    return result
+
+
 def save_upload(file, folder_key='UPLOAD_FOLDER'):
     if not file or file.filename == '':
         return None
@@ -53,6 +95,9 @@ def save_upload(file, folder_key='UPLOAD_FOLDER'):
 
         # Resize: keep aspect ratio, max 900px on longest side
         img.thumbnail((900, 900), Image.LANCZOS)
+
+        # Replace dark background with white
+        img = _remove_dark_bg(img)
 
         out_name = f"{uuid.uuid4().hex}.webp"
         img.save(
@@ -83,6 +128,7 @@ def save_b64_image(b64_data):
         img = Image.open(io.BytesIO(raw))
         if img.mode != 'RGB':
             img = img.convert('RGB')
+        img = _remove_dark_bg(img)
         upload_dir = os.path.join(current_app.static_folder, 'images', 'uploads')
         os.makedirs(upload_dir, exist_ok=True)
         out_name = f"{uuid.uuid4().hex}.webp"
