@@ -432,10 +432,9 @@ body {
 .sponsor-logo img {
   height: 44px; width: auto; max-width: 130px;
   object-fit: contain; display: block;
-  filter: grayscale(1); opacity: .55;
-  transition: filter .35s, opacity .35s;
+  opacity: .9; transition: opacity .3s;
 }
-.sponsor-logo:hover img { filter: grayscale(0); opacity: 1; }
+.sponsor-logo:hover img { opacity: 1; }
 .sponsor-logo-name {
   font-size: .9rem; font-weight: 800;
   color: var(--bd); opacity: .5; white-space: nowrap;
