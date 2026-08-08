@@ -693,30 +693,39 @@ function filterTable() {
 }
 
 // ── Price calculator ──
-const HOURLY_RATE = {{ court_price|default(25000) }};
+// Court price map: court_id → price_per_hour
+const COURT_PRICES = {
+  {% for court in courts %}
+  {{ court.id }}: {{ court.price_per_hour|default(25000) }}{% if not loop.last %},{% endif %}
+  {% endfor %}
+};
+
+function getHourlyRate() {
+  const cid = document.getElementById('courtSelect').value;
+  return COURT_PRICES[cid] || 25000;
+}
 
 function calcPrice() {
   const start = document.getElementById('startTime').value;
   const end   = document.getElementById('endTime').value;
-  if (!start || !end) return;
+  if (!start || !end) { document.getElementById('pricePreview').style.display = 'none'; return; }
 
   const [sh, sm] = start.split(':').map(Number);
   const [eh, em] = end.split(':').map(Number);
-  const startMins = sh * 60 + sm;
-  const endMins   = eh * 60 + em;
-
-  if (endMins <= startMins) {
-    document.getElementById('pricePreview').style.display = 'none';
-    return;
-  }
+  let startMins = sh * 60 + sm;
+  let endMins   = eh * 60 + em;
+  if (endMins <= startMins) endMins += 24 * 60;  // cross-midnight
 
   const hours = (endMins - startMins) / 60;
-  const total  = Math.round(hours * HOURLY_RATE);
+  const total  = Math.round(hours * getHourlyRate());
   const label  = `${total.toLocaleString()} {% if lang == "en" %}IQD{% else %}د.ع{% endif %}`;
 
   document.getElementById('priceValue').innerHTML = label;
   document.getElementById('pricePreview').style.display = '';
 }
+
+// Recalculate when court changes
+document.getElementById('courtSelect').addEventListener('change', calcPrice);
 
 // ── Set today as default date in modal ──
 const _n = new Date();
