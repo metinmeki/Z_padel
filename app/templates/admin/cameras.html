@@ -5,7 +5,7 @@
 <div class="page-header d-flex align-items-center justify-content-between mb-4">
   <div>
     <h1 class="page-title"><i class="fas fa-video me-2" style="color:var(--brand-blue)"></i>
-      {% if lang == 'en' %}Live Cameras{% elif lang == 'ku' %}کامێراکان{% else %}الكاميرات المباشرة{% endif %}
+      {% if lang == 'en' %}Live Camera{% elif lang == 'ku' %}کامێرای سەرزمان{% else %}الكاميرا المباشرة{% endif %}
     </h1>
     <p class="text-muted mb-0" style="font-size:.9rem">Hikvision NVR — {{ nvr_url }}</p>
   </div>
@@ -18,59 +18,33 @@
 .cam-card { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(21,101,192,.10); overflow:hidden; }
 .cam-header { background:var(--brand-blue); color:#fff; padding:10px 16px; font-weight:700; font-size:.9rem; display:flex; align-items:center; gap:8px; }
 .cam-header .dot { width:8px; height:8px; border-radius:50%; background:#4caf50; animation:blink 1.2s ease-in-out infinite; }
+.cam-header .dot.offline { background:#f44336; animation:none; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 .cam-frame { position:relative; width:100%; background:#0a0a0a; }
-.cam-frame iframe { width:100%; height:460px; border:none; display:block; }
-.cam-blocked { display:none; flex-direction:column; align-items:center; justify-content:center; height:460px; color:#888; gap:12px; }
-.cam-blocked i { font-size:3rem; color:#444; }
-.cam-blocked a { color:var(--brand-blue); font-weight:600; }
+.cam-frame iframe { width:100%; height:560px; border:none; display:block; }
+.cam-fallback { display:none; flex-direction:column; align-items:center; justify-content:center; height:560px; color:#888; gap:14px; }
+.cam-fallback i { font-size:3.5rem; color:#444; }
+.cam-fallback .btn { font-size:1rem; padding:10px 24px; }
 </style>
 
-<div class="row g-4">
-  <!-- Camera 1 -->
-  <div class="col-12 col-lg-6">
+<div class="row justify-content-center">
+  <div class="col-12 col-xl-10">
     <div class="cam-card">
       <div class="cam-header">
-        <span class="dot"></span>
-        <i class="fas fa-video"></i> Camera 1 – Court View
+        <span class="dot" id="statusDot"></span>
+        <i class="fas fa-video"></i> Camera 1 — Court (192.168.1.66)
       </div>
-      <div class="cam-frame" id="frame1">
-        <iframe id="iframe1"
+      <div class="cam-frame" id="camFrame">
+        <iframe id="camIframe"
           src="{{ nvr_url }}/doc/index.html#/preview"
-          sandbox="allow-scripts allow-same-origin allow-forms"
-          onload="checkFrame(this)"
-          onerror="showFallback('frame1','{{ nvr_url }}')">
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
         </iframe>
-        <div class="cam-blocked" id="blocked1">
+        <div class="cam-fallback" id="camFallback">
           <i class="fas fa-video-slash"></i>
-          <p class="mb-1">Live view blocked by browser security</p>
-          <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank">
-            <i class="fas fa-external-link-alt me-1"></i>Open Camera 1 in New Tab
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Camera 2 -->
-  <div class="col-12 col-lg-6">
-    <div class="cam-card">
-      <div class="cam-header">
-        <span class="dot"></span>
-        <i class="fas fa-video"></i> Camera 2 – Court View
-      </div>
-      <div class="cam-frame" id="frame2">
-        <iframe id="iframe2"
-          src="{{ nvr_url }}/doc/index.html#/preview"
-          sandbox="allow-scripts allow-same-origin allow-forms"
-          onload="checkFrame(this)"
-          onerror="showFallback('frame2','{{ nvr_url }}')">
-        </iframe>
-        <div class="cam-blocked" id="blocked2">
-          <i class="fas fa-video-slash"></i>
-          <p class="mb-1">Live view blocked by browser security</p>
-          <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank">
-            <i class="fas fa-external-link-alt me-1"></i>Open Camera 2 in New Tab
+          <p class="mb-0 fw-bold" style="font-size:1.1rem">Live view cannot be embedded</p>
+          <p class="text-muted mb-2">The NVR blocks iframe embedding (X-Frame-Options)</p>
+          <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank" class="btn btn-primary">
+            <i class="fas fa-external-link-alt me-2"></i>Open Live View in New Tab
           </a>
         </div>
       </div>
@@ -78,45 +52,39 @@
   </div>
 </div>
 
-<div class="alert alert-info mt-4" style="border-radius:12px; font-size:.88rem">
-  <i class="fas fa-info-circle me-2"></i>
-  <strong>Note:</strong> If the camera frames show a blank page or login screen, click
-  <strong>"Open NVR Full Screen"</strong> above to view cameras in a separate tab.
-  Log in with your NVR credentials. For embedded live streaming, RTSP port 554 needs
-  to be forwarded on your router — ask your network provider when possible.
+<div class="alert alert-warning mt-4" style="border-radius:12px; font-size:.88rem">
+  <i class="fas fa-triangle-exclamation me-2"></i>
+  <strong>To enable embedded live streaming:</strong>
+  Ask your network provider to forward <strong>port 554 (RTSP)</strong> on the router to the NVR
+  (same way port 65021 was forwarded). Once done, I can set up proper HD live streaming
+  directly inside this page — no separate login needed.
 </div>
 
 <script>
-function checkFrame(iframe) {
-  try {
-    var doc = iframe.contentDocument || iframe.contentWindow.document;
-    if (!doc || doc.body.innerHTML === '') showFallback(iframe.parentElement.id, '{{ nvr_url }}');
-  } catch(e) {
-    // Cross-origin block — show fallback
-    var frameId = iframe.id.replace('iframe','frame');
-    showFallback(frameId, '{{ nvr_url }}');
+(function(){
+  var iframe = document.getElementById('camIframe');
+  var fallback = document.getElementById('camFallback');
+  var dot = document.getElementById('statusDot');
+
+  function showFallback() {
+    iframe.style.display = 'none';
+    fallback.style.display = 'flex';
+    dot.classList.add('offline');
   }
-}
-function showFallback(frameId, nvrUrl) {
-  var frame = document.getElementById(frameId);
-  if (!frame) return;
-  var iframeEl = frame.querySelector('iframe');
-  var blocked = document.getElementById(frameId.replace('frame','blocked'));
-  if (iframeEl) iframeEl.style.display = 'none';
-  if (blocked) blocked.style.display = 'flex';
-}
-// Detect X-Frame-Options block after 3 seconds
-setTimeout(function() {
-  ['1','2'].forEach(function(n) {
-    var iframe = document.getElementById('iframe' + n);
-    if (!iframe) return;
+
+  // Detect X-Frame-Options block after 4 seconds
+  setTimeout(function() {
     try {
       var doc = iframe.contentDocument || iframe.contentWindow.document;
-      if (!doc || !doc.body || doc.body.innerHTML === '') showFallback('frame'+n, '{{ nvr_url }}');
+      if (!doc || !doc.body || doc.title === '' || doc.body.innerHTML.trim() === '') {
+        showFallback();
+      }
     } catch(e) {
-      showFallback('frame'+n, '{{ nvr_url }}');
+      showFallback();
     }
-  });
-}, 3000);
+  }, 4000);
+
+  iframe.onerror = showFallback;
+})();
 </script>
 {% endblock %}
