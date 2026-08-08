@@ -289,6 +289,7 @@ def finish_session(session_id):
     try:
         data = request.get_json(force=True) or {}
         payment_method = data.get('payment_method', 'cash')
+        discount = max(0, float(data.get('discount', 0) or 0))
 
         session_row = CourtSession.query.get_or_404(session_id)
         if session_row.status == 'completed':
@@ -297,6 +298,9 @@ def finish_session(session_id):
         if not session_row.end_time:
             session_row.end_time = datetime.utcnow()
             session_row.total_price = session_row.calc_price()
+
+        if discount > 0:
+            session_row.total_price = max(0, (session_row.total_price or 0) - discount)
 
         session_row.payment_method = payment_method
         session_row.status = 'completed'
@@ -485,12 +489,15 @@ def finish_activity_session(session_id):
     try:
         data = request.get_json(force=True) or {}
         payment_method = data.get('payment_method', 'cash')
+        discount = max(0, float(data.get('discount', 0) or 0))
         sess = ActivitySession.query.get_or_404(session_id)
         if sess.status == 'completed':
             return jsonify(success=False, message='Already paid'), 400
         if not sess.end_time:
             sess.end_time = datetime.utcnow()
             sess.total_price = sess.calc_price()
+        if discount > 0:
+            sess.total_price = max(0, (sess.total_price or 0) - discount)
         sess.payment_method = payment_method
         sess.status = 'completed'
         db.session.commit()
