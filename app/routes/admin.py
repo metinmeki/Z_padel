@@ -150,6 +150,36 @@ def admin_required(f):
 # ════════════════════════════════════════════
 # DASHBOARD
 # ════════════════════════════════════════════
+@admin_bp.route('/fix-image-backgrounds')
+@login_required
+def fix_image_backgrounds():
+    if current_user.role not in ('superadmin', 'admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    from PIL import Image as _PIL_Image
+    import glob as _glob
+    upload_dir = os.path.join(current_app.static_folder, 'images', 'uploads')
+    files = _glob.glob(os.path.join(upload_dir, '*.webp')) + \
+            _glob.glob(os.path.join(upload_dir, '*.jpg')) + \
+            _glob.glob(os.path.join(upload_dir, '*.jpeg')) + \
+            _glob.glob(os.path.join(upload_dir, '*.png'))
+    fixed = 0
+    skipped = 0
+    for path in files:
+        try:
+            img = _PIL_Image.open(path)
+            result = _remove_dark_bg(img)
+            if result is not img:
+                result.save(path, format='WEBP', quality=82, method=4)
+                fixed += 1
+            else:
+                skipped += 1
+        except Exception:
+            skipped += 1
+    flash(f'Done: {fixed} images fixed, {skipped} skipped (no dark background).', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
 @admin_bp.route('/')
 @admin_bp.route('/dashboard')
 @login_required
