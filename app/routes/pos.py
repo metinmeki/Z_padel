@@ -149,7 +149,11 @@ def debt():
 def courts():
     court_list = Court.query.filter_by(is_active=True).all()
     active_sessions = {s.court_id: s for s in CourtSession.query.filter_by(status='active').all()}
-    return render_template('pos/courts.html', courts=court_list, active_sessions=active_sessions)
+    pending_court_sessions = CourtSession.query.filter_by(status='pending_payment').all()
+    pending_activity_sessions = ActivitySession.query.filter_by(status='pending_payment').all()
+    return render_template('pos/courts.html', courts=court_list, active_sessions=active_sessions,
+                           pending_court_sessions=pending_court_sessions,
+                           pending_activity_sessions=pending_activity_sessions)
 
 
 @pos_bp.route('/courts/<int:court_id>/start', methods=['POST'])
@@ -248,6 +252,20 @@ def end_session_time(session_id):
     db.session.commit()
 
     return jsonify(success=True, grand_total=session_row.grand_total)
+
+
+@pos_bp.route('/courts/session/<int:session_id>/free', methods=['POST'])
+@login_required
+def free_court_session(session_id):
+    session_row = CourtSession.query.get_or_404(session_id)
+    if session_row.status != 'active':
+        return jsonify(success=False, message='الجلسة غير نشطة'), 400
+    if not session_row.end_time:
+        session_row.end_time = datetime.utcnow()
+        session_row.total_price = session_row.calc_price()
+    session_row.status = 'pending_payment'
+    db.session.commit()
+    return jsonify(success=True)
 
 
 @pos_bp.route('/courts/session/<int:session_id>/finish', methods=['POST'])
@@ -432,6 +450,20 @@ def end_activity_time(session_id):
     return jsonify(success=True, total=sess.total_price, elapsed=sess.elapsed_seconds)
 
 
+@pos_bp.route('/activities/session/<int:session_id>/free', methods=['POST'])
+@login_required
+def free_activity_session(session_id):
+    sess = ActivitySession.query.get_or_404(session_id)
+    if sess.status != 'active':
+        return jsonify(success=False, message='الجلسة غير نشطة'), 400
+    if not sess.end_time:
+        sess.end_time = datetime.utcnow()
+        sess.total_price = sess.calc_price()
+    sess.status = 'pending_payment'
+    db.session.commit()
+    return jsonify(success=True)
+
+
 @pos_bp.route('/activities/session/<int:session_id>/finish', methods=['POST'])
 @login_required
 def finish_activity_session(session_id):
@@ -535,3 +567,72 @@ def activity_receipt(session_id):
     autoprint = request.args.get('autoprint', '0') == '1'
     return render_template('pos/activity_receipt.html', session=sess,
                            activity_meta=ACTIVITY_META, autoprint=autoprint)
+
+
+@pos_bp.route('/combined-checkout', methods=['POST'])
+@login_required
+def combined_checkout():
+    try:
+        data = request.get_json(force=True) or {}
+        court_ids    = data.get('court_ids', [])
+        activity_ids = data.get('activity_ids', [])
+        payment_method = data.get('payment_method', 'cash')
+        debt_name = (data.get('debt_name') or '').strip()
+
+        if payment_method == 'debt' and not debt_name:
+            return jsonify(success=False, message='الرجاء كتابة اسم الشخص'), 400
+
+        done_court_ids, done_activity_ids = [], []
+
+        for sid in court_ids:
+            s = CourtSession.query.get(int(sid))
+            if s and s.status in ('active', 'pending_payment'):
+                if not s.end_time:
+                    s.end_time = datetime.utcnow()
+                    s.total_price = s.calc_price()
+                s.payment_method = payment_method
+                s.status = 'completed'
+                if debt_name:
+                    s.customer_name = debt_name
+                done_court_ids.append(s.id)
+
+        for sid in activity_ids:
+            s = ActivitySession.query.get(int(sid))
+            if s and s.status in ('active', 'pending_payment'):
+                if not s.end_time:
+                    s.end_time = datetime.utcnow()
+                    s.total_price = s.calc_price()
+                s.payment_method = payment_method
+                s.status = 'completed'
+                if debt_name:
+                    s.customer_name = debt_name
+                done_activity_ids.append(s.id)
+
+        db.session.commit()
+        c_param = ','.join(str(i) for i in done_court_ids)
+        a_param = ','.join(str(i) for i in done_activity_ids)
+        return jsonify(success=True, redirect=url_for('pos.combined_receipt',
+                                                       court_ids=c_param, activity_ids=a_param,
+                                                       autoprint='1'))
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=str(e)), 500
+
+
+@pos_bp.route('/combined-receipt')
+@login_required
+def combined_receipt():
+    c_ids = [int(x) for x in request.args.get('court_ids', '').split(',') if x.strip()]
+    a_ids = [int(x) for x in request.args.get('activity_ids', '').split(',') if x.strip()]
+    court_sessions    = [CourtSession.query.get(i) for i in c_ids]
+    activity_sessions = [ActivitySession.query.get(i) for i in a_ids]
+    court_sessions    = [s for s in court_sessions if s]
+    activity_sessions = [s for s in activity_sessions if s]
+    autoprint = request.args.get('autoprint', '0') == '1'
+    grand_total = sum(s.grand_total for s in court_sessions) + sum(s.grand_total for s in activity_sessions)
+    return render_template('pos/combined_receipt.html',
+                           court_sessions=court_sessions,
+                           activity_sessions=activity_sessions,
+                           grand_total=grand_total,
+                           activity_meta=ACTIVITY_META,
+                           autoprint=autoprint)

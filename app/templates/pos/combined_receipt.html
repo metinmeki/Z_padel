@@ -1,0 +1,179 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}{% if lang == 'en' %}Combined Receipt{% else %}فاتورة مجمّعة{% endif %} — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+  *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+  body{ background:#f5f5f5; }
+  .receipt-wrapper{ background:#fff;border-radius:15px;padding:2rem;box-shadow:0 4px 6px rgba(0,0,0,.1); }
+  .receipt-container{ background:#fff;color:#000;max-width:350px;margin:0 auto;padding:20px;border:2px dashed #e9ecef;border-radius:10px;font-family:Arial,sans-serif;direction:rtl;text-align:right; }
+  .receipt-header{ text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px;direction:ltr; }
+  .receipt-header h3{ color:var(--primary);font-weight:700;margin-bottom:6px;font-size:1.3rem; }
+  .receipt-header p{ color:#333;font-size:.9rem;margin:3px 0; }
+  .receipt-section{ background:#f8f9fa;padding:10px 12px;border-radius:8px;margin-bottom:8px; }
+  .receipt-section-title{ font-weight:900;font-size:.85rem;color:var(--primary);margin-bottom:6px;border-bottom:1px dashed #ccc;padding-bottom:4px; }
+  .info-row{ display:flex;justify-content:space-between;gap:10px;margin-bottom:4px;font-size:.85rem; }
+  .info-label{ color:#6c757d; }
+  .info-value{ font-weight:700;color:#000; }
+  .receipt-items{ border-top:1px dashed #000;border-bottom:1px dashed #000;padding:8px 0;margin:8px 0; }
+  .receipt-item{ display:flex;justify-content:space-between;gap:10px;font-size:.88rem;padding:3px 0; }
+  .item-name{ flex:1;text-align:right; }
+  .item-price{ font-weight:700;white-space:nowrap;text-align:left; }
+  .receipt-item.subtotal{ border-top:1px dashed #999;margin-top:6px;padding-top:6px;font-weight:700; }
+  .receipt-total{ background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;font-size:1.2rem;font-weight:900;text-align:center;padding:10px 12px;border-radius:10px;margin:10px 0;display:flex;justify-content:space-between;gap:10px;direction:rtl; }
+  .payment-method{ text-align:center;padding:8px;background:#f8f9fa;border-radius:8px;margin:8px 0;font-weight:700;font-size:.9rem; }
+  .receipt-footer{ text-align:center;padding-top:10px;font-size:.8rem;border-top:1px dashed #000;color:#111;direction:ltr; }
+  .success-badge{ background:#d4edda;color:#155724;padding:10px 20px;border-radius:25px;display:inline-block;font-weight:700;margin-bottom:1rem; }
+  @media print{
+    @page{ size:80mm auto; margin:0; }
+    html,body{ margin:0!important;padding:0!important;background:#fff!important; }
+    body *{ visibility:hidden!important; }
+    #receipt, #receipt *{ visibility:visible!important; }
+    #receipt{ position:fixed!important;left:0!important;top:0!important;width:80mm!important;max-width:80mm!important;margin:0!important;padding:5mm!important;border:none!important;border-radius:0!important;box-shadow:none!important;background:#fff!important; }
+    .receipt-total,.receipt-total span{ background:#000!important;color:#fff!important; }
+    .no-print,.no-print *{ display:none!important;visibility:hidden!important; }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+
+    <div class="text-center mb-4 no-print">
+      <span class="success-badge">
+        <i class="fas fa-check-circle me-2"></i>{% if lang == 'en' %}Payment Completed{% else %}تم الدفع بنجاح{% endif %}
+      </span>
+    </div>
+
+    <div class="d-flex justify-content-between mb-4 no-print gap-2">
+      <a href="{{ url_for('pos.courts') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}
+      </a>
+      <button onclick="printReceipt()" class="btn btn-primary">
+        <i class="fas fa-print me-2"></i>{% if lang == 'en' %}Print{% else %}طباعة{% endif %}
+      </button>
+    </div>
+
+    <div class="receipt-wrapper">
+      <div class="receipt-container" id="receipt">
+
+        <div class="receipt-header">
+          <h3>Z PADEL</h3>
+          <p>{% if lang == 'en' %}Duhok, Iraq{% else %}دهوك، العراق{% endif %}</p>
+          <p style="font-size:.78rem;color:#888;">{% if lang == 'en' %}Combined Receipt{% else %}فاتورة مجمّعة{% endif %}</p>
+        </div>
+
+        {% for s in court_sessions %}
+        <div class="receipt-section">
+          <div class="receipt-section-title"><i class="fas fa-futbol me-1"></i>{{ s.court.name }}</div>
+          <div class="info-row">
+            <span class="info-label">{% if lang == 'en' %}Time:{% else %}الوقت:{% endif %}</span>
+            <strong class="info-value">{{ s.start_time.strftime('%H:%M') }} — {{ s.end_time.strftime('%H:%M') if s.end_time else '—' }}</strong>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{% if lang == 'en' %}Duration:{% else %}المدة:{% endif %}</span>
+            <strong class="info-value">{{ s.elapsed_minutes // 60 }}h {{ s.elapsed_minutes % 60 }}m</strong>
+          </div>
+          <div class="receipt-items" style="margin:6px 0;padding:6px 0;">
+            <div class="receipt-item">
+              <span class="item-name">{% if lang == 'en' %}Court time{% else %}وقت اللعب{% endif %}</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount) }} IQD</span>
+            </div>
+            {% for item in s.items %}
+            <div class="receipt-item">
+              <span class="item-name">{{ item.product_name }} × {{ item.quantity }}</span>
+              <span class="item-price">{{ '{:,.0f}'.format(item.subtotal) }} IQD</span>
+            </div>
+            {% endfor %}
+            <div class="receipt-item subtotal">
+              <span class="item-name">{% if lang == 'en' %}Subtotal{% else %}المجموع{% endif %}</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.grand_total) }} IQD</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        {% for s in activity_sessions %}
+        {% set meta = activity_meta.get(s.table.activity, {}) %}
+        <div class="receipt-section">
+          <div class="receipt-section-title"><i class="fas {{ meta.icon if meta.icon else 'fa-gamepad' }} me-1"></i>{{ s.table.name }}</div>
+          <div class="info-row">
+            <span class="info-label">{% if lang == 'en' %}Time:{% else %}الوقت:{% endif %}</span>
+            <strong class="info-value">{{ s.start_time.strftime('%H:%M') }} — {{ s.end_time.strftime('%H:%M') if s.end_time else '—' }}</strong>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{% if lang == 'en' %}Duration:{% else %}المدة:{% endif %}</span>
+            <strong class="info-value">{{ s.elapsed_minutes // 60 }}h {{ s.elapsed_minutes % 60 }}m</strong>
+          </div>
+          <div class="receipt-items" style="margin:6px 0;padding:6px 0;">
+            <div class="receipt-item">
+              <span class="item-name">{% if lang == 'en' %}Play time{% else %}وقت اللعب{% endif %}</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount) }} IQD</span>
+            </div>
+            {% for item in s.items %}
+            <div class="receipt-item">
+              <span class="item-name">{{ item.product_name }} × {{ item.quantity }}</span>
+              <span class="item-price">{{ '{:,.0f}'.format(item.subtotal) }} IQD</span>
+            </div>
+            {% endfor %}
+            <div class="receipt-item subtotal">
+              <span class="item-name">{% if lang == 'en' %}Subtotal{% else %}المجموع{% endif %}</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.grand_total) }} IQD</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="receipt-total">
+          <span>{% if lang == 'en' %}Net Total:{% else %}الصافي:{% endif %}</span>
+          <span>{{ '{:,.0f}'.format(grand_total) }} IQD</span>
+        </div>
+
+        {% set pm = (court_sessions + activity_sessions)[0].payment_method if (court_sessions + activity_sessions) else 'cash' %}
+        <div class="payment-method">
+          <i class="fas fa-{{ 'money-bill-wave' if pm == 'cash' else 'credit-card' if pm == 'card' else 'user-clock' }} me-1"></i>
+          {% if lang == 'en' %}Payment: {{ 'Cash' if pm == 'cash' else 'Card' if pm == 'card' else 'Debt' }}
+          {% else %}طريقة الدفع: {{ 'نقدي' if pm == 'cash' else 'بطاقة' if pm == 'card' else 'دين' }}{% endif %}
+        </div>
+
+        <div class="receipt-footer">
+          <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+          <p><i class="fas fa-heart"></i> {% if lang == 'en' %}Thank you for your visit{% else %}شكراً لزيارتكم{% endif %}</p>
+          <p><strong>Z PADEL</strong></p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const BACK_URL = "{{ url_for('pos.courts') }}";
+
+function printReceipt() {
+  var iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;width:650px;height:1000px;';
+  document.body.appendChild(iframe);
+  var doc = iframe.contentDocument;
+  doc.open();
+  doc.write(document.getElementById('receipt').outerHTML);
+  doc.close();
+  setTimeout(function() {
+    html2canvas(doc.body, { scale:3, useCORS:true, backgroundColor:'#ffffff' }).then(function(canvas) {
+      document.body.removeChild(iframe);
+      var img = canvas.toDataURL('image/png');
+      var w = window.open('','_blank','width=400,height=800');
+      w.document.write(`<html><head><style>@page{size:58mm auto;margin:0;}body{margin:0;padding:0;width:58mm;}img{width:58mm;display:block;}</style></head><body><img src="${img}"><script>window.onload=function(){window.print();setTimeout(window.close,1000);};<\/script></body></html>`);
+      w.document.close();
+    });
+  }, 800);
+}
+
+{% if autoprint %}
+window.addEventListener('load', () => setTimeout(printReceipt, 1000));
+{% endif %}
+</script>
+{% endblock %}

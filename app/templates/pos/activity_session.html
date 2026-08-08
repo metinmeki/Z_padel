@@ -130,6 +130,9 @@
       <button class="btn btn-warning" onclick="openDebtPrompt()">
         <i class="fas fa-user-clock me-2"></i>{% if lang == 'en' %}Finish as Debt{% else %}إنهاء كدين{% endif %}
       </button>
+      <button class="btn btn-outline-warning" onclick="freeTable()" style="border-color:#f59e0b;color:#92400e;background:#fffbeb;">
+        <i class="fas fa-door-open me-2"></i>{% if lang == 'en' %}Free Table (Pay Later){% else %}تحرير الطاولة — دفع لاحقاً{% endif %}
+      </button>
       <a href="{{ url_for('pos.activities') }}" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back{% else %}رجوع{% endif %}
       </a>
@@ -360,6 +363,22 @@ function submitDebtSession() {
     else { err.textContent = d.message || (isEn ? 'Error' : 'خطأ'); err.style.display = 'block'; }
   })
   .catch(() => { err.textContent = isEn ? 'Connection failed' : 'فشل الاتصال'; err.style.display = 'block'; });
+}
+
+function freeTable() {
+  const msg = isEn ? 'Free the table and keep bill open for later payment?' : 'تحرير الطاولة وإبقاء الحساب مفتوحاً للدفع لاحقاً؟';
+  if (!confirm(msg)) return;
+  fetch(`/pos/activities/session/${sessionId}/free`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
+    else alert(d.message || (isEn ? 'Error' : 'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
 }
 
 function cancelSession() {

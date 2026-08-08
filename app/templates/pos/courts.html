@@ -37,9 +37,93 @@
   .btn-start:hover { color:#fff; transform: translateY(-1px); }
   .btn-view-session { background: linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; font-weight:800; }
   .btn-view-session:hover { color:#fff; }
+  .pending-panel { background:var(--bg-surface); border:2px solid #f59e0b; border-radius:16px; padding:1.2rem; margin-bottom:1.5rem; }
+  .pending-panel-title { font-weight:900; font-size:1rem; color:#92400e; margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+  .pending-item { display:flex; align-items:center; gap:.8rem; padding:.6rem .8rem; border-radius:10px; margin-bottom:.5rem; background:#fffbeb; border:1px solid #fde68a; }
+  .pending-item input[type=checkbox] { width:18px; height:18px; accent-color:#f59e0b; flex-shrink:0; }
+  .pending-item-info { flex:1; }
+  .pending-item-name { font-weight:800; font-size:.9rem; color:var(--text-primary); }
+  .pending-item-sub { font-size:.75rem; color:var(--text-muted); }
+  .pending-item-price { font-weight:900; color:#92400e; white-space:nowrap; }
+  .pending-total-row { display:flex; justify-content:space-between; align-items:center; padding:.7rem 0; border-top:1px dashed #fde68a; margin-top:.5rem; font-weight:900; color:#92400e; }
+  .pending-actions { display:flex; gap:.5rem; margin-top:.8rem; flex-wrap:wrap; }
+  .pending-actions .btn { flex:1; min-width:100px; font-weight:800; font-size:.85rem; }
 {% endblock %}
 
 {% block content %}
+
+{% set all_pending = pending_court_sessions + pending_activity_sessions %}
+{% if all_pending %}
+<div class="pending-panel">
+  <div class="pending-panel-title">
+    <i class="fas fa-clock"></i>
+    {% if lang == 'en' %}Pending Payments{% else %}مدفوعات معلقة{% endif %}
+    <span style="background:#f59e0b;color:#fff;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;">{{ all_pending|length }}</span>
+  </div>
+
+  {% for s in pending_court_sessions %}
+  <div class="pending-item">
+    <input type="checkbox" class="pending-check" data-type="court" data-id="{{ s.id }}" data-total="{{ s.grand_total }}" onchange="updatePendingTotal()">
+    <div class="pending-item-info">
+      <div class="pending-item-name"><i class="fas fa-futbol me-1" style="color:{{ s.court.color }};"></i>{{ s.court.name }}</div>
+      <div class="pending-item-sub">
+        {{ s.elapsed_minutes // 60 }}h {{ s.elapsed_minutes % 60 }}m
+        {% if s.customer_name %} · {{ s.customer_name }}{% endif %}
+        · {{ s.start_time.strftime('%H:%M') }}
+      </div>
+    </div>
+    <div class="pending-item-price">{{ '{:,.0f}'.format(s.grand_total) }} IQD</div>
+  </div>
+  {% endfor %}
+
+  {% for s in pending_activity_sessions %}
+  {% set meta = activity_meta.get(s.table.activity, {}) %}
+  <div class="pending-item">
+    <input type="checkbox" class="pending-check" data-type="activity" data-id="{{ s.id }}" data-total="{{ s.grand_total }}" onchange="updatePendingTotal()">
+    <div class="pending-item-info">
+      <div class="pending-item-name"><i class="fas {{ meta.icon if meta.icon else 'fa-gamepad' }} me-1" style="color:{{ meta.color if meta.color else '#888' }};"></i>{{ s.table.name }}</div>
+      <div class="pending-item-sub">
+        {{ s.elapsed_minutes // 60 }}h {{ s.elapsed_minutes % 60 }}m
+        {% if s.customer_name %} · {{ s.customer_name }}{% endif %}
+        · {{ s.start_time.strftime('%H:%M') }}
+      </div>
+    </div>
+    <div class="pending-item-price">{{ '{:,.0f}'.format(s.grand_total) }} IQD</div>
+  </div>
+  {% endfor %}
+
+  <div class="pending-total-row">
+    <span>{% if lang == 'en' %}Selected Total{% else %}المجموع المختار{% endif %}</span>
+    <span id="pendingSelectedTotal">0 IQD</span>
+  </div>
+  <div class="pending-actions">
+    <button class="btn btn-success" onclick="payPending('cash')"><i class="fas fa-money-bill-wave me-1"></i>{% if lang == 'en' %}Cash{% else %}نقدي{% endif %}</button>
+    <button class="btn btn-primary" onclick="payPending('card')"><i class="fas fa-credit-card me-1"></i>{% if lang == 'en' %}Card{% else %}بطاقة{% endif %}</button>
+    <button class="btn btn-danger" onclick="openPendingDebt()"><i class="fas fa-user-clock me-1"></i>{% if lang == 'en' %}Debt{% else %}دين{% endif %}</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="modal fade" id="pendingDebtModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#EF4444,#C01E1E);border-bottom:none;">
+        <h5 class="modal-title" style="color:#fff;">{% if lang == 'en' %}Record Debt{% else %}تسجيل دين{% endif %}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">{% if lang == 'en' %}Person's Name{% else %}اسم الشخص{% endif %}</label>
+        <input type="text" id="pendingDebtName" class="form-control">
+        <div id="pendingDebtError" style="display:none;color:var(--danger);font-size:.82rem;margin-top:.4rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+        <button class="btn btn-danger" onclick="submitPendingDebt()">{% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="courts-summary">
   <span class="courts-count-pill"><i class="fas fa-table-tennis"></i> {% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}: {{ courts|length }}</span>
   <h2 style="margin:0;font-size:1.25rem;font-weight:800;">
@@ -95,6 +179,70 @@
 <script>
 const isEn = '{{ lang }}' === 'en';
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+function updatePendingTotal() {
+  let total = 0;
+  document.querySelectorAll('.pending-check:checked').forEach(cb => {
+    total += parseFloat(cb.dataset.total) || 0;
+  });
+  const el = document.getElementById('pendingSelectedTotal');
+  if (el) el.textContent = total.toLocaleString('en-IQ') + ' IQD';
+}
+
+function getSelectedIds() {
+  const court_ids = [], activity_ids = [];
+  document.querySelectorAll('.pending-check:checked').forEach(cb => {
+    if (cb.dataset.type === 'court') court_ids.push(parseInt(cb.dataset.id));
+    else activity_ids.push(parseInt(cb.dataset.id));
+  });
+  return { court_ids, activity_ids };
+}
+
+function payPending(method) {
+  const { court_ids, activity_ids } = getSelectedIds();
+  if (!court_ids.length && !activity_ids.length) {
+    alert(isEn ? 'Please select at least one session.' : 'اختر جلسة واحدة على الأقل.');
+    return;
+  }
+  if (!confirm(isEn ? 'Process payment?' : 'تأكيد الدفع؟')) return;
+  doCombinedCheckout({ court_ids, activity_ids, payment_method: method });
+}
+
+function openPendingDebt() {
+  const { court_ids, activity_ids } = getSelectedIds();
+  if (!court_ids.length && !activity_ids.length) {
+    alert(isEn ? 'Please select at least one session.' : 'اختر جلسة واحدة على الأقل.');
+    return;
+  }
+  document.getElementById('pendingDebtName').value = '';
+  document.getElementById('pendingDebtError').style.display = 'none';
+  new bootstrap.Modal(document.getElementById('pendingDebtModal')).show();
+}
+
+function submitPendingDebt() {
+  const name = document.getElementById('pendingDebtName').value.trim();
+  const err  = document.getElementById('pendingDebtError');
+  if (!name) {
+    err.textContent = isEn ? "Please enter the person's name" : 'الرجاء كتابة اسم الشخص';
+    err.style.display = 'block'; return;
+  }
+  const { court_ids, activity_ids } = getSelectedIds();
+  doCombinedCheckout({ court_ids, activity_ids, payment_method: 'debt', debt_name: name });
+}
+
+function doCombinedCheckout(payload) {
+  fetch('/pos/combined-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = d.redirect;
+    else alert(d.message || (isEn ? 'Error' : 'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
 
 function startCourt(courtId) {
   fetch(`/pos/courts/${courtId}/start`, {
