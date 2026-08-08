@@ -675,33 +675,6 @@
 </script>
 {% endif %}
 
-<!-- ═══════════ CTA ═══════════ -->
-<section class="cta-band">
-  <div class="cta-glow"></div>
-  <div class="container-z">
-    <div class="cta-inner reveal">
-      <span class="sec-eye" style="margin-bottom:20px;justify-content:center;background:rgba(214,195,161,.15);border-color:rgba(214,195,161,.3);color:var(--ac);">
-        <i class="fas fa-bolt"></i> {% if lang == 'en' %}Start Now{% else %}ابدأ الآن{% endif %}
-      </span>
-      <h2 class="cta-ttl">
-        {% if lang == 'en' %}Ready to Play?<br/><span>Book Now!</span>{% else %}جاهز للعب؟<br/><span>احجز الآن!</span>{% endif %}
-      </h2>
-      <p class="cta-sub">
-        {% if lang == 'en' %}Don't wait — our courts fill up fast. Reserve your spot today for free.{% else %}لا تنتظر — ملاعبنا تمتلئ بسرعة. احجز مكانك اليوم مجاناً.{% endif %}
-      </p>
-      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-        <a href="{{ url_for('booking.index') }}" class="btn-main">
-          <i class="fas fa-calendar-plus"></i>
-          {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
-        </a>
-        <a href="#contact" class="btn-ghost">
-          <i class="fas fa-phone"></i>
-          {% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ═══════════ CONTACT ═══════════ -->
 <section class="section" id="contact">
