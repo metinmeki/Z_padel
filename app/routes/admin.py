@@ -21,6 +21,17 @@ from app.models.store import (Category, Product, Order, OrderItem,
 from sqlalchemy import func, case
 admin_bp = Blueprint('admin', __name__)
 
+ADMIN_ALLOWED_USERS = {'yaser', 'mazin'}
+
+@admin_bp.before_request
+def restrict_admin_access():
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    if current_user.username.lower() not in ADMIN_ALLOWED_USERS:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+
 # ── helpers ──
 def allowed_file(filename):
     return ('.' in filename and
