@@ -38,11 +38,12 @@ def index():
             booked_slots[key] = []
         start_m = b.start_time.hour * 60 + b.start_time.minute
         end_m   = b.end_time.hour   * 60 + b.end_time.minute
-        if end_m <= start_m:  # cross-midnight segment stored as 23:59 end
-            end_m = 24 * 60
+        if end_m <= start_m:  # cross-midnight: extend end past 24h boundary
+            end_m += 24 * 60
         m = start_m
         while m < end_m:
-            ts = f"{m//60:02d}:{m%60:02d}"
+            actual_m = m % (24 * 60)  # wrap 1440→0, 1470→30, etc.
+            ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
             if ts not in booked_slots[key]:
                 booked_slots[key].append(ts)
             m += 30
