@@ -650,12 +650,31 @@
       <span>{% if lang == 'en' %}Partners{% elif lang == 'ku' %}هاوکاران{% else %}الرعاة{% endif %}</span>
     </div>
     <div class="sponsor-track-wrap">
-      <div class="sponsor-track">
-        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}{% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
+      <div class="sponsor-track" id="sponsorTrack">
+        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
       </div>
     </div>
   </div>
 </div>
+<script>
+(function(){
+  var track = document.getElementById('sponsorTrack');
+  if (!track) return;
+  var orig = track.innerHTML;
+  // Fill track until it's at least 3× the screen width (always gaps-free)
+  // Keep count even so -50% animation stays seamless
+  var copies = 1;
+  while (track.scrollWidth < window.innerWidth * 3) {
+    track.innerHTML += orig;
+    copies++;
+  }
+  // If odd copies, add one more to keep it even
+  if (copies % 2 !== 0) track.innerHTML += orig;
+  // Duration scales with number of copies so speed stays consistent
+  var baseDur = 8; // seconds per original set
+  track.style.animationDuration = (baseDur * (copies / 2)) + 's';
+})();
+</script>
 {% endif %}
 
 <!-- ═══════════ CTA ═══════════ -->
