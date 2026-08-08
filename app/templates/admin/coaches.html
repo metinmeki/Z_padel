@@ -3,6 +3,7 @@
 {% block title %}{% if lang == 'en' %}Coaches Management{% else %}إدارة المدربين{% endif %}{% endblock %}
 
 {% block content %}
+
 <div class="container-fluid">
 
 <h3 class="mb-4">🏆 {% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</h3>
@@ -10,57 +11,28 @@
 <!-- Add Coach -->
 <form method="POST" action="{{ url_for('admin.add_coach') }}" enctype="multipart/form-data" class="card p-3 mb-4">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h6 class="mb-3 fw-bold">{% if lang == 'en' %}Add New Coach{% else %}إضافة مدرب جديد{% endif %}</h6>
-  <div class="row g-3">
+
+  <div class="row">
     <div class="col-md-4">
-      <label class="form-label">{% if lang == 'en' %}Name{% else %}الاسم{% endif %} *</label>
+      <label>{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</label>
       <input type="text" name="name" class="form-control" required>
     </div>
     <div class="col-md-4">
-      <label class="form-label">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
+      <label>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
       <select name="status" class="form-control">
         <option value="available">{% if lang == 'en' %}Available{% else %}متاح{% endif %}</option>
         <option value="coming_soon">{% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}</option>
       </select>
     </div>
     <div class="col-md-4">
-      <label class="form-label">{% if lang == 'en' %}Price / Session (IQD){% else %}سعر الجلسة (د.ع){% endif %}</label>
-      <input type="number" name="price_per_hour" class="form-control" value="0">
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">{% if lang == 'en' %}Specialty{% else %}التخصص{% endif %}</label>
-      <input type="text" name="specialty" class="form-control">
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">{% if lang == 'en' %}Phone{% else %}الهاتف{% endif %}</label>
-      <input type="text" name="phone" class="form-control">
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">{% if lang == 'en' %}Photo{% else %}الصورة{% endif %}</label>
+      <label>{% if lang == 'en' %}Image{% else %}الصورة{% endif %}</label>
       <input type="file" name="image" class="form-control">
     </div>
-    <div class="col-md-12">
-      <label class="form-label">{% if lang == 'en' %}Bio{% else %}نبذة{% endif %}</label>
-      <textarea name="bio" class="form-control" rows="2"></textarea>
+    <div class="col-md-12 mt-3">
+      <label>{% if lang == 'en' %}Bio{% else %}نبذة{% endif %}</label>
+      <textarea name="bio" class="form-control"></textarea>
     </div>
-    <!-- Social Links -->
-    <div class="col-md-3">
-      <label class="form-label"><i class="fab fa-instagram text-danger me-1"></i>Instagram</label>
-      <input type="text" name="instagram" class="form-control" placeholder="https://instagram.com/...">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label"><i class="fab fa-facebook text-primary me-1"></i>Facebook</label>
-      <input type="text" name="facebook" class="form-control" placeholder="https://facebook.com/...">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label"><i class="fab fa-whatsapp text-success me-1"></i>WhatsApp</label>
-      <input type="text" name="whatsapp" class="form-control" placeholder="9647...">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label"><i class="fab fa-tiktok me-1"></i>TikTok</label>
-      <input type="text" name="tiktok" class="form-control" placeholder="https://tiktok.com/@...">
-    </div>
-    <div class="col-md-12">
+    <div class="col-md-12 mt-3">
       <button class="btn btn-success">{% if lang == 'en' %}Add Coach{% else %}إضافة مدرب{% endif %}</button>
     </div>
   </div>
@@ -68,16 +40,14 @@
 
 <!-- Coaches Table -->
 <div class="card p-3">
-  <table class="table table-bordered align-middle">
+  <table class="table table-bordered">
     <thead>
       <tr>
-        <th>#</th>
-        <th>{% if lang == 'en' %}Photo{% else %}الصورة{% endif %}</th>
+        <th>{% if lang == 'en' %}ID{% else %}#{% endif %}</th>
+        <th>{% if lang == 'en' %}Image{% else %}الصورة{% endif %}</th>
         <th>{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</th>
-        <th>{% if lang == 'en' %}Specialty{% else %}التخصص{% endif %}</th>
-        <th>{% if lang == 'en' %}Price{% else %}السعر{% endif %}</th>
         <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
-        <th>{% if lang == 'en' %}Social{% else %}روابط{% endif %}</th>
+        <th>{% if lang == 'en' %}Active{% else %}نشط{% endif %}</th>
         <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
       </tr>
     </thead>
@@ -87,44 +57,16 @@
         <td>{{ coach.id }}</td>
         <td>
           {% if coach.image %}
-            <img src="{{ url_for('static', filename=coach.image) }}" width="60" style="border-radius:50%;object-fit:cover;height:60px;">
+            <img src="{{ url_for('static', filename=coach.image) }}" width="70">
           {% else %}
-            <div style="width:60px;height:60px;border-radius:50%;background:#e8dfd0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-user text-secondary"></i></div>
+            <img src="{{ url_for('static', filename='images/coming-soon.jpg') }}" width="70">
           {% endif %}
         </td>
-        <td><strong>{{ coach.name }}</strong></td>
-        <td>{{ coach.specialty or '—' }}</td>
-        <td>{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD</td>
+        <td>{{ coach.name }}</td>
+        <td>{{ coach.status }}</td>
+        <td>{% if coach.is_active %}{% if lang == 'en' %}Yes{% else %}نعم{% endif %}{% else %}{% if lang == 'en' %}No{% else %}لا{% endif %}{% endif %}</td>
         <td>
-          {% if coach.status == 'available' %}
-            <span class="badge bg-success">{% if lang == 'en' %}Available{% else %}متاح{% endif %}</span>
-          {% else %}
-            <span class="badge bg-secondary">{% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}</span>
-          {% endif %}
-        </td>
-        <td style="font-size:1.1rem;">
-          {% if coach.instagram %}<a href="{{ coach.instagram }}" target="_blank" class="me-2 text-danger"><i class="fab fa-instagram"></i></a>{% endif %}
-          {% if coach.facebook %}<a href="{{ coach.facebook }}" target="_blank" class="me-2 text-primary"><i class="fab fa-facebook"></i></a>{% endif %}
-          {% if coach.whatsapp %}<a href="https://wa.me/{{ coach.whatsapp }}" target="_blank" class="me-2 text-success"><i class="fab fa-whatsapp"></i></a>{% endif %}
-          {% if coach.tiktok %}<a href="{{ coach.tiktok }}" target="_blank" class="text-dark"><i class="fab fa-tiktok"></i></a>{% endif %}
-        </td>
-        <td>
-          <button class="btn btn-sm btn-outline-primary me-1"
-            onclick="openEdit({{ coach.id }}, {{ {
-              'name': coach.name,
-              'status': coach.status or 'available',
-              'price_per_hour': coach.price_per_hour or 0,
-              'specialty': coach.specialty or '',
-              'phone': coach.phone or '',
-              'bio': coach.bio or '',
-              'instagram': coach.instagram or '',
-              'facebook': coach.facebook or '',
-              'whatsapp': coach.whatsapp or '',
-              'tiktok': coach.tiktok or ''
-            }|tojson }})">
-            {% if lang == 'en' %}Edit{% else %}تعديل{% endif %}
-          </button>
-          <form method="POST" action="{{ url_for('admin.delete_coach', coach_id=coach.id) }}" style="display:inline"
+          <form method="POST" action="{{ url_for('admin.delete_coach', coach_id=coach.id) }}"
                 onsubmit="return confirm('{% if lang == 'en' %}Delete this coach?{% else %}حذف هذا المدرب؟{% endif %}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-danger btn-sm">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>
@@ -137,94 +79,4 @@
 </div>
 
 </div>
-
-<!-- Edit Modal -->
-<div class="modal fade" id="editCoachModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">{% if lang == 'en' %}Edit Coach{% else %}تعديل المدرب{% endif %}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="editForm" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label">{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</label>
-              <input type="text" name="name" id="edit_name" class="form-control" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
-              <select name="status" id="edit_status" class="form-control">
-                <option value="available">{% if lang == 'en' %}Available{% else %}متاح{% endif %}</option>
-                <option value="coming_soon">{% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">{% if lang == 'en' %}Price / Session{% else %}سعر الجلسة{% endif %}</label>
-              <input type="number" name="price_per_hour" id="edit_price" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">{% if lang == 'en' %}Specialty{% else %}التخصص{% endif %}</label>
-              <input type="text" name="specialty" id="edit_specialty" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">{% if lang == 'en' %}Phone{% else %}الهاتف{% endif %}</label>
-              <input type="text" name="phone" id="edit_phone" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">{% if lang == 'en' %}New Photo{% else %}صورة جديدة{% endif %}</label>
-              <input type="file" name="image" class="form-control">
-            </div>
-            <div class="col-md-12">
-              <label class="form-label">{% if lang == 'en' %}Bio{% else %}نبذة{% endif %}</label>
-              <textarea name="bio" id="edit_bio" class="form-control" rows="3"></textarea>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><i class="fab fa-instagram text-danger me-1"></i>Instagram</label>
-              <input type="text" name="instagram" id="edit_instagram" class="form-control">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><i class="fab fa-facebook text-primary me-1"></i>Facebook</label>
-              <input type="text" name="facebook" id="edit_facebook" class="form-control">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><i class="fab fa-whatsapp text-success me-1"></i>WhatsApp</label>
-              <input type="text" name="whatsapp" id="edit_whatsapp" class="form-control">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><i class="fab fa-tiktok me-1"></i>TikTok</label>
-              <input type="text" name="tiktok" id="edit_tiktok" class="form-control">
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
-          <button type="submit" class="btn btn-primary">{% if lang == 'en' %}Save{% else %}حفظ{% endif %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function openEdit(id, c) {
-  document.getElementById('editForm').action = '/admin/coaches/' + id + '/edit';
-  document.getElementById('edit_name').value      = c.name || '';
-  document.getElementById('edit_status').value    = c.status || 'available';
-  document.getElementById('edit_price').value     = c.price_per_hour || 0;
-  document.getElementById('edit_specialty').value = c.specialty || '';
-  document.getElementById('edit_phone').value     = c.phone || '';
-  document.getElementById('edit_bio').value       = c.bio || '';
-  document.getElementById('edit_instagram').value = c.instagram || '';
-  document.getElementById('edit_facebook').value  = c.facebook || '';
-  document.getElementById('edit_whatsapp').value  = c.whatsapp || '';
-  document.getElementById('edit_tiktok').value    = c.tiktok || '';
-  new bootstrap.Modal(document.getElementById('editCoachModal')).show();
-}
-</script>
 {% endblock %}

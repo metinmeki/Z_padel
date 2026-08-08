@@ -417,7 +417,7 @@
 </section>
 
 <!-- ═══════════ COACHES ═══════════ -->
-<section class="section coaches-section" id="coaches" style="overflow:hidden;">
+<section class="section coaches-section" id="coaches">
   <div class="container-z">
 
     <div class="reveal" style="text-align:center;margin-bottom:56px;">
@@ -434,51 +434,31 @@
     <div class="row g-4 justify-content-center">
       {% for coach in coaches %}
       <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-        <div class="coach-card-real coach-card-clickable"
-          data-coach='{{ {
-            "id": coach.id,
-            "name": coach.name,
-            "status": coach.status,
-            "specialty": coach.specialty or "",
-            "bio": coach.bio or "",
-            "price_per_hour": coach.price_per_hour,
-            "image": url_for("static", filename=coach.image) if coach.image else "",
-            "instagram": coach.instagram or "",
-            "facebook": coach.facebook or "",
-            "whatsapp": coach.whatsapp or "",
-            "tiktok": coach.tiktok or ""
-          }|tojson }}'
-          onclick="openCoachProfile(JSON.parse(this.dataset.coach))">
+        <div class="coach-card-real" onclick="openCoachBooking({{ coach.id }}, '{{ coach.name }}')">
           {% if coach.image %}
-          <div style="width:100%;height:240px;flex-shrink:0;background-image:url('{{ url_for('static', filename=coach.image) }}');background-size:cover;background-position:top center;background-repeat:no-repeat;"></div>
+            <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-avatar-img">
           {% else %}
-          <div style="width:100%;height:240px;flex-shrink:0;background:linear-gradient(135deg,#2C3539,#596770);display:flex;align-items:center;justify-content:center;">
-            <i class="fas fa-user" style="font-size:4rem;color:#D6C3A1;opacity:.6;"></i>
+            <div class="coach-avatar-fallback"><i class="fas fa-user"></i></div>
+          {% endif %}
+          <div class="coach-name">{{ coach.name }}</div>
+          <span class="coach-status-badge {{ coach.status }}">
+            {% if coach.status == 'available' %}
+              <i class="fas fa-circle" style="font-size:8px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+              {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
+            {% else %}
+              <i class="fas fa-clock" style="font-size:10px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+              {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
+            {% endif %}
+          </span>
+          {% if coach.bio %}<p class="coach-bio">{{ coach.bio }}</p>{% endif %}
+          {% if coach.status == 'available' %}
+          <div style="margin-top:16px;">
+            <button type="button" class="btn-blue" style="width:100%;justify-content:center;border:none;cursor:pointer;">
+              <i class="fas fa-calendar-plus"></i>
+              {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
+            </button>
           </div>
           {% endif %}
-          <div class="coach-card-body">
-            <div class="coach-name">{{ coach.name }}</div>
-            {% if coach.specialty %}<div class="coach-specialty">{{ coach.specialty }}</div>{% endif %}
-            <span class="coach-status-badge {{ coach.status }}">
-              {% if coach.status == 'available' %}
-                <i class="fas fa-circle" style="font-size:7px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
-                {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
-              {% else %}
-                <i class="fas fa-clock" style="font-size:9px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
-                {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
-              {% endif %}
-            </span>
-            {% if coach.price_per_hour %}
-            <div class="coach-price-pill">
-              <i class="fas fa-tag" style="font-size:10px;"></i>
-              {{ '{:,.0f}'.format(coach.price_per_hour) }} {% if lang == 'en' %}IQD / session{% else %}د.ع / جلسة{% endif %}
-            </div>
-            {% endif %}
-            <div class="coach-view-profile">
-              <i class="fas fa-eye"></i>
-              {% if lang == 'en' %}View Profile & Book{% else %}عرض الملف والحجز{% endif %}
-            </div>
-          </div>
         </div>
       </div>
       {% endfor %}
@@ -534,75 +514,6 @@
 
   </div>
 </section>
-
-<!-- ═══ Coach Profile Modal ═══ -->
-<div class="modal fade" id="coachProfileModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content coach-profile-modal">
-
-      <!-- Hero Banner — full image -->
-      <div id="cpmHero" style="position:relative;height:300px;overflow:hidden;background:linear-gradient(135deg,#2C3539,#596770);flex-shrink:0;">
-        <img id="cpmHeroImg" src="" alt=""
-             style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;max-width:100%;">
-        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.65));z-index:1;"></div>
-        <button type="button" class="cpm-close-btn" data-bs-dismiss="modal" style="position:absolute;top:14px;right:14px;z-index:10;background:rgba(0,0,0,.4);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;">
-          <i class="fas fa-times"></i>
-        </button>
-        <div style="position:absolute;bottom:0;left:0;right:0;z-index:2;padding:20px 24px;color:#fff;">
-          <h3 class="cpm-name" id="cpmName" style="font-size:1.6rem;font-weight:900;margin:0 0 4px;text-shadow:0 2px 8px rgba(0,0,0,.5);"></h3>
-          <div id="cpmSpecialty" style="font-size:12px;color:#D6C3A1;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;"></div>
-          <div id="cpmStatusBadge" class="cpm-status-badge"></div>
-        </div>
-      </div>
-
-      <!-- Body -->
-      <div style="background:#fff;padding:22px 24px;">
-
-        <!-- Price -->
-        <div id="cpmPriceRow" style="margin-bottom:16px;">
-          <div style="background:linear-gradient(135deg,#2C3539,#596770);border-radius:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
-            <span style="color:#D6C3A1;font-size:13px;font-weight:600;">{% if lang == 'en' %}Session Price{% else %}سعر الجلسة{% endif %}</span>
-            <span id="cpmPrice" style="color:#fff;font-size:1.3rem;font-weight:900;"></span>
-          </div>
-        </div>
-
-        <!-- Bio -->
-        <div id="cpmBioSection" style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:#596770;margin-bottom:6px;">
-            <i class="fas fa-quote-right" style="margin-left:5px;"></i>{% if lang == 'en' %}About{% else %}نبذة{% endif %}
-          </div>
-          <p id="cpmBio" style="font-size:14px;color:#4b5563;line-height:1.75;margin:0;"></p>
-        </div>
-
-        <!-- Social Links -->
-        <div id="cpmSocialRow" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
-          <a id="cpmIG" href="#" target="_blank" style="display:none;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">
-            <i class="fab fa-instagram"></i><span>Instagram</span>
-          </a>
-          <a id="cpmFB" href="#" target="_blank" style="display:none;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;background:#1877f2;color:#fff;font-size:13px;font-weight:700;text-decoration:none;">
-            <i class="fab fa-facebook-f"></i><span>Facebook</span>
-          </a>
-          <a id="cpmWA" href="#" target="_blank" style="display:none;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;background:#25d366;color:#fff;font-size:13px;font-weight:700;text-decoration:none;">
-            <i class="fab fa-whatsapp"></i><span>WhatsApp</span>
-          </a>
-          <a id="cpmTK" href="#" target="_blank" style="display:none;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;background:#000;color:#fff;font-size:13px;font-weight:700;text-decoration:none;">
-            <i class="fab fa-tiktok"></i><span>TikTok</span>
-          </a>
-        </div>
-
-        <!-- Book Button -->
-        <div id="cpmFooter" style="border-top:1px solid #f0f0f0;padding-top:16px;">
-          <button type="button" onclick="switchToBooking()"
-            style="width:100%;padding:15px 24px;border:none;border-radius:12px;cursor:pointer;background:linear-gradient(135deg,#2C3539,#596770);color:#fff;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:9px;">
-            <i class="fas fa-calendar-plus"></i>
-            {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Coach Booking Modal -->
 <div class="modal fade" id="bookCoachModal" tabindex="-1">
@@ -872,77 +783,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ── Coach profile modal ──
-  let _activeCoachId = null;
-  let _activeCoachName = '';
-
-  function openCoachProfile(c) {
-    _activeCoachId = c.id;
-    _activeCoachName = c.name;
-
-    // Avatar
-    // Full hero image
-    var heroImg = document.getElementById('cpmHeroImg');
-    if (c.image) { heroImg.src = c.image; heroImg.style.display = 'block'; }
-    else         { heroImg.style.display = 'none'; }
-
-    // Name & specialty
-    document.getElementById('cpmName').textContent = c.name;
-    var sp = document.getElementById('cpmSpecialty');
-    sp.textContent = c.specialty || '';
-    sp.style.display = c.specialty ? '' : 'none';
-
-    // Status badge
-    var sb = document.getElementById('cpmStatusBadge');
-    var isAvail = c.status === 'available';
-    sb.className = 'cpm-status-badge ' + (c.status || '');
-    sb.innerHTML = isAvail
-      ? '<i class="fas fa-circle" style="font-size:7px;margin-left:5px;"></i>{{ "Available Now" if lang == "en" else "متاح الآن" }}'
-      : '<i class="fas fa-clock" style="font-size:10px;margin-left:5px;"></i>{{ "Coming Soon" if lang == "en" else "قريباً" }}';
-
-    // Price
-    var pr = document.getElementById('cpmPriceRow');
-    var pv = document.getElementById('cpmPrice');
-    if (c.price_per_hour > 0) {
-      pv.textContent = Number(c.price_per_hour).toLocaleString() + ' IQD';
-      pr.style.display = '';
-    } else { pr.style.display = 'none'; }
-
-    // Bio
-    var bs = document.getElementById('cpmBioSection');
-    var bt = document.getElementById('cpmBio');
-    if (c.bio) { bt.textContent = c.bio; bs.style.display = ''; }
-    else        { bs.style.display = 'none'; }
-
-    // Social links
-    function setSocial(elId, url) {
-      var el = document.getElementById(elId);
-      if (url) { el.href = url; el.style.display = 'inline-flex'; }
-      else      { el.style.display = 'none'; }
-    }
-    setSocial('cpmIG', c.instagram);
-    setSocial('cpmFB', c.facebook);
-    setSocial('cpmTK', c.tiktok);
-    var waEl = document.getElementById('cpmWA');
-    if (c.whatsapp) { waEl.href = 'https://wa.me/' + c.whatsapp; waEl.style.display = 'inline-flex'; }
-    else            { waEl.style.display = 'none'; }
-
-    var social = document.getElementById('cpmSocialRow');
-    social.style.display = (c.instagram || c.facebook || c.whatsapp || c.tiktok) ? '' : 'none';
-
-    // Book button: hide if coming soon
-    document.getElementById('cpmFooter').style.display = isAvail ? '' : 'none';
-
-    new bootstrap.Modal(document.getElementById('coachProfileModal')).show();
-  }
-
-  function switchToBooking() {
-    bootstrap.Modal.getInstance(document.getElementById('coachProfileModal')).hide();
-    document.getElementById('coachIdInput').value = _activeCoachId;
-    document.getElementById('coachNameDisplay').value = _activeCoachName;
-    setTimeout(() => new bootstrap.Modal(document.getElementById('bookCoachModal')).show(), 300);
-  }
-
+  // ── Coach modal ──
   function openCoachBooking(coachId, coachName) {
     document.getElementById('coachIdInput').value   = coachId;
     document.getElementById('coachNameDisplay').value = coachName;
