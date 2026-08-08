@@ -40,12 +40,24 @@ def index():
         end_m   = b.end_time.hour   * 60 + b.end_time.minute
         if end_m <= start_m:  # cross-midnight: extend end past 24h boundary
             end_m += 24 * 60
+        next_key = None
         m = start_m
         while m < end_m:
-            actual_m = m % (24 * 60)  # wrap 1440→0, 1470→30, etc.
-            ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
-            if ts not in booked_slots[key]:
-                booked_slots[key].append(ts)
+            if m >= 24 * 60:
+                # Post-midnight slots belong to the next calendar day
+                if next_key is None:
+                    next_date = b.booking_date + timedelta(days=1)
+                    next_key = f"{b.court_id}:{next_date.isoformat()}"
+                    if next_key not in booked_slots:
+                        booked_slots[next_key] = []
+                actual_m = m - 24 * 60
+                ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
+                if ts not in booked_slots[next_key]:
+                    booked_slots[next_key].append(ts)
+            else:
+                ts = f"{m//60:02d}:{m%60:02d}"
+                if ts not in booked_slots[key]:
+                    booked_slots[key].append(ts)
             m += 30
 
     return render_template('booking.html',
