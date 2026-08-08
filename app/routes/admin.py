@@ -257,13 +257,28 @@ def bookings():
     if request.args.get('status'):
         q = q.filter_by(status=request.args['status'])
 
-    page   = request.args.get('page', 1, type=int)
-    pag    = q.order_by(Booking.booking_date.desc(), Booking.start_time.asc()).paginate(page=page, per_page=20)
-    courts = Court.query.filter_by(is_active=True).all()
-    today  = date.today().isoformat()
+    courts     = Court.query.filter_by(is_active=True).all()
+    today_date = date.today()
+
+    def _bk_sort_key(b):
+        d = b.booking_date or date.min
+        t = (b.start_time.hour * 60 + b.start_time.minute) if b.start_time else 0
+        if d == today_date:
+            return (0, 0, t)          # Today: priority 0, sorted by time
+        elif d > today_date:
+            return (1, (d - today_date).days, t)   # Future: soonest first
+        else:
+            return (2, (today_date - d).days, t)   # Past: most recent first
+
+    all_bk = sorted(q.limit(500).all(), key=_bk_sort_key)
+
+    from datetime import timedelta
+    tomorrow = (today_date + timedelta(days=1)).isoformat()
+
     return render_template('admin/bookings.html',
-        bookings=pag.items, pagination=pag,
-        courts=courts, today=today, court_price=25000)
+        bookings=all_bk, pagination=None,
+        courts=courts, today=today_date.isoformat(),
+        tomorrow=tomorrow, court_price=25000)
 
 
 @admin_bp.route('/bookings/add', methods=['POST'])

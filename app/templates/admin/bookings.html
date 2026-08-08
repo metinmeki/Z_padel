@@ -155,6 +155,22 @@
 .action-btn.cancel { background: rgba(229,57,53,0.10);   color: #C62828; }
 .action-btn.edit   { background: rgba(251,140,0,0.10);   color: #E65100; }
 .action-btn:hover  { transform: scale(1.12); }
+/* ── Date group header ── */
+.date-group-row td {
+  padding: 6px 16px 4px !important;
+  background: var(--bg-main);
+  border-bottom: none !important;
+}
+.date-label {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .04em;
+  text-transform: uppercase; padding: 4px 14px;
+  border-radius: 999px;
+}
+.date-label.today   { background: #d1fae5; color: #065f46; }
+.date-label.tomorrow{ background: #dbeafe; color: #1e3a8a; }
+.date-label.future  { background: #ede9fe; color: #4c1d95; }
+.date-label.past    { background: #f3f4f6; color: #6b7280; }
 /* ── Pagination ── */
 .pagination-wrap {
   display: flex;
@@ -344,7 +360,25 @@
       </thead>
       <tbody id="bookingsBody">
         {% if bookings %}
+          {% set ns = namespace(last_date=None) %}
           {% for b in bookings %}
+          {% if b.booking_date and b.booking_date.isoformat() != ns.last_date %}
+            {% set ns.last_date = b.booking_date.isoformat() %}
+            <tr class="date-group-row">
+              <td colspan="8">
+                {% set d = b.booking_date %}
+                {% if d.isoformat() == today %}
+                  <span class="date-label today"><i class="fas fa-circle-dot"></i>{% if lang == 'en' %}Today{% else %}اليوم{% endif %} &nbsp;·&nbsp; {{ d.strftime('%A, %b %d %Y') }}</span>
+                {% elif d.isoformat() == tomorrow %}
+                  <span class="date-label tomorrow"><i class="fas fa-forward"></i>{% if lang == 'en' %}Tomorrow{% else %}غداً{% endif %} &nbsp;·&nbsp; {{ d.strftime('%A, %b %d %Y') }}</span>
+                {% elif d.isoformat() > today %}
+                  <span class="date-label future"><i class="fas fa-calendar"></i>{{ d.strftime('%A, %b %d %Y') }}</span>
+                {% else %}
+                  <span class="date-label past"><i class="fas fa-clock-rotate-left"></i>{{ d.strftime('%A, %b %d %Y') }}</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
           <tr>
             <td style="color:var(--text-muted);font-size:12px;">{{ loop.index }}</td>
             <td>
