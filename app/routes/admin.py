@@ -14,7 +14,8 @@ from sqlalchemy import func
 from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
-                               ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META)
+                               ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
+                               Sponsor)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory)
 from sqlalchemy import func, case
@@ -1506,3 +1507,48 @@ def delete_activity_table(table_id):
     db.session.commit()
     flash('Table deleted', 'success')
     return redirect(url_for('admin.activity_tables'))
+
+
+# ════════════════════════════════════════════
+# SPONSORS
+# ════════════════════════════════════════════
+@admin_bp.route('/sponsors', methods=['GET', 'POST'])
+@login_required
+def sponsors():
+    sponsors = Sponsor.query.order_by(Sponsor.sort_order, Sponsor.created_at).all()
+    return render_template('admin/sponsors.html', sponsors=sponsors)
+
+
+@admin_bp.route('/sponsors/add', methods=['POST'])
+@login_required
+def add_sponsor():
+    name    = request.form.get('name', '').strip()
+    website = request.form.get('website', '').strip()
+    order   = int(request.form.get('sort_order', 0) or 0)
+    logo    = save_upload(request.files.get('logo'))
+    if not name:
+        flash('Name is required.', 'danger')
+        return redirect(url_for('admin.sponsors'))
+    db.session.add(Sponsor(name=name, logo=logo, website=website or None, sort_order=order))
+    db.session.commit()
+    flash('Sponsor added.', 'success')
+    return redirect(url_for('admin.sponsors'))
+
+
+@admin_bp.route('/sponsors/<int:sponsor_id>/delete', methods=['POST'])
+@login_required
+def delete_sponsor(sponsor_id):
+    s = Sponsor.query.get_or_404(sponsor_id)
+    db.session.delete(s)
+    db.session.commit()
+    flash('Sponsor deleted.', 'success')
+    return redirect(url_for('admin.sponsors'))
+
+
+@admin_bp.route('/sponsors/<int:sponsor_id>/toggle', methods=['POST'])
+@login_required
+def toggle_sponsor(sponsor_id):
+    s = Sponsor.query.get_or_404(sponsor_id)
+    s.is_active = not s.is_active
+    db.session.commit()
+    return redirect(url_for('admin.sponsors'))

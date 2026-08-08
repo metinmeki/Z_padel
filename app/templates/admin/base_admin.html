@@ -1175,6 +1175,14 @@
         <span class="nav-label">{% if lang == 'en' %}Categories{% elif lang == 'ku' %}جۆرەکان{% else %}الفئات{% endif %}</span>
       </a>
     </div>
+
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.sponsors') }}"
+         class="nav-link-custom {% if request.endpoint == 'admin.sponsors' %}active{% endif %}">
+        <i class="fas fa-handshake nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Sponsors{% elif lang == 'ku' %}سپۆنسەرەکان{% else %}الرعاة{% endif %}</span>
+      </a>
+    </div>
     {% endif %}
 
     {% if current_user.has_perm('perm_orders') %}

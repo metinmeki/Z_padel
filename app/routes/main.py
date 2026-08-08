@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, request, send_file, jsonify, current_app, send_from_directory, abort
-from app.models.main import Court, Booking, Coach, GameClip
+from app.models.main import Court, Booking, Coach, GameClip, Sponsor
 from app.models.store import Product
 
 import os
@@ -35,12 +35,14 @@ def index():
 
     # Fetch active products marked for the website, limited to 4
     products = Product.query.filter_by(is_active=True, show_on_website=True).limit(4).all()
+    sponsors = Sponsor.query.filter_by(is_active=True).order_by(Sponsor.sort_order, Sponsor.created_at).all()
 
     return render_template('index.html',
                            coaches=coaches,
                            courts=courts,
                            total_bookings=total_bookings,
-                           products=products)
+                           products=products,
+                           sponsors=sponsors)
 
 
 @main_bp.route('/sw.js')

@@ -262,6 +262,23 @@ class GameClip(db.Model):
 
 
 # ═══════════════════════════════════════════
+# SPONSOR
+# ═══════════════════════════════════════════
+class Sponsor(db.Model):
+    __tablename__ = 'sponsors'
+    id         = db.Column(db.Integer, primary_key=True)
+    name       = db.Column(db.String(100), nullable=False)
+    logo       = db.Column(db.String(200), nullable=True)
+    website    = db.Column(db.String(200), nullable=True)
+    is_active  = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Sponsor {self.name}>'
+
+
+# ═══════════════════════════════════════════
 # ACTIVITY TABLE (Snooker, Billiard, Table Tennis)
 # ═══════════════════════════════════════════
 ACTIVITY_META = {

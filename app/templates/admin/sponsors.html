@@ -1,0 +1,144 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{% if lang == 'en' %}Sponsors{% else %}الرعاة{% endif %}{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Sponsors{% else %}الرعاة{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <div class="page-header-title">{% if lang == 'en' %}Sponsors{% else %}الرعاة{% endif %}</div>
+    <div class="page-header-sub">{% if lang == 'en' %}Manage homepage sponsor logos{% else %}إدارة شعارات الرعاة في الصفحة الرئيسية{% endif %}</div>
+  </div>
+  <button class="btn-z-primary" onclick="document.getElementById('addModal').style.display='flex'">
+    <i class="fas fa-plus"></i> {% if lang == 'en' %}Add Sponsor{% else %}إضافة راعٍ{% endif %}
+  </button>
+</div>
+
+{% if sponsors %}
+<div class="row g-3 mb-4">
+  {% for s in sponsors %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card-z" style="padding:0;">
+      <div class="card-body-z" style="padding:1.2rem 1.4rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <!-- Logo preview -->
+          <div style="width:72px;height:56px;flex-shrink:0;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            {% if s.logo %}
+              <img src="{{ url_for('static', filename='images/uploads/' ~ s.logo) }}" alt="{{ s.name }}"
+                   style="max-height:52px;max-width:68px;object-fit:contain;">
+            {% else %}
+              <i class="fas fa-handshake" style="font-size:24px;color:#9ca3af;"></i>
+            {% endif %}
+          </div>
+          <!-- Info -->
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ s.name }}</div>
+            {% if s.website %}
+            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <i class="fas fa-link" style="font-size:.7rem;"></i> {{ s.website }}
+            </div>
+            {% endif %}
+            <div style="margin-top:4px;">
+              {% if s.is_active %}
+                <span style="font-size:.72rem;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-weight:600;">
+                  {% if lang == 'en' %}Active{% else %}نشط{% endif %}
+                </span>
+              {% else %}
+                <span style="font-size:.72rem;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-weight:600;">
+                  {% if lang == 'en' %}Hidden{% else %}مخفي{% endif %}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Actions -->
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <form method="POST" action="{{ url_for('admin.toggle_sponsor', sponsor_id=s.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-z-outline" style="padding:5px 10px;font-size:.8rem;"
+                      title="{% if s.is_active %}Hide{% else %}Show{% endif %}">
+                <i class="fas {% if s.is_active %}fa-eye-slash{% else %}fa-eye{% endif %}"></i>
+              </button>
+            </form>
+            <form method="POST" action="{{ url_for('admin.delete_sponsor', sponsor_id=s.id) }}"
+                  onsubmit="return confirm('{% if lang == 'en' %}Delete {{ s.name }}?{% else %}حذف {{ s.name }}؟{% endif %}')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-z-danger" style="padding:5px 10px;font-size:.8rem;">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card-z">
+  <div style="text-align:center;padding:64px 24px;color:var(--text-muted);">
+    <i class="fas fa-handshake" style="font-size:40px;display:block;margin-bottom:14px;opacity:.25;"></i>
+    <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">
+      {% if lang == 'en' %}No sponsors yet{% else %}لا يوجد رعاة بعد{% endif %}
+    </div>
+    <div style="font-size:.85rem;margin-bottom:20px;">
+      {% if lang == 'en' %}Add a sponsor logo to display it on the homepage slider{% else %}أضف شعار راعٍ لعرضه في شريط الصفحة الرئيسية{% endif %}
+    </div>
+    <button class="btn-z-primary" onclick="document.getElementById('addModal').style.display='flex'">
+      <i class="fas fa-plus"></i> {% if lang == 'en' %}Add First Sponsor{% else %}إضافة أول راعٍ{% endif %}
+    </button>
+  </div>
+</div>
+{% endif %}
+
+<!-- ADD MODAL -->
+<div id="addModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
+  <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);"
+       onclick="document.getElementById('addModal').style.display='none'"></div>
+  <div style="position:relative;background:white;border-radius:16px;padding:2rem;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;">
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);">
+        <i class="fas fa-plus me-2" style="color:var(--brand-blue);"></i>
+        {% if lang == 'en' %}Add Sponsor{% else %}إضافة راعٍ{% endif %}
+      </h3>
+      <button onclick="document.getElementById('addModal').style.display='none'"
+              style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form method="POST" action="{{ url_for('admin.add_sponsor') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label-z">{% if lang == 'en' %}Sponsor Name *{% else %}اسم الراعي *{% endif %}</label>
+        <input type="text" name="name" class="form-control-z" required
+               placeholder="{% if lang == 'en' %}e.g. Nike{% else %}مثلاً نايكي{% endif %}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label-z">{% if lang == 'en' %}Logo Image{% else %}شعار (صورة){% endif %}</label>
+        <input type="file" name="logo" class="form-control-z" accept="image/*">
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">
+          {% if lang == 'en' %}PNG with transparent background recommended{% else %}يُفضل PNG بخلفية شفافة{% endif %}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label-z">{% if lang == 'en' %}Website URL{% else %}رابط الموقع{% endif %}</label>
+        <input type="url" name="website" class="form-control-z"
+               placeholder="https://example.com">
+      </div>
+      <div class="mb-4">
+        <label class="form-label-z">{% if lang == 'en' %}Sort Order{% else %}الترتيب{% endif %}</label>
+        <input type="number" name="sort_order" class="form-control-z" value="0" min="0">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn-z-primary" style="flex:1;">
+          <i class="fas fa-save"></i> {% if lang == 'en' %}Add{% else %}إضافة{% endif %}
+        </button>
+        <button type="button" class="btn-z-outline"
+                onclick="document.getElementById('addModal').style.display='none'">
+          {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

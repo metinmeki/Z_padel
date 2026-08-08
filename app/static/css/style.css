@@ -389,6 +389,30 @@ body {
 .ticker-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ac); display: inline-block; }
 
 /* ═══════════════════════════════════════════
+   SPONSOR SLIDER
+═══════════════════════════════════════════ */
+.sponsor-track-wrap { overflow: hidden; width: 100%; }
+.sponsor-track {
+  display: flex; align-items: center;
+  animation: ticker 25s linear infinite;
+  width: max-content;
+}
+.sponsor-track:hover { animation-play-state: paused; }
+.sponsor-logo {
+  flex-shrink: 0;
+  padding: 0 48px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sponsor-logo img {
+  height: 72px; max-width: 160px;
+  object-fit: contain;
+  filter: grayscale(40%);
+  opacity: .75;
+  transition: filter .3s, opacity .3s;
+}
+.sponsor-logo img:hover { filter: grayscale(0%); opacity: 1; }
+
+/* ═══════════════════════════════════════════
    SECTION BASE
 ═══════════════════════════════════════════ */
 .section { padding: 80px 0; }
