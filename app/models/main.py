@@ -408,8 +408,14 @@ class CourtSession(db.Model):
 
     def calc_price(self):
         import math
-        hours_billed = max(1, math.ceil(self.elapsed_minutes / 60))
+        minutes = self.elapsed_minutes
         rate = self.court.price_per_hour if self.court else 40000
+        if minutes <= 75:
+            hours_billed = 1
+        elif minutes <= 105:
+            hours_billed = 1.5
+        else:
+            hours_billed = max(2, math.ceil(minutes / 60))
         return round(hours_billed * rate * TIME_DISCOUNT)
 
     @property
