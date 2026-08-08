@@ -417,7 +417,7 @@
 </section>
 
 <!-- ═══════════ COACHES ═══════════ -->
-<section class="section coaches-section" id="coaches">
+<section class="section coaches-section" id="coaches" style="overflow:hidden;">
   <div class="container-z">
 
     <div class="reveal" style="text-align:center;margin-bottom:56px;">
@@ -449,11 +449,14 @@
             "tiktok": coach.tiktok or ""
           }|tojson }}'
           onclick="openCoachProfile(JSON.parse(this.dataset.coach))">
-          <div class="coach-card-photo-wrap">
+          <div style="width:100%;height:240px;overflow:hidden;flex-shrink:0;display:block;">
             {% if coach.image %}
-              <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-card-photo">
+              <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}"
+                   style="width:100%;height:240px;object-fit:cover;object-position:top center;display:block;max-width:100%;">
             {% else %}
-              <div class="coach-card-photo-fallback"><i class="fas fa-user"></i></div>
+              <div style="width:100%;height:240px;background:linear-gradient(135deg,#2C3539,#596770);display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-user" style="font-size:4rem;color:#D6C3A1;opacity:.6;"></i>
+              </div>
             {% endif %}
           </div>
           <div class="coach-card-body">
