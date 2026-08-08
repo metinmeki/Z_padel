@@ -434,19 +434,21 @@
     <div class="row g-4 justify-content-center">
       {% for coach in coaches %}
       <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-        <div class="coach-card-real coach-card-clickable" onclick="openCoachProfile({{ {
-          'id': coach.id,
-          'name': coach.name,
-          'status': coach.status,
-          'specialty': coach.specialty or '',
-          'bio': coach.bio or '',
-          'price_per_hour': coach.price_per_hour,
-          'image': url_for('static', filename=coach.image) if coach.image else '',
-          'instagram': coach.instagram or '',
-          'facebook': coach.facebook or '',
-          'whatsapp': coach.whatsapp or '',
-          'tiktok': coach.tiktok or ''
-        }|tojson }})">
+        <div class="coach-card-real coach-card-clickable"
+          data-coach='{{ {
+            "id": coach.id,
+            "name": coach.name,
+            "status": coach.status,
+            "specialty": coach.specialty or "",
+            "bio": coach.bio or "",
+            "price_per_hour": coach.price_per_hour,
+            "image": url_for("static", filename=coach.image) if coach.image else "",
+            "instagram": coach.instagram or "",
+            "facebook": coach.facebook or "",
+            "whatsapp": coach.whatsapp or "",
+            "tiktok": coach.tiktok or ""
+          }|tojson }}'
+          onclick="openCoachProfile(JSON.parse(this.dataset.coach))">
           {% if coach.image %}
             <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-avatar-img">
           {% else %}
