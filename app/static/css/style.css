@@ -771,13 +771,18 @@ body {
   display: flex; flex-direction: column;
 }
 .coach-card-real:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(44,53,57,.18); border-color: #D6C3A1; }
+.coach-card-photo-wrap {
+  width: 100%; height: 240px; overflow: hidden; flex-shrink: 0;
+  position: relative; display: block;
+}
 .coach-card-photo {
-  width: 100%; height: 240px; object-fit: cover; object-position: top;
-  display: block;
+  width: 100%; height: 100%; object-fit: cover; object-position: top;
+  display: block; position: absolute; inset: 0;
 }
 .coach-card-photo-fallback {
-  width: 100%; height: 240px; background: linear-gradient(135deg,#2C3539,#596770);
+  width: 100%; height: 100%; background: linear-gradient(135deg,#2C3539,#596770);
   display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0;
 }
 .coach-card-photo-fallback i { font-size: 4rem; color: #D6C3A1; opacity: .6; }
 .coach-card-body { padding: 18px 20px 20px; }

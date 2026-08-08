@@ -449,11 +449,13 @@
             "tiktok": coach.tiktok or ""
           }|tojson }}'
           onclick="openCoachProfile(JSON.parse(this.dataset.coach))">
-          {% if coach.image %}
-            <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-card-photo">
-          {% else %}
-            <div class="coach-card-photo-fallback"><i class="fas fa-user"></i></div>
-          {% endif %}
+          <div class="coach-card-photo-wrap">
+            {% if coach.image %}
+              <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-card-photo">
+            {% else %}
+              <div class="coach-card-photo-fallback"><i class="fas fa-user"></i></div>
+            {% endif %}
+          </div>
           <div class="coach-card-body">
             <div class="coach-name">{{ coach.name }}</div>
             {% if coach.specialty %}<div class="coach-specialty">{{ coach.specialty }}</div>{% endif %}
