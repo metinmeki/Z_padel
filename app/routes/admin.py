@@ -27,6 +27,46 @@ def allowed_file(filename):
             filename.rsplit('.', 1)[1].lower()
             in current_app.config['ALLOWED_EXTENSIONS'])
 
+def _dark_bg_to_transparent(img):
+    """Convert edge-connected dark background to transparent (RGBA output).
+    Used for sponsor logos so they display cleanly on any background."""
+    from collections import deque
+    from PIL import Image as _Image
+    rgb = img.convert('RGB')
+    w, h = rgb.size
+    px = rgb.load()
+    corners = [px[0,0], px[w-1,0], px[0,h-1], px[w-1,h-1]]
+    if sum(r+g+b for r,g,b in corners) / (len(corners)*3) > 80:
+        return img.convert('RGBA')
+    rgba = img.convert('RGBA')
+    data = rgba.load()
+    visited = [[False]*h for _ in range(w)]
+    queue = deque()
+    def is_dark(x, y):
+        r, g, b = data[x, y][:3]
+        return r < 60 and g < 60 and b < 60
+    for x in range(w):
+        for y in (0, h-1):
+            if not visited[x][y] and is_dark(x, y):
+                visited[x][y] = True
+                queue.append((x, y))
+    for y in range(h):
+        for x in (0, w-1):
+            if not visited[x][y] and is_dark(x, y):
+                visited[x][y] = True
+                queue.append((x, y))
+    while queue:
+        x, y = queue.popleft()
+        r, g, b, _ = data[x, y]
+        data[x, y] = (r, g, b, 0)
+        for dx, dy in ((-1,0),(1,0),(0,-1),(0,1)):
+            nx, ny = x+dx, y+dy
+            if 0 <= nx < w and 0 <= ny < h and not visited[nx][ny] and is_dark(nx, ny):
+                visited[nx][ny] = True
+                queue.append((nx, ny))
+    return rgba
+
+
 def _remove_dark_bg(img):
     """Replace dark background with white using edge-connected flood fill.
     Only pixels reachable from image edges with R,G,B < 60 are replaced."""
@@ -86,20 +126,26 @@ def save_upload(file, folder_key='UPLOAD_FOLDER', fix_bg=True):
     try:
         img = Image.open(file.stream)
 
-        # Convert palette/RGBA to RGB for WebP compatibility
-        if img.mode in ('RGBA', 'LA'):
-            bg = Image.new('RGB', img.size, (255, 255, 255))
-            bg.paste(img, mask=img.split()[-1])
-            img = bg
-        elif img.mode != 'RGB':
-            img = img.convert('RGB')
-
-        # Resize: keep aspect ratio, max 900px on longest side
-        img.thumbnail((900, 900), Image.LANCZOS)
-
-        # Replace dark background with white (skip for logos/sponsors)
         if fix_bg:
+            # Convert palette/RGBA to RGB for WebP compatibility
+            if img.mode in ('RGBA', 'LA'):
+                bg = Image.new('RGB', img.size, (255, 255, 255))
+                bg.paste(img, mask=img.split()[-1])
+                img = bg
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+            img.thumbnail((900, 900), Image.LANCZOS)
             img = _remove_dark_bg(img)
+        else:
+            # Logo mode: preserve or convert transparency
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            elif img.mode == 'LA':
+                img = img.convert('RGBA')
+            elif img.mode == 'RGB':
+                img = _dark_bg_to_transparent(img)
+            # RGBA: kept as-is
+            img.thumbnail((900, 900), Image.LANCZOS)
 
         out_name = f"{uuid.uuid4().hex}.webp"
         img.save(
