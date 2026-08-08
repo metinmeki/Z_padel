@@ -627,45 +627,25 @@
 
 <!-- ═══════════ SPONSORS ═══════════ -->
 {% if sponsors %}
-<section class="section" id="sponsors" style="padding:50px 0;background:#f8f9fa;">
+<section class="sponsors-section" id="sponsors">
   <div class="container-z">
-    <div class="reveal" style="text-align:center;margin-bottom:32px;">
-      <span class="sec-eye"><i class="fas fa-handshake"></i> {% if lang == 'en' %}Our Sponsors{% elif lang == 'ku' %}سپۆنسەرەکانمان{% else %}رعاتنا{% endif %}</span>
-      <h2 class="sec-ttl" style="text-align:center;">
-        {% if lang == 'en' %}Proud <span>Partners</span>{% elif lang == 'ku' %}هاوکارە <span>شایستەکانمان</span>{% else %}شركاؤنا <span>المتميزون</span>{% endif %}
-      </h2>
+    <div class="sponsors-header reveal">
+      <div class="eyebrow"><i class="fas fa-handshake"></i> {% if lang == 'en' %}Our Sponsors{% elif lang == 'ku' %}سپۆنسەرەکانمان{% else %}رعاتنا{% endif %}</div>
+      <h2>{% if lang == 'en' %}Proud <span>Partners</span>{% elif lang == 'ku' %}هاوکارە <span>شایستەکانمان</span>{% else %}شركاؤنا <span>المتميزون</span>{% endif %}</h2>
     </div>
   </div>
   <div class="sponsor-track-wrap">
     <div class="sponsor-track">
-      {% for s in sponsors %}
-      {% set logo_url = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}
-      <div class="sponsor-logo">
-        {% if s.website %}
-        <a href="{{ s.website }}" target="_blank" rel="noopener">
-        {% endif %}
-          {% if s.logo %}
-            <img src="{{ logo_url }}" alt="{{ s.name }}">
-          {% else %}
-            <span style="font-weight:700;font-size:1.1rem;color:#555;">{{ s.name }}</span>
-          {% endif %}
-        {% if s.website %}</a>{% endif %}
-      </div>
+      {% for s in sponsors %}{% set logo_url = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}
+      {% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}
+        {% if s.logo %}<img src="{{ logo_url }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}
+      {% if s.website %}</a>{% else %}</div>{% endif %}
       {% endfor %}
-      {# Duplicate for seamless loop #}
-      {% for s in sponsors %}
-      {% set logo_url = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}
-      <div class="sponsor-logo">
-        {% if s.website %}
-        <a href="{{ s.website }}" target="_blank" rel="noopener">
-        {% endif %}
-          {% if s.logo %}
-            <img src="{{ logo_url }}" alt="{{ s.name }}">
-          {% else %}
-            <span style="font-weight:700;font-size:1.1rem;color:#555;">{{ s.name }}</span>
-          {% endif %}
-        {% if s.website %}</a>{% endif %}
-      </div>
+      {# Duplicate set for seamless infinite scroll #}
+      {% for s in sponsors %}{% set logo_url = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}
+      {% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}
+        {% if s.logo %}<img src="{{ logo_url }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}
+      {% if s.website %}</a>{% else %}</div>{% endif %}
       {% endfor %}
     </div>
   </div>

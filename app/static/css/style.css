@@ -391,26 +391,71 @@ body {
 /* ═══════════════════════════════════════════
    SPONSOR SLIDER
 ═══════════════════════════════════════════ */
-.sponsor-track-wrap { overflow: hidden; width: 100%; }
+.sponsors-section {
+  padding: 60px 0;
+  background: linear-gradient(135deg, #0a2f6b 0%, #1565c0 100%);
+  position: relative;
+  overflow: hidden;
+}
+.sponsors-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.sponsors-header { text-align: center; margin-bottom: 36px; }
+.sponsors-header .eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.12);
+  color: #93c5fd;
+  font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 6px 16px; border-radius: 999px; margin-bottom: 14px;
+}
+.sponsors-header h2 {
+  color: #fff; font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; margin: 0;
+}
+.sponsors-header h2 span { color: #60a5fa; }
+
+.sponsor-track-wrap {
+  overflow: hidden; width: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
 .sponsor-track {
-  display: flex; align-items: center;
-  animation: ticker 25s linear infinite;
+  display: flex; align-items: center; flex-wrap: nowrap;
+  animation: ticker 28s linear infinite;
   width: max-content;
 }
 .sponsor-track:hover { animation-play-state: paused; }
 .sponsor-logo {
   flex-shrink: 0;
-  padding: 0 48px;
+  margin: 0 14px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  padding: 16px 32px;
   display: flex; align-items: center; justify-content: center;
+  min-width: 140px; height: 84px;
+  backdrop-filter: blur(6px);
+  transition: background .3s, transform .3s, border-color .3s;
+}
+.sponsor-logo:hover {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.4);
+  transform: translateY(-3px);
 }
 .sponsor-logo img {
-  height: 72px; max-width: 160px;
+  height: 44px; max-width: 120px;
   object-fit: contain;
-  filter: grayscale(40%);
-  opacity: .75;
-  transition: filter .3s, opacity .3s;
+  filter: brightness(0) invert(1);
+  opacity: .8;
+  transition: opacity .3s;
 }
-.sponsor-logo img:hover { filter: grayscale(0%); opacity: 1; }
+.sponsor-logo:hover img { opacity: 1; }
+.sponsor-logo-name {
+  font-weight: 800; font-size: .95rem; color: rgba(255,255,255,.85);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
 
 /* ═══════════════════════════════════════════
    SECTION BASE
