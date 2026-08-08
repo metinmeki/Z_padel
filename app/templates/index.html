@@ -434,13 +434,28 @@
     <div class="row g-4 justify-content-center">
       {% for coach in coaches %}
       <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-        <div class="coach-card-real" onclick="openCoachBooking({{ coach.id }}, '{{ coach.name }}')">
+        <div class="coach-card-real coach-card-clickable" onclick="openCoachProfile({{ {
+          'id': coach.id,
+          'name': coach.name,
+          'status': coach.status,
+          'specialty': coach.specialty or '',
+          'bio': coach.bio or '',
+          'price_per_hour': coach.price_per_hour,
+          'image': url_for('static', filename=coach.image) if coach.image else '',
+          'instagram': coach.instagram or '',
+          'facebook': coach.facebook or '',
+          'whatsapp': coach.whatsapp or '',
+          'tiktok': coach.tiktok or ''
+        }|tojson }})">
           {% if coach.image %}
             <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-avatar-img">
           {% else %}
             <div class="coach-avatar-fallback"><i class="fas fa-user"></i></div>
           {% endif %}
           <div class="coach-name">{{ coach.name }}</div>
+          {% if coach.specialty %}
+          <div class="coach-specialty">{{ coach.specialty }}</div>
+          {% endif %}
           <span class="coach-status-badge {{ coach.status }}">
             {% if coach.status == 'available' %}
               <i class="fas fa-circle" style="font-size:8px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
@@ -450,15 +465,18 @@
               {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
             {% endif %}
           </span>
-          {% if coach.bio %}<p class="coach-bio">{{ coach.bio }}</p>{% endif %}
-          {% if coach.status == 'available' %}
-          <div style="margin-top:16px;">
-            <button type="button" class="btn-blue" style="width:100%;justify-content:center;border:none;cursor:pointer;">
-              <i class="fas fa-calendar-plus"></i>
-              {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
-            </button>
+          {% if coach.price_per_hour %}
+          <div class="coach-price-pill">
+            <i class="fas fa-tag"></i>
+            {{ '{:,.0f}'.format(coach.price_per_hour) }} {% if lang == 'en' %}IQD / session{% else %}د.ع / جلسة{% endif %}
           </div>
           {% endif %}
+          <div style="margin-top:14px;">
+            <span class="coach-view-profile">
+              <i class="fas fa-user-circle me-1"></i>
+              {% if lang == 'en' %}View Profile{% else %}عرض الملف{% endif %}
+            </span>
+          </div>
         </div>
       </div>
       {% endfor %}
@@ -514,6 +532,77 @@
 
   </div>
 </section>
+
+<!-- ═══ Coach Profile Modal ═══ -->
+<div class="modal fade" id="coachProfileModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content coach-profile-modal">
+
+      <!-- Hero Banner -->
+      <div class="cpm-hero" id="cpmHero">
+        <div class="cpm-hero-overlay"></div>
+        <button type="button" class="cpm-close-btn" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="cpm-avatar-wrap">
+          <img id="cpmAvatar" src="" alt="" class="cpm-avatar">
+          <div class="cpm-avatar-fallback" id="cpmAvatarFallback"><i class="fas fa-user"></i></div>
+          <div class="cpm-status-ring" id="cpmStatusRing"></div>
+        </div>
+        <div class="cpm-hero-info">
+          <h3 class="cpm-name" id="cpmName"></h3>
+          <div class="cpm-specialty" id="cpmSpecialty"></div>
+          <div class="cpm-status-badge" id="cpmStatusBadge"></div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="cpm-body">
+
+        <!-- Price -->
+        <div class="cpm-price-row" id="cpmPriceRow">
+          <div class="cpm-price-card">
+            <div class="cpm-price-label">{% if lang == 'en' %}Session Price{% else %}سعر الجلسة{% endif %}</div>
+            <div class="cpm-price-value" id="cpmPrice"></div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="cpm-section" id="cpmBioSection">
+          <div class="cpm-section-label">
+            <i class="fas fa-quote-right me-2"></i>{% if lang == 'en' %}About{% else %}نبذة{% endif %}
+          </div>
+          <p class="cpm-bio-text" id="cpmBio"></p>
+        </div>
+
+        <!-- Social Links -->
+        <div class="cpm-social-row" id="cpmSocialRow">
+          <a id="cpmIG"  href="#" target="_blank" class="cpm-social-btn cpm-ig"  style="display:none">
+            <i class="fab fa-instagram"></i><span>Instagram</span>
+          </a>
+          <a id="cpmFB"  href="#" target="_blank" class="cpm-social-btn cpm-fb"  style="display:none">
+            <i class="fab fa-facebook-f"></i><span>Facebook</span>
+          </a>
+          <a id="cpmWA"  href="#" target="_blank" class="cpm-social-btn cpm-wa"  style="display:none">
+            <i class="fab fa-whatsapp"></i><span>WhatsApp</span>
+          </a>
+          <a id="cpmTK"  href="#" target="_blank" class="cpm-social-btn cpm-tk"  style="display:none">
+            <i class="fab fa-tiktok"></i><span>TikTok</span>
+          </a>
+        </div>
+
+        <!-- Book Button -->
+        <div class="cpm-footer" id="cpmFooter">
+          <button type="button" class="cpm-book-btn" id="cpmBookBtn" onclick="switchToBooking()">
+            <i class="fas fa-calendar-plus me-2"></i>
+            {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Coach Booking Modal -->
 <div class="modal fade" id="bookCoachModal" tabindex="-1">
@@ -783,7 +872,81 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ── Coach modal ──
+  // ── Coach profile modal ──
+  let _activeCoachId = null;
+  let _activeCoachName = '';
+
+  function openCoachProfile(c) {
+    _activeCoachId = c.id;
+    _activeCoachName = c.name;
+
+    // Avatar
+    var av = document.getElementById('cpmAvatar');
+    var af = document.getElementById('cpmAvatarFallback');
+    if (c.image) { av.src = c.image; av.style.display = 'block'; af.style.display = 'none'; }
+    else         { av.style.display = 'none'; af.style.display = 'flex'; }
+
+    // Status ring
+    var ring = document.getElementById('cpmStatusRing');
+    ring.className = 'cpm-status-ring ' + (c.status || '');
+
+    // Name & specialty
+    document.getElementById('cpmName').textContent = c.name;
+    var sp = document.getElementById('cpmSpecialty');
+    sp.textContent = c.specialty || '';
+    sp.style.display = c.specialty ? '' : 'none';
+
+    // Status badge
+    var sb = document.getElementById('cpmStatusBadge');
+    var isAvail = c.status === 'available';
+    sb.className = 'cpm-status-badge ' + (c.status || '');
+    sb.innerHTML = isAvail
+      ? '<i class="fas fa-circle" style="font-size:7px;margin-left:5px;"></i>{{ "Available Now" if lang == "en" else "متاح الآن" }}'
+      : '<i class="fas fa-clock" style="font-size:10px;margin-left:5px;"></i>{{ "Coming Soon" if lang == "en" else "قريباً" }}';
+
+    // Price
+    var pr = document.getElementById('cpmPriceRow');
+    var pv = document.getElementById('cpmPrice');
+    if (c.price_per_hour > 0) {
+      pv.textContent = Number(c.price_per_hour).toLocaleString() + ' IQD';
+      pr.style.display = '';
+    } else { pr.style.display = 'none'; }
+
+    // Bio
+    var bs = document.getElementById('cpmBioSection');
+    var bt = document.getElementById('cpmBio');
+    if (c.bio) { bt.textContent = c.bio; bs.style.display = ''; }
+    else        { bs.style.display = 'none'; }
+
+    // Social links
+    function setSocial(elId, url) {
+      var el = document.getElementById(elId);
+      if (url) { el.href = url; el.style.display = 'inline-flex'; }
+      else      { el.style.display = 'none'; }
+    }
+    setSocial('cpmIG', c.instagram);
+    setSocial('cpmFB', c.facebook);
+    setSocial('cpmTK', c.tiktok);
+    var waEl = document.getElementById('cpmWA');
+    if (c.whatsapp) { waEl.href = 'https://wa.me/' + c.whatsapp; waEl.style.display = 'inline-flex'; }
+    else            { waEl.style.display = 'none'; }
+
+    var social = document.getElementById('cpmSocialRow');
+    social.style.display = (c.instagram || c.facebook || c.whatsapp || c.tiktok) ? '' : 'none';
+
+    // Book button: hide if coming soon
+    document.getElementById('cpmFooter').style.display = isAvail ? '' : 'none';
+
+    new bootstrap.Modal(document.getElementById('coachProfileModal')).show();
+  }
+
+  function switchToBooking() {
+    bootstrap.Modal.getInstance(document.getElementById('coachProfileModal')).hide();
+    document.getElementById('coachIdInput').value = _activeCoachId;
+    document.getElementById('coachNameDisplay').value = _activeCoachName;
+    setTimeout(() => new bootstrap.Modal(document.getElementById('bookCoachModal')).show(), 300);
+  }
+
   function openCoachBooking(coachId, coachName) {
     document.getElementById('coachIdInput').value   = coachId;
     document.getElementById('coachNameDisplay').value = coachName;

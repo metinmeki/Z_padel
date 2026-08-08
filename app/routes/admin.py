@@ -1291,8 +1291,13 @@ def add_coach():
         specialty=request.form.get('specialty', ''),
         price_per_hour=float(request.form.get('price_per_hour', 0)),
         bio=request.form.get('bio', ''),
-        image=image_path,  # ✅ ADD THIS
+        image=image_path,
         is_active=bool(int(request.form.get('is_active', 1))),
+        status=request.form.get('status', 'available'),
+        instagram=request.form.get('instagram', ''),
+        facebook=request.form.get('facebook', ''),
+        whatsapp=request.form.get('whatsapp', ''),
+        tiktok=request.form.get('tiktok', ''),
     )
     db.session.add(c)
     db.session.commit()
@@ -1324,6 +1329,11 @@ def edit_coach(coach_id):
     c.price_per_hour = float(request.form.get('price_per_hour', c.price_per_hour))
     c.bio = request.form.get('bio', c.bio)
     c.is_active = bool(int(request.form.get('is_active', 1)))
+    c.status = request.form.get('status', c.status)
+    c.instagram = request.form.get('instagram', c.instagram or '')
+    c.facebook  = request.form.get('facebook',  c.facebook  or '')
+    c.whatsapp  = request.form.get('whatsapp',  c.whatsapp  or '')
+    c.tiktok    = request.form.get('tiktok',    c.tiktok    or '')
     db.session.commit()
     flash('تم تحديث المدرب.', 'success')
     return redirect(url_for('admin.coaches'))
