@@ -11,9 +11,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        if current_user.username.lower() in ('yaser', 'mazin'):
-            return redirect(url_for('admin.dashboard'))
-        return redirect(url_for('main.index'))
+        return redirect(url_for('admin.dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -36,16 +34,13 @@ def login():
 
         next_page = request.args.get('next')
         if not next_page:
-            if user.username.lower() not in ('yaser', 'mazin'):
-                next_page = url_for('main.index')
-            else:
-                pos_only = (user.role not in ('superadmin', 'admin')
-                            and user.has_perm('perm_pos')
-                            and not any(user.has_perm(p) for p in [
-                                'perm_bookings', 'perm_courts', 'perm_products',
-                                'perm_orders', 'perm_expenses', 'perm_reports',
-                                'perm_users', 'perm_settings']))
-                next_page = url_for('pos.quick_sale') if pos_only else url_for('admin.dashboard')
+            pos_only = (user.role not in ('superadmin', 'admin')
+                        and user.has_perm('perm_pos')
+                        and not any(user.has_perm(p) for p in [
+                            'perm_bookings', 'perm_courts', 'perm_products',
+                            'perm_orders', 'perm_expenses', 'perm_reports',
+                            'perm_users', 'perm_settings']))
+            next_page = url_for('pos.quick_sale') if pos_only else url_for('admin.bookings')
         return redirect(next_page)
 
     return render_template('auth/login.html')

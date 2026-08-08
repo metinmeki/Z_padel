@@ -21,15 +21,7 @@ from app.models.store import (Category, Product, Order, OrderItem,
 from sqlalchemy import func, case
 admin_bp = Blueprint('admin', __name__)
 
-ADMIN_ALLOWED_USERS = {'yaser', 'mazin'}
-
-@admin_bp.before_request
-def restrict_admin_access():
-    if not current_user.is_authenticated:
-        return redirect(url_for('auth.login'))
-    if current_user.username.lower() not in ADMIN_ALLOWED_USERS:
-        flash('Access denied.', 'danger')
-        return redirect(url_for('main.index'))
+FINANCE_USERS = {'yaser', 'mazin'}
 
 # ── helpers ──
 def allowed_file(filename):
@@ -242,6 +234,9 @@ def fix_image_backgrounds():
 @admin_bp.route('/dashboard')
 @login_required
 def dashboard():
+    if current_user.username.lower() not in FINANCE_USERS:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('admin.bookings'))
     today = date.today()
     now_h = datetime.now().hour
 
