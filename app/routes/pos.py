@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app import db
 from app.models.store import Product, Category, Order, OrderItem
 from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META
@@ -9,12 +9,23 @@ from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable
 pos_bp = Blueprint('pos', __name__)
 
 
+BARISTA_CATEGORIES = {'beverage', 'cakes'}
+
 @pos_bp.route('/')
 @pos_bp.route('/quick-sale')
 @login_required
 def quick_sale():
-    products   = Product.query.filter_by(is_active=True).all()
-    categories = Category.query.order_by(Category.name).all()
+    if current_user.username.lower() == 'barista':
+        categories = Category.query.filter(
+            db.func.lower(Category.name).in_(BARISTA_CATEGORIES)
+        ).order_by(Category.name).all()
+        cat_ids = [c.id for c in categories]
+        products = Product.query.filter_by(is_active=True).filter(
+            Product.category_id.in_(cat_ids)
+        ).all()
+    else:
+        products   = Product.query.filter_by(is_active=True).all()
+        categories = Category.query.order_by(Category.name).all()
     return render_template('pos/quick_sale.html', products=products, categories=categories)
 
 
