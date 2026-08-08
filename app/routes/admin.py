@@ -69,7 +69,7 @@ def _remove_dark_bg(img):
     return result
 
 
-def save_upload(file, folder_key='UPLOAD_FOLDER'):
+def save_upload(file, folder_key='UPLOAD_FOLDER', fix_bg=True):
     if not file or file.filename == '':
         return None
     ext = file.filename.rsplit('.', 1)[1].lower()
@@ -97,8 +97,9 @@ def save_upload(file, folder_key='UPLOAD_FOLDER'):
         # Resize: keep aspect ratio, max 900px on longest side
         img.thumbnail((900, 900), Image.LANCZOS)
 
-        # Replace dark background with white
-        img = _remove_dark_bg(img)
+        # Replace dark background with white (skip for logos/sponsors)
+        if fix_bg:
+            img = _remove_dark_bg(img)
 
         out_name = f"{uuid.uuid4().hex}.webp"
         img.save(
@@ -1525,7 +1526,7 @@ def add_sponsor():
     name    = request.form.get('name', '').strip()
     website = request.form.get('website', '').strip()
     order   = int(request.form.get('sort_order', 0) or 0)
-    logo    = save_upload(request.files.get('logo'))
+    logo    = save_upload(request.files.get('logo'), fix_bg=False)
     if not name:
         flash('Name is required.', 'danger')
         return redirect(url_for('admin.sponsors'))
