@@ -17,7 +17,7 @@ BARISTA_CATEGORIES = {'beverage', 'cakes'}
 def quick_sale():
     if current_user.username.lower() == 'barista':
         all_cats = Category.query.order_by(Category.name).all()
-        categories = [c for c in all_cats if c.name.lower() in BARISTA_CATEGORIES]
+        categories = [c for c in all_cats if c.name.strip().lower() in BARISTA_CATEGORIES]
         cat_ids = [c.id for c in categories]
         products = Product.query.filter_by(is_active=True).filter(
             Product.category_id.in_(cat_ids)
