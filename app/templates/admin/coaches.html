@@ -110,7 +110,18 @@
         </td>
         <td>
           <button class="btn btn-sm btn-outline-primary me-1"
-            onclick="openEdit({{ coach.id }}, {{ coach|tojson }})">
+            onclick="openEdit({{ coach.id }}, {{ {
+              'name': coach.name,
+              'status': coach.status or 'available',
+              'price_per_hour': coach.price_per_hour or 0,
+              'specialty': coach.specialty or '',
+              'phone': coach.phone or '',
+              'bio': coach.bio or '',
+              'instagram': coach.instagram or '',
+              'facebook': coach.facebook or '',
+              'whatsapp': coach.whatsapp or '',
+              'tiktok': coach.tiktok or ''
+            }|tojson }})">
             {% if lang == 'en' %}Edit{% else %}تعديل{% endif %}
           </button>
           <form method="POST" action="{{ url_for('admin.delete_coach', coach_id=coach.id) }}" style="display:inline"
