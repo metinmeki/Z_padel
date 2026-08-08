@@ -630,26 +630,24 @@
 <style>
 @keyframes sponsors-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .sponsors-section{background:#F5F2ED;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
-.sponsors-inner{display:flex;align-items:stretch;height:88px}
-.sponsors-label{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;border-right:2px solid #E4DDD3;gap:5px;min-width:90px}
-.sponsors-label i{font-size:1.1rem;color:#C9B48E}
-.sponsors-label span{font-size:.58rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#596770;white-space:nowrap}
-.sponsor-track-wrap{flex:1;overflow:hidden;height:88px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%)}
+.sponsors-inner{display:flex;align-items:stretch;height:72px}
+.sponsors-title{text-align:center;padding:14px 0 4px;font-size:.62rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#596770}
+.sponsors-title i{color:#C9B48E;margin-right:6px}
+.sponsor-track-wrap{flex:1;overflow:hidden;height:72px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%)}
 .sponsor-track{display:flex;flex-wrap:nowrap;align-items:center;animation:sponsors-scroll 20s linear infinite;will-change:transform}
 .sponsor-track:hover{animation-play-state:paused}
-.sponsor-logo{flex:0 0 auto;padding:0 32px;display:flex;align-items:center;justify-content:center;height:88px;border-right:1px solid #E4DDD3;text-decoration:none}
+.sponsor-logo{flex:0 0 auto;padding:0 32px;display:flex;align-items:center;justify-content:center;height:72px;border-right:1px solid #E4DDD3;text-decoration:none}
 .sponsor-logo img{height:44px;width:auto;max-width:130px;object-fit:contain;display:block;filter:grayscale(1);opacity:.55;transition:filter .35s,opacity .35s}
 .sponsor-logo:hover img{filter:grayscale(0);opacity:1}
 .sponsor-logo-name{font-size:.9rem;font-weight:800;color:#2C3539;opacity:.5;white-space:nowrap;transition:opacity .3s}
 .sponsor-logo:hover .sponsor-logo-name{opacity:1}
 </style>
 <div class="sponsors-section" id="sponsors">
+  <div class="sponsors-title">
+    <i class="fas fa-handshake"></i>{% if lang == 'en' %}Our Partners{% elif lang == 'ku' %}هاوکارەکانمان{% else %}رعاتنا{% endif %}
+  </div>
   <div class="sponsors-inner">
-    <div class="sponsors-label">
-      <i class="fas fa-handshake"></i>
-      <span>{% if lang == 'en' %}Partners{% elif lang == 'ku' %}هاوکاران{% else %}الرعاة{% endif %}</span>
-    </div>
-    <div class="sponsor-track-wrap">
+    <div class="sponsor-track-wrap" style="flex:1">
       <div class="sponsor-track" id="sponsorTrack">
         {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}">{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
       </div>

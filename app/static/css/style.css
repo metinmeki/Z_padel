@@ -402,22 +402,16 @@ body {
   overflow: hidden;
 }
 .sponsors-inner {
-  display: flex; align-items: stretch; height: 88px;
+  display: flex; align-items: stretch; height: 72px;
 }
-.sponsors-label {
-  flex-shrink: 0; min-width: 90px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 0 24px; gap: 5px;
-  border-right: 2px solid var(--br);
+.sponsors-title {
+  text-align: center; padding: 14px 0 4px;
+  font-size: .62rem; font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--bdk);
 }
-.sponsors-label i   { font-size: 1.1rem; color: var(--ac2); }
-.sponsors-label span {
-  font-size: .58rem; font-weight: 800; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--bdk); white-space: nowrap;
-}
+.sponsors-title i { color: var(--ac2); margin-right: 6px; }
 .sponsor-track-wrap {
-  flex: 1; overflow: hidden; height: 88px;
+  flex: 1; overflow: hidden; height: 72px;
   display: flex; align-items: center;
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%);
@@ -432,7 +426,7 @@ body {
   flex: 0 0 auto;
   padding: 0 32px;
   display: flex; align-items: center; justify-content: center;
-  height: 88px; border-right: 1px solid var(--br);
+  height: 72px; border-right: 1px solid var(--br);
   text-decoration: none;
 }
 .sponsor-logo img {
