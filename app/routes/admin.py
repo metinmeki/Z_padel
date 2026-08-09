@@ -1457,6 +1457,57 @@ def _set_clip_status(app, clip_id, status, msg=None):
             db.session.commit()
 
 
+def _apply_watermark(app, clip_id, raw_path, final_path):
+    """
+    Overlay a Coda Agency footer on the clip using FFmpeg.
+    Falls back to the raw file if FFmpeg is unavailable or fails.
+    """
+    import subprocess
+    logo_path = os.path.join(app.static_folder, 'uploads', 'coaches', 'coda-logo.png')
+
+    if not os.path.exists(logo_path):
+        os.replace(raw_path, final_path)
+        _set_clip_status(app, clip_id, 'ready')
+        return
+
+    _set_clip_status(app, clip_id, 'processing', 'Adding Coda Agency watermark…')
+
+    # Footer bar (52px) + logo bottom-right + text bottom-left
+    vf = (
+        '[1:v]scale=110:-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.90[logo];'
+        '[0:v]drawbox=x=0:y=ih-52:w=iw:h=52:color=black@0.55:t=fill[bg];'
+        '[bg][logo]overlay=W-w-12:H-h-8[vid];'
+        "[vid]drawtext=text='Coda Agency':"
+        'fontsize=21:fontcolor=white:'
+        'x=14:y=H-32:'
+        'shadowcolor=black@0.8:shadowx=1:shadowy=1[out]'
+    )
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', raw_path,
+        '-i', logo_path,
+        '-filter_complex', vf,
+        '-map', '[out]', '-map', '0:a?',
+        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+        '-c:a', 'copy',
+        '-movflags', '+faststart',
+        final_path,
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, timeout=7200)
+        if result.returncode == 0 and os.path.exists(final_path) and os.path.getsize(final_path) > 10_000:
+            os.remove(raw_path)
+            _set_clip_status(app, clip_id, 'ready')
+        else:
+            stderr = (result.stderr or b'').decode('utf-8', errors='replace')[-300:]
+            os.replace(raw_path, final_path)
+            _set_clip_status(app, clip_id, 'ready', f'Watermark failed (ffmpeg rc={result.returncode}): {stderr}')
+    except Exception as e:
+        if os.path.exists(raw_path):
+            os.replace(raw_path, final_path)
+        _set_clip_status(app, clip_id, 'ready', f'Watermark skipped: {str(e)[:200]}')
+
+
 def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
     """Background thread: search NVR recordings and stream to output_path."""
     import threading, requests as req, xml.etree.ElementTree as ET, re
@@ -1547,19 +1598,24 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                     f"· resp={r2.text[:300]}")
                 return
 
+            # Stream to a _raw temp file; watermark step renames it to final path
+            raw_path = output_path.replace('.mp4', '_raw.mp4')
             written = 0
-            with open(output_path, 'wb') as f:
+            with open(raw_path, 'wb') as f:
                 for chunk in r2.iter_content(chunk_size=65536):
                     if chunk:
                         f.write(chunk)
                         written += len(chunk)
 
             if written < 10_000:
+                if os.path.exists(raw_path):
+                    os.remove(raw_path)
                 _set_clip_status(app, clip_id, 'failed',
                     f"Downloaded file only {written} bytes — NVR may have returned an error page")
                 return
 
-            _set_clip_status(app, clip_id, 'ready')
+            # Apply Coda Agency footer watermark (sets status to 'ready' when done)
+            _apply_watermark(app, clip_id, raw_path, output_path)
 
         except Exception as e:
             _set_clip_status(app, clip_id, 'failed', str(e)[:500])
