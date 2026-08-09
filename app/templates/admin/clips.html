@@ -194,6 +194,14 @@
     <i class="fas fa-list-video"></i>
     <div class="section-hd-title">{% if lang == 'en' %}Saved Clips{% else %}المقاطع المحفوظة{% endif %}</div>
   </div>
+  {% set has_processing = clips | selectattr('status', 'equalto', 'processing') | list | length > 0 %}
+  {% if has_processing %}
+  <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:.84rem;display:flex;align-items:center;gap:8px;">
+    <i class="fas fa-circle-notch fa-spin" style="color:#e67e22;"></i>
+    {% if lang == 'en' %}Some clips are still downloading from the NVR. Page auto-refreshes every 15 seconds.{% else %}بعض المقاطع لا تزال تُحمَّل من NVR. يتجدد الصفحة كل 15 ثانية.{% endif %}
+  </div>
+  {% endif %}
+
   {% if clips %}
   <table class="table-z">
     <thead>
@@ -202,7 +210,6 @@
         <th>{% if lang == 'en' %}Court / Date / Time{% else %}الملعب / التاريخ / الوقت{% endif %}</th>
         <th>{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</th>
         <th>{% if lang == 'en' %}Customer{% else %}اللاعب{% endif %}</th>
-        <th>{% if lang == 'en' %}Share Link{% else %}رابط المشاركة{% endif %}</th>
         <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
         <th>{% if lang == 'en' %}Actions{% else %}إجراءات{% endif %}</th>
       </tr>
@@ -223,41 +230,46 @@
           {% if clip.customer_name %}
           <div style="font-weight:700;">{{ clip.customer_name }}</div>
           {% if clip.customer_phone %}<div style="font-size:11px;color:var(--text-muted);">{{ clip.customer_phone }}</div>{% endif %}
-          {% else %}
-          <span style="color:var(--text-muted);">—</span>
-          {% endif %}
+          {% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
           {% if clip.note %}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ clip.note }}</div>{% endif %}
         </td>
         <td>
-          {% if not clip.is_expired %}
-          <button class="btn-sm-z btn-cp" onclick="copyLink('{{ request.host_url }}clip/{{ clip.token }}', this)"
-                  title="{% if lang == 'en' %}Copy link{% else %}نسخ الرابط{% endif %}">
-            <i class="fas fa-copy"></i>
-            {% if lang == 'en' %}Copy Link{% else %}نسخ الرابط{% endif %}
-          </button>
-          <span class="share-url">{{ request.host_url }}clip/{{ clip.token }}</span>
+          {% if clip.status == 'processing' %}
+            <span style="color:#e67e22;font-weight:700;font-size:.82rem;">
+              <i class="fas fa-circle-notch fa-spin me-1"></i>{% if lang == 'en' %}Downloading…{% else %}جاري التحميل…{% endif %}
+            </span>
+          {% elif clip.status == 'failed' %}
+            <span class="badge-expired" title="{{ clip.status_msg or '' }}">
+              <i class="fas fa-triangle-exclamation me-1"></i>{% if lang == 'en' %}Failed{% else %}فشل{% endif %}
+            </span>
+            {% if clip.status_msg %}
+            <div style="font-size:.7rem;color:#C62828;margin-top:3px;max-width:240px;word-break:break-word;">{{ clip.status_msg[:120] }}</div>
+            {% endif %}
+          {% elif clip.is_expired %}
+            <span class="badge-expired">{% if lang == 'en' %}Expired{% else %}منتهية{% endif %}</span>
           {% else %}
-          <span class="expired-txt"><i class="fas fa-ban"></i> {% if lang == 'en' %}Expired{% else %}منتهي{% endif %}</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if clip.is_expired %}
-          <span class="badge-expired">{% if lang == 'en' %}Expired{% else %}منتهية{% endif %}</span>
-          {% else %}
-          <span class="badge-active">{% if lang == 'en' %}Active{% else %}نشطة{% endif %}</span>
-          <div class="countdown" data-expires="{{ clip.expires_at.isoformat() }}">—</div>
+            <span class="badge-active">{% if lang == 'en' %}Ready{% else %}جاهز{% endif %}</span>
+            <div class="countdown" data-expires="{{ clip.expires_at.isoformat() }}">—</div>
           {% endif %}
         </td>
         <td style="white-space:nowrap;">
+          {% if clip.is_ready and clip.filename %}
           <a href="{{ url_for('admin.download_admin_clip', clip_id=clip.id) }}"
              class="btn-sm-z btn-dl" title="{% if lang == 'en' %}Download{% else %}تحميل{% endif %}">
             <i class="fas fa-download"></i>
           </a>
+          {% if not clip.is_expired %}
+          <button class="btn-sm-z btn-cp ms-1"
+                  onclick="copyLink('{{ request.host_url }}clip/{{ clip.token }}', this)">
+            <i class="fas fa-share-nodes"></i>
+          </button>
+          {% endif %}
+          {% endif %}
           <form method="POST" action="{{ url_for('admin.delete_clip', clip_id=clip.id) }}"
                 style="display:inline;"
                 onsubmit="return confirm('{% if lang == 'en' %}Delete this clip?{% else %}حذف هذا المقطع؟{% endif %}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn-sm-z btn-del" title="{% if lang == 'en' %}Delete{% else %}حذف{% endif %}">
+            <button type="submit" class="btn-sm-z btn-del ms-1">
               <i class="fas fa-trash"></i>
             </button>
           </form>
@@ -270,34 +282,28 @@
   <div class="empty-state">
     <i class="fas fa-film"></i>
     <div style="font-size:15px;font-weight:700;margin-bottom:6px;">{% if lang == 'en' %}No clips saved yet{% else %}لا توجد مقاطع محفوظة بعد{% endif %}</div>
-    <div style="font-size:13px;">{% if lang == 'en' %}Use the form above to save a game clip and share it with a player{% else %}استخدم النموذج أعلاه لحفظ مقطع مباراة ومشاركته مع اللاعب{% endif %}</div>
+    <div style="font-size:13px;">{% if lang == 'en' %}Use the form above to save a game clip{% else %}استخدم النموذج أعلاه لحفظ مقطع مباراة{% endif %}</div>
   </div>
   {% endif %}
 </div>
 
 <script>
-// Set today as default date
 document.getElementById('clipDateInput').value = new Date().toISOString().split('T')[0];
 
-// Copy share link
 function copyLink(url, btn) {
   navigator.clipboard.writeText(url).then(() => {
     const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> {% if lang == "en" %}Copied!{% else %}تم النسخ!{% endif %}';
+    btn.innerHTML = '<i class="fas fa-check"></i>';
     btn.style.background = 'rgba(67,160,71,.2)';
     setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
   });
 }
 
-// Live countdown timers
 function updateCountdowns() {
   document.querySelectorAll('.countdown[data-expires]').forEach(el => {
     const exp = new Date(el.dataset.expires + 'Z');
     const diff = exp - new Date();
-    if (diff <= 0) {
-      el.textContent = '';
-      return;
-    }
+    if (diff <= 0) { el.textContent = ''; return; }
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
@@ -306,5 +312,10 @@ function updateCountdowns() {
 }
 updateCountdowns();
 setInterval(updateCountdowns, 1000);
+
+// Auto-refresh when clips are still processing
+{% if has_processing %}
+setTimeout(() => location.reload(), 15000);
+{% endif %}
 </script>
 {% endblock %}

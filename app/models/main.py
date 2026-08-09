@@ -244,12 +244,18 @@ class GameClip(db.Model):
     note           = db.Column(db.Text,        nullable=True)
     filename       = db.Column(db.String(200), nullable=True)
     token          = db.Column(db.String(36),  unique=True, nullable=False)
+    status         = db.Column(db.String(20),  default='ready')   # processing / ready / failed
+    status_msg     = db.Column(db.Text,        nullable=True)
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
     expires_at     = db.Column(db.DateTime,    nullable=False)
 
     @property
     def is_expired(self):
         return datetime.utcnow() > self.expires_at
+
+    @property
+    def is_ready(self):
+        return self.status in (None, 'ready')
 
     @property
     def court_label(self):

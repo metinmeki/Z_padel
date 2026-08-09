@@ -1440,62 +1440,155 @@ def edit_category(cat_id):
 
 
 # ════════════════════════════════════════════
-# GAME CLIPS
+# GAME CLIPS  (NVR ISAPI download)
 # ════════════════════════════════════════════
-RECORD_DIR_CLIPS = r"C:\recordings"
+
+# Court → NVR channel mapping
+COURT_CHANNELS = {'court1': 15, 'court2': 17}
+
+
+def _set_clip_status(app, clip_id, status, msg=None):
+    with app.app_context():
+        from app.models.main import GameClip
+        clip = GameClip.query.get(clip_id)
+        if clip:
+            clip.status     = status
+            clip.status_msg = msg
+            db.session.commit()
+
+
+def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
+    """Background thread: search NVR recordings and stream to output_path."""
+    import threading, requests as req, xml.etree.ElementTree as ET, re
+    from requests.auth import HTTPDigestAuth
+
+    with app.app_context():
+        nvr_url  = app.config.get('NVR_URL',  'http://45.81.147.210:65021')
+        nvr_user = app.config.get('NVR_USER', 'admin')
+        nvr_pass = app.config.get('NVR_PASS', 'caMera12')
+        auth     = HTTPDigestAuth(nvr_user, nvr_pass)
+        track_id = f"{channel}01"  # e.g. 1501 for ch15
+
+        # Times for ISAPI (local Kurdistan time UTC+3)
+        start_iso = start_dt.strftime('%Y-%m-%dT%H:%M:%S') + '+03:00'
+        end_iso   = end_dt.strftime('%Y-%m-%dT%H:%M:%S')   + '+03:00'
+        # Times for playbackURI params (UTC)
+        start_utc = (start_dt - timedelta(hours=3)).strftime('%Y%m%dT%H%M%SZ')
+        end_utc   = (end_dt   - timedelta(hours=3)).strftime('%Y%m%dT%H%M%SZ')
+
+        search_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<CMSearchDescription>
+  <searchID>1</searchID>
+  <trackList><trackID>{track_id}</trackID></trackList>
+  <timeSpanList>
+    <timeSpan>
+      <startTime>{start_iso}</startTime>
+      <endTime>{end_iso}</endTime>
+    </timeSpan>
+  </timeSpanList>
+  <maxResults>50</maxResults>
+  <searchResultPosition>0</searchResultPosition>
+  <metadataList>
+    <metadataDescriptor>//recordType.meta.std-cgi.com</metadataDescriptor>
+  </metadataList>
+</CMSearchDescription>"""
+
+        try:
+            # 1 ── Search for recordings
+            r = req.post(
+                f"{nvr_url}/ISAPI/ContentMgmt/search",
+                data=search_xml.encode('utf-8'),
+                headers={'Content-Type': 'application/xml'},
+                auth=auth, timeout=30
+            )
+            if r.status_code != 200:
+                _set_clip_status(app, clip_id, 'failed',
+                    f"NVR search returned HTTP {r.status_code}: {r.text[:300]}")
+                return
+
+            # 2 ── Extract any playbackURI from the XML (namespace-agnostic)
+            root = ET.fromstring(r.text)
+            playback_uri = None
+            for el in root.iter():
+                tag = el.tag.split('}')[-1]   # strip namespace
+                if tag == 'playbackURI' and el.text:
+                    playback_uri = el.text.strip()
+                    break
+
+            if not playback_uri:
+                _set_clip_status(app, clip_id, 'failed',
+                    f"No recordings found for this time range. "
+                    f"Track {track_id} · {start_iso} → {end_iso}. "
+                    f"NVR raw: {r.text[:400]}")
+                return
+
+            # 3 ── Override time range in the URI to match exactly what admin asked for
+            uri = re.sub(r'starttime=[^&?]+', f'starttime={start_utc}', playback_uri)
+            uri = re.sub(r'endtime=[^&?]+',   f'endtime={end_utc}',     uri)
+            if 'starttime=' not in uri:
+                sep = '&' if '?' in uri else '?'
+                uri += f'{sep}starttime={start_utc}&endtime={end_utc}'
+
+            # 4 ── Download
+            r2 = req.get(
+                f"{nvr_url}/ISAPI/ContentMgmt/download",
+                params={'playbackURI': uri},
+                auth=auth, timeout=3600, stream=True
+            )
+            if r2.status_code != 200:
+                _set_clip_status(app, clip_id, 'failed',
+                    f"NVR download returned HTTP {r2.status_code}: {r2.text[:300]}")
+                return
+
+            written = 0
+            with open(output_path, 'wb') as f:
+                for chunk in r2.iter_content(chunk_size=65536):
+                    if chunk:
+                        f.write(chunk)
+                        written += len(chunk)
+
+            if written < 10_000:
+                _set_clip_status(app, clip_id, 'failed',
+                    f"Downloaded file only {written} bytes — NVR may have returned an error page")
+                return
+
+            _set_clip_status(app, clip_id, 'ready')
+
+        except Exception as e:
+            _set_clip_status(app, clip_id, 'failed', str(e)[:500])
 
 
 @admin_bp.route('/clips')
 @login_required
 def clips():
     all_clips = GameClip.query.order_by(GameClip.created_at.desc()).all()
-    courts = Court.query.filter_by(is_active=True).all()
-    return render_template('admin/clips.html', clips=all_clips, courts=courts)
+    return render_template('admin/clips.html', clips=all_clips)
 
 
 @admin_bp.route('/clips/save', methods=['POST'])
 @login_required
 def save_clip():
+    import threading
     court      = request.form.get('court', '').strip()
     date_str   = request.form.get('clip_date', '').strip()
     start_time = request.form.get('start_time', '').strip()
-    duration   = min(int(request.form.get('duration', 60)), 3600)  # max 1 hour
+    duration   = min(int(request.form.get('duration', 3600)), 3600)  # max 1 hour
     cust_name  = request.form.get('customer_name', '').strip()
     cust_phone = request.form.get('customer_phone', '').strip()
     note       = request.form.get('note', '').strip()
 
-    if court not in ('court1', 'court2'):
+    if court not in COURT_CHANNELS:
         flash('يرجى اختيار ملعب صحيح', 'danger')
         return redirect(url_for('admin.clips'))
 
     try:
-        # Accept HH:MM or HH:MM:SS
         fmt = "%Y-%m-%d %H:%M:%S" if start_time.count(':') == 2 else "%Y-%m-%d %H:%M"
-        requested_dt = datetime.strptime(f"{date_str} {start_time}", fmt)
+        start_dt = datetime.strptime(f"{date_str} {start_time}", fmt)
     except ValueError:
         flash('تنسيق التاريخ أو الوقت غير صحيح', 'danger')
         return redirect(url_for('admin.clips'))
 
-    court_dir = os.path.join(RECORD_DIR_CLIPS, court)
-    if not os.path.isdir(court_dir):
-        flash('لا توجد تسجيلات لهذا الملعب', 'danger')
-        return redirect(url_for('admin.clips'))
-
-    files = sorted(f for f in os.listdir(court_dir) if f.endswith('.mp4'))
-    target_file, file_start_dt = None, None
-    for f in files:
-        try:
-            f_dt = datetime.strptime(f.replace('.mp4', ''), "%Y-%m-%d_%H-%M-%S")
-        except ValueError:
-            continue
-        if f_dt <= requested_dt:
-            target_file, file_start_dt = f, f_dt
-        else:
-            break
-
-    if not target_file:
-        flash('لا يوجد تسجيل بهذا الوقت', 'danger')
-        return redirect(url_for('admin.clips'))
+    end_dt = start_dt + timedelta(seconds=duration)
 
     clips_dir = current_app.config['CLIPS_FOLDER']
     os.makedirs(clips_dir, exist_ok=True)
@@ -1504,20 +1597,9 @@ def save_clip():
     filename = f"clip_{token[:8]}.mp4"
     output_path = os.path.join(clips_dir, filename)
 
-    offset_sec  = (requested_dt - file_start_dt).total_seconds()
-    input_path  = os.path.join(court_dir, target_file)
-
-    cmd = ["ffmpeg", "-y", "-ss", str(offset_sec), "-i", input_path,
-           "-t", str(duration), "-c", "copy", output_path]
-    try:
-        subprocess.run(cmd, check=True, capture_output=True, timeout=120)
-    except Exception:
-        flash('فشل استخراج المقطع — تأكد من وجود ffmpeg وصحة التسجيل', 'danger')
-        return redirect(url_for('admin.clips'))
-
     clip = GameClip(
         court=court,
-        clip_date=datetime.strptime(date_str, '%Y-%m-%d').date(),
+        clip_date=start_dt.date(),
         start_time=start_time,
         duration_sec=duration,
         customer_name=cust_name or None,
@@ -1525,12 +1607,22 @@ def save_clip():
         note=note or None,
         filename=filename,
         token=token,
-        expires_at=datetime.utcnow() + timedelta(hours=1),
+        status='processing',
+        expires_at=datetime.utcnow() + timedelta(hours=24),
     )
     db.session.add(clip)
     db.session.commit()
 
-    flash('✅ تم حفظ المقطع بنجاح! يمكنك الآن مشاركة الرابط مع اللاعب.', 'success')
+    channel = COURT_CHANNELS[court]
+    app = current_app._get_current_object()
+    t = threading.Thread(
+        target=_download_nvr_clip,
+        args=(app, clip.id, channel, start_dt, end_dt, output_path),
+        daemon=True
+    )
+    t.start()
+
+    flash('⏳ جاري تحميل المقطع من NVR — سيظهر جاهزاً خلال دقائق. / Clip is downloading from NVR — will be ready in a few minutes.', 'info')
     return redirect(url_for('admin.clips'))
 
 
