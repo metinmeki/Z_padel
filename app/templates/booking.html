@@ -390,6 +390,21 @@
       <!-- Slots -->
       <div class="slots-wrap">
 
+        <!-- Active court banner -->
+        <div id="courtBanner" style="
+          display:flex;align-items:center;gap:8px;
+          background:#1a1a2e;color:#fff;
+          padding:9px 14px;border-radius:8px;margin-bottom:10px;
+          font-size:13px;font-weight:700;letter-spacing:.3px;">
+          <i class="fas fa-shield-halved" style="color:#f9a825;font-size:14px;"></i>
+          <span id="courtBannerText">—</span>
+          <span style="margin-{{ 'left' if lang == 'en' else 'right' }}:auto;font-size:10px;font-weight:600;
+                background:rgba(249,168,37,.18);color:#f9a825;
+                padding:2px 8px;border-radius:20px;">
+            {% if lang == 'en' %}SELECTED{% else %}محدد{% endif %}
+          </span>
+        </div>
+
         <div class="slots-legend">
           <div class="legend-item"><div class="legend-dot free"></div>{% if lang == 'en' %}Available{% elif lang == 'ku' %}بەردەستە{% else %}متاح{% endif %}</div>
           <div class="legend-item"><div class="legend-dot booked"></div>{% if lang == 'en' %}Booked{% elif lang == 'ku' %}حجزکراو{% else %}محجوز{% endif %}</div>
@@ -529,7 +544,12 @@ function clearQuickActive() { document.querySelectorAll('.quick-btn').forEach(b 
 function selectCourt(btn) {
   document.querySelectorAll('.court-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  selCourt = btn.dataset.courtId; selPrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 1);
+  selCourt = btn.dataset.courtId;
+  selPrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 1);
+  // Always keep the hidden form field in sync — prevents wrong court on submission
+  document.getElementById('f_court_id').value = selCourt;
+  // Update the court banner so user always knows which court they're viewing
+  document.getElementById('courtBannerText').textContent = btn.dataset.courtName;
   selStart = null; renderSlots(); updateSummary();
 }
 
@@ -693,6 +713,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (firstCourt) {
     selCourt = firstCourt.dataset.courtId;
     selPrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 1);
+    document.getElementById('f_court_id').value = selCourt;
+    document.getElementById('courtBannerText').textContent = firstCourt.dataset.courtName;
     renderSlots();
   }
 });
