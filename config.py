@@ -7,7 +7,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 class Config:
     # ── Security ──
     SECRET_KEY = os.environ.get('SECRET_KEY', 'z-padel-secret-change-in-production')
-    WTF_CSRF_ENABLED = True
+    WTF_CSRF_ENABLED    = True
+    WTF_CSRF_TIME_LIMIT = None   # no token expiry — prevents 400 after idle
 
     # ── Database ──
     SQLALCHEMY_DATABASE_URI = os.environ.get(

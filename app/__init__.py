@@ -1,5 +1,5 @@
 import os
-from flask import Flask, session, g, request as flask_request
+from flask import Flask, session, g, request as flask_request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
@@ -33,6 +33,13 @@ def create_app(config_name: str = None):
     os.makedirs(app.config['UPLOAD_FOLDER'],   exist_ok=True)
     os.makedirs(app.config['RECEIPTS_FOLDER'], exist_ok=True)
     os.makedirs(app.config['CLIPS_FOLDER'],    exist_ok=True)
+
+    # ── CSRF error handler ──
+    from flask_wtf.csrf import CSRFError
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        flash('انتهت صلاحية الجلسة. حاول مرة أخرى. / Session expired — please try again.', 'warning')
+        return redirect(flask_request.referrer or url_for('admin.dashboard'))
 
     # ── Static file caching (1 week) ──
     @app.after_request
@@ -87,6 +94,7 @@ def _add_missing_columns(app):
         "ALTER TABLE products ADD COLUMN show_on_website BOOLEAN DEFAULT 0",
         "ALTER TABLE products ADD COLUMN description_ar TEXT",
         "ALTER TABLE products ADD COLUMN description_ku TEXT",
+        "ALTER TABLE products ADD COLUMN barcode VARCHAR(50)",
     ]
     with app.app_context():
         with db.engine.connect() as conn:
