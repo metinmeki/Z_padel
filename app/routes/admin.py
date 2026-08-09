@@ -1476,34 +1476,38 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
         start_utc = (start_dt - timedelta(hours=3)).strftime('%Y%m%dT%H%M%SZ')
         end_utc   = (end_dt   - timedelta(hours=3)).strftime('%Y%m%dT%H%M%SZ')
 
-        search_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<CMSearchDescription>
-  <searchID>1</searchID>
-  <trackList><trackID>{track_id}</trackID></trackList>
-  <timeSpanList>
-    <timeSpan>
-      <startTime>{start_iso}</startTime>
-      <endTime>{end_iso}</endTime>
-    </timeSpan>
-  </timeSpanList>
-  <maxResults>50</maxResults>
-  <searchResultPosition>0</searchResultPosition>
-  <metadataList>
-    <metadataDescriptor>//recordType.meta.std-cgi.com</metadataDescriptor>
-  </metadataList>
-</CMSearchDescription>"""
+        search_xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<CMSearchDescription xmlns="http://www.std-cgi.com/ver20/XMLSchema/1.0">'
+            f'<searchID>{str(uuid.uuid4()).upper()}</searchID>'
+            '<trackList>'
+            f'<trackID>{track_id}</trackID>'
+            '</trackList>'
+            '<timeSpanList>'
+            '<timeSpan>'
+            f'<startTime>{start_iso}</startTime>'
+            f'<endTime>{end_iso}</endTime>'
+            '</timeSpan>'
+            '</timeSpanList>'
+            '<maxResults>50</maxResults>'
+            '<searchResultPosition>0</searchResultPosition>'
+            '<metadataList>'
+            '<metadataDescriptor>//recordType.meta.std-cgi.com</metadataDescriptor>'
+            '</metadataList>'
+            '</CMSearchDescription>'
+        )
 
         try:
             # 1 ── Search for recordings
             r = req.post(
                 f"{nvr_url}/ISAPI/ContentMgmt/search",
                 data=search_xml.encode('utf-8'),
-                headers={'Content-Type': 'application/xml'},
+                headers={'Content-Type': 'text/xml; charset=UTF-8'},
                 auth=auth, timeout=30
             )
             if r.status_code != 200:
                 _set_clip_status(app, clip_id, 'failed',
-                    f"NVR search returned HTTP {r.status_code}: {r.text[:300]}")
+                    f"NVR search HTTP {r.status_code}: {r.text[:600]}")
                 return
 
             # 2 ── Extract any playbackURI from the XML (namespace-agnostic)
