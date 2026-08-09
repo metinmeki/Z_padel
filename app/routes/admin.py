@@ -1632,6 +1632,7 @@ def cameras():
 def camera_snapshot(channel):
     """Proxy a JPEG snapshot from the Hikvision NVR ISAPI — bypasses X-Frame-Options."""
     import requests as req
+    from requests.auth import HTTPDigestAuth
     from flask import Response
     if channel not in range(1, 33):
         return Response(status=400)
@@ -1640,14 +1641,39 @@ def camera_snapshot(channel):
     nvr_pass = current_app.config.get('NVR_PASS', 'caMera12')
     api_url  = f"{nvr_url}/ISAPI/Streaming/channels/{channel}01/picture"
     try:
-        r = req.get(api_url, auth=(nvr_user, nvr_pass), timeout=6, stream=False)
+        # Hikvision uses Digest Auth by default
+        r = req.get(api_url, auth=HTTPDigestAuth(nvr_user, nvr_pass), timeout=8, stream=False)
         if r.status_code == 200:
             resp = Response(r.content, mimetype='image/jpeg')
             resp.headers['Cache-Control'] = 'no-store'
             return resp
-        return Response(status=r.status_code)
-    except Exception:
-        return Response(status=503)
+        return Response(f"NVR returned {r.status_code}", status=r.status_code)
+    except req.exceptions.ConnectTimeout:
+        return Response("NVR connect timeout", status=504)
+    except req.exceptions.ConnectionError as e:
+        return Response(f"NVR connection error: {e}", status=503)
+    except Exception as e:
+        return Response(f"Error: {e}", status=500)
+
+
+@admin_bp.route('/cameras/debug')
+@login_required
+def cameras_debug():
+    """Test NVR connectivity and return status as JSON."""
+    import requests as req
+    from requests.auth import HTTPDigestAuth
+    nvr_url  = current_app.config.get('NVR_URL',  'http://45.81.147.210:65021')
+    nvr_user = current_app.config.get('NVR_USER', 'admin')
+    nvr_pass = current_app.config.get('NVR_PASS', 'caMera12')
+    results = {}
+    for ch in [1, 2]:
+        url = f"{nvr_url}/ISAPI/Streaming/channels/{ch}01/picture"
+        try:
+            r = req.get(url, auth=HTTPDigestAuth(nvr_user, nvr_pass), timeout=8)
+            results[f"ch{ch}"] = {"status": r.status_code, "content_type": r.headers.get('Content-Type',''), "size": len(r.content)}
+        except Exception as e:
+            results[f"ch{ch}"] = {"error": str(e)}
+    return jsonify({"nvr_url": nvr_url, "user": nvr_user, "results": results})
 
 
 @admin_bp.route('/sponsors', methods=['GET', 'POST'])
