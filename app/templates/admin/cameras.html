@@ -5,12 +5,10 @@
 <style>
   .cam-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: .8rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
-  @media(max-width:1200px){ .cam-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media(max-width:768px) { .cam-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media(max-width:480px) { .cam-grid { grid-template-columns: 1fr; } }
+  @media(max-width:768px) { .cam-grid { grid-template-columns: 1fr; } }
 
   .cam-card {
     background: #0d0d0d;
@@ -98,9 +96,9 @@
   <div>
     <div class="page-header-title">
       <i class="fas fa-video me-2" style="color:var(--brand-blue)"></i>
-      {% if lang == 'en' %}Live Cameras (22){% elif lang == 'ku' %}کامێرای سەرزمان{% else %}كاميرات مباشرة (22){% endif %}
+      {% if lang == 'en' %}Live Cameras{% elif lang == 'ku' %}کامێرای سەرزمان{% else %}كاميرات مباشرة{% endif %}
     </div>
-    <div class="page-header-sub">Hikvision NVR — Channels 1–22 · Click any camera to expand</div>
+    <div class="page-header-sub">Hikvision NVR — Court 1 (CH 15) &amp; Court 2 (CH 17) · Click to expand</div>
   </div>
   <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank" class="btn-nvr">
     <i class="fas fa-external-link-alt"></i> Open NVR
@@ -109,15 +107,15 @@
 
 <!-- Camera grid -->
 <div class="cam-grid" id="camGrid">
-  {% for ch in range(1, 23) %}
-  <div class="cam-card" onclick="openModal({{ ch }})" title="Click to expand Channel {{ ch }}">
+  {% for ch, label in [(15, 'Court 1'), (17, 'Court 2')] %}
+  <div class="cam-card" onclick="openModal({{ ch }})" title="Click to expand {{ label }}">
     <div class="cam-header">
       <i class="fas fa-video" style="font-size:.7rem;"></i>
-      <span>CH {{ ch }}</span>
+      <span>{{ label }}</span>
       <span class="live-badge" id="badge{{ ch }}">LIVE</span>
     </div>
     <div class="cam-img-wrap">
-      <img id="feed{{ ch }}" alt="CH {{ ch }}" style="display:none;">
+      <img id="feed{{ ch }}" alt="{{ label }}" style="display:none;">
       <div class="cam-overlay" id="overlay{{ ch }}">
         <i class="fas fa-circle-notch fa-spin"></i>
         <span>Connecting…</span>
@@ -143,18 +141,18 @@
 
 <script>
 (function(){
-  var TOTAL     = 22;
-  var GRID_MS   = 2000;   // grid refresh interval per camera
+  var CHANNELS  = [15, 17];
+  var GRID_MS   = 1500;   // grid refresh interval per camera
   var MODAL_MS  = 800;    // modal refresh interval (faster for expanded view)
-  var STAGGER   = 90;     // ms between starting each camera to spread NVR load
+  var STAGGER   = 200;    // ms between starting each camera
 
   var modalChannel = null, modalTimer = null;
   var modalFps = document.getElementById('modalFps');
   var modalFrameCount = 0, modalLastFps = Date.now();
 
   // ── Grid cameras ──
-  for (var ch = 1; ch <= TOTAL; ch++) {
-    (function(c){
+  CHANNELS.forEach(function(c, idx){
+    (function(c, idx){
       var feed    = document.getElementById('feed' + c);
       var overlay = document.getElementById('overlay' + c);
       var badge   = document.getElementById('badge' + c);
@@ -190,14 +188,16 @@
       }
 
       // Stagger startup so cameras don't all hit NVR simultaneously
-      setTimeout(loadFrame, c * STAGGER);
-    })(ch);
-  }
+      setTimeout(loadFrame, idx * STAGGER);
+    })(c, idx);
+  });
 
   // ── Modal ──
+  var CH_LABELS = {15: 'Court 1 (CH 15)', 17: 'Court 2 (CH 17)'};
+
   window.openModal = function(ch){
     modalChannel = ch;
-    document.getElementById('modalTitle').textContent = 'Channel ' + ch;
+    document.getElementById('modalTitle').textContent = CH_LABELS[ch] || ('Channel ' + ch);
     document.getElementById('camModal').classList.add('open');
     document.body.style.overflow = 'hidden';
     loadModalFrame();
