@@ -1,0 +1,75 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}Receipt — {{ tab.customer_name }}{% endblock %}
+
+{% block extra_css %}
+.receipt-wrap { max-width:420px; margin:0 auto; }
+.receipt-box { background:#fff; border:1.5px solid var(--border); border-radius:18px; padding:1.5rem; }
+.receipt-header { text-align:center; border-bottom:1px dashed var(--border); padding-bottom:1rem; margin-bottom:1rem; }
+.receipt-logo { font-size:1.3rem; font-weight:900; color:var(--text-primary); }
+.receipt-sub { font-size:.78rem; color:var(--text-muted); }
+.receipt-customer { font-size:.95rem; font-weight:800; margin:.8rem 0 .3rem; }
+.receipt-date { font-size:.75rem; color:var(--text-muted); }
+.receipt-items { margin:1rem 0; }
+.receipt-row { display:flex; justify-content:space-between; align-items:flex-start; padding:.4rem 0; font-size:.85rem; border-bottom:1px solid #f3f4f6; }
+.receipt-row:last-child { border-bottom:none; }
+.receipt-desc { flex:1; color:var(--text-primary); font-weight:600; padding-right:.5rem; }
+.receipt-qty  { color:var(--text-muted); font-size:.78rem; white-space:nowrap; margin-right:.5rem; }
+.receipt-amt  { font-weight:800; white-space:nowrap; }
+.receipt-total { border-top:2px solid var(--text-primary); margin-top:.8rem; padding-top:.8rem;
+  display:flex; justify-content:space-between; font-size:1.1rem; font-weight:900; }
+.receipt-payment { text-align:center; margin-top:1rem; padding:.6rem;
+  background:var(--primary-subtle); border-radius:10px; font-size:.82rem; font-weight:700; color:var(--primary-dark); }
+.receipt-footer { text-align:center; margin-top:1rem; font-size:.72rem; color:var(--text-muted); }
+.badge-time    { background:#dbeafe; color:#1d4ed8; font-size:.65rem; padding:.15rem .4rem; border-radius:5px; font-weight:700; margin-right:.3rem; }
+.badge-product { background:#f0fdf4; color:#15803d; font-size:.65rem; padding:.15rem .4rem; border-radius:5px; font-weight:700; margin-right:.3rem; }
+{% endblock %}
+
+{% block content %}
+<div class="receipt-wrap">
+  <div class="receipt-box">
+    <div class="receipt-header">
+      <div class="receipt-logo">🏓 Z Padel</div>
+      <div class="receipt-sub">Customer Tab Receipt</div>
+    </div>
+
+    <div class="receipt-customer"><i class="fas fa-user me-1" style="color:var(--primary)"></i>{{ tab.customer_name }}</div>
+    <div class="receipt-date">
+      Opened: {{ tab.created_at.strftime('%Y-%m-%d %H:%M') }} ·
+      Closed: {{ tab.closed_at.strftime('%H:%M') if tab.closed_at else '—' }}
+    </div>
+
+    <div class="receipt-items">
+      {% for item in tab.items %}
+      <div class="receipt-row">
+        <div class="receipt-desc">
+          {% if item.item_type == 'time' %}<span class="badge-time">⏱</span>{% else %}<span class="badge-product">🛍</span>{% endif %}
+          {{ item.description }}
+        </div>
+        <span class="receipt-qty">×{{ item.quantity|int if item.quantity == item.quantity|int else "%.0f"|format(item.quantity) }}</span>
+        <span class="receipt-amt">{{ "{:,.0f}".format(item.subtotal) }}</span>
+      </div>
+      {% endfor %}
+      <div class="receipt-total">
+        <span>TOTAL</span>
+        <span>{{ "{:,.0f}".format(tab.items_total) }} IQD</span>
+      </div>
+    </div>
+
+    <div class="receipt-payment">
+      <i class="fas {% if tab.payment_method == 'cash' %}fa-money-bill{% else %}fa-credit-card{% endif %} me-1"></i>
+      Paid by {{ (tab.payment_method or 'cash')|capitalize }}
+    </div>
+
+    <div class="receipt-footer">Thank you for visiting Z Padel!</div>
+  </div>
+
+  <div style="display:flex;gap:.7rem;margin-top:1rem;">
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm flex-fill">
+      <i class="fas fa-print me-1"></i>Print
+    </button>
+    <a href="{{ url_for('tabs.index') }}" class="btn btn-primary btn-sm flex-fill">
+      <i class="fas fa-arrow-left me-1"></i>Back to Tabs
+    </a>
+  </div>
+</div>
+{% endblock %}

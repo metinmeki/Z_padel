@@ -1211,9 +1211,16 @@
     <div class="nav-section-label">POS</div>
     <div class="nav-item-wrapper">
       <a href="{{ url_for('pos.quick_sale') }}"
-         class="nav-link-custom {% if 'pos' in request.endpoint %}active{% endif %}">
+         class="nav-link-custom {% if request.endpoint and 'pos' in request.endpoint %}active{% endif %}">
         <i class="fas fa-cash-register nav-icon"></i>
         <span class="nav-label">{% if lang == 'en' %}Point of Sale (POS){% elif lang == 'ku' %}فرۆشگای ڕاستەوخۆ{% else %}نقطة البيع (POS){% endif %}</span>
+      </a>
+    </div>
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('tabs.index') }}"
+         class="nav-link-custom {% if request.endpoint and 'tabs' in request.endpoint %}active{% endif %}">
+        <i class="fas fa-receipt nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Customer Tabs{% elif lang == 'ku' %}تابەکانی کڕیار{% else %}تبويب العملاء{% endif %}</span>
       </a>
     </div>
     {% endif %}

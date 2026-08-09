@@ -455,3 +455,68 @@ class CourtSessionItem(db.Model):
 
     def __repr__(self):
         return f'<CourtSessionItem session#{self.session_id} {self.product_name}>'
+
+
+# ═══════════════════════════════════════════
+# CUSTOMER TAB (moving bill across locations)
+# ═══════════════════════════════════════════
+class Tab(db.Model):
+    __tablename__ = 'tabs'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    customer_name   = db.Column(db.String(100), nullable=False)
+    # Current location the tab is attached to
+    location_type   = db.Column(db.String(20),  nullable=True)   # 'activity' | 'court' | None
+    location_id     = db.Column(db.Integer,      nullable=True)
+    location_name   = db.Column(db.String(100),  nullable=True)   # cached display name
+    location_since  = db.Column(db.DateTime,     nullable=True)   # when they arrived here
+    hourly_rate     = db.Column(db.Float,        nullable=True)   # rate at current location
+    status          = db.Column(db.String(20),   default='open')  # open | paid
+    payment_method  = db.Column(db.String(20),   nullable=True)
+    notes           = db.Column(db.Text,         nullable=True)
+    created_at      = db.Column(db.DateTime,     default=datetime.utcnow)
+    closed_at       = db.Column(db.DateTime,     nullable=True)
+
+    items = db.relationship('TabItem', backref='tab', lazy=True,
+                            cascade='all, delete-orphan',
+                            order_by='TabItem.created_at')
+
+    @property
+    def items_total(self):
+        return sum(i.subtotal for i in self.items)
+
+    @property
+    def time_minutes(self):
+        if not self.location_since:
+            return 0
+        return max(0, int((datetime.utcnow() - self.location_since).total_seconds() / 60))
+
+    @property
+    def time_charge(self):
+        if not self.hourly_rate or not self.location_since:
+            return 0
+        return round((self.time_minutes / 60) * self.hourly_rate)
+
+    @property
+    def grand_total(self):
+        return self.items_total + self.time_charge
+
+    def __repr__(self):
+        return f'<Tab #{self.id} {self.customer_name} [{self.status}]>'
+
+
+class TabItem(db.Model):
+    __tablename__ = 'tab_items'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    tab_id       = db.Column(db.Integer, db.ForeignKey('tabs.id'), nullable=False)
+    product_id   = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    item_type    = db.Column(db.String(20), default='product')  # 'product' | 'time' | 'custom'
+    description  = db.Column(db.String(200), nullable=False)
+    quantity     = db.Column(db.Float,   default=1)
+    price        = db.Column(db.Float,   nullable=False)
+    subtotal     = db.Column(db.Float,   nullable=False)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<TabItem tab#{self.tab_id} {self.description}>'
