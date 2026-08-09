@@ -710,11 +710,19 @@ def categories():
 @admin_bp.route('/categories/add', methods=['POST'])
 @login_required
 def add_category():
-    cat = Category(name=request.form.get('name', '').strip(),
-                   color=request.form.get('color', '#1565C0'))
+    from sqlalchemy.exc import IntegrityError
+    name = request.form.get('name', '').strip()
+    if not name:
+        flash('اسم الفئة مطلوب. / Category name is required.', 'danger')
+        return redirect(url_for('admin.categories'))
+    cat = Category(name=name, color=request.form.get('color', '#1565C0'))
     db.session.add(cat)
-    db.session.commit()
-    flash('تم إضافة الفئة.', 'success')
+    try:
+        db.session.commit()
+        flash('تم إضافة الفئة.', 'success')
+    except IntegrityError:
+        db.session.rollback()
+        flash(f'فئة باسم "{name}" موجودة مسبقاً. / A category named "{name}" already exists.', 'danger')
     return redirect(url_for('admin.categories'))
 
 
@@ -1418,11 +1426,16 @@ def new_court():
 @admin_bp.route('/categories/<int:cat_id>/edit', methods=['POST'])
 @login_required
 def edit_category(cat_id):
+    from sqlalchemy.exc import IntegrityError
     cat = Category.query.get_or_404(cat_id)
-    cat.name  = request.form.get('name', cat.name)
+    cat.name  = request.form.get('name', cat.name).strip()
     cat.color = request.form.get('color', cat.color)
-    db.session.commit()
-    flash('تم تحديث الفئة.', 'success')
+    try:
+        db.session.commit()
+        flash('تم تحديث الفئة.', 'success')
+    except IntegrityError:
+        db.session.rollback()
+        flash('فئة بهذا الاسم موجودة مسبقاً. / A category with this name already exists.', 'danger')
     return redirect(url_for('admin.categories'))
 
 
