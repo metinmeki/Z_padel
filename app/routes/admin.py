@@ -710,7 +710,7 @@ def categories():
 @admin_bp.route('/categories/add', methods=['POST'])
 @login_required
 def add_category():
-    cat = Category(name=request.form['name'],
+    cat = Category(name=request.form.get('name', '').strip(),
                    color=request.form.get('color', '#1565C0'))
     db.session.add(cat)
     db.session.commit()
