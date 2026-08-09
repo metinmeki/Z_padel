@@ -29,6 +29,11 @@ class Config:
     MAX_CONTENT_LENGTH   = 4 * 1024 * 1024   # 4 MB
     ALLOWED_EXTENSIONS   = {'png', 'jpg', 'jpeg', 'webp', 'pdf'}
 
+    # ── NVR / Camera ──
+    NVR_URL  = os.environ.get('NVR_URL',  'http://45.81.147.210:65021')
+    NVR_USER = os.environ.get('NVR_USER', 'admin')
+    NVR_PASS = os.environ.get('NVR_PASS', 'caMera12')
+
     # ── Business defaults (overridden by DB settings) ──
     DEFAULT_PRICE_PER_HOUR = 25_000   # IQD
     OPEN_HOUR              = 6

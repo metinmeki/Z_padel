@@ -1,90 +1,165 @@
 {% extends 'admin/base_admin.html' %}
 {% block title %}Cameras – Z Padel Admin{% endblock %}
 
+{% block extra_styles %}
+<style>
+  .cam-wrap   { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  @media(max-width:900px){ .cam-wrap { grid-template-columns:1fr; } }
+
+  .cam-card   { background:#0d0d0d; border-radius:14px; overflow:hidden;
+                box-shadow:0 4px 24px rgba(0,0,0,.35); }
+  .cam-header { background:#1a1a2e; color:#fff; padding:10px 16px;
+                display:flex; align-items:center; gap:10px; font-size:.88rem; font-weight:700; }
+  .live-badge { background:#ef4444; color:#fff; font-size:.62rem; font-weight:800;
+                padding:2px 7px; border-radius:20px; letter-spacing:.5px; animation:pulse 1.5s infinite; }
+  .offline-badge { background:#555; color:#aaa; font-size:.62rem; font-weight:800;
+                   padding:2px 7px; border-radius:20px; letter-spacing:.5px; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  .cam-img-wrap { position:relative; width:100%; aspect-ratio:16/9; background:#111; }
+  .cam-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+  .cam-overlay  { position:absolute; inset:0; display:flex; flex-direction:column;
+                  align-items:center; justify-content:center; color:#888; gap:10px;
+                  background:#0d0d0d; }
+  .cam-overlay i { font-size:3rem; }
+
+  .cam-footer { background:#111; color:#555; font-size:.72rem; padding:6px 14px;
+                display:flex; justify-content:space-between; align-items:center; }
+
+  .btn-nvr { background:var(--brand-blue); color:#fff; border:none; border-radius:8px;
+             padding:7px 16px; font-size:.82rem; font-weight:700; cursor:pointer;
+             text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+  .btn-nvr:hover { opacity:.85; color:#fff; }
+</style>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header d-flex align-items-center justify-content-between mb-4">
   <div>
-    <h1 class="page-title"><i class="fas fa-video me-2" style="color:var(--brand-blue)"></i>
-      {% if lang == 'en' %}Live Camera{% elif lang == 'ku' %}کامێرای سەرزمان{% else %}الكاميرا المباشرة{% endif %}
-    </h1>
-    <p class="text-muted mb-0" style="font-size:.9rem">Hikvision NVR — {{ nvr_url }}</p>
+    <div class="page-header-title">
+      <i class="fas fa-video me-2" style="color:var(--brand-blue)"></i>
+      {% if lang == 'en' %}Live Cameras{% elif lang == 'ku' %}کامێرای سەرزمان{% else %}كاميرات مباشرة{% endif %}
+    </div>
+    <div class="page-header-sub">Court 1 &amp; Court 2 — Hikvision NVR</div>
   </div>
-  <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank" class="btn btn-primary">
-    <i class="fas fa-external-link-alt me-1"></i> Open NVR Full Screen
+  <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank" class="btn-nvr">
+    <i class="fas fa-external-link-alt"></i>
+    {% if lang == 'en' %}Open NVR{% else %}فتح NVR{% endif %}
   </a>
 </div>
 
-<style>
-.cam-card { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(21,101,192,.10); overflow:hidden; }
-.cam-header { background:var(--brand-blue); color:#fff; padding:10px 16px; font-weight:700; font-size:.9rem; display:flex; align-items:center; gap:8px; }
-.cam-header .dot { width:8px; height:8px; border-radius:50%; background:#4caf50; animation:blink 1.2s ease-in-out infinite; }
-.cam-header .dot.offline { background:#f44336; animation:none; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-.cam-frame { position:relative; width:100%; background:#0a0a0a; }
-.cam-frame iframe { width:100%; height:560px; border:none; display:block; }
-.cam-fallback { display:none; flex-direction:column; align-items:center; justify-content:center; height:560px; color:#888; gap:14px; }
-.cam-fallback i { font-size:3.5rem; color:#444; }
-.cam-fallback .btn { font-size:1rem; padding:10px 24px; }
-</style>
+<div class="cam-wrap">
+  <!-- Court 1 — NVR channel 1 -->
+  <div class="cam-card" id="card1">
+    <div class="cam-header">
+      <i class="fas fa-video"></i>
+      <span>{% if lang == 'en' %}Court 1{% else %}ملعب 1{% endif %}</span>
+      <span class="live-badge" id="badge1">LIVE</span>
+      <span class="ms-auto" style="font-size:.72rem;color:#aaa;" id="fps1"></span>
+    </div>
+    <div class="cam-img-wrap">
+      <img id="feed1" alt="Court 1" style="display:none;">
+      <div class="cam-overlay" id="overlay1">
+        <i class="fas fa-circle-notch fa-spin" style="color:#444"></i>
+        <span style="font-size:.85rem;">Connecting…</span>
+      </div>
+    </div>
+    <div class="cam-footer">
+      <span>CH 1 · 45.81.147.210:65021</span>
+      <span id="ts1">—</span>
+    </div>
+  </div>
 
-<div class="row justify-content-center">
-  <div class="col-12 col-xl-10">
-    <div class="cam-card">
-      <div class="cam-header">
-        <span class="dot" id="statusDot"></span>
-        <i class="fas fa-video"></i> Camera 1 — Court (192.168.1.66)
+  <!-- Court 2 — NVR channel 2 -->
+  <div class="cam-card" id="card2">
+    <div class="cam-header">
+      <i class="fas fa-video"></i>
+      <span>{% if lang == 'en' %}Court 2{% else %}ملعب 2{% endif %}</span>
+      <span class="live-badge" id="badge2">LIVE</span>
+      <span class="ms-auto" style="font-size:.72rem;color:#aaa;" id="fps2"></span>
+    </div>
+    <div class="cam-img-wrap">
+      <img id="feed2" alt="Court 2" style="display:none;">
+      <div class="cam-overlay" id="overlay2">
+        <i class="fas fa-circle-notch fa-spin" style="color:#444"></i>
+        <span style="font-size:.85rem;">Connecting…</span>
       </div>
-      <div class="cam-frame" id="camFrame">
-        <iframe id="camIframe"
-          src="{{ nvr_url }}/doc/index.html#/preview"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-        </iframe>
-        <div class="cam-fallback" id="camFallback">
-          <i class="fas fa-video-slash"></i>
-          <p class="mb-0 fw-bold" style="font-size:1.1rem">Live view cannot be embedded</p>
-          <p class="text-muted mb-2">The NVR blocks iframe embedding (X-Frame-Options)</p>
-          <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank" class="btn btn-primary">
-            <i class="fas fa-external-link-alt me-2"></i>Open Live View in New Tab
-          </a>
-        </div>
-      </div>
+    </div>
+    <div class="cam-footer">
+      <span>CH 2 · 45.81.147.210:65021</span>
+      <span id="ts2">—</span>
     </div>
   </div>
 </div>
 
-<div class="alert alert-warning mt-4" style="border-radius:12px; font-size:.88rem">
-  <i class="fas fa-triangle-exclamation me-2"></i>
-  <strong>To enable embedded live streaming:</strong>
-  Ask your network provider to forward <strong>port 554 (RTSP)</strong> on the router to the NVR
-  (same way port 65021 was forwarded). Once done, I can set up proper HD live streaming
-  directly inside this page — no separate login needed.
-</div>
-
 <script>
 (function(){
-  var iframe = document.getElementById('camIframe');
-  var fallback = document.getElementById('camFallback');
-  var dot = document.getElementById('statusDot');
+  var cams = [
+    { ch:1, img: document.getElementById('feed1'), overlay: document.getElementById('overlay1'),
+      badge: document.getElementById('badge1'), ts: document.getElementById('ts1'),
+      fps: document.getElementById('fps1') },
+    { ch:2, img: document.getElementById('feed2'), overlay: document.getElementById('overlay2'),
+      badge: document.getElementById('badge2'), ts: document.getElementById('ts2'),
+      fps: document.getElementById('fps2') },
+  ];
 
-  function showFallback() {
-    iframe.style.display = 'none';
-    fallback.style.display = 'flex';
-    dot.classList.add('offline');
+  var INTERVAL = 1000; // ms between frames
+
+  function pad(n){ return n < 10 ? '0'+n : n; }
+  function nowStr(){
+    var d = new Date();
+    return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
   }
 
-  // Detect X-Frame-Options block after 4 seconds
-  setTimeout(function() {
-    try {
-      var doc = iframe.contentDocument || iframe.contentWindow.document;
-      if (!doc || !doc.body || doc.title === '' || doc.body.innerHTML.trim() === '') {
-        showFallback();
-      }
-    } catch(e) {
-      showFallback();
-    }
-  }, 4000);
+  cams.forEach(function(cam){
+    var frameCount = 0, lastFpsCheck = Date.now(), consecutive_fail = 0;
 
-  iframe.onerror = showFallback;
+    function loadFrame(){
+      var t0 = Date.now();
+      var url = '/admin/cameras/snapshot/' + cam.ch + '?t=' + t0;
+      var tmp = new Image();
+
+      tmp.onload = function(){
+        cam.img.src = tmp.src;
+        cam.img.style.display = 'block';
+        cam.overlay.style.display = 'none';
+        cam.badge.className = 'live-badge';
+        cam.badge.textContent = 'LIVE';
+        cam.ts.textContent = nowStr();
+        consecutive_fail = 0;
+
+        // FPS counter
+        frameCount++;
+        var now = Date.now();
+        if(now - lastFpsCheck >= 5000){
+          cam.fps.textContent = (frameCount / ((now - lastFpsCheck)/1000)).toFixed(1) + ' fps';
+          frameCount = 0; lastFpsCheck = now;
+        }
+
+        var elapsed = Date.now() - t0;
+        setTimeout(loadFrame, Math.max(0, INTERVAL - elapsed));
+      };
+
+      tmp.onerror = function(){
+        consecutive_fail++;
+        if(consecutive_fail >= 3){
+          cam.img.style.display = 'none';
+          cam.overlay.innerHTML = '<i class="fas fa-video-slash"></i><span style="font-size:.85rem;color:#888">Offline</span>';
+          cam.overlay.style.display = 'flex';
+          cam.badge.className = 'offline-badge';
+          cam.badge.textContent = 'OFFLINE';
+          cam.fps.textContent = '';
+        }
+        setTimeout(loadFrame, 3000);
+      };
+
+      tmp.src = url;
+    }
+
+    loadFrame();
+  });
 })();
 </script>
+
 {% endblock %}

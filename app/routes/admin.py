@@ -1627,6 +1627,29 @@ def cameras():
     return render_template('admin/cameras.html', nvr_url=nvr_url)
 
 
+@admin_bp.route('/cameras/snapshot/<int:channel>')
+@login_required
+def camera_snapshot(channel):
+    """Proxy a JPEG snapshot from the Hikvision NVR ISAPI — bypasses X-Frame-Options."""
+    import requests as req
+    from flask import Response
+    if channel not in range(1, 33):
+        return Response(status=400)
+    nvr_url  = current_app.config.get('NVR_URL',  'http://45.81.147.210:65021')
+    nvr_user = current_app.config.get('NVR_USER', 'admin')
+    nvr_pass = current_app.config.get('NVR_PASS', 'caMera12')
+    api_url  = f"{nvr_url}/ISAPI/Streaming/channels/{channel}01/picture"
+    try:
+        r = req.get(api_url, auth=(nvr_user, nvr_pass), timeout=6, stream=False)
+        if r.status_code == 200:
+            resp = Response(r.content, mimetype='image/jpeg')
+            resp.headers['Cache-Control'] = 'no-store'
+            return resp
+        return Response(status=r.status_code)
+    except Exception:
+        return Response(status=503)
+
+
 @admin_bp.route('/sponsors', methods=['GET', 'POST'])
 @login_required
 def sponsors():
