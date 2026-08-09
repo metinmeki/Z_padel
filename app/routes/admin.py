@@ -1444,7 +1444,7 @@ def edit_category(cat_id):
 # ════════════════════════════════════════════
 
 # Court → NVR channel mapping
-COURT_CHANNELS = {'court1': 15, 'court2': 17}
+COURT_CHANNELS = {'court1': 15, 'court2': 12}
 
 
 def _set_clip_status(app, clip_id, status, msg=None):
