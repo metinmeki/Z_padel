@@ -642,9 +642,9 @@ def products():
 def new_product():
     cats = Category.query.all()
     if request.method == 'POST':
-        img = save_b64_image(request.form.get('image_b64')) or save_upload(request.files.get('image'))
+        img = save_b64_image(request.form.get('image_b64'))
         p = Product(
-            name=request.form['name'],
+            name=request.form.get('name', ''),
             category_id=request.form.get('category_id') or None,
             price=float(request.form.get('price') or 0),
             stock=int(request.form.get('stock') or 0),
@@ -679,7 +679,7 @@ def edit_product(product_id):
         p.category_id     = request.form.get('category_id') or p.category_id
         p.show_on_website = request.form.get('show_on_website') == '1'
         p.is_active       = 'is_active' in request.form
-        new_img = save_b64_image(request.form.get('image_b64')) or save_upload(request.files.get('image'))
+        new_img = save_b64_image(request.form.get('image_b64'))
         if new_img:
             p.image = new_img
         db.session.commit()
