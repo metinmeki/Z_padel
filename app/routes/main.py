@@ -113,6 +113,35 @@ def download_clip():
     )
 
 
+_PUBLIC_COURT_CHANNELS = {'court1': 15, 'court2': 12}
+
+@main_bp.route('/live-snapshot/<court>')
+def live_snapshot(court):
+    """Public blurred snapshot proxy — only court1 / court2 allowed, no login required."""
+    from flask import Response
+    import requests as req
+    from requests.auth import HTTPDigestAuth
+    channel = _PUBLIC_COURT_CHANNELS.get(court)
+    if not channel:
+        return Response(status=404)
+    nvr_url  = current_app.config.get('NVR_URL',  'http://45.81.147.210:65021')
+    nvr_user = current_app.config.get('NVR_USER', 'admin')
+    nvr_pass = current_app.config.get('NVR_PASS', 'caMera12')
+    try:
+        r = req.get(
+            f"{nvr_url}/ISAPI/Streaming/channels/{channel}01/picture",
+            auth=HTTPDigestAuth(nvr_user, nvr_pass),
+            timeout=8,
+        )
+        if r.status_code == 200:
+            resp = Response(r.content, mimetype='image/jpeg')
+            resp.headers['Cache-Control'] = 'no-store'
+            return resp
+        return Response(status=503)
+    except Exception:
+        return Response(status=503)
+
+
 @main_bp.route('/clip/<token>')
 def share_clip(token):
     clip = GameClip.query.filter_by(token=token).first_or_404()

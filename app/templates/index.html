@@ -194,13 +194,19 @@
         </button>
       </div>
 
-      <!-- Live player -->
+      <!-- Live player — blurred snapshot proxy -->
       <div style="position:relative;background:#111;border-radius:var(--r);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);aspect-ratio:16/9;">
-        <video id="liveVideo" controls autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;background:#000;filter:blur(6px);transform:scale(1.04);"></video>
+        <img id="liveSnap"
+             src="/live-snapshot/court1"
+             alt="Live court view"
+             style="width:100%;height:100%;object-fit:cover;display:block;
+                    filter:blur(10px);transform:scale(1.06);transition:opacity .3s;">
+        <!-- LIVE badge -->
         <div style="position:absolute;top:14px;{{ 'right' if lang == 'en' else 'left' }}:14px;background:rgba(220,50,50,.9);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;">
           <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:pulseLive 1.4s infinite;"></span>
           LIVE
         </div>
+        <!-- Privacy label -->
         <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;white-space:nowrap;backdrop-filter:blur(4px);">
           <i class="fas fa-eye-slash" style="margin-{{ 'right' if lang == 'en' else 'left' }}:5px;"></i>
           {% if lang == 'en' %}Live view — identity protected{% else %}بث مباشر — الهوية محمية{% endif %}
@@ -794,33 +800,23 @@
   }, { threshold: .10, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-  // ── HLS.js loader for live view ──
-  const hlsScript = document.createElement('script');
-  hlsScript.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
-  document.head.appendChild(hlsScript);
+  // ── Blurred live snapshot refresh ──
+  var liveSnap   = document.getElementById('liveSnap');
+  var activeCourt = 'court1';
+  var snapTimer   = null;
 
-  let currentHls = null;
-  const liveVideo = document.getElementById('liveVideo');
-
-  const HLS_BASE_URL = 'https://YOUR-VPS-DOMAIN.com:8888'; // ⚠️ بدّل هذا برابط الـ VPS تبعك
-
-  function loadLiveStream(court) {
-    if (currentHls) {
-      currentHls.destroy();
-      currentHls = null;
-    }
-    const streamUrl = `${HLS_BASE_URL}/${court}/index.m3u8`;
-
-    if (window.Hls && Hls.isSupported()) {
-      currentHls = new Hls();
-      currentHls.loadSource(streamUrl);
-      currentHls.attachMedia(liveVideo);
-    } else if (liveVideo.canPlayType('application/vnd.apple.mpegurl')) {
-      liveVideo.src = streamUrl; // Safari native support
-    }
+  function refreshSnap() {
+    var tmp = new Image();
+    tmp.onload = function() {
+      liveSnap.src = tmp.src;
+      snapTimer = setTimeout(refreshSnap, 2000);
+    };
+    tmp.onerror = function() {
+      snapTimer = setTimeout(refreshSnap, 5000);
+    };
+    tmp.src = '/live-snapshot/' + activeCourt + '?t=' + Date.now();
   }
-
-  hlsScript.onload = () => loadLiveStream('court1');
+  refreshSnap();
 
   // ── Court tab switching ──
   document.querySelectorAll('.clip-court-tab').forEach(tab => {
@@ -829,7 +825,9 @@
       tab.classList.add('active');
       const court = tab.dataset.court;
       document.getElementById('clipCourt').value = court;
-      loadLiveStream(court);
+      activeCourt = court;
+      if (snapTimer) clearTimeout(snapTimer);
+      refreshSnap();
     });
   });
 
