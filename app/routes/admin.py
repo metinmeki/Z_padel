@@ -1526,22 +1526,25 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                     f"NVR raw: {r.text[:400]}")
                 return
 
-            # 3 ── Override time range in the URI to match exactly what admin asked for
-            uri = re.sub(r'starttime=[^&?]+', f'starttime={start_utc}', playback_uri)
-            uri = re.sub(r'endtime=[^&?]+',   f'endtime={end_utc}',     uri)
-            if 'starttime=' not in uri:
-                sep = '&' if '?' in uri else '?'
-                uri += f'{sep}starttime={start_utc}&endtime={end_utc}'
+            # 3 ── Use the playbackURI as-is from the search result.
+            # The search was already scoped to our exact time window, so the URI
+            # already points to the right segment. Modifying starttime/endtime
+            # parameters in the URI can cause 400 on some firmware versions.
+            uri = playback_uri
 
-            # 4 ── Download
-            r2 = req.get(
-                f"{nvr_url}/ISAPI/ContentMgmt/download",
-                params={'playbackURI': uri},
-                auth=auth, timeout=3600, stream=True
+            # 4 ── Download — pass URI raw in the URL string (don't let requests
+            # percent-encode it a second time, which confuses the NVR HTTP parser).
+            import urllib.parse as _urlparse
+            download_url = (
+                f"{nvr_url}/ISAPI/ContentMgmt/download"
+                f"?playbackURI={_urlparse.quote(uri, safe=':/@?=&+')}"
             )
+            r2 = req.get(download_url, auth=auth, timeout=3600, stream=True)
             if r2.status_code != 200:
                 _set_clip_status(app, clip_id, 'failed',
-                    f"NVR download returned HTTP {r2.status_code}: {r2.text[:300]}")
+                    f"NVR download HTTP {r2.status_code} "
+                    f"· URI={uri[:200]} "
+                    f"· resp={r2.text[:300]}")
                 return
 
             written = 0
