@@ -125,6 +125,20 @@ def create():
         return redirect(url_for('booking.index'))
 
 
+@booking_bp.route('/debug-courts')
+def debug_courts():
+    """Temporary: show court IDs and booking counts — remove after diagnosing."""
+    from flask import jsonify
+    courts = Court.query.all()
+    bookings = Booking.query.filter(Booking.status != 'cancelled').all()
+    court_info = [{'id': c.id, 'name': c.name, 'is_active': c.is_active} for c in courts]
+    booking_info = {}
+    for b in bookings:
+        key = f"{b.court_id}:{b.booking_date.isoformat()}"
+        booking_info[key] = booking_info.get(key, 0) + 1
+    return jsonify({'courts': court_info, 'booked_slot_keys': booking_info})
+
+
 @booking_bp.route('/success/<int:booking_id>')
 def success(booking_id):
     bk = Booking.query.get_or_404(booking_id)
