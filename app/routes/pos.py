@@ -203,7 +203,74 @@ def session_detail(session_id):
     else:
         products = Product.query.filter_by(is_active=True).all()
         categories = Category.query.all()
-    return render_template('pos/session_detail.html', session=session_row, products=products, categories=categories)
+    # Available destinations for Move Tab
+    busy_activity_ids = {s.table_id for s in ActivitySession.query.filter_by(status='active').all()}
+    busy_court_ids    = {s.court_id  for s in CourtSession.query.filter_by(status='active').all()}
+    free_tables = ActivityTable.query.filter_by(is_active=True).filter(
+        ~ActivityTable.id.in_(busy_activity_ids)).all()
+    free_courts = Court.query.filter_by(is_active=True).filter(
+        ~Court.id.in_(busy_court_ids)).all()
+    return render_template('pos/session_detail.html', session=session_row,
+                           products=products, categories=categories,
+                           free_tables=free_tables, free_courts=free_courts,
+                           activity_meta=ACTIVITY_META)
+
+
+@pos_bp.route('/courts/session/<int:session_id>/move', methods=['POST'])
+@login_required
+def move_court_session(session_id):
+    sess = CourtSession.query.get_or_404(session_id)
+    if sess.status != 'active':
+        return jsonify(success=False, message='Session not active'), 400
+    data      = request.get_json(force=True) or {}
+    dest_type = data.get('dest_type')
+    dest_id   = int(data.get('dest_id', 0))
+
+    sess.end_time = datetime.utcnow()
+    time_charge = sess.calc_price()
+    label = f"{sess.court.name} ({sess.elapsed_minutes} min)"
+
+    if dest_type == 'activity':
+        dest = ActivityTable.query.get_or_404(dest_id)
+        if ActivitySession.query.filter_by(table_id=dest_id, status='active').first():
+            return jsonify(success=False, message='That table is already busy'), 400
+        new_sess = ActivitySession(table_id=dest_id,
+                                   customer_name=sess.customer_name,
+                                   start_time=datetime.utcnow())
+        db.session.add(new_sess)
+        db.session.flush()
+        if time_charge > 0:
+            db.session.add(ActivitySessionItem(session_id=new_sess.id,
+                product_name=label, quantity=1, price=time_charge, subtotal=time_charge))
+        for it in sess.items:
+            db.session.add(ActivitySessionItem(session_id=new_sess.id,
+                product_id=it.product_id, product_name=it.product_name,
+                quantity=it.quantity, price=it.price, subtotal=it.subtotal))
+        sess.status = 'closed'; sess.total_price = 0
+        db.session.commit()
+        return jsonify(success=True, redirect=url_for('pos.activity_session', session_id=new_sess.id))
+
+    elif dest_type == 'court':
+        dest = Court.query.get_or_404(dest_id)
+        if CourtSession.query.filter_by(court_id=dest_id, status='active').first():
+            return jsonify(success=False, message='That court is already busy'), 400
+        new_sess = CourtSession(court_id=dest_id,
+                                customer_name=sess.customer_name,
+                                start_time=datetime.utcnow())
+        db.session.add(new_sess)
+        db.session.flush()
+        if time_charge > 0:
+            db.session.add(CourtSessionItem(session_id=new_sess.id,
+                product_name=label, quantity=1, price=time_charge, subtotal=time_charge))
+        for it in sess.items:
+            db.session.add(CourtSessionItem(session_id=new_sess.id,
+                product_id=it.product_id, product_name=it.product_name,
+                quantity=it.quantity, price=it.price, subtotal=it.subtotal))
+        sess.status = 'closed'; sess.total_price = 0
+        db.session.commit()
+        return jsonify(success=True, redirect=url_for('pos.session_detail', session_id=new_sess.id))
+
+    return jsonify(success=False, message='Invalid destination'), 400
 
 
 @pos_bp.route('/courts/session/<int:session_id>/add-item', methods=['POST'])

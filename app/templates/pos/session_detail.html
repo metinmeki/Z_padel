@@ -133,6 +133,11 @@
       <button class="btn btn-success" onclick="finishSession('cash')">
         <i class="fas fa-money-bill-wave me-2"></i>{% if lang == 'en' %}Finish & Pay (Cash){% else %}إنهاء ودفع (نقدي){% endif %}
       </button>
+      {% if free_tables or free_courts %}
+      <button class="btn btn-warning" onclick="openMoveModal()" style="color:#fff;">
+        <i class="fas fa-arrow-right me-2"></i>{% if lang == 'en' %}Move to...{% else %}انتقل إلى...{% endif %}
+      </button>
+      {% endif %}
       <button class="btn btn-outline-warning" onclick="freeCourt()" style="border-color:#f59e0b;color:#92400e;background:#fffbeb;">
         <i class="fas fa-door-open me-2"></i>{% if lang == 'en' %}Free Court (Pay Later){% else %}تحرير الملعب — دفع لاحقاً{% endif %}
       </button>
@@ -219,6 +224,54 @@
   </div>
 
 </div>
+
+<!-- Move modal -->
+{% if free_tables or free_courts %}
+<div class="modal fade" id="moveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706);border-bottom:none;">
+        <h5 class="modal-title" style="color:#fff;">
+          <i class="fas fa-arrow-right me-2"></i>{% if lang == 'en' %}Move Tab To...{% else %}انتقل إلى...{% endif %}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:1rem;">
+        <p style="font-size:.82rem;color:#6b7280;margin-bottom:1rem;">
+          {% if lang == 'en' %}Current play time will be charged and all items transferred to the new location.{% else %}سيتم احتساب وقت اللعب الحالي ونقل جميع المنتجات إلى الموقع الجديد.{% endif %}
+        </p>
+        {% if free_tables %}
+        <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:.5rem;">
+          {% if lang == 'en' %}Activity Tables{% else %}طاولات النشاط{% endif %}
+        </div>
+        {% for tbl in free_tables %}
+        {% set meta = activity_meta.get(tbl.activity, {}) %}
+        <button class="btn btn-outline-secondary w-100 mb-2 text-start"
+                onclick="moveTab('activity', {{ tbl.id }})" style="border-radius:10px;padding:.65rem 1rem;">
+          <i class="fas {{ meta.get('icon','fa-circle') }} me-2" style="color:{{ meta.get('color','#888') }}"></i>
+          <strong>{{ tbl.name }}</strong>
+          <span style="float:right;font-size:.78rem;color:#6b7280;">{{ '{:,.0f}'.format(tbl.hourly_rate) }}/hr</span>
+        </button>
+        {% endfor %}
+        {% endif %}
+        {% if free_courts %}
+        <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin:.8rem 0 .5rem;">
+          {% if lang == 'en' %}Padel Courts{% else %}ملاعب البادل{% endif %}
+        </div>
+        {% for court in free_courts %}
+        <button class="btn btn-outline-secondary w-100 mb-2 text-start"
+                onclick="moveTab('court', {{ court.id }})" style="border-radius:10px;padding:.65rem 1rem;">
+          <i class="fas fa-table-tennis-paddle-ball me-2" style="color:#0ea5e9"></i>
+          <strong>{{ court.name }}</strong>
+          <span style="float:right;font-size:.78rem;color:#6b7280;">{{ '{:,.0f}'.format(court.price_per_hour) }}/hr</span>
+        </button>
+        {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <div class="modal fade" id="debtNameModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -394,6 +447,25 @@ function cancelSession() {
   .then(d => {
     if (d.success) window.location.href = "{{ url_for('pos.courts') }}";
     else alert(d.message || (isEn?'Error':'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function openMoveModal() {
+  new bootstrap.Modal(document.getElementById('moveModal')).show();
+}
+function moveTab(destType, destId) {
+  const msg = isEn ? 'Move tab to this location? Current play time will be charged.' : 'نقل التبويب إلى هذا الموقع؟ سيتم احتساب وقت اللعب الحالي.';
+  if (!confirm(msg)) return;
+  fetch(`/pos/courts/session/${sessionId}/move`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ dest_type: destType, dest_id: destId })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = d.redirect;
+    else alert(d.message || (isEn ? 'Error' : 'خطأ'));
   })
   .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
 }
