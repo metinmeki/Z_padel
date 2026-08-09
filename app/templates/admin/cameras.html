@@ -3,32 +3,91 @@
 
 {% block extra_styles %}
 <style>
-  .cam-wrap   { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
-  @media(max-width:900px){ .cam-wrap { grid-template-columns:1fr; } }
+  .cam-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .8rem;
+  }
+  @media(max-width:1200px){ .cam-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media(max-width:768px) { .cam-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media(max-width:480px) { .cam-grid { grid-template-columns: 1fr; } }
 
-  .cam-card   { background:#0d0d0d; border-radius:14px; overflow:hidden;
-                box-shadow:0 4px 24px rgba(0,0,0,.35); }
-  .cam-header { background:#1a1a2e; color:#fff; padding:10px 16px;
-                display:flex; align-items:center; gap:10px; font-size:.88rem; font-weight:700; }
-  .live-badge { background:#ef4444; color:#fff; font-size:.62rem; font-weight:800;
-                padding:2px 7px; border-radius:20px; letter-spacing:.5px; animation:pulse 1.5s infinite; }
-  .offline-badge { background:#555; color:#aaa; font-size:.62rem; font-weight:800;
-                   padding:2px 7px; border-radius:20px; letter-spacing:.5px; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .cam-card {
+    background: #0d0d0d;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .cam-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(21,101,192,.3); }
 
-  .cam-img-wrap { position:relative; width:100%; aspect-ratio:16/9; background:#111; }
+  .cam-header {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .78rem;
+    font-weight: 700;
+  }
+  .live-badge {
+    background: #ef4444; color: #fff; font-size: .58rem; font-weight: 800;
+    padding: 1px 6px; border-radius: 20px; letter-spacing: .4px;
+    animation: pulse 1.5s infinite;
+  }
+  .offline-badge {
+    background: #444; color: #888; font-size: .58rem; font-weight: 800;
+    padding: 1px 6px; border-radius: 20px;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .cam-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #111;
+  }
   .cam-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
-  .cam-overlay  { position:absolute; inset:0; display:flex; flex-direction:column;
-                  align-items:center; justify-content:center; color:#888; gap:10px;
-                  background:#0d0d0d; }
-  .cam-overlay i { font-size:3rem; }
+  .cam-overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: #555; gap: 6px; background: #0d0d0d;
+    font-size: .7rem;
+  }
+  .cam-overlay i { font-size: 1.6rem; }
 
-  .cam-footer { background:#111; color:#555; font-size:.72rem; padding:6px 14px;
-                display:flex; justify-content:space-between; align-items:center; }
+  /* ── Modal ── */
+  #camModal {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.88); align-items: center; justify-content: center;
+  }
+  #camModal.open { display: flex; }
+  .modal-inner {
+    width: min(1100px, 96vw);
+    background: #0d0d0d;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  }
+  .modal-header {
+    background: #1a1a2e; color: #fff; padding: 10px 16px;
+    display: flex; align-items: center; gap: 10px; font-size: .92rem; font-weight: 700;
+  }
+  .modal-close {
+    margin-left: auto; background: none; border: none; color: #aaa;
+    font-size: 1.3rem; cursor: pointer; line-height: 1;
+  }
+  .modal-close:hover { color: #fff; }
+  #modalImg { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
 
-  .btn-nvr { background:var(--brand-blue); color:#fff; border:none; border-radius:8px;
-             padding:7px 16px; font-size:.82rem; font-weight:700; cursor:pointer;
-             text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+  .btn-nvr {
+    background: var(--brand-blue); color: #fff; border: none; border-radius: 8px;
+    padding: 7px 16px; font-size: .82rem; font-weight: 700; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  }
   .btn-nvr:hover { opacity:.85; color:#fff; }
 </style>
 {% endblock %}
@@ -39,125 +98,151 @@
   <div>
     <div class="page-header-title">
       <i class="fas fa-video me-2" style="color:var(--brand-blue)"></i>
-      {% if lang == 'en' %}Live Cameras{% elif lang == 'ku' %}کامێرای سەرزمان{% else %}كاميرات مباشرة{% endif %}
+      {% if lang == 'en' %}Live Cameras (22){% elif lang == 'ku' %}کامێرای سەرزمان{% else %}كاميرات مباشرة (22){% endif %}
     </div>
-    <div class="page-header-sub">Court 1 &amp; Court 2 — Hikvision NVR</div>
+    <div class="page-header-sub">Hikvision NVR — Channels 1–22 · Click any camera to expand</div>
   </div>
   <a href="{{ nvr_url }}/doc/index.html#/preview" target="_blank" class="btn-nvr">
-    <i class="fas fa-external-link-alt"></i>
-    {% if lang == 'en' %}Open NVR{% else %}فتح NVR{% endif %}
+    <i class="fas fa-external-link-alt"></i> Open NVR
   </a>
 </div>
 
-<div class="cam-wrap">
-  <!-- Court 1 — NVR channel 1 -->
-  <div class="cam-card" id="card1">
+<!-- Camera grid -->
+<div class="cam-grid" id="camGrid">
+  {% for ch in range(1, 23) %}
+  <div class="cam-card" onclick="openModal({{ ch }})" title="Click to expand Channel {{ ch }}">
     <div class="cam-header">
-      <i class="fas fa-video"></i>
-      <span>{% if lang == 'en' %}Court 1{% else %}ملعب 1{% endif %}</span>
-      <span class="live-badge" id="badge1">LIVE</span>
-      <span class="ms-auto" style="font-size:.72rem;color:#aaa;" id="fps1"></span>
+      <i class="fas fa-video" style="font-size:.7rem;"></i>
+      <span>CH {{ ch }}</span>
+      <span class="live-badge" id="badge{{ ch }}">LIVE</span>
     </div>
     <div class="cam-img-wrap">
-      <img id="feed1" alt="Court 1" style="display:none;">
-      <div class="cam-overlay" id="overlay1">
-        <i class="fas fa-circle-notch fa-spin" style="color:#444"></i>
-        <span style="font-size:.85rem;">Connecting…</span>
+      <img id="feed{{ ch }}" alt="CH {{ ch }}" style="display:none;">
+      <div class="cam-overlay" id="overlay{{ ch }}">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <span>Connecting…</span>
       </div>
-    </div>
-    <div class="cam-footer">
-      <span>CH 1 · 45.81.147.210:65021</span>
-      <span id="ts1">—</span>
     </div>
   </div>
+  {% endfor %}
+</div>
 
-  <!-- Court 2 — NVR channel 2 -->
-  <div class="cam-card" id="card2">
-    <div class="cam-header">
+<!-- Expanded modal -->
+<div id="camModal" onclick="closeModal(event)">
+  <div class="modal-inner" onclick="event.stopPropagation()">
+    <div class="modal-header">
       <i class="fas fa-video"></i>
-      <span>{% if lang == 'en' %}Court 2{% else %}ملعب 2{% endif %}</span>
-      <span class="live-badge" id="badge2">LIVE</span>
-      <span class="ms-auto" style="font-size:.72rem;color:#aaa;" id="fps2"></span>
+      <span id="modalTitle">Channel 1</span>
+      <span class="live-badge ms-2" id="modalBadge">LIVE</span>
+      <span style="font-size:.75rem;color:#aaa;margin-left:.5rem;" id="modalFps"></span>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="cam-img-wrap">
-      <img id="feed2" alt="Court 2" style="display:none;">
-      <div class="cam-overlay" id="overlay2">
-        <i class="fas fa-circle-notch fa-spin" style="color:#444"></i>
-        <span style="font-size:.85rem;">Connecting…</span>
-      </div>
-    </div>
-    <div class="cam-footer">
-      <span>CH 2 · 45.81.147.210:65021</span>
-      <span id="ts2">—</span>
-    </div>
+    <img id="modalImg" alt="Live View">
   </div>
 </div>
 
 <script>
 (function(){
-  var cams = [
-    { ch:1, img: document.getElementById('feed1'), overlay: document.getElementById('overlay1'),
-      badge: document.getElementById('badge1'), ts: document.getElementById('ts1'),
-      fps: document.getElementById('fps1') },
-    { ch:2, img: document.getElementById('feed2'), overlay: document.getElementById('overlay2'),
-      badge: document.getElementById('badge2'), ts: document.getElementById('ts2'),
-      fps: document.getElementById('fps2') },
-  ];
+  var TOTAL     = 22;
+  var GRID_MS   = 2000;   // grid refresh interval per camera
+  var MODAL_MS  = 800;    // modal refresh interval (faster for expanded view)
+  var STAGGER   = 90;     // ms between starting each camera to spread NVR load
 
-  var INTERVAL = 1000; // ms between frames
+  var modalChannel = null, modalTimer = null;
+  var modalFps = document.getElementById('modalFps');
+  var modalFrameCount = 0, modalLastFps = Date.now();
 
-  function pad(n){ return n < 10 ? '0'+n : n; }
-  function nowStr(){
-    var d = new Date();
-    return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  // ── Grid cameras ──
+  for (var ch = 1; ch <= TOTAL; ch++) {
+    (function(c){
+      var feed    = document.getElementById('feed' + c);
+      var overlay = document.getElementById('overlay' + c);
+      var badge   = document.getElementById('badge' + c);
+      var failCount = 0;
+
+      function loadFrame(){
+        var url = '/admin/cameras/snapshot/' + c + '?t=' + Date.now();
+        var tmp = new Image();
+        var t0  = Date.now();
+
+        tmp.onload = function(){
+          feed.src = tmp.src;
+          feed.style.display = 'block';
+          overlay.style.display = 'none';
+          badge.className = 'live-badge';
+          badge.textContent = 'LIVE';
+          failCount = 0;
+          var elapsed = Date.now() - t0;
+          setTimeout(loadFrame, Math.max(200, GRID_MS - elapsed));
+        };
+        tmp.onerror = function(){
+          failCount++;
+          if (failCount >= 2) {
+            feed.style.display = 'none';
+            overlay.innerHTML = '<i class="fas fa-video-slash"></i><span>Offline</span>';
+            overlay.style.display = 'flex';
+            badge.className = 'offline-badge';
+            badge.textContent = 'OFF';
+          }
+          setTimeout(loadFrame, 5000);
+        };
+        tmp.src = url;
+      }
+
+      // Stagger startup so cameras don't all hit NVR simultaneously
+      setTimeout(loadFrame, c * STAGGER);
+    })(ch);
   }
 
-  cams.forEach(function(cam){
-    var frameCount = 0, lastFpsCheck = Date.now(), consecutive_fail = 0;
+  // ── Modal ──
+  window.openModal = function(ch){
+    modalChannel = ch;
+    document.getElementById('modalTitle').textContent = 'Channel ' + ch;
+    document.getElementById('camModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    loadModalFrame();
+  };
 
-    function loadFrame(){
-      var t0 = Date.now();
-      var url = '/admin/cameras/snapshot/' + cam.ch + '?t=' + t0;
-      var tmp = new Image();
+  window.closeModal = function(e){
+    if (e && e.target !== document.getElementById('camModal')) return;
+    document.getElementById('camModal').classList.remove('open');
+    document.body.style.overflow = '';
+    modalChannel = null;
+    if (modalTimer) { clearTimeout(modalTimer); modalTimer = null; }
+    modalFrameCount = 0; modalLastFps = Date.now();
+    modalFps.textContent = '';
+  };
 
-      tmp.onload = function(){
-        cam.img.src = tmp.src;
-        cam.img.style.display = 'block';
-        cam.overlay.style.display = 'none';
-        cam.badge.className = 'live-badge';
-        cam.badge.textContent = 'LIVE';
-        cam.ts.textContent = nowStr();
-        consecutive_fail = 0;
+  function loadModalFrame(){
+    if (!modalChannel) return;
+    var url = '/admin/cameras/snapshot/' + modalChannel + '?t=' + Date.now();
+    var tmp = new Image();
+    var t0  = Date.now();
 
-        // FPS counter
-        frameCount++;
-        var now = Date.now();
-        if(now - lastFpsCheck >= 5000){
-          cam.fps.textContent = (frameCount / ((now - lastFpsCheck)/1000)).toFixed(1) + ' fps';
-          frameCount = 0; lastFpsCheck = now;
-        }
+    tmp.onload = function(){
+      document.getElementById('modalImg').src = tmp.src;
+      document.getElementById('modalBadge').className = 'live-badge ms-2';
+      document.getElementById('modalBadge').textContent = 'LIVE';
+      modalFrameCount++;
+      var now = Date.now();
+      if (now - modalLastFps >= 3000) {
+        modalFps.textContent = (modalFrameCount / ((now - modalLastFps)/1000)).toFixed(1) + ' fps';
+        modalFrameCount = 0; modalLastFps = now;
+      }
+      var elapsed = Date.now() - t0;
+      if (modalChannel) modalTimer = setTimeout(loadModalFrame, Math.max(100, MODAL_MS - elapsed));
+    };
+    tmp.onerror = function(){
+      document.getElementById('modalBadge').className = 'offline-badge ms-2';
+      document.getElementById('modalBadge').textContent = 'OFFLINE';
+      if (modalChannel) modalTimer = setTimeout(loadModalFrame, 3000);
+    };
+    tmp.src = url;
+  }
 
-        var elapsed = Date.now() - t0;
-        setTimeout(loadFrame, Math.max(0, INTERVAL - elapsed));
-      };
-
-      tmp.onerror = function(){
-        consecutive_fail++;
-        if(consecutive_fail >= 3){
-          cam.img.style.display = 'none';
-          cam.overlay.innerHTML = '<i class="fas fa-video-slash"></i><span style="font-size:.85rem;color:#888">Offline</span>';
-          cam.overlay.style.display = 'flex';
-          cam.badge.className = 'offline-badge';
-          cam.badge.textContent = 'OFFLINE';
-          cam.fps.textContent = '';
-        }
-        setTimeout(loadFrame, 3000);
-      };
-
-      tmp.src = url;
-    }
-
-    loadFrame();
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeModal({ target: document.getElementById('camModal') });
   });
 })();
 </script>
