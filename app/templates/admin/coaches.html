@@ -60,7 +60,7 @@
 
 <!-- Coaches Table -->
 <div class="card p-3">
-  <table class="table table-bordered">
+  <table class="table table-bordered align-middle">
     <thead>
       <tr>
         <th>{% if lang == 'en' %}ID{% else %}#{% endif %}</th>
@@ -78,20 +78,40 @@
         <td>{{ coach.id }}</td>
         <td>
           {% if coach.image %}
-            <img src="{{ url_for('static', filename=coach.image) }}" width="70">
+            <img src="{{ url_for('static', filename=coach.image) }}" width="60" style="border-radius:8px;">
           {% else %}
-            <img src="{{ url_for('static', filename='images/coming-soon.jpg') }}" width="70">
+            <img src="{{ url_for('static', filename='images/coming-soon.jpg') }}" width="60" style="border-radius:8px;">
           {% endif %}
         </td>
-        <td>{{ coach.name }}</td>
+        <td><strong>{{ coach.name }}</strong></td>
         <td><strong>{{ '{:,.0f}'.format(coach.price_per_hour) }}</strong> IQD</td>
         <td>{{ coach.status }}</td>
         <td>{% if coach.is_active %}{% if lang == 'en' %}Yes{% else %}نعم{% endif %}{% else %}{% if lang == 'en' %}No{% else %}لا{% endif %}{% endif %}</td>
-        <td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-primary btn-sm me-1"
+            onclick="openEditModal(
+              {{ coach.id }},
+              {{ coach.name | tojson }},
+              {{ coach.price_per_hour }},
+              {{ coach.status | tojson }},
+              {{ (coach.phone or '') | tojson }},
+              {{ (coach.specialty or '') | tojson }},
+              {{ (coach.bio or '') | tojson }},
+              {{ (coach.instagram or '') | tojson }},
+              {{ (coach.facebook or '') | tojson }},
+              {{ (coach.whatsapp or '') | tojson }},
+              {{ (coach.tiktok or '') | tojson }},
+              {{ coach.is_active | tojson }}
+            )">
+            <i class="fas fa-edit"></i> {% if lang == 'en' %}Edit{% else %}تعديل{% endif %}
+          </button>
           <form method="POST" action="{{ url_for('admin.delete_coach', coach_id=coach.id) }}"
+                style="display:inline;"
                 onsubmit="return confirm('{% if lang == 'en' %}Delete this coach?{% else %}حذف هذا المدرب؟{% endif %}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-danger btn-sm">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>
+            <button class="btn btn-danger btn-sm">
+              <i class="fas fa-trash"></i> {% if lang == 'en' %}Delete{% else %}حذف{% endif %}
+            </button>
           </form>
         </td>
       </tr>
@@ -101,4 +121,100 @@
 </div>
 
 </div>
+
+<!-- Edit Coach Modal -->
+<div class="modal fade" id="editCoachModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>{% if lang == 'en' %}Edit Coach{% else %}تعديل المدرب{% endif %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editCoachForm" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</label>
+              <input type="text" name="name" id="edit_name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{% if lang == 'en' %}Price per Hour (IQD){% else %}السعر/ساعة (دينار){% endif %}</label>
+              <input type="number" name="price_per_hour" id="edit_price" class="form-control" min="0" step="500" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
+              <select name="status" id="edit_status" class="form-control">
+                <option value="available">{% if lang == 'en' %}Available{% else %}متاح{% endif %}</option>
+                <option value="coming_soon">{% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{% if lang == 'en' %}Phone{% else %}الهاتف{% endif %}</label>
+              <input type="text" name="phone" id="edit_phone" class="form-control" placeholder="+9647...">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{% if lang == 'en' %}Specialty{% else %}التخصص{% endif %}</label>
+              <input type="text" name="specialty" id="edit_specialty" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{% if lang == 'en' %}Active{% else %}نشط{% endif %}</label>
+              <select name="is_active" id="edit_is_active" class="form-control">
+                <option value="1">{% if lang == 'en' %}Yes{% else %}نعم{% endif %}</option>
+                <option value="0">{% if lang == 'en' %}No{% else %}لا{% endif %}</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">{% if lang == 'en' %}New Image (leave blank to keep current){% else %}صورة جديدة (اتركه فارغاً للإبقاء على الحالية){% endif %}</label>
+              <input type="file" name="image" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label">{% if lang == 'en' %}Bio{% else %}نبذة{% endif %}</label>
+              <textarea name="bio" id="edit_bio" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="fab fa-instagram me-1" style="color:#e1306c;"></i> Instagram URL</label>
+              <input type="url" name="instagram" id="edit_instagram" class="form-control" placeholder="https://instagram.com/...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="fab fa-facebook-f me-1" style="color:#1877f2;"></i> Facebook URL</label>
+              <input type="url" name="facebook" id="edit_facebook" class="form-control" placeholder="https://facebook.com/...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="fab fa-whatsapp me-1" style="color:#25d366;"></i> WhatsApp {% if lang == 'en' %}Number{% else %}رقم{% endif %}</label>
+              <input type="text" name="whatsapp" id="edit_whatsapp" class="form-control" placeholder="+9647...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="fab fa-tiktok me-1"></i> TikTok URL</label>
+              <input type="url" name="tiktok" id="edit_tiktok" class="form-control" placeholder="https://tiktok.com/@...">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{% if lang == 'en' %}Save Changes{% else %}حفظ التغييرات{% endif %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openEditModal(id, name, price, status, phone, specialty, bio, instagram, facebook, whatsapp, tiktok, isActive) {
+  document.getElementById('editCoachForm').action = '/admin/coaches/' + id + '/edit';
+  document.getElementById('edit_name').value      = name;
+  document.getElementById('edit_price').value     = price;
+  document.getElementById('edit_status').value    = status;
+  document.getElementById('edit_phone').value     = phone;
+  document.getElementById('edit_specialty').value = specialty;
+  document.getElementById('edit_bio').value       = bio;
+  document.getElementById('edit_instagram').value = instagram;
+  document.getElementById('edit_facebook').value  = facebook;
+  document.getElementById('edit_whatsapp').value  = whatsapp;
+  document.getElementById('edit_tiktok').value    = tiktok;
+  document.getElementById('edit_is_active').value = isActive ? '1' : '0';
+  new bootstrap.Modal(document.getElementById('editCoachModal')).show();
+}
+</script>
+
 {% endblock %}
