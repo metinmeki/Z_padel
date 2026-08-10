@@ -1347,10 +1347,16 @@ def edit_coach(coach_id):
 @admin_bp.route('/coaches/<int:coach_id>/delete', methods=['POST'])
 @login_required
 def delete_coach(coach_id):
-    from app.models.main import Coach, TrainingRequest
+    from app.models.main import Coach
     c = Coach.query.get_or_404(coach_id)
-    # Nullify FK on related training requests before deleting
-    TrainingRequest.query.filter_by(coach_id=coach_id).update({'coach_id': None})
+    # Nullify FK on related training requests if column exists
+    try:
+        db.session.execute(
+            db.text('UPDATE training_request SET coach_id = NULL WHERE coach_id = :cid'),
+            {'cid': coach_id}
+        )
+    except Exception:
+        db.session.rollback()
     db.session.delete(c)
     db.session.commit()
     flash('تم حذف المدرب.', 'success')
