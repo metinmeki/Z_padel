@@ -364,6 +364,52 @@
   </div>
 </section>
 
+<!-- ═══════════ SPONSORS ═══════════ -->
+{% if sponsors %}
+<style>
+@keyframes sponsors-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.sponsors-section{background:#fff;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
+.sponsors-inner{display:flex;align-items:stretch;height:72px}
+.sponsors-title{text-align:center;padding:14px 0 4px;font-size:.62rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#596770}
+.sponsors-title i{color:#C9B48E;margin-right:6px}
+.sponsor-track-wrap{flex:1;overflow:hidden;height:72px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%)}
+.sponsor-track{display:flex;flex-wrap:nowrap;align-items:center;animation:sponsors-scroll 20s linear infinite;will-change:transform}
+.sponsor-track:hover{animation-play-state:paused}
+.sponsor-logo{flex:0 0 auto;padding:0 16px;display:flex;align-items:center;justify-content:center;height:72px;text-decoration:none}
+.sponsor-logo img{height:42px;width:auto;max-width:130px;object-fit:contain;display:block;background:#fff;border-radius:10px;padding:7px 14px;border:1px solid #E4DDD3;box-shadow:0 1px 8px rgba(0,0,0,.10);transition:box-shadow .3s,transform .3s}
+.sponsor-logo:hover img{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:translateY(-2px)}
+.sponsor-logo-name{font-size:.9rem;font-weight:800;color:#2C3539;opacity:.5;white-space:nowrap;transition:opacity .3s}
+.sponsor-logo:hover .sponsor-logo-name{opacity:1}
+</style>
+<div class="sponsors-section" id="sponsors">
+  <div class="sponsors-title">
+    <i class="fas fa-handshake"></i>{% if lang == 'en' %}Our Partners{% elif lang == 'ku' %}هاوکارەکانمان{% else %}رعاتنا{% endif %}
+  </div>
+  <div class="sponsors-inner">
+    <div class="sponsor-track-wrap" style="flex:1">
+      <div class="sponsor-track" id="sponsorTrack">
+        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="sponsor-logo-name" style="display:none">{{ s.name }}</span>{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var track = document.getElementById('sponsorTrack');
+  if (!track) return;
+  var orig = track.innerHTML;
+  var copies = 1;
+  while (track.scrollWidth < window.innerWidth * 3) {
+    track.innerHTML += orig;
+    copies++;
+  }
+  if (copies % 2 !== 0) track.innerHTML += orig;
+  var baseDur = 8;
+  track.style.animationDuration = (baseDur * (copies / 2)) + 's';
+})();
+</script>
+{% endif %}
+
 <!-- ═══════════ FEATURES ═══════════ -->
 <section class="section section-alt" id="features">
   <div class="container-z">
@@ -630,57 +676,6 @@
     </div>
   </div>
 </section>
-
-<!-- ═══════════ SPONSORS ═══════════ -->
-{% if sponsors %}
-<style>
-@keyframes sponsors-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.sponsors-section{background:#fff;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
-.sponsors-inner{display:flex;align-items:stretch;height:72px}
-.sponsors-title{text-align:center;padding:14px 0 4px;font-size:.62rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#596770}
-.sponsors-title i{color:#C9B48E;margin-right:6px}
-.sponsor-track-wrap{flex:1;overflow:hidden;height:72px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%)}
-.sponsor-track{display:flex;flex-wrap:nowrap;align-items:center;animation:sponsors-scroll 20s linear infinite;will-change:transform}
-.sponsor-track:hover{animation-play-state:paused}
-.sponsor-logo{flex:0 0 auto;padding:0 16px;display:flex;align-items:center;justify-content:center;height:72px;text-decoration:none}
-.sponsor-logo img{height:42px;width:auto;max-width:130px;object-fit:contain;display:block;background:#fff;border-radius:10px;padding:7px 14px;border:1px solid #E4DDD3;box-shadow:0 1px 8px rgba(0,0,0,.10);transition:box-shadow .3s,transform .3s}
-.sponsor-logo:hover img{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:translateY(-2px)}
-.sponsor-logo-name{font-size:.9rem;font-weight:800;color:#2C3539;opacity:.5;white-space:nowrap;transition:opacity .3s}
-.sponsor-logo:hover .sponsor-logo-name{opacity:1}
-</style>
-<div class="sponsors-section" id="sponsors">
-  <div class="sponsors-title">
-    <i class="fas fa-handshake"></i>{% if lang == 'en' %}Our Partners{% elif lang == 'ku' %}هاوکارەکانمان{% else %}رعاتنا{% endif %}
-  </div>
-  <div class="sponsors-inner">
-    <div class="sponsor-track-wrap" style="flex:1">
-      <div class="sponsor-track" id="sponsorTrack">
-        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="sponsor-logo-name" style="display:none">{{ s.name }}</span>{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-(function(){
-  var track = document.getElementById('sponsorTrack');
-  if (!track) return;
-  var orig = track.innerHTML;
-  // Fill track until it's at least 3× the screen width (always gaps-free)
-  // Keep count even so -50% animation stays seamless
-  var copies = 1;
-  while (track.scrollWidth < window.innerWidth * 3) {
-    track.innerHTML += orig;
-    copies++;
-  }
-  // If odd copies, add one more to keep it even
-  if (copies % 2 !== 0) track.innerHTML += orig;
-  // Duration scales with number of copies so speed stays consistent
-  var baseDur = 8; // seconds per original set
-  track.style.animationDuration = (baseDur * (copies / 2)) + 's';
-})();
-</script>
-{% endif %}
-
 
 <!-- ═══════════ CONTACT ═══════════ -->
 <section class="section" id="contact">
