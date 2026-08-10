@@ -765,21 +765,22 @@ body {
 /* Real coach cards */
 .coach-card-real {
   background: var(--bsft); border: 1px solid var(--bmid);
-  border-radius: var(--r); padding: 28px 20px;
-  text-align: center; transition: transform .3s, border-color .3s; cursor: pointer;
+  border-radius: var(--r); overflow: hidden;
+  text-align: center; transition: transform .3s, border-color .3s, box-shadow .3s; cursor: pointer;
 }
-.coach-card-real:hover { transform: translateY(-6px); border-color: #D6C3A1; }
+.coach-card-real:hover { transform: translateY(-6px); border-color: #D6C3A1; box-shadow: 0 16px 48px rgba(0,0,0,.12); }
 .coach-avatar-img {
-  width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
-  border: 3px solid #D6C3A1; margin: 0 auto 16px; display: block;
+  width: 100%; height: 340px; object-fit: cover; object-position: top center;
+  display: block;
 }
 .coach-avatar-fallback {
-  width: 90px; height: 90px; border-radius: 50%;
-  background: var(--bdk, #596770); border: 3px solid #D6C3A1;
-  display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+  width: 100%; height: 340px;
+  background: var(--bdk, #596770);
+  display: flex; align-items: center; justify-content: center;
 }
-.coach-avatar-fallback i { font-size: 2rem; color: #D6C3A1; }
-.coach-name { font-size: 1rem; font-weight: 700; color: #D6C3A1; margin-bottom: 8px; }
+.coach-avatar-fallback i { font-size: 5rem; color: #D6C3A1; }
+.coach-card-info { padding: 20px 18px 22px; }
+.coach-name { font-size: 1.05rem; font-weight: 700; color: #D6C3A1; margin-bottom: 10px; }
 .coach-status-badge {
   display: inline-block; font-size: 12px; padding: 4px 14px; border-radius: 20px;
   background: var(--bmid, rgba(255,255,255,.08)); color: var(--tm, #ccc); margin-bottom: 12px;

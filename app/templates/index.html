@@ -534,22 +534,23 @@
           {% else %}
             <div class="coach-avatar-fallback"><i class="fas fa-user"></i></div>
           {% endif %}
-          <div class="coach-name">{{ coach.name }}</div>
-          <span class="coach-status-badge {{ coach.status }}">
-            {% if coach.status == 'available' %}
-              <i class="fas fa-circle" style="font-size:8px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
-              {% if lang == 'en' %}Available Now{% else %}متاح الآن{% endif %}
-            {% else %}
-              <i class="fas fa-clock" style="font-size:10px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
-              {% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}
-            {% endif %}
-          </span>
-          {% if coach.bio %}<p class="coach-bio">{{ coach.bio }}</p>{% endif %}
-          <div style="margin-top:16px;">
-            <span class="btn-blue" style="width:100%;justify-content:center;display:flex;pointer-events:none;">
-              <i class="fas fa-user"></i>
-              {% if lang == 'en' %}View Profile{% else %}عرض الملف{% endif %}
+          <div class="coach-card-info">
+            <div class="coach-name">{{ coach.name }}</div>
+            <span class="coach-status-badge {{ coach.status }}">
+              {% if coach.status == 'available' %}
+                <i class="fas fa-circle" style="font-size:8px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+                {{ t('Available Now','ئێستا بەردەستە','متاح الآن') }}
+              {% else %}
+                <i class="fas fa-clock" style="font-size:10px;margin-{{ 'left' if lang == 'en' else 'right' }}:4px;"></i>
+                {{ t('Coming Soon','بەمزوانە','قريباً') }}
+              {% endif %}
             </span>
+            <div style="margin-top:16px;">
+              <span class="btn-blue" style="width:100%;justify-content:center;display:flex;pointer-events:none;">
+                <i class="fas fa-user"></i>
+                {{ t('View Profile','پرۆفایل ببینە','عرض الملف') }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
