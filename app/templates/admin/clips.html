@@ -146,21 +146,13 @@
 
         <div class="form-group">
           <label class="form-label-z">{% if lang == 'en' %}Start Time{% else %}وقت البداية{% endif %}</label>
-          <input type="time" name="start_time" class="form-control-z" step="1" required/>
+          <input type="time" name="start_time" id="clipStartTime" class="form-control-z" step="60" required
+                 onchange="autoSetEndTime()"/>
         </div>
 
         <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</label>
-          <select name="duration" class="form-control-z">
-            <option value="30">30 {% if lang == 'en' %}sec{% else %}ثانية{% endif %}</option>
-            <option value="60">1 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
-            <option value="120">2 {% if lang == 'en' %}min{% else %}دقيقتان{% endif %}</option>
-            <option value="180">3 {% if lang == 'en' %}min{% else %}دقائق{% endif %}</option>
-            <option value="300">5 {% if lang == 'en' %}min{% else %}دقائق{% endif %}</option>
-            <option value="600">10 {% if lang == 'en' %}min{% else %}دقائق{% endif %}</option>
-            <option value="1800">30 {% if lang == 'en' %}min{% else %}دقيقة{% endif %}</option>
-            <option value="3600" selected>1 {% if lang == 'en' %}hour (max){% else %}ساعة (الحد الأقصى){% endif %}</option>
-          </select>
+          <label class="form-label-z">{% if lang == 'en' %}End Time{% else %}وقت النهاية{% endif %}</label>
+          <input type="time" name="end_time" id="clipEndTime" class="form-control-z" step="60" required/>
         </div>
 
         <div class="form-group">
@@ -182,7 +174,7 @@
 
       <button type="submit" class="btn-save-clip">
         <i class="fas fa-scissors"></i>
-        {% if lang == 'en' %}Save Clip (1h link){% else %}حفظ المقطع (رابط ساعة واحدة){% endif %}
+        {% if lang == 'en' %}Save Clip{% else %}حفظ المقطع{% endif %}
       </button>
     </form>
   </div>
@@ -289,6 +281,17 @@
 
 <script>
 document.getElementById('clipDateInput').value = new Date().toISOString().split('T')[0];
+
+function autoSetEndTime() {
+  const start = document.getElementById('clipStartTime').value;
+  if (!start) return;
+  const [h, m] = start.split(':').map(Number);
+  const end = new Date();
+  end.setHours(h + 1, m, 0);
+  const hh = String(end.getHours()).padStart(2, '0');
+  const mm = String(end.getMinutes()).padStart(2, '0');
+  document.getElementById('clipEndTime').value = `${hh}:${mm}`;
+}
 
 function copyLink(url, btn) {
   navigator.clipboard.writeText(url).then(() => {

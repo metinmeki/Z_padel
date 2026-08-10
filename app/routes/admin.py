@@ -1446,7 +1446,7 @@ def edit_category(cat_id):
 # ════════════════════════════════════════════
 
 # Court → NVR channel mapping
-COURT_CHANNELS = {'court1': 15, 'court2': 12}
+COURT_CHANNELS = {'court1': 12, 'court2': 15}
 
 
 def _set_clip_status(app, clip_id, status, msg=None):
@@ -1637,7 +1637,7 @@ def save_clip():
     court      = request.form.get('court', '').strip()
     date_str   = request.form.get('clip_date', '').strip()
     start_time = request.form.get('start_time', '').strip()
-    duration   = min(int(request.form.get('duration', 3600)), 3600)  # max 1 hour
+    end_time   = request.form.get('end_time', '').strip()
     cust_name  = request.form.get('customer_name', '').strip()
     cust_phone = request.form.get('customer_phone', '').strip()
     note       = request.form.get('note', '').strip()
@@ -1647,13 +1647,18 @@ def save_clip():
         return redirect(url_for('admin.clips'))
 
     try:
-        fmt = "%Y-%m-%d %H:%M:%S" if start_time.count(':') == 2 else "%Y-%m-%d %H:%M"
-        start_dt = datetime.strptime(f"{date_str} {start_time}", fmt)
+        sfmt = "%Y-%m-%d %H:%M:%S" if start_time.count(':') == 2 else "%Y-%m-%d %H:%M"
+        efmt = "%Y-%m-%d %H:%M:%S" if end_time.count(':') == 2 else "%Y-%m-%d %H:%M"
+        start_dt = datetime.strptime(f"{date_str} {start_time}", sfmt)
+        end_dt   = datetime.strptime(f"{date_str} {end_time}",   efmt)
+        if end_dt <= start_dt:
+            flash('وقت النهاية يجب أن يكون بعد وقت البداية / End time must be after start time', 'danger')
+            return redirect(url_for('admin.clips'))
     except ValueError:
         flash('تنسيق التاريخ أو الوقت غير صحيح', 'danger')
         return redirect(url_for('admin.clips'))
 
-    end_dt = start_dt + timedelta(seconds=duration)
+    duration = int((end_dt - start_dt).total_seconds())
 
     clips_dir = current_app.config['CLIPS_FOLDER']
     os.makedirs(clips_dir, exist_ok=True)
