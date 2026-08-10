@@ -1,0 +1,84 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Edit Coach — {{ coach.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid" style="max-width:800px;">
+
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{{ url_for('admin.coaches') }}" class="btn btn-secondary btn-sm">
+      <i class="fas fa-arrow-left me-1"></i> Back
+    </a>
+    <h4 class="mb-0">✏️ Edit Coach — {{ coach.name }}</h4>
+  </div>
+
+  <form method="POST" action="{{ url_for('admin.edit_coach', coach_id=coach.id) }}" enctype="multipart/form-data" class="card p-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Name</label>
+        <input type="text" name="name" class="form-control" value="{{ coach.name }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Price per Hour (IQD)</label>
+        <input type="number" name="price_per_hour" class="form-control" value="{{ coach.price_per_hour | int }}" min="0" step="500" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Status</label>
+        <select name="status" class="form-control">
+          <option value="available" {% if coach.status == 'available' %}selected{% endif %}>Available</option>
+          <option value="coming_soon" {% if coach.status == 'coming_soon' %}selected{% endif %}>Coming Soon</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Active</label>
+        <select name="is_active" class="form-control">
+          <option value="1" {% if coach.is_active %}selected{% endif %}>Yes</option>
+          <option value="0" {% if not coach.is_active %}selected{% endif %}>No</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Phone</label>
+        <input type="text" name="phone" class="form-control" value="{{ coach.phone or '' }}" placeholder="+9647...">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Specialty</label>
+        <input type="text" name="specialty" class="form-control" value="{{ coach.specialty or '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">New Image <small class="text-muted">(leave blank to keep current)</small></label>
+        <input type="file" name="image" class="form-control">
+        {% if coach.image %}
+        <img src="{{ url_for('static', filename=coach.image) }}" width="80" class="mt-2 rounded">
+        {% endif %}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-bold">Bio</label>
+        <textarea name="bio" class="form-control" rows="4">{{ coach.bio or '' }}</textarea>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label"><i class="fab fa-instagram me-1" style="color:#e1306c;"></i> Instagram URL</label>
+        <input type="url" name="instagram" class="form-control" value="{{ coach.instagram or '' }}" placeholder="https://instagram.com/...">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label"><i class="fab fa-facebook-f me-1" style="color:#1877f2;"></i> Facebook URL</label>
+        <input type="url" name="facebook" class="form-control" value="{{ coach.facebook or '' }}" placeholder="https://facebook.com/...">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label"><i class="fab fa-whatsapp me-1" style="color:#25d366;"></i> WhatsApp Number</label>
+        <input type="text" name="whatsapp" class="form-control" value="{{ coach.whatsapp or '' }}" placeholder="+9647...">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label"><i class="fab fa-tiktok me-1"></i> TikTok URL</label>
+        <input type="url" name="tiktok" class="form-control" value="{{ coach.tiktok or '' }}" placeholder="https://tiktok.com/@...">
+      </div>
+      <div class="col-12 mt-2">
+        <button type="submit" class="btn btn-primary px-4">
+          <i class="fas fa-save me-1"></i> Save Changes
+        </button>
+        <a href="{{ url_for('admin.coaches') }}" class="btn btn-secondary ms-2">Cancel</a>
+      </div>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

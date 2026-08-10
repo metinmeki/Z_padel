@@ -88,23 +88,9 @@
         <td>{{ coach.status }}</td>
         <td>{% if coach.is_active %}{% if lang == 'en' %}Yes{% else %}نعم{% endif %}{% else %}{% if lang == 'en' %}No{% else %}لا{% endif %}{% endif %}</td>
         <td style="white-space:nowrap;">
-          <button class="btn btn-primary btn-sm me-1"
-            onclick="openEditModal(
-              {{ coach.id }},
-              {{ coach.name | tojson }},
-              {{ coach.price_per_hour }},
-              {{ coach.status | tojson }},
-              {{ (coach.phone or '') | tojson }},
-              {{ (coach.specialty or '') | tojson }},
-              {{ (coach.bio or '') | tojson }},
-              {{ (coach.instagram or '') | tojson }},
-              {{ (coach.facebook or '') | tojson }},
-              {{ (coach.whatsapp or '') | tojson }},
-              {{ (coach.tiktok or '') | tojson }},
-              {{ coach.is_active | tojson }}
-            )">
+          <a href="{{ url_for('admin.edit_coach', coach_id=coach.id) }}" class="btn btn-primary btn-sm me-1">
             <i class="fas fa-edit"></i> {% if lang == 'en' %}Edit{% else %}تعديل{% endif %}
-          </button>
+          </a>
           <form method="POST" action="{{ url_for('admin.delete_coach', coach_id=coach.id) }}"
                 style="display:inline;"
                 onsubmit="return confirm('{% if lang == 'en' %}Delete this coach?{% else %}حذف هذا المدرب؟{% endif %}')">

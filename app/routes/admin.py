@@ -1313,7 +1313,7 @@ def add_coach():
     return redirect(url_for('admin.coaches'))
 
 
-@admin_bp.route('/coaches/<int:coach_id>/edit', methods=['POST'])
+@admin_bp.route('/coaches/<int:coach_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_coach(coach_id):
     from app.models.main import Coach
@@ -1321,6 +1321,9 @@ def edit_coach(coach_id):
     from werkzeug.utils import secure_filename
 
     c = Coach.query.get_or_404(coach_id)
+
+    if request.method == 'GET':
+        return render_template('admin/edit_coach.html', coach=c)
 
     # Handle new image if uploaded
     if 'image' in request.files and request.files['image'].filename != '':
