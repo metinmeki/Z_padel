@@ -367,25 +367,26 @@
 <!-- ═══════════ SPONSORS ═══════════ -->
 {% if sponsors %}
 <style>
-@keyframes sponsors-scroll { from { transform:translateX(0) } to { transform:translateX(-50%) } }
 .sponsors-section { background:#fff; border-top:1px solid #E4DDD3; border-bottom:1px solid #E4DDD3; padding:40px 0 36px; }
 .sponsors-heading { text-align:center; margin-bottom:32px; }
 .sponsors-track-wrap {
-  overflow:hidden;
+  overflow:hidden; cursor:grab; user-select:none;
   -webkit-mask-image:linear-gradient(to right,transparent 0,black 80px,black calc(100% - 80px),transparent 100%);
   mask-image:linear-gradient(to right,transparent 0,black 80px,black calc(100% - 80px),transparent 100%);
 }
+.sponsors-track-wrap:active { cursor:grabbing; }
 .sponsors-track {
   display:flex; flex-wrap:nowrap; align-items:center; gap:24px;
-  animation:sponsors-scroll 22s linear infinite; will-change:transform;
+  will-change:transform;
 }
-.sponsors-track:hover { animation-play-state:paused; }
 .sponsor-card {
   flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:10px; padding:16px 24px; background:#fff; border:1.5px solid #E4DDD3;
   border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.06);
   text-decoration:none; min-width:140px; transition:box-shadow .25s, transform .25s;
+  pointer-events:none;
 }
+.sponsors-track-wrap:not(.dragging) .sponsor-card { pointer-events:auto; }
 .sponsor-card:hover { box-shadow:0 6px 22px rgba(0,0,0,.13); transform:translateY(-3px); }
 .sponsor-card img { height:52px; width:auto; max-width:120px; object-fit:contain; display:block; }
 .sponsor-card-name { font-size:.82rem; font-weight:800; color:#596770; text-align:center; white-space:nowrap; }
@@ -413,13 +414,75 @@
 </div>
 <script>
 (function(){
+  var wrap  = document.querySelector('.sponsors-track-wrap');
   var track = document.getElementById('sponsorTrack');
-  if (!track) return;
-  var orig = track.innerHTML;
-  var copies = 1;
-  while (track.scrollWidth < window.innerWidth * 3) { track.innerHTML += orig; copies++; }
-  if (copies % 2 !== 0) track.innerHTML += orig;
-  track.style.animationDuration = (8 * (copies / 2)) + 's';
+  if (!track || !wrap) return;
+
+  // Duplicate so the seam is invisible
+  track.innerHTML += track.innerHTML;
+
+  var pos      = 0;
+  var speed    = 0.6;   // px per frame (~36px/s at 60fps)
+  var hovered  = false;
+  var dragging = false;
+  var dragX    = 0;
+  var dragPos  = 0;
+  var halfW    = 0;
+
+  function getHalf() {
+    // Half = one full set of original items
+    return track.scrollWidth / 2;
+  }
+
+  function frame() {
+    if (!dragging && !hovered) {
+      halfW = getHalf();
+      pos  += speed;
+      if (halfW > 0 && pos >= halfW) pos -= halfW; // seamless jump
+      track.style.transform = 'translateX(' + (-pos) + 'px)';
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Hover pause
+  wrap.addEventListener('mouseenter', function(){ hovered = true; });
+  wrap.addEventListener('mouseleave', function(){ hovered = false; });
+
+  // Mouse drag
+  wrap.addEventListener('mousedown', function(e){
+    dragging = true;
+    dragX    = e.clientX;
+    dragPos  = pos;
+    wrap.classList.add('dragging');
+  });
+  document.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    halfW = getHalf();
+    pos   = dragPos - (e.clientX - dragX);
+    if (halfW > 0) pos = ((pos % halfW) + halfW) % halfW;
+    track.style.transform = 'translateX(' + (-pos) + 'px)';
+  });
+  document.addEventListener('mouseup', function(){
+    if (!dragging) return;
+    dragging = false;
+    wrap.classList.remove('dragging');
+  });
+
+  // Touch drag
+  wrap.addEventListener('touchstart', function(e){
+    dragging = true;
+    dragX    = e.touches[0].clientX;
+    dragPos  = pos;
+  }, { passive:true });
+  wrap.addEventListener('touchmove', function(e){
+    if (!dragging) return;
+    halfW = getHalf();
+    pos   = dragPos - (e.touches[0].clientX - dragX);
+    if (halfW > 0) pos = ((pos % halfW) + halfW) % halfW;
+    track.style.transform = 'translateX(' + (-pos) + 'px)';
+  }, { passive:true });
+  wrap.addEventListener('touchend', function(){ dragging = false; });
 })();
 </script>
 {% endif %}
