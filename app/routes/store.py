@@ -7,7 +7,10 @@ store_bp = Blueprint('store', __name__)
 
 @store_bp.route('/')
 def shop():
-    cats = Category.query.filter_by(show_in_store=True).all()
+    try:
+        cats = Category.query.filter_by(show_in_store=True).all()
+    except Exception:
+        cats = Category.query.all()
     cat_id = request.args.get('cat', type=int)
     prods = Product.query.filter_by(is_active=True, show_on_website=True)
     if cat_id:
