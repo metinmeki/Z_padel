@@ -13,18 +13,22 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <label>{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</label>
       <input type="text" name="name" class="form-control" required>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+      <label>{% if lang == 'en' %}Price per Hour (IQD){% else %}السعر/ساعة (دينار){% endif %}</label>
+      <input type="number" name="price_per_hour" class="form-control" min="0" step="500" placeholder="500000" required>
+    </div>
+    <div class="col-md-3">
       <label>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
       <select name="status" class="form-control">
         <option value="available">{% if lang == 'en' %}Available{% else %}متاح{% endif %}</option>
         <option value="coming_soon">{% if lang == 'en' %}Coming Soon{% else %}قريباً{% endif %}</option>
       </select>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <label>{% if lang == 'en' %}Image{% else %}الصورة{% endif %}</label>
       <input type="file" name="image" class="form-control">
     </div>
