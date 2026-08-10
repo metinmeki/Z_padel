@@ -56,7 +56,13 @@ def create_app(config_name: str = None):
 
     @app.context_processor
     def inject_lang():
-        return dict(lang=g.lang)
+        # t(en, ku, ar) — use in templates: {{ t('Hello', 'سڵاو', 'مرحبا') }}
+        _lang = g.lang
+        def t(en, ku=None, ar=None):
+            if _lang == 'en': return en
+            if _lang == 'ku': return ku if ku is not None else (ar or en)
+            return ar if ar is not None else en
+        return dict(lang=_lang, t=t)
 
     @app.context_processor
     def inject_pending_bills():

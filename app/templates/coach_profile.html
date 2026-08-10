@@ -307,7 +307,7 @@
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
   <a href="{{ url_for('main.index') }}#courts">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
-  <a href="{{ url_for('main.index') }}#coaches">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</a>
+  <a href="{{ url_for('main.index') }}#coaches">{{ t('Coaches','تەمرینەرەکان','المدربون') }}</a>
   <a href="{{ url_for('main.index') }}#store">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
   <a href="{{ url_for('booking.index') }}"
      style="background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;margin-top:10px;border-radius:50px;padding:13px 36px;">
@@ -357,7 +357,7 @@
 <div class="cp-breadcrumb">
   <a href="{{ url_for('main.index') }}"><i class="fas fa-home" style="font-size:.75rem;"></i></a>
   <span class="sep">/</span>
-  <a href="{{ url_for('main.index') }}#coaches">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</a>
+  <a href="{{ url_for('main.index') }}#coaches">{{ t('Coaches','تەمرینەرەکان','المدربون') }}</a>
   <span class="sep">/</span>
   <span class="cur">{{ coach.name }}</span>
 </div>
@@ -417,13 +417,13 @@
       <div class="cp-chips">
         <div class="cp-chip gold">
           <div class="cp-chip-ico"><i class="fas fa-tag"></i></div>
-          {{ '{:,.0f}'.format(coach.price_per_hour) }} IQD / {% if lang == 'en' %}hr{% else %}ساعة{% endif %}
+          {{ '{:,.0f}'.format(coach.price_per_hour) }} IQD / {{ t('hr','کاتژمێر','ساعة') }}
         </div>
         <div class="cp-chip {% if coach.status == 'available' %}green{% endif %}">
           <div class="cp-chip-ico" style="{% if coach.status == 'available' %}background:#dcfce7;color:#16a34a;{% else %}background:#fef9c3;color:#92400e;{% endif %}">
             <i class="fas {% if coach.status == 'available' %}fa-circle{% else %}fa-clock{% endif %}" style="font-size:{% if coach.status == 'available' %}5px{% else %}.7rem{% endif %};"></i>
           </div>
-          {% if coach.status == 'available' %}{% if lang == 'en' %}Available{% else %}متاح{% endif %}{% else %}{% if lang == 'en' %}Busy{% else %}مشغول{% endif %}{% endif %}
+          {% if coach.status == 'available' %}{{ t('Available','بەردەستە','متاح') }}{% else %}{{ t('Busy','بەکارە','مشغول') }}{% endif %}
         </div>
         {% if coach.specialty %}
         <div class="cp-chip">
@@ -438,7 +438,7 @@
       <div class="cp-section">
         <div class="cp-sec-hdr">
           <div class="cp-sec-ico"><i class="fas fa-user-tie"></i></div>
-          {% if lang == 'en' %}About{% else %}نبذة عن المدرب{% endif %}
+          {{ t('About','دەربارەی تەمرینەر','نبذة عن المدرب') }}
         </div>
         <div class="cp-bio-text">{{ coach.bio }}</div>
       </div>
@@ -449,7 +449,7 @@
       <div class="cp-section">
         <div class="cp-sec-hdr">
           <div class="cp-sec-ico"><i class="fas fa-address-card"></i></div>
-          {% if lang == 'en' %}Contact{% else %}التواصل{% endif %}
+          {{ t('Contact','پەیوەندی','التواصل') }}
         </div>
         {% if coach.phone %}
         <div class="cp-crow">
@@ -472,7 +472,7 @@
       <div class="cp-section">
         <div class="cp-sec-hdr">
           <div class="cp-sec-ico"><i class="fas fa-share-alt"></i></div>
-          {% if lang == 'en' %}Follow{% else %}تابعنا{% endif %}
+          {{ t('Follow','شوێن پێکەوتن','تابعنا') }}
         </div>
         <div class="cp-soc-grid">
           {% if coach.instagram %}
@@ -501,39 +501,39 @@
       <div class="cp-book-card">
         <div class="cp-price-block">
           <span class="cp-price-amount">{{ '{:,.0f}'.format(coach.price_per_hour) }}</span>
-          <span class="cp-price-unit">IQD / {% if lang == 'en' %}hour{% else %}ساعة{% endif %}</span>
+          <span class="cp-price-unit">IQD / {{ t('hour','کاتژمێر','ساعة') }}</span>
         </div>
 
         <ul class="cp-pkg-list">
           <li>
-            <span class="pkg-n">{% if lang == 'en' %}1 Session{% else %}جلسة واحدة{% endif %}</span>
+            <span class="pkg-n">{{ t('1 Session','١ دانیشتن','جلسة واحدة') }}</span>
             <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD</span>
           </li>
           <li>
-            <span class="pkg-n">{% if lang == 'en' %}4 Sessions{% else %}4 جلسات{% endif %}</span>
+            <span class="pkg-n">{{ t('4 Sessions','٤ دانیشتن','4 جلسات') }}</span>
             <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 3.5) }} IQD</span>
           </li>
           <li>
-            <span class="pkg-n">{% if lang == 'en' %}6 Sessions{% else %}6 جلسات{% endif %}</span>
+            <span class="pkg-n">{{ t('6 Sessions','٦ دانیشتن','6 جلسات') }}</span>
             <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 5) }} IQD</span>
           </li>
           <li>
-            <span class="pkg-n">{% if lang == 'en' %}10 Sessions{% else %}10 جلسات{% endif %}</span>
+            <span class="pkg-n">{{ t('10 Sessions','١٠ دانیشتن','10 جلسات') }}</span>
             <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 8) }} IQD</span>
           </li>
           <li>
-            <span class="pkg-n">{% if lang == 'en' %}12 Sessions{% else %}12 جلسة{% endif %}</span>
+            <span class="pkg-n">{{ t('12 Sessions','١٢ دانیشتن','12 جلسة') }}</span>
             <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 9.5) }} IQD</span>
           </li>
         </ul>
 
         <a href="{{ url_for('main.coach_book', coach_id=coach.id) }}" class="cp-bk-btn">
           <i class="fas fa-calendar-plus"></i>
-          {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
+          {{ t('Book a Session','دانیشتن بووک بکە','احجز جلسة') }}
         </a>
         <div class="cp-bk-note">
           <i class="fas fa-shield-alt" style="color:var(--ac2);"></i>
-          {% if lang == 'en' %}Flexible scheduling · No hidden fees{% else %}جدول مرن · بدون رسوم مخفية{% endif %}
+          {{ t('Flexible scheduling · No hidden fees','خولی نەرم · بەدوون نرخی شاراوە','جدول مرن · بدون رسوم مخفية') }}
         </div>
       </div>
     </div><!-- /cp-right -->
@@ -546,7 +546,7 @@
 <div class="cp-others">
   <div class="cp-others-ttl">
     <i class="fas fa-users" style="color:var(--ac2);"></i>
-    {% if lang == 'en' %}Other Coaches{% else %}مدربون آخرون{% endif %}
+    {{ t('Other Coaches','تەمرینەرەکانی تر','مدربون آخرون') }}
   </div>
   <div class="cp-others-row">
     {% for c in all_coaches %}
