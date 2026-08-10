@@ -9,7 +9,7 @@ from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable
 pos_bp = Blueprint('pos', __name__)
 
 
-BARISTA_CATEGORIES = {'beverage', 'cakes'}
+BARISTA_CATEGORIES = {'beverage', 'cakes', 'cafe', 'coffee', 'drinks'}
 
 @pos_bp.route('/')
 @pos_bp.route('/quick-sale')
