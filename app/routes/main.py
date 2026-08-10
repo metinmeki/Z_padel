@@ -45,6 +45,12 @@ def index():
                            sponsors=sponsors)
 
 
+@main_bp.route('/coaches/<int:coach_id>')
+def coach_profile(coach_id):
+    coach = Coach.query.get_or_404(coach_id)
+    return render_template('coach_profile.html', coach=coach)
+
+
 @main_bp.route('/sw.js')
 def sw():
     return send_from_directory(current_app.static_folder, 'sw.js'), 200, {'Content-Type': 'application/javascript'}

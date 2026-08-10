@@ -32,6 +32,22 @@
       <label>{% if lang == 'en' %}Bio{% else %}نبذة{% endif %}</label>
       <textarea name="bio" class="form-control"></textarea>
     </div>
+    <div class="col-md-6 mt-3">
+      <label><i class="fab fa-instagram me-1" style="color:#e1306c;"></i> Instagram URL</label>
+      <input type="url" name="instagram" class="form-control" placeholder="https://instagram.com/...">
+    </div>
+    <div class="col-md-6 mt-3">
+      <label><i class="fab fa-facebook-f me-1" style="color:#1877f2;"></i> Facebook URL</label>
+      <input type="url" name="facebook" class="form-control" placeholder="https://facebook.com/...">
+    </div>
+    <div class="col-md-6 mt-3">
+      <label><i class="fab fa-whatsapp me-1" style="color:#25d366;"></i> WhatsApp {% if lang == 'en' %}Number{% else %}رقم{% endif %}</label>
+      <input type="text" name="whatsapp" class="form-control" placeholder="+9647...">
+    </div>
+    <div class="col-md-6 mt-3">
+      <label><i class="fab fa-tiktok me-1"></i> TikTok URL</label>
+      <input type="url" name="tiktok" class="form-control" placeholder="https://tiktok.com/@...">
+    </div>
     <div class="col-md-12 mt-3">
       <button class="btn btn-success">{% if lang == 'en' %}Add Coach{% else %}إضافة مدرب{% endif %}</button>
     </div>

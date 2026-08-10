@@ -528,7 +528,7 @@
     <div class="row g-4 justify-content-center">
       {% for coach in coaches %}
       <div class="col-lg-4 col-md-6 reveal" style="animation-delay:{{ loop.index0 * 0.1 }}s">
-        <div class="coach-card-real" onclick="openCoachBooking({{ coach.id }}, '{{ coach.name }}')">
+        <div class="coach-card-real" style="cursor:pointer;" onclick="window.location='{{ url_for('main.coach_profile', coach_id=coach.id) }}'">
           {% if coach.image %}
             <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="coach-avatar-img">
           {% else %}
@@ -545,14 +545,12 @@
             {% endif %}
           </span>
           {% if coach.bio %}<p class="coach-bio">{{ coach.bio }}</p>{% endif %}
-          {% if coach.status == 'available' %}
           <div style="margin-top:16px;">
-            <button type="button" class="btn-blue" style="width:100%;justify-content:center;border:none;cursor:pointer;">
-              <i class="fas fa-calendar-plus"></i>
-              {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
-            </button>
+            <span class="btn-blue" style="width:100%;justify-content:center;display:flex;pointer-events:none;">
+              <i class="fas fa-user"></i>
+              {% if lang == 'en' %}View Profile{% else %}عرض الملف{% endif %}
+            </span>
           </div>
-          {% endif %}
         </div>
       </div>
       {% endfor %}
