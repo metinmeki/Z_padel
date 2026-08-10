@@ -367,6 +367,7 @@
 <!-- ═══════════ SPONSORS ═══════════ -->
 {% if sponsors %}
 <style>
+@keyframes marquee { to { transform: translateX(-50%); } }
 .sponsors-section { background:#fff; border-top:1px solid #E4DDD3; border-bottom:1px solid #E4DDD3; padding:40px 0 36px; }
 .sponsors-heading { text-align:center; margin-bottom:32px; }
 .sponsors-track-wrap {
@@ -377,16 +378,16 @@
 .sponsors-track-wrap:active { cursor:grabbing; }
 .sponsors-track {
   display:flex; flex-wrap:nowrap; align-items:center; gap:24px;
-  will-change:transform;
+  width:max-content;
+  animation: marquee 18s linear infinite;
 }
+.sponsors-track.paused { animation-play-state: paused; }
 .sponsor-card {
   flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:10px; padding:16px 24px; background:#fff; border:1.5px solid #E4DDD3;
   border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.06);
   text-decoration:none; min-width:140px; transition:box-shadow .25s, transform .25s;
-  pointer-events:none;
 }
-.sponsors-track-wrap:not(.dragging) .sponsor-card { pointer-events:auto; }
 .sponsor-card:hover { box-shadow:0 6px 22px rgba(0,0,0,.13); transform:translateY(-3px); }
 .sponsor-card img { height:52px; width:auto; max-width:120px; object-fit:contain; display:block; }
 .sponsor-card-name { font-size:.82rem; font-weight:800; color:#596770; text-align:center; white-space:nowrap; }
@@ -398,91 +399,113 @@
       {% if lang == 'en' %}Our <span>Partners</span>{% elif lang == 'ku' %}هاوکارەکانمان{% else %}شركاؤنا <span>الرسميون</span>{% endif %}
     </h2>
   </div>
-  <div class="sponsors-track-wrap">
+  <div class="sponsors-track-wrap" id="sponsorWrap">
     <div class="sponsors-track" id="sponsorTrack">
-      {% for s in sponsors %}
+      {% macro sponsor_item(s) %}
       {% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}
       {% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-card">{% else %}<div class="sponsor-card">{% endif %}
-        {% if s.logo %}
-          <img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none'">
-        {% endif %}
+        {% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none'">{% endif %}
         <span class="sponsor-card-name">{{ s.name }}</span>
       {% if s.website %}</a>{% else %}</div>{% endif %}
-      {% endfor %}
+      {% endmacro %}
+      {% for s in sponsors %}{{ sponsor_item(s) }}{% endfor %}
+      {% for s in sponsors %}{{ sponsor_item(s) }}{% endfor %}
     </div>
   </div>
 </div>
 <script>
 (function(){
-  var wrap  = document.querySelector('.sponsors-track-wrap');
+  var wrap  = document.getElementById('sponsorWrap');
   var track = document.getElementById('sponsorTrack');
   if (!track || !wrap) return;
 
-  // Duplicate so the seam is invisible
-  track.innerHTML += track.innerHTML;
+  var dragging  = false;
+  var dragStartX = 0;
+  var dragStartDelay = 0;
 
-  var pos      = 0;
-  var speed    = 0.6;   // px per frame (~36px/s at 60fps)
-  var hovered  = false;
-  var dragging = false;
-  var dragX    = 0;
-  var dragPos  = 0;
-  var halfW    = 0;
-
-  function getHalf() {
-    // Half = one full set of original items
-    return track.scrollWidth / 2;
+  function getCurrentDelay() {
+    // Read computed animation-delay to get current position
+    var style = window.getComputedStyle(track);
+    return parseFloat(style.animationDelay) || 0;
   }
 
-  function frame() {
-    if (!dragging && !hovered) {
-      halfW = getHalf();
-      pos  += speed;
-      if (halfW > 0 && pos >= halfW) pos -= halfW; // seamless jump
-      track.style.transform = 'translateX(' + (-pos) + 'px)';
+  function pauseAt() {
+    // Freeze at current visual position by capturing computed transform
+    var matrix = window.getComputedStyle(track).transform;
+    var tx = 0;
+    if (matrix && matrix !== 'none') {
+      tx = parseFloat(matrix.split(',')[4]) || 0;
     }
-    requestAnimationFrame(frame);
+    track.classList.add('paused');
+    track.style.transform = 'translateX(' + tx + 'px)';
+    return tx;
   }
-  requestAnimationFrame(frame);
 
-  // Hover pause
-  wrap.addEventListener('mouseenter', function(){ hovered = true; });
-  wrap.addEventListener('mouseleave', function(){ hovered = false; });
+  function resume(tx) {
+    // Convert current tx back to an animation-delay so CSS picks up from here
+    var half = track.scrollWidth / 2;
+    if (half <= 0) { track.classList.remove('paused'); track.style.transform = ''; return; }
+    var progress = Math.abs(tx) / half;          // 0–1
+    var duration = 18;                            // seconds, matches CSS
+    var delay    = -(progress * duration);        // negative = already progressed
+    track.style.transform = '';
+    track.style.animationDelay = delay + 's';
+    track.classList.remove('paused');
+  }
 
-  // Mouse drag
+  // Hover
+  wrap.addEventListener('mouseenter', function(){ if (!dragging) { pauseAt(); } });
+  wrap.addEventListener('mouseleave', function(){
+    if (!dragging) {
+      var tx = parseFloat(track.style.transform.replace(/[^0-9.-]/g,'') || 0) * (track.style.transform.includes('-') ? -1 : 1);
+      // Just resume from wherever we are
+      var matrix = window.getComputedStyle(track).transform;
+      var frozenTx = parseFloat((track.style.transform.match(/-?\d+\.?\d*/) || [0])[0]) || 0;
+      resume(frozenTx);
+    }
+  });
+
+  // Drag
+  var frozenTx = 0;
   wrap.addEventListener('mousedown', function(e){
-    dragging = true;
-    dragX    = e.clientX;
-    dragPos  = pos;
-    wrap.classList.add('dragging');
+    dragging  = true;
+    frozenTx  = pauseAt();
+    dragStartX = e.clientX;
   });
   document.addEventListener('mousemove', function(e){
     if (!dragging) return;
-    halfW = getHalf();
-    pos   = dragPos - (e.clientX - dragX);
-    if (halfW > 0) pos = ((pos % halfW) + halfW) % halfW;
-    track.style.transform = 'translateX(' + (-pos) + 'px)';
+    var delta = e.clientX - dragStartX;
+    var newTx = frozenTx + delta;
+    var half  = track.scrollWidth / 2;
+    // Clamp within one loop
+    newTx = ((newTx % (-half)) - half) % (-half);
+    track.style.transform = 'translateX(' + newTx + 'px)';
   });
   document.addEventListener('mouseup', function(){
     if (!dragging) return;
     dragging = false;
-    wrap.classList.remove('dragging');
+    var currentTx = parseFloat((track.style.transform.match(/-?\d+\.?\d*/) || [0])[0]) || 0;
+    resume(currentTx);
   });
 
-  // Touch drag
+  // Touch
   wrap.addEventListener('touchstart', function(e){
-    dragging = true;
-    dragX    = e.touches[0].clientX;
-    dragPos  = pos;
+    dragging   = true;
+    frozenTx   = pauseAt();
+    dragStartX = e.touches[0].clientX;
   }, { passive:true });
   wrap.addEventListener('touchmove', function(e){
     if (!dragging) return;
-    halfW = getHalf();
-    pos   = dragPos - (e.touches[0].clientX - dragX);
-    if (halfW > 0) pos = ((pos % halfW) + halfW) % halfW;
-    track.style.transform = 'translateX(' + (-pos) + 'px)';
+    var delta = e.touches[0].clientX - dragStartX;
+    var newTx = frozenTx + delta;
+    track.style.transform = 'translateX(' + newTx + 'px)';
   }, { passive:true });
-  wrap.addEventListener('touchend', function(){ dragging = false; });
+  wrap.addEventListener('touchend', function(){
+    if (!dragging) return;
+    dragging = false;
+    var currentTx = parseFloat((track.style.transform.match(/-?\d+\.?\d*/) || [0])[0]) || 0;
+    resume(currentTx);
+  });
 })();
 </script>
 {% endif %}
