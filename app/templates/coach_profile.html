@@ -353,7 +353,7 @@
       <div style="font-size:.88rem;color:var(--tm);margin-bottom:1.25rem;">
         {% if lang == 'en' %}{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD per hour{% else %}{{ '{:,.0f}'.format(coach.price_per_hour) }} دينار للساعة{% endif %}
       </div>
-      <a href="{{ url_for('booking.index') }}" class="cp-book-btn">
+      <a href="{{ url_for('main.coach_book', coach_id=coach.id) }}" class="cp-book-btn">
         <i class="fas fa-calendar-plus"></i>
         {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
       </a>

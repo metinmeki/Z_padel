@@ -48,7 +48,32 @@ def index():
 @main_bp.route('/coaches/<int:coach_id>')
 def coach_profile(coach_id):
     coach = Coach.query.get_or_404(coach_id)
-    return render_template('coach_profile.html', coach=coach)
+    all_coaches = Coach.query.filter_by(is_active=True).all()
+    return render_template('coach_profile.html', coach=coach, all_coaches=all_coaches)
+
+
+@main_bp.route('/coaches/<int:coach_id>/book', methods=['GET', 'POST'])
+def coach_book(coach_id):
+    from app.models.main import TrainingRequest
+    coach = Coach.query.get_or_404(coach_id)
+    all_coaches = Coach.query.filter_by(is_active=True).all()
+
+    if request.method == 'POST':
+        tr = TrainingRequest(
+            coach_id=int(request.form.get('coach_id', coach_id)),
+            customer_name=request.form.get('customer_name', '').strip(),
+            customer_phone=request.form.get('customer_phone', '').strip(),
+            package=request.form.get('package', ''),
+            playing_level=request.form.get('playing_level', ''),
+            notes=request.form.get('note', '').strip(),
+            status='pending',
+        )
+        from app import db
+        db.session.add(tr)
+        db.session.commit()
+        return render_template('coach_book_success.html', coach=coach)
+
+    return render_template('coach_book.html', coach=coach, all_coaches=all_coaches)
 
 
 @main_bp.route('/sw.js')

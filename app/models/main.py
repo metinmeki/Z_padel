@@ -193,11 +193,15 @@ class TrainingRequest(db.Model):
     coach_id       = db.Column(db.Integer, db.ForeignKey('coaches.id'), nullable=False)
     customer_name  = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20),  nullable=False)
+    package        = db.Column(db.String(100), nullable=True)
+    playing_level  = db.Column(db.String(50),  nullable=True)
     preferred_date = db.Column(db.Date,        nullable=True)
     preferred_time = db.Column(db.Time,        nullable=True)
     status         = db.Column(db.String(20),  default='pending')
     notes          = db.Column(db.Text,        nullable=True)
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    coach = db.relationship('Coach', backref='training_requests', lazy=True)
 
     def __repr__(self):
         return f'<TrainingRequest #{self.id}>'
