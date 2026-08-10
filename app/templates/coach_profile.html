@@ -209,10 +209,15 @@
       transition: transform .18s, box-shadow .18s;
     }
     .cp-soc-pill:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.18); }
-    .cp-soc-pill.soc-ig { background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366); color:#fff; }
-    .cp-soc-pill.soc-fb { background:#1877f2; color:#fff; }
-    .cp-soc-pill.soc-wa { background:#25d366; color:#fff; }
-    .cp-soc-pill.soc-tk { background:#111; color:#fff; }
+    .cp-soc-pill.soc-ig, .cp-soc-pill.soc-fb,
+    .cp-soc-pill.soc-wa, .cp-soc-pill.soc-tk {
+      background: var(--bsft); color: var(--ac2);
+      border: 1.5px solid var(--br);
+    }
+    .cp-soc-pill.soc-ig:hover, .cp-soc-pill.soc-fb:hover,
+    .cp-soc-pill.soc-wa:hover, .cp-soc-pill.soc-tk:hover {
+      background: var(--ac); color: #fff; border-color: var(--ac);
+    }
 
     /* Sticky booking card */
     .cp-book-card {
