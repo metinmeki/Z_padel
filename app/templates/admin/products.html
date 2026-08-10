@@ -58,9 +58,21 @@
 <div class="card-z">
   <div class="card-header-z">
     <div class="card-title-z"><i class="fas fa-box-open"></i> {% if lang == 'en' %}Products List{% else %}قائمة المنتجات{% endif %}</div>
-    <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search for a product...{% else %}بحث عن منتج...{% endif %}"
-           class="form-control-z" style="max-width:220px;"
-           oninput="filterProducts()">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <select id="categoryFilter" class="form-control-z" style="max-width:180px;" onchange="filterProducts()">
+        <option value="">{% if lang == 'en' %}All Categories{% else %}كل الفئات{% endif %}</option>
+        {% set seen = [] %}
+        {% for p in products %}
+          {% if p.category and p.category.name not in seen %}
+            {% if seen.append(p.category.name) %}{% endif %}
+            <option value="{{ p.category.name }}">{{ p.category.name }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <input type="text" id="searchInput" placeholder="{% if lang == 'en' %}Search for a product...{% else %}بحث عن منتج...{% endif %}"
+             class="form-control-z" style="max-width:200px;"
+             oninput="filterProducts()">
+    </div>
   </div>
   <div style="overflow-x:auto;">
     <table class="table-z" id="productsTable">
@@ -77,7 +89,7 @@
       </thead>
       <tbody>
         {% for p in products %}
-        <tr>
+        <tr data-category="{{ p.category.name if p.category else '' }}">
           <td>
             <div style="display:flex;align-items:center;gap:10px;">
               {% if p.image %}
@@ -158,9 +170,12 @@
 
 <script>
 function filterProducts() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
+  const q   = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('categoryFilter').value;
   document.querySelectorAll('#productsTable tbody tr').forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    const matchSearch = !q   || row.textContent.toLowerCase().includes(q);
+    const matchCat    = !cat || row.dataset.category === cat;
+    row.style.display = (matchSearch && matchCat) ? '' : 'none';
   });
 }
 </script>
