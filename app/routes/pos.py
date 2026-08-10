@@ -25,7 +25,10 @@ def quick_sale():
     else:
         products   = Product.query.filter_by(is_active=True).all()
         categories = Category.query.order_by(Category.name).all()
-    return render_template('pos/quick_sale.html', products=products, categories=categories)
+    open_court_bills    = CourtSession.query.filter_by(status='pending_payment').order_by(CourtSession.end_time.desc()).all()
+    open_activity_bills = ActivitySession.query.filter_by(status='pending_payment').order_by(ActivitySession.end_time.desc()).all()
+    return render_template('pos/quick_sale.html', products=products, categories=categories,
+                           open_court_bills=open_court_bills, open_activity_bills=open_activity_bills)
 
 
 @pos_bp.route('/checkout', methods=['POST'])
@@ -277,7 +280,7 @@ def move_court_session(session_id):
 @login_required
 def add_session_item(session_id):
     session_row = CourtSession.query.get_or_404(session_id)
-    if session_row.status != 'active':
+    if session_row.status not in ('active', 'pending_payment'):
         return jsonify(success=False, message='الجلسة غير نشطة'), 400
 
     data = request.get_json(force=True) or {}
@@ -665,7 +668,7 @@ def cancel_activity_session(session_id):
 @login_required
 def add_activity_item(session_id):
     sess = ActivitySession.query.get_or_404(session_id)
-    if sess.status != 'active':
+    if sess.status not in ('active', 'pending_payment'):
         return jsonify(success=False, message='Session not active'), 400
     data = request.get_json(force=True) or {}
     product_id = data.get('product_id')

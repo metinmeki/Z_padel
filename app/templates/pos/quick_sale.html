@@ -41,6 +41,38 @@
   </div>
 </div>
 
+{% if open_court_bills or open_activity_bills %}
+<div style="background:#fff8e1;border:1.5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-bottom:1rem;">
+  <div style="font-weight:800;color:#92400e;font-size:.9rem;margin-bottom:.6rem;">
+    <i class="fas fa-clock me-2"></i>{% if lang == 'en' %}Open Bills — Awaiting Payment{% else %}فواتير مفتوحة — في انتظار الدفع{% endif %}
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+    {% for s in open_court_bills %}
+    <a href="{{ url_for('pos.session_detail', session_id=s.id) }}"
+       style="background:#fff;border:1.5px solid #f59e0b;border-radius:8px;padding:.45rem .9rem;
+              font-size:.82rem;font-weight:700;color:#92400e;text-decoration:none;display:flex;align-items:center;gap:.5rem;">
+      <i class="fas fa-futbol"></i>
+      {{ s.court.name }}{% if s.customer_name %} — {{ s.customer_name }}{% endif %}
+      <span style="background:#f59e0b;color:#fff;border-radius:20px;padding:1px 7px;font-size:.72rem;">
+        {{ '{:,.0f}'.format(s.grand_total) }} IQD
+      </span>
+    </a>
+    {% endfor %}
+    {% for s in open_activity_bills %}
+    <a href="{{ url_for('pos.activity_session_detail', session_id=s.id) }}"
+       style="background:#fff;border:1.5px solid #f59e0b;border-radius:8px;padding:.45rem .9rem;
+              font-size:.82rem;font-weight:700;color:#92400e;text-decoration:none;display:flex;align-items:center;gap:.5rem;">
+      <i class="fas fa-table-tennis-paddle-ball"></i>
+      {{ s.table.name }}{% if s.customer_name %} — {{ s.customer_name }}{% endif %}
+      <span style="background:#f59e0b;color:#fff;border-radius:20px;padding:1px 7px;font-size:.72rem;">
+        {{ '{:,.0f}'.format(s.grand_total) }} IQD
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <div class="row g-3">
 
   <!-- ══ Products ══ -->
