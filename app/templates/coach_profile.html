@@ -1,231 +1,266 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{{ coach.name }} — Z Padel</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Almarai:wght@400;700&display=swap" rel="stylesheet"/>
+
   {% if lang == 'en' %}
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
   {% else %}
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
   {% endif %}
-  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4"/>
 
   <style>
-    :root {
-      --gold:      #D6C3A1;
-      --gold-d:    #b8a07e;
-      --gold-deep: #9a7d52;
-      --slate:     #1e3a5f;
-      --slate-mid: #2d5486;
-      --bg:        #0b1928;
-      --card:      #112236;
-      --border:    rgba(255,255,255,.08);
-      --text:      #f0f4f8;
-      --muted:     #8ba3bc;
-      --radius:    18px;
+    /* ── Profile-specific overrides ── */
+    .cp-hero {
+      background: linear-gradient(160deg, var(--bd) 0%, #3d4f59 100%);
+      padding: 5rem 1.5rem 3rem;
+      position: relative; overflow: hidden; text-align: center;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-      min-height: 100vh;
-    }
-
-    /* ── Navbar ── */
-    .nav {
-      background: rgba(11,25,40,.95);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: .8rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .brand {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.2rem; font-weight: 900;
-      color: var(--gold-d); text-decoration: none;
-    }
-    .back-btn {
-      display: inline-flex; align-items: center; gap: .45rem;
-      color: var(--muted); font-size: .85rem; font-weight: 700;
-      text-decoration: none; transition: color .2s;
-    }
-    .back-btn:hover { color: var(--gold-d); }
-
-    /* ── Hero ── */
-    .hero {
-      position: relative;
-      background: linear-gradient(160deg, #0f2b47 0%, #0b1928 60%);
-      padding: 4rem 1.5rem 0;
-      overflow: hidden;
-      text-align: center;
-    }
-    .hero::before {
+    .cp-hero::before {
       content: '';
       position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(214,195,161,.08) 0%, transparent 70%);
-      pointer-events: none;
+      background: url("{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}") center/cover no-repeat;
+      opacity: .04; pointer-events: none;
     }
-    .avatar-wrap {
-      position: relative; display: inline-block; margin-bottom: 1.5rem;
-    }
-    .avatar-ring {
-      width: 160px; height: 160px;
-      border-radius: 50%;
-      border: 3px solid var(--gold-d);
+    .cp-avatar-wrap { position: relative; display: inline-block; margin-bottom: 1.5rem; }
+    .cp-avatar-ring {
+      width: 160px; height: 160px; border-radius: 50%;
+      border: 4px solid var(--ac);
       padding: 4px;
-      background: linear-gradient(135deg, rgba(214,195,161,.15), transparent);
-      display: flex; align-items: center; justify-content: center;
       margin: 0 auto;
-      box-shadow: 0 0 40px rgba(214,195,161,.15);
+      background: rgba(214,195,161,.12);
+      box-shadow: 0 0 48px rgba(214,195,161,.2);
     }
-    .avatar-ring img {
-      width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+    .cp-avatar-ring img {
+      width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
     }
-    .avatar-ring .no-img {
+    .cp-avatar-ring .no-img {
       width: 100%; height: 100%; border-radius: 50%;
-      background: linear-gradient(135deg, var(--slate), var(--slate-mid));
+      background: linear-gradient(135deg, var(--bdk), var(--bd));
       display: flex; align-items: center; justify-content: center;
-      font-size: 3.5rem; color: rgba(214,195,161,.5);
+      font-size: 3.5rem; color: var(--ac);
     }
-    .status-dot {
-      position: absolute; bottom: 8px; {% if lang == 'en' %}right{% else %}left{% endif %}: 8px;
+    .cp-status-dot {
+      position: absolute; bottom: 10px; {% if lang == 'en' %}right{% else %}left{% endif %}: 10px;
       width: 22px; height: 22px; border-radius: 50%;
-      border: 3px solid var(--bg);
-      background: #22c55e;
+      border: 3px solid var(--bd); background: #22c55e;
     }
-    .status-dot.busy { background: #f59e0b; }
+    .cp-status-dot.busy { background: #f59e0b; }
 
-    .hero-name {
+    .cp-name {
+      font-family: 'Montserrat', sans-serif;
       font-size: 2rem; font-weight: 900; color: #fff;
-      margin-bottom: .4rem; line-height: 1.15;
+      margin-bottom: .4rem;
     }
-    .hero-specialty {
-      font-size: 1rem; font-weight: 700; color: var(--gold-d);
-      margin-bottom: 1rem;
-    }
+    .cp-specialty { font-size: 1rem; font-weight: 700; color: var(--ac); margin-bottom: 1.2rem; }
 
-    /* Social icons row */
-    .socials {
-      display: flex; align-items: center; justify-content: center; gap: .75rem;
-      margin-bottom: 2rem;
+    /* Social buttons */
+    .cp-socials {
+      display: flex; align-items: center; justify-content: center; gap: .65rem;
+      margin-bottom: 0; flex-wrap: wrap;
     }
     .soc-btn {
-      width: 44px; height: 44px; border-radius: 12px;
+      width: 46px; height: 46px; border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.15rem; text-decoration: none;
-      transition: transform .2s, opacity .2s;
+      font-size: 1.1rem; text-decoration: none;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 2px 10px rgba(0,0,0,.2);
     }
-    .soc-btn:hover { transform: translateY(-3px); opacity: .85; }
-    .soc-ig   { background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color: #fff; }
-    .soc-fb   { background: #1877f2; color: #fff; }
-    .soc-wa   { background: #25d366; color: #fff; }
-    .soc-tk   { background: #111; color: #fff; border: 1px solid rgba(255,255,255,.15); }
+    .soc-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+    .soc-ig { background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color:#fff; }
+    .soc-fb { background: #1877f2; color: #fff; }
+    .soc-wa { background: #25d366; color: #fff; }
+    .soc-tk { background: #111; color: #fff; }
 
-    /* Tab strip */
-    .tab-strip {
-      display: flex; justify-content: center; gap: 0;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      padding: 0 1.5rem;
+    /* Content area */
+    .cp-body {
+      background: var(--owh);
+      min-height: 50vh;
+      padding: 2.5rem 1rem 5rem;
     }
-    .tab {
-      padding: 1rem 1.5rem;
-      font-size: .88rem; font-weight: 700; color: var(--muted);
-      cursor: pointer; border-bottom: 2.5px solid transparent;
-      transition: color .2s, border-color .2s;
-      background: none; border-top: none; border-left: none; border-right: none;
-    }
-    .tab.active { color: var(--gold-d); border-bottom-color: var(--gold-d); }
+    .cp-inner { max-width: 720px; margin: 0 auto; }
 
-    /* Content panels */
-    .panels { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-    .panel { display: none; }
-    .panel.active { display: block; }
-
-    /* Bio card */
-    .info-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.5rem;
-      margin-bottom: 1.25rem;
-    }
-    .card-label {
-      font-size: .72rem; font-weight: 800; color: var(--gold-d);
-      text-transform: uppercase; letter-spacing: .08em; margin-bottom: .75rem;
-    }
-    .bio-text {
-      font-size: .95rem; color: var(--muted); line-height: 1.8;
-    }
-
-    /* Stat row */
-    .stat-row {
+    /* Stats row */
+    .cp-stats {
       display: grid; grid-template-columns: 1fr 1fr;
-      gap: 1rem; margin-bottom: 1.25rem;
+      gap: 1rem; margin-bottom: 1.5rem;
     }
-    .stat-box {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.2rem;
+    @media(min-width:576px) { .cp-stats { grid-template-columns: repeat(3, 1fr); } }
+    .cp-stat {
+      background: #fff; border: 1px solid var(--br);
+      border-radius: var(--r); padding: 1.2rem 1rem;
       text-align: center;
+      box-shadow: var(--sh);
     }
-    .stat-val {
-      font-size: 1.5rem; font-weight: 900; color: var(--gold-d);
+    .cp-stat-val {
+      font-size: 1.4rem; font-weight: 900; color: var(--ac2);
+      font-family: 'Montserrat', sans-serif;
     }
-    .stat-lbl {
-      font-size: .78rem; font-weight: 700; color: var(--muted); margin-top: .2rem;
+    .cp-stat-lbl { font-size: .75rem; font-weight: 700; color: var(--tm); margin-top: .2rem; }
+
+    /* Info cards */
+    .cp-card {
+      background: #fff; border: 1px solid var(--br);
+      border-radius: var(--r); padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--sh);
+    }
+    .cp-card-label {
+      font-size: .7rem; font-weight: 800; color: var(--ac2);
+      text-transform: uppercase; letter-spacing: .1em;
+      margin-bottom: .8rem;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .cp-card-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--br);
+    }
+    .cp-bio-text {
+      font-size: .95rem; color: var(--tm); line-height: 1.85;
     }
 
     /* Book button */
-    .book-btn {
+    .cp-book-btn {
       display: flex; align-items: center; justify-content: center; gap: .6rem;
-      width: 100%; padding: 1rem;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--gold-d), #7a6040);
+      width: 100%; padding: 1rem 1.5rem;
+      border-radius: var(--r);
+      background: linear-gradient(135deg, var(--ac), var(--bdk));
       color: #fff; font-size: 1rem; font-weight: 800;
       text-decoration: none; border: none; cursor: pointer;
       transition: transform .2s, box-shadow .2s;
-      box-shadow: 0 4px 20px rgba(184,160,126,.25);
+      box-shadow: 0 4px 20px rgba(89,103,112,.25);
     }
-    .book-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(184,160,126,.35); color: #fff; }
+    .cp-book-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(89,103,112,.35);
+      color: #fff;
+    }
+
+    /* Back breadcrumb */
+    .cp-breadcrumb {
+      background: #fff; border-bottom: 1px solid var(--br);
+      padding: .65rem 1.5rem;
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .82rem; color: var(--tm);
+    }
+    .cp-breadcrumb a { color: var(--tm); text-decoration: none; font-weight: 700; }
+    .cp-breadcrumb a:hover { color: var(--td); }
+    .cp-breadcrumb .sep { opacity: .4; }
+    .cp-breadcrumb .cur { color: var(--td); font-weight: 800; }
+
+    /* Status badge */
+    .cp-status-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .3rem .9rem; border-radius: 50px;
+      font-size: .78rem; font-weight: 800;
+    }
+    .cp-status-badge.available { background:#dcfce7; color:#15803d; }
+    .cp-status-badge.busy      { background:#fef9c3; color:#92400e; }
+
+    /* Contact row */
+    .cp-contact-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .7rem 0;
+      border-bottom: 1px solid var(--br);
+      font-size: .93rem; color: var(--td);
+    }
+    .cp-contact-item:last-child { border-bottom: none; }
+    .cp-contact-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--bsft); display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; color: var(--ac2); flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="nav">
-  <a href="{{ url_for('main.index') }}" class="brand">Z PADEL</a>
-  <a href="{{ url_for('main.index') }}#coaches" class="back-btn">
-    <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i>
-    {% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}
+<!-- Mobile menu (same as main site) -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
+  <a href="{{ url_for('main.index') }}#courts">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
+  <a href="{{ url_for('main.index') }}#coaches">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</a>
+  <a href="{{ url_for('main.index') }}#store">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
+  <a href="{{ url_for('booking.index') }}"
+     style="background:linear-gradient(135deg,var(--ac),var(--bdk));color:#fff;margin-top:10px;border-radius:50px;padding:13px 36px;">
+    <i class="fas fa-calendar-plus"></i> {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
   </a>
+</div>
+
+<!-- Navbar (exact same as main site) -->
+<nav class="navbar-z" id="navbar">
+  <div class="nav-inner">
+    <a href="{{ url_for('main.index') }}" class="nav-brand">
+      <div class="nav-brand-icon">
+        <img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel"/>
+      </div>
+      <span class="nav-brand-name">Z Padel</span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('main.index') }}#courts"   class="nav-link-item">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
+      <a href="{{ url_for('main.index') }}#coaches"  class="nav-link-item">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</a>
+      <a href="{{ url_for('main.index') }}#store"    class="nav-link-item">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
+      <a href="{{ url_for('main.index') }}#contact"  class="nav-link-item">{% if lang == 'en' %}Contact{% else %}تواصل{% endif %}</a>
+    </div>
+    <div class="nav-actions">
+      <a href="{{ url_for('booking.index') }}" class="nav-cta">
+        <i class="fas fa-calendar-plus"></i>
+        <span>{% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}</span>
+      </a>
+      <div class="dropdown">
+        <button class="lang-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border:none;cursor:pointer;">
+          <i class="fas fa-globe"></i>
+          <span>{% if lang == 'en' %}EN{% elif lang == 'ku' %}کو{% else %}عر{% endif %}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item {% if lang=='en' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='en') }}">🇬🇧 English</a></li>
+          <li><a class="dropdown-item {% if lang=='ar' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ar') }}">🇮🇶 العربية</a></li>
+          <li><a class="dropdown-item {% if lang=='ku' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ku') }}">🏔️ کوردی</a></li>
+        </ul>
+      </div>
+      <button class="nav-toggle" id="navToggle" onclick="openMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
 </nav>
 
+<!-- Breadcrumb -->
+<div class="cp-breadcrumb">
+  <a href="{{ url_for('main.index') }}"><i class="fas fa-home" style="font-size:.75rem;"></i></a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('main.index') }}#coaches">{% if lang == 'en' %}Coaches{% else %}المدربون{% endif %}</a>
+  <span class="sep">/</span>
+  <span class="cur">{{ coach.name }}</span>
+</div>
+
 <!-- Hero -->
-<div class="hero">
-  <div class="avatar-wrap">
-    <div class="avatar-ring">
+<div class="cp-hero">
+  <div class="cp-avatar-wrap">
+    <div class="cp-avatar-ring">
       {% if coach.image %}
         <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}">
       {% else %}
         <div class="no-img"><i class="fas fa-user"></i></div>
       {% endif %}
     </div>
-    <div class="status-dot {{ '' if coach.status == 'available' else 'busy' }}"></div>
+    <div class="cp-status-dot {{ '' if coach.status == 'available' else 'busy' }}"></div>
   </div>
 
-  <div class="hero-name">{{ coach.name }}</div>
+  <div class="cp-name">{{ coach.name }}</div>
+
   {% if coach.specialty %}
-  <div class="hero-specialty"><i class="fas fa-medal me-1"></i>{{ coach.specialty }}</div>
+  <div class="cp-specialty"><i class="fas fa-medal me-1"></i>{{ coach.specialty }}</div>
   {% endif %}
 
-  <!-- Social links -->
-  {% set has_social = coach.instagram or coach.facebook or coach.whatsapp or coach.tiktok %}
-  {% if has_social %}
-  <div class="socials">
+  {% if coach.instagram or coach.facebook or coach.whatsapp or coach.tiktok %}
+  <div class="cp-socials">
     {% if coach.instagram %}
     <a href="{{ coach.instagram }}" target="_blank" rel="noopener" class="soc-btn soc-ig" title="Instagram">
       <i class="fab fa-instagram"></i>
@@ -250,94 +285,92 @@
   {% endif %}
 </div>
 
-<!-- Tab strip -->
-<div class="tab-strip">
-  <button class="tab active" onclick="showTab('about', this)">
-    {% if lang == 'en' %}About{% else %}عن المدرب{% endif %}
-  </button>
-  <button class="tab" onclick="showTab('book', this)">
-    {% if lang == 'en' %}Book{% else %}احجز{% endif %}
-  </button>
-</div>
+<!-- Body -->
+<div class="cp-body">
+  <div class="cp-inner">
 
-<!-- Panels -->
-<div class="panels">
-
-  <!-- About panel -->
-  <div class="panel active" id="panel-about">
-
-    <div class="stat-row">
-      <div class="stat-box">
-        <div class="stat-val">{{ '{:,.0f}'.format(coach.price_per_hour) }}</div>
-        <div class="stat-lbl">{% if lang == 'en' %}IQD / hour{% else %}دينار / ساعة{% endif %}</div>
+    <!-- Stats -->
+    <div class="cp-stats">
+      <div class="cp-stat">
+        <div class="cp-stat-val">{{ '{:,.0f}'.format(coach.price_per_hour) }}</div>
+        <div class="cp-stat-lbl">{% if lang == 'en' %}IQD / hour{% else %}دينار / ساعة{% endif %}</div>
       </div>
-      <div class="stat-box">
-        <div class="stat-val" style="font-size:1.1rem;color:{{ '#22c55e' if coach.status == 'available' else '#f59e0b' }};">
+      <div class="cp-stat">
+        <span class="cp-status-badge {{ coach.status }}">
           {% if coach.status == 'available' %}
-            <i class="fas fa-circle" style="font-size:.6rem;vertical-align:middle;"></i>
+            <i class="fas fa-circle" style="font-size:6px;"></i>
             {% if lang == 'en' %}Available{% else %}متاح{% endif %}
           {% else %}
-            <i class="fas fa-clock" style="font-size:.85rem;vertical-align:middle;"></i>
+            <i class="fas fa-clock" style="font-size:.8rem;"></i>
             {% if lang == 'en' %}Busy{% else %}مشغول{% endif %}
           {% endif %}
-        </div>
-        <div class="stat-lbl">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</div>
+        </span>
+        <div class="cp-stat-lbl" style="margin-top:.4rem;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</div>
       </div>
+      {% if coach.specialty %}
+      <div class="cp-stat" style="grid-column: span 2;">
+        <div class="cp-stat-val" style="font-size:1rem;">{{ coach.specialty }}</div>
+        <div class="cp-stat-lbl">{% if lang == 'en' %}Specialty{% else %}التخصص{% endif %}</div>
+      </div>
+      {% endif %}
     </div>
 
+    <!-- Bio -->
     {% if coach.bio %}
-    <div class="info-card">
-      <div class="card-label">{% if lang == 'en' %}About{% else %}نبذة{% endif %}</div>
-      <div class="bio-text">{{ coach.bio }}</div>
+    <div class="cp-card">
+      <div class="cp-card-label"><i class="fas fa-user-tie"></i> {% if lang == 'en' %}About{% else %}نبذة عن المدرب{% endif %}</div>
+      <div class="cp-bio-text">{{ coach.bio }}</div>
     </div>
     {% endif %}
 
-    {% if coach.phone %}
-    <div class="info-card">
-      <div class="card-label">{% if lang == 'en' %}Contact{% else %}التواصل{% endif %}</div>
-      <div style="font-size:.95rem;color:var(--muted);">
-        <i class="fas fa-phone me-2" style="color:var(--gold-d);"></i>{{ coach.phone }}
+    <!-- Contact info -->
+    {% if coach.phone or coach.whatsapp %}
+    <div class="cp-card">
+      <div class="cp-card-label"><i class="fas fa-address-card"></i> {% if lang == 'en' %}Contact{% else %}التواصل{% endif %}</div>
+      {% if coach.phone %}
+      <div class="cp-contact-item">
+        <div class="cp-contact-icon"><i class="fas fa-phone"></i></div>
+        <span>{{ coach.phone }}</span>
       </div>
-    </div>
-    {% endif %}
-
-  </div>
-
-  <!-- Book panel -->
-  <div class="panel" id="panel-book">
-    <div class="info-card" style="text-align:center;padding:2.5rem;">
-      <i class="fas fa-calendar-alt" style="font-size:3rem;color:var(--gold-d);margin-bottom:1rem;display:block;"></i>
-      <div style="font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.5rem;">
-        {% if lang == 'en' %}Book a Session with {{ coach.name }}{% else %}احجز جلسة مع {{ coach.name }}{% endif %}
-      </div>
-      <div style="font-size:.9rem;color:var(--muted);margin-bottom:1.5rem;">
-        {% if lang == 'en' %}{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD per hour{% else %}{{ '{:,.0f}'.format(coach.price_per_hour) }} دينار للساعة{% endif %}
-      </div>
-      <a href="{{ url_for('main.index') }}#booking" class="book-btn">
-        <i class="fas fa-calendar-plus"></i>
-        {% if lang == 'en' %}Go to Booking{% else %}انتقل للحجز{% endif %}
-      </a>
+      {% endif %}
       {% if coach.whatsapp %}
-      <div style="margin-top:1rem;">
+      <div class="cp-contact-item">
+        <div class="cp-contact-icon" style="background:#dcfce7;color:#16a34a;"><i class="fab fa-whatsapp"></i></div>
         <a href="https://wa.me/{{ coach.whatsapp | replace('+','') | replace(' ','') }}" target="_blank"
-           style="color:#25d366;font-size:.88rem;font-weight:700;text-decoration:none;">
-          <i class="fab fa-whatsapp me-1"></i>
-          {% if lang == 'en' %}Or contact via WhatsApp{% else %}أو تواصل عبر واتساب{% endif %}
+           style="color:inherit;text-decoration:none;font-weight:700;">
+          {{ coach.whatsapp }}
         </a>
       </div>
       {% endif %}
     </div>
-  </div>
+    {% endif %}
 
+    <!-- Book CTA -->
+    <div class="cp-card" style="text-align:center; padding: 2rem;">
+      <div style="font-size:1.05rem;font-weight:800;color:var(--td);margin-bottom:.4rem;">
+        {% if lang == 'en' %}Ready to train with {{ coach.name }}?{% else %}مستعد للتدريب مع {{ coach.name }}؟{% endif %}
+      </div>
+      <div style="font-size:.88rem;color:var(--tm);margin-bottom:1.25rem;">
+        {% if lang == 'en' %}{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD per hour{% else %}{{ '{:,.0f}'.format(coach.price_per_hour) }} دينار للساعة{% endif %}
+      </div>
+      <a href="{{ url_for('booking.index') }}" class="cp-book-btn">
+        <i class="fas fa-calendar-plus"></i>
+        {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
+      </a>
+    </div>
+
+  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function showTab(name, btn) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  btn.classList.add('active');
-}
+function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open'); }
+function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
+
+// Navbar scroll effect (same as main site)
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
 </script>
 </body>
 </html>
