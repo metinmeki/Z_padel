@@ -122,70 +122,7 @@
     .soc-wa { background: #25d366; color: #fff; }
     .soc-tk { background: #111; color: #fff; }
 
-    /* Content area */
-    .cp-body {
-      background: var(--owh);
-      min-height: 50vh;
-      padding: 2.5rem 1rem 5rem;
-    }
-    .cp-inner { max-width: 720px; margin: 0 auto; }
-
-    /* Stats row */
-    .cp-stats {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 1rem; margin-bottom: 1.5rem;
-    }
-    @media(min-width:576px) { .cp-stats { grid-template-columns: repeat(3, 1fr); } }
-    .cp-stat {
-      background: #fff; border: 1px solid var(--br);
-      border-radius: var(--r); padding: 1.2rem 1rem;
-      text-align: center;
-      box-shadow: var(--sh);
-    }
-    .cp-stat-val {
-      font-size: 1.4rem; font-weight: 900; color: var(--ac2);
-      font-family: 'Montserrat', sans-serif;
-    }
-    .cp-stat-lbl { font-size: .75rem; font-weight: 700; color: var(--tm); margin-top: .2rem; }
-
-    /* Info cards */
-    .cp-card {
-      background: #fff; border: 1px solid var(--br);
-      border-radius: var(--r); padding: 1.5rem;
-      margin-bottom: 1.25rem;
-      box-shadow: var(--sh);
-    }
-    .cp-card-label {
-      font-size: .7rem; font-weight: 800; color: var(--ac2);
-      text-transform: uppercase; letter-spacing: .1em;
-      margin-bottom: .8rem;
-      display: flex; align-items: center; gap: .4rem;
-    }
-    .cp-card-label::after {
-      content: ''; flex: 1; height: 1px; background: var(--br);
-    }
-    .cp-bio-text {
-      font-size: .95rem; color: var(--tm); line-height: 1.85;
-    }
-
-    /* Book button */
-    .cp-book-btn {
-      display: flex; align-items: center; justify-content: center; gap: .6rem;
-      width: 100%; padding: 1rem 1.5rem;
-      border-radius: var(--r);
-      background: linear-gradient(135deg, var(--ac), var(--bdk));
-      color: #fff; font-size: 1rem; font-weight: 800;
-      text-decoration: none; border: none; cursor: pointer;
-      transition: transform .2s, box-shadow .2s;
-      box-shadow: 0 4px 20px rgba(89,103,112,.25);
-    }
-    .cp-book-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(89,103,112,.35);
-      color: #fff;
-    }
-
-    /* Back breadcrumb */
+    /* Breadcrumb (light) */
     .cp-breadcrumb {
       background: #fff; border-bottom: 1px solid var(--br);
       padding: .65rem 1.5rem;
@@ -197,28 +134,154 @@
     .cp-breadcrumb .sep { opacity: .4; }
     .cp-breadcrumb .cur { color: var(--td); font-weight: 800; }
 
-    /* Status badge */
-    .cp-status-badge {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .3rem .9rem; border-radius: 50px;
-      font-size: .78rem; font-weight: 800;
+    /* Body — two-col layout */
+    .cp-body { background: var(--owh); min-height: 50vh; padding: 2rem 1rem 4rem; }
+    .cp-layout {
+      max-width: 1040px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr;
+      gap: 1.5rem; align-items: start;
     }
-    .cp-status-badge.available { background:#dcfce7; color:#15803d; }
-    .cp-status-badge.busy      { background:#fef9c3; color:#92400e; }
+    @media(min-width: 800px) { .cp-layout { grid-template-columns: 1fr 320px; } }
 
-    /* Contact row */
-    .cp-contact-item {
-      display: flex; align-items: center; gap: .75rem;
-      padding: .7rem 0;
-      border-bottom: 1px solid var(--br);
-      font-size: .93rem; color: var(--td);
+    /* Stat chips */
+    .cp-chips { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.4rem; }
+    .cp-chip {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .45rem 1rem; border-radius: 50px;
+      background: #fff; border: 1.5px solid var(--br);
+      font-size: .84rem; font-weight: 700; color: var(--td);
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
     }
-    .cp-contact-item:last-child { border-bottom: none; }
-    .cp-contact-icon {
-      width: 36px; height: 36px; border-radius: 10px;
+    .cp-chip-ico {
+      width: 24px; height: 24px; border-radius: 50%;
       background: var(--bsft); display: flex; align-items: center; justify-content: center;
-      font-size: .9rem; color: var(--ac2); flex-shrink: 0;
+      font-size: .65rem; color: var(--ac2); flex-shrink: 0;
     }
+    .cp-chip.gold  { border-color: var(--ac); background: linear-gradient(135deg,#fdf8f0,#fff); }
+    .cp-chip.green { border-color: #22c55e; }
+
+    /* Info sections */
+    .cp-section {
+      background: #fff; border: 1px solid var(--br);
+      border-radius: var(--r); padding: 1.4rem;
+      margin-bottom: 1.1rem; box-shadow: var(--sh);
+    }
+    .cp-sec-hdr {
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .68rem; font-weight: 800; color: var(--ac2);
+      text-transform: uppercase; letter-spacing: .12em;
+      padding-bottom: .75rem; margin-bottom: 1rem;
+      border-bottom: 1px solid var(--br);
+    }
+    .cp-sec-ico {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: var(--bsft); display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; color: var(--ac2);
+    }
+    .cp-bio-text { font-size: .94rem; color: var(--tm); line-height: 1.9; }
+
+    /* Contact rows */
+    .cp-crow {
+      display: flex; align-items: center; gap: .7rem;
+      padding: .6rem 0; border-bottom: 1px solid var(--br);
+      font-size: .9rem; color: var(--td);
+    }
+    .cp-crow:last-child { border-bottom: none; }
+    .cp-cico {
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+      background: var(--bsft); display: flex; align-items: center; justify-content: center;
+      font-size: .82rem; color: var(--ac2);
+    }
+
+    /* Social pills */
+    .cp-soc-grid { display: flex; flex-wrap: wrap; gap: .55rem; }
+    .cp-soc-pill {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .45rem 1rem; border-radius: 9px;
+      font-size: .83rem; font-weight: 700; text-decoration: none;
+      transition: transform .18s, box-shadow .18s;
+    }
+    .cp-soc-pill:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+    .soc-ig { background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366); color:#fff; }
+    .soc-fb { background:#1877f2; color:#fff; }
+    .soc-wa { background:#25d366; color:#fff; }
+    .soc-tk { background:#111; color:#fff; }
+
+    /* Sticky booking card */
+    .cp-book-card {
+      background: #fff; border: 1px solid var(--br);
+      border-radius: var(--r); padding: 1.6rem;
+      box-shadow: var(--shm);
+      position: sticky; top: 84px;
+    }
+    .cp-price-block { text-align: center; margin-bottom: 1.4rem; }
+    .cp-price-amount {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.4rem; font-weight: 900; color: var(--ac2);
+      display: block; line-height: 1.1;
+    }
+    .cp-price-unit { font-size: .8rem; font-weight: 700; color: var(--tm); display: block; margin-top: .25rem; }
+    .cp-pkg-list { list-style: none; padding: 0; margin: 0 0 1.4rem; }
+    .cp-pkg-list li {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .52rem 0; font-size: .86rem; color: var(--tm);
+      border-bottom: 1px solid var(--br);
+    }
+    .cp-pkg-list li:last-child { border-bottom: none; }
+    .pkg-n { font-weight: 700; color: var(--td); }
+    .pkg-p { font-weight: 800; color: var(--ac2); }
+    .cp-bk-btn {
+      display: flex; align-items: center; justify-content: center; gap: .55rem;
+      width: 100%; padding: .95rem 1.5rem; border-radius: var(--r);
+      background: linear-gradient(135deg, var(--ac), var(--bdk));
+      color: #fff; font-size: 1rem; font-weight: 800;
+      text-decoration: none; transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(89,103,112,.28);
+    }
+    .cp-bk-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(89,103,112,.38); color: #fff; }
+    .cp-bk-note {
+      text-align: center; font-size: .76rem; color: var(--tm); margin-top: .7rem;
+    }
+
+    /* Other coaches strip */
+    .cp-others {
+      max-width: 1040px; margin: 0 auto 2rem; padding: 0 1rem;
+    }
+    .cp-others-ttl {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .95rem; font-weight: 900; color: var(--td);
+      margin-bottom: .85rem;
+      display: flex; align-items: center; gap: .45rem;
+    }
+    .cp-others-row {
+      display: flex; gap: .9rem; overflow-x: auto; padding-bottom: .4rem;
+      scrollbar-width: none;
+    }
+    .cp-others-row::-webkit-scrollbar { display: none; }
+    .cp-oth-card {
+      flex: 0 0 112px; text-align: center;
+      background: #fff; border: 1.5px solid var(--br);
+      border-radius: var(--r); padding: .9rem .6rem;
+      text-decoration: none; color: var(--td);
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      box-shadow: var(--sh);
+    }
+    .cp-oth-card:hover { transform: translateY(-3px); border-color: var(--ac); box-shadow: 0 6px 20px rgba(0,0,0,.1); color: var(--td); }
+    .cp-oth-card.is-active { border-color: var(--ac); background: linear-gradient(135deg,#fdf8f0,#fff); }
+    .cp-oth-img {
+      width: 60px; height: 60px; border-radius: 50%;
+      object-fit: cover; object-position: center top;
+      margin: 0 auto .55rem; display: block;
+      border: 2px solid var(--br);
+    }
+    .cp-oth-ph {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg,var(--bdk),#2d3f48);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; color: var(--ac);
+      margin: 0 auto .55rem;
+    }
+    .cp-oth-name { font-size: .75rem; font-weight: 800; line-height: 1.3; }
   </style>
 </head>
 <body>
@@ -328,80 +391,161 @@
 
 <!-- Body -->
 <div class="cp-body">
-  <div class="cp-inner">
+  <div class="cp-layout">
 
-    <!-- Stats -->
-    <div class="cp-stats">
-      <div class="cp-stat">
-        <div class="cp-stat-val">{{ '{:,.0f}'.format(coach.price_per_hour) }}</div>
-        <div class="cp-stat-lbl">{% if lang == 'en' %}IQD / hour{% else %}دينار / ساعة{% endif %}</div>
+    <!-- Left: info column -->
+    <div class="cp-left">
+
+      <!-- Stat chips -->
+      <div class="cp-chips">
+        <div class="cp-chip gold">
+          <div class="cp-chip-ico"><i class="fas fa-tag"></i></div>
+          {{ '{:,.0f}'.format(coach.price_per_hour) }} IQD / {% if lang == 'en' %}hr{% else %}ساعة{% endif %}
+        </div>
+        <div class="cp-chip {% if coach.status == 'available' %}green{% endif %}">
+          <div class="cp-chip-ico" style="{% if coach.status == 'available' %}background:#dcfce7;color:#16a34a;{% else %}background:#fef9c3;color:#92400e;{% endif %}">
+            <i class="fas {% if coach.status == 'available' %}fa-circle{% else %}fa-clock{% endif %}" style="font-size:{% if coach.status == 'available' %}5px{% else %}.7rem{% endif %};"></i>
+          </div>
+          {% if coach.status == 'available' %}{% if lang == 'en' %}Available{% else %}متاح{% endif %}{% else %}{% if lang == 'en' %}Busy{% else %}مشغول{% endif %}{% endif %}
+        </div>
+        {% if coach.specialty %}
+        <div class="cp-chip">
+          <div class="cp-chip-ico"><i class="fas fa-medal"></i></div>
+          {{ coach.specialty }}
+        </div>
+        {% endif %}
       </div>
-      <div class="cp-stat">
-        <span class="cp-status-badge {{ coach.status }}">
-          {% if coach.status == 'available' %}
-            <i class="fas fa-circle" style="font-size:6px;"></i>
-            {% if lang == 'en' %}Available{% else %}متاح{% endif %}
-          {% else %}
-            <i class="fas fa-clock" style="font-size:.8rem;"></i>
-            {% if lang == 'en' %}Busy{% else %}مشغول{% endif %}
+
+      <!-- Bio -->
+      {% if coach.bio %}
+      <div class="cp-section">
+        <div class="cp-sec-hdr">
+          <div class="cp-sec-ico"><i class="fas fa-user-tie"></i></div>
+          {% if lang == 'en' %}About{% else %}نبذة عن المدرب{% endif %}
+        </div>
+        <div class="cp-bio-text">{{ coach.bio }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Contact -->
+      {% if coach.phone or coach.whatsapp %}
+      <div class="cp-section">
+        <div class="cp-sec-hdr">
+          <div class="cp-sec-ico"><i class="fas fa-address-card"></i></div>
+          {% if lang == 'en' %}Contact{% else %}التواصل{% endif %}
+        </div>
+        {% if coach.phone %}
+        <div class="cp-crow">
+          <div class="cp-cico"><i class="fas fa-phone"></i></div>
+          <span>{{ coach.phone }}</span>
+        </div>
+        {% endif %}
+        {% if coach.whatsapp %}
+        <div class="cp-crow">
+          <div class="cp-cico" style="background:#dcfce7;color:#16a34a;"><i class="fab fa-whatsapp"></i></div>
+          <a href="https://wa.me/{{ coach.whatsapp|replace('+','')|replace(' ','') }}" target="_blank"
+             style="color:inherit;text-decoration:none;font-weight:700;">{{ coach.whatsapp }}</a>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Socials -->
+      {% if coach.instagram or coach.facebook or coach.tiktok %}
+      <div class="cp-section">
+        <div class="cp-sec-hdr">
+          <div class="cp-sec-ico"><i class="fas fa-share-alt"></i></div>
+          {% if lang == 'en' %}Follow{% else %}تابعنا{% endif %}
+        </div>
+        <div class="cp-soc-grid">
+          {% if coach.instagram %}
+          <a href="{{ coach.instagram }}" target="_blank" rel="noopener" class="cp-soc-pill soc-ig">
+            <i class="fab fa-instagram"></i> Instagram
+          </a>
           {% endif %}
-        </span>
-        <div class="cp-stat-lbl" style="margin-top:.4rem;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</div>
-      </div>
-      {% if coach.specialty %}
-      <div class="cp-stat" style="grid-column: span 2;">
-        <div class="cp-stat-val" style="font-size:1rem;">{{ coach.specialty }}</div>
-        <div class="cp-stat-lbl">{% if lang == 'en' %}Specialty{% else %}التخصص{% endif %}</div>
-      </div>
-      {% endif %}
-    </div>
-
-    <!-- Bio -->
-    {% if coach.bio %}
-    <div class="cp-card">
-      <div class="cp-card-label"><i class="fas fa-user-tie"></i> {% if lang == 'en' %}About{% else %}نبذة عن المدرب{% endif %}</div>
-      <div class="cp-bio-text">{{ coach.bio }}</div>
-    </div>
-    {% endif %}
-
-    <!-- Contact info -->
-    {% if coach.phone or coach.whatsapp %}
-    <div class="cp-card">
-      <div class="cp-card-label"><i class="fas fa-address-card"></i> {% if lang == 'en' %}Contact{% else %}التواصل{% endif %}</div>
-      {% if coach.phone %}
-      <div class="cp-contact-item">
-        <div class="cp-contact-icon"><i class="fas fa-phone"></i></div>
-        <span>{{ coach.phone }}</span>
+          {% if coach.facebook %}
+          <a href="{{ coach.facebook }}" target="_blank" rel="noopener" class="cp-soc-pill soc-fb">
+            <i class="fab fa-facebook-f"></i> Facebook
+          </a>
+          {% endif %}
+          {% if coach.tiktok %}
+          <a href="{{ coach.tiktok }}" target="_blank" rel="noopener" class="cp-soc-pill soc-tk">
+            <i class="fab fa-tiktok"></i> TikTok
+          </a>
+          {% endif %}
+        </div>
       </div>
       {% endif %}
-      {% if coach.whatsapp %}
-      <div class="cp-contact-item">
-        <div class="cp-contact-icon" style="background:#dcfce7;color:#16a34a;"><i class="fab fa-whatsapp"></i></div>
-        <a href="https://wa.me/{{ coach.whatsapp | replace('+','') | replace(' ','') }}" target="_blank"
-           style="color:inherit;text-decoration:none;font-weight:700;">
-          {{ coach.whatsapp }}
+
+    </div><!-- /cp-left -->
+
+    <!-- Right: sticky booking card -->
+    <div class="cp-right">
+      <div class="cp-book-card">
+        <div class="cp-price-block">
+          <span class="cp-price-amount">{{ '{:,.0f}'.format(coach.price_per_hour) }}</span>
+          <span class="cp-price-unit">IQD / {% if lang == 'en' %}hour{% else %}ساعة{% endif %}</span>
+        </div>
+
+        <ul class="cp-pkg-list">
+          <li>
+            <span class="pkg-n">{% if lang == 'en' %}1 Session{% else %}جلسة واحدة{% endif %}</span>
+            <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD</span>
+          </li>
+          <li>
+            <span class="pkg-n">{% if lang == 'en' %}4 Sessions{% else %}4 جلسات{% endif %}</span>
+            <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 3.5) }} IQD</span>
+          </li>
+          <li>
+            <span class="pkg-n">{% if lang == 'en' %}6 Sessions{% else %}6 جلسات{% endif %}</span>
+            <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 5) }} IQD</span>
+          </li>
+          <li>
+            <span class="pkg-n">{% if lang == 'en' %}10 Sessions{% else %}10 جلسات{% endif %}</span>
+            <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 8) }} IQD</span>
+          </li>
+          <li>
+            <span class="pkg-n">{% if lang == 'en' %}12 Sessions{% else %}12 جلسة{% endif %}</span>
+            <span class="pkg-p">{{ '{:,.0f}'.format(coach.price_per_hour * 9.5) }} IQD</span>
+          </li>
+        </ul>
+
+        <a href="{{ url_for('main.coach_book', coach_id=coach.id) }}" class="cp-bk-btn">
+          <i class="fas fa-calendar-plus"></i>
+          {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
         </a>
+        <div class="cp-bk-note">
+          <i class="fas fa-shield-alt" style="color:var(--ac2);"></i>
+          {% if lang == 'en' %}Flexible scheduling · No hidden fees{% else %}جدول مرن · بدون رسوم مخفية{% endif %}
+        </div>
       </div>
+    </div><!-- /cp-right -->
+
+  </div><!-- /cp-layout -->
+</div><!-- /cp-body -->
+
+<!-- Other coaches -->
+{% if all_coaches|length > 1 %}
+<div class="cp-others">
+  <div class="cp-others-ttl">
+    <i class="fas fa-users" style="color:var(--ac2);"></i>
+    {% if lang == 'en' %}Other Coaches{% else %}مدربون آخرون{% endif %}
+  </div>
+  <div class="cp-others-row">
+    {% for c in all_coaches %}
+    <a href="{{ url_for('main.coach_profile', coach_id=c.id) }}"
+       class="cp-oth-card {% if c.id == coach.id %}is-active{% endif %}">
+      {% if c.image %}
+        <img src="{{ url_for('static', filename=c.image) }}" class="cp-oth-img" alt="{{ c.name }}">
+      {% else %}
+        <div class="cp-oth-ph"><i class="fas fa-user"></i></div>
       {% endif %}
-    </div>
-    {% endif %}
-
-    <!-- Book CTA -->
-    <div class="cp-card" style="text-align:center; padding: 2rem;">
-      <div style="font-size:1.05rem;font-weight:800;color:var(--td);margin-bottom:.4rem;">
-        {% if lang == 'en' %}Ready to train with {{ coach.name }}?{% else %}مستعد للتدريب مع {{ coach.name }}؟{% endif %}
-      </div>
-      <div style="font-size:.88rem;color:var(--tm);margin-bottom:1.25rem;">
-        {% if lang == 'en' %}{{ '{:,.0f}'.format(coach.price_per_hour) }} IQD per hour{% else %}{{ '{:,.0f}'.format(coach.price_per_hour) }} دينار للساعة{% endif %}
-      </div>
-      <a href="{{ url_for('main.coach_book', coach_id=coach.id) }}" class="cp-book-btn">
-        <i class="fas fa-calendar-plus"></i>
-        {% if lang == 'en' %}Book a Session{% else %}احجز جلسة{% endif %}
-      </a>
-    </div>
-
+      <div class="cp-oth-name">{{ c.name }}</div>
+    </a>
+    {% endfor %}
   </div>
 </div>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
