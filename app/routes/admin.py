@@ -1331,16 +1331,17 @@ def edit_coach(coach_id):
         file.save(os.path.join(upload_dir, filename))
         c.image = f'uploads/coaches/{filename}'
 
-    c.name          = request.form.get('name', c.name)
-    c.phone         = request.form.get('phone', c.phone)
-    c.specialty     = request.form.get('specialty', c.specialty)
+    c.name           = request.form.get('name', c.name)
+    c.phone          = request.form.get('phone', c.phone)
+    c.specialty      = request.form.get('specialty', c.specialty)
     c.price_per_hour = float(request.form.get('price_per_hour', c.price_per_hour))
-    c.bio           = request.form.get('bio', c.bio)
-    c.is_active     = bool(int(request.form.get('is_active', 1)))
-    c.instagram     = request.form.get('instagram', '') or None
-    c.facebook      = request.form.get('facebook', '') or None
-    c.whatsapp      = request.form.get('whatsapp', '') or None
-    c.tiktok        = request.form.get('tiktok', '') or None
+    c.status         = request.form.get('status', c.status)
+    c.bio            = request.form.get('bio', c.bio)
+    c.is_active      = bool(int(request.form.get('is_active', 1)))
+    c.instagram      = request.form.get('instagram', '') or None
+    c.facebook       = request.form.get('facebook', '') or None
+    c.whatsapp       = request.form.get('whatsapp', '') or None
+    c.tiktok         = request.form.get('tiktok', '') or None
     db.session.commit()
     flash('تم تحديث المدرب.', 'success')
     return redirect(url_for('admin.coaches'))

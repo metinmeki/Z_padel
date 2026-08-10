@@ -122,6 +122,9 @@
 
 </div>
 
+<!-- URL template for JS -->
+<span id="editUrlBase" data-url="{{ url_for('admin.edit_coach', coach_id=0) | replace('/0/', '/COACH_ID/') }}" style="display:none;"></span>
+
 <!-- Edit Coach Modal -->
 <div class="modal fade" id="editCoachModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -201,7 +204,8 @@
 
 <script>
 function openEditModal(id, name, price, status, phone, specialty, bio, instagram, facebook, whatsapp, tiktok, isActive) {
-  document.getElementById('editCoachForm').action = '/admin/coaches/' + id + '/edit';
+  var base = document.getElementById('editUrlBase').dataset.url;
+  document.getElementById('editCoachForm').action = base.replace('COACH_ID', id);
   document.getElementById('edit_name').value      = name;
   document.getElementById('edit_price').value     = price;
   document.getElementById('edit_status').value    = status;
