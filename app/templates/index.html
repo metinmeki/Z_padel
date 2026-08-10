@@ -367,29 +367,47 @@
 <!-- ═══════════ SPONSORS ═══════════ -->
 {% if sponsors %}
 <style>
-@keyframes sponsors-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.sponsors-section{background:#fff;border-top:1px solid #E4DDD3;border-bottom:1px solid #E4DDD3;overflow:hidden}
-.sponsors-inner{display:flex;align-items:stretch;height:72px}
-.sponsors-title{text-align:center;padding:14px 0 4px;font-size:.62rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#596770}
-.sponsors-title i{color:#C9B48E;margin-right:6px}
-.sponsor-track-wrap{flex:1;overflow:hidden;height:72px;display:flex;align-items:center;-webkit-mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 60px,black calc(100% - 60px),transparent 100%)}
-.sponsor-track{display:flex;flex-wrap:nowrap;align-items:center;animation:sponsors-scroll 20s linear infinite;will-change:transform}
-.sponsor-track:hover{animation-play-state:paused}
-.sponsor-logo{flex:0 0 auto;padding:0 16px;display:flex;align-items:center;justify-content:center;height:72px;text-decoration:none}
-.sponsor-logo img{height:42px;width:auto;max-width:130px;object-fit:contain;display:block;background:#fff;border-radius:10px;padding:7px 14px;border:1px solid #E4DDD3;box-shadow:0 1px 8px rgba(0,0,0,.10);transition:box-shadow .3s,transform .3s}
-.sponsor-logo:hover img{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:translateY(-2px)}
-.sponsor-logo-name{font-size:.9rem;font-weight:800;color:#2C3539;opacity:.5;white-space:nowrap;transition:opacity .3s}
-.sponsor-logo:hover .sponsor-logo-name{opacity:1}
+@keyframes sponsors-scroll { from { transform:translateX(0) } to { transform:translateX(-50%) } }
+.sponsors-section { background:#fff; border-top:1px solid #E4DDD3; border-bottom:1px solid #E4DDD3; padding:40px 0 36px; }
+.sponsors-heading { text-align:center; margin-bottom:32px; }
+.sponsors-track-wrap {
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,black 80px,black calc(100% - 80px),transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0,black 80px,black calc(100% - 80px),transparent 100%);
+}
+.sponsors-track {
+  display:flex; flex-wrap:nowrap; align-items:center; gap:24px;
+  animation:sponsors-scroll 22s linear infinite; will-change:transform;
+}
+.sponsors-track:hover { animation-play-state:paused; }
+.sponsor-card {
+  flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; padding:16px 24px; background:#fff; border:1.5px solid #E4DDD3;
+  border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.06);
+  text-decoration:none; min-width:140px; transition:box-shadow .25s, transform .25s;
+}
+.sponsor-card:hover { box-shadow:0 6px 22px rgba(0,0,0,.13); transform:translateY(-3px); }
+.sponsor-card img { height:52px; width:auto; max-width:120px; object-fit:contain; display:block; }
+.sponsor-card-name { font-size:.82rem; font-weight:800; color:#596770; text-align:center; white-space:nowrap; }
 </style>
 <div class="sponsors-section" id="sponsors">
-  <div class="sponsors-title">
-    <i class="fas fa-handshake"></i>{% if lang == 'en' %}Our Partners{% elif lang == 'ku' %}هاوکارەکانمان{% else %}رعاتنا{% endif %}
+  <div class="sponsors-heading">
+    <span class="sec-eye"><i class="fas fa-handshake"></i> {% if lang == 'en' %}Partners{% elif lang == 'ku' %}هاوکارەکان{% else %}رعاتنا{% endif %}</span>
+    <h2 class="sec-ttl" style="text-align:center;margin-top:8px;">
+      {% if lang == 'en' %}Our <span>Partners</span>{% elif lang == 'ku' %}هاوکارەکانمان{% else %}شركاؤنا <span>الرسميون</span>{% endif %}
+    </h2>
   </div>
-  <div class="sponsors-inner">
-    <div class="sponsor-track-wrap" style="flex:1">
-      <div class="sponsor-track" id="sponsorTrack">
-        {% for s in sponsors %}{% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-logo">{% else %}<div class="sponsor-logo">{% endif %}{% if s.logo %}<img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="sponsor-logo-name" style="display:none">{{ s.name }}</span>{% else %}<span class="sponsor-logo-name">{{ s.name }}</span>{% endif %}{% if s.website %}</a>{% else %}</div>{% endif %}{% endfor %}
-      </div>
+  <div class="sponsors-track-wrap">
+    <div class="sponsors-track" id="sponsorTrack">
+      {% for s in sponsors %}
+      {% set lu = url_for('static', filename='images/uploads/' ~ s.logo) if s.logo else '' %}
+      {% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener" class="sponsor-card">{% else %}<div class="sponsor-card">{% endif %}
+        {% if s.logo %}
+          <img src="{{ lu }}" alt="{{ s.name }}" onerror="this.style.display='none'">
+        {% endif %}
+        <span class="sponsor-card-name">{{ s.name }}</span>
+      {% if s.website %}</a>{% else %}</div>{% endif %}
+      {% endfor %}
     </div>
   </div>
 </div>
@@ -399,13 +417,9 @@
   if (!track) return;
   var orig = track.innerHTML;
   var copies = 1;
-  while (track.scrollWidth < window.innerWidth * 3) {
-    track.innerHTML += orig;
-    copies++;
-  }
+  while (track.scrollWidth < window.innerWidth * 3) { track.innerHTML += orig; copies++; }
   if (copies % 2 !== 0) track.innerHTML += orig;
-  var baseDur = 8;
-  track.style.animationDuration = (baseDur * (copies / 2)) + 's';
+  track.style.animationDuration = (8 * (copies / 2)) + 's';
 })();
 </script>
 {% endif %}
