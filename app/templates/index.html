@@ -510,64 +510,6 @@
 </script>
 {% endif %}
 
-<!-- ═══════════ FEATURES ═══════════ -->
-<section class="section section-alt" id="features">
-  <div class="container-z">
-    <div class="features-layout">
-      <div class="features-left reveal">
-        <span class="sec-eye" style="color:var(--bdk);font-weight:bold;">
-          <i class="fas fa-star"></i> {% if lang == 'en' %}Why Z Padel?{% else %}لماذا Z Padel؟{% endif %}
-        </span>
-        <h2 class="sec-ttl">
-          {% if lang == 'en' %}An <span>Exceptional</span> Padel Experience in Duhok{% else %}تجربة باديل<br/><span>استثنائية في دهوك</span>{% endif %}
-        </h2>
-        <p class="sec-sub">
-          {% if lang == 'en' %}Elevate your game with world-class facilities and services designed for your comfort.{% else %}ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.{% endif %}
-        </p>
-        <div style="margin-top:24px;">
-          <a href="{{ url_for('booking.index') }}" class="btn-blue">
-            <i class="fas fa-calendar-plus"></i>
-            {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
-          </a>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;">
-        {% if lang == 'en' %}
-        {% set features = [
-          ('fa-calendar-check','Easy Booking','Book your court in minutes with no pre-registration.'),
-          ('fa-person-running','Pro Coaches','A team of coaches to develop your skills.'),
-          ('fa-wind','Comfortable Environment','Modern A/C and professional LED lighting.'),
-          ('fa-clock','Open 24/7','Open around the clock, every day of the week.'),
-          ('fa-bag-shopping','Full Store','Original padel gear for all your needs.'),
-          ('fa-location-dot','Prime Location','In the heart of Duhok with parking available.'),
-          ('fa-shield-halved','International Courts','Doubles courts built to the highest global standards.')
-        ] %}
-        {% else %}
-        {% set features = [
-          ('fa-calendar-check','حجز سهل','احجز ملعبك في دقائق بدون تسجيل مسبق.'),
-          ('fa-person-running','مدربون محترفون','فريق من المدربين لتطوير مهاراتك.'),
-          ('fa-wind','بيئة مريحة','تكييف حديث وإضاءة LED احترافية.'),
-          ('fa-clock','مفتوح 24 ساعة','مفتوح على مدار الساعة، طوال أيام الأسبوع.'),
-          ('fa-bag-shopping','متجر متكامل','معدات باديل أصلية لكل احتياجاتك.'),
-          ('fa-location-dot','موقع استراتيجي','في قلب دهوك مع توفر مواقف سيارات.'),
-          ('fa-shield-halved','ملاعب دولية','ملاعب مزدوجة بأعلى المعايير العالمية.')
-        ] %}
-        {% endif %}
-        {% for icon, title, desc in features %}
-        <div class="feat-item reveal">
-          <div class="fi-icon"><i class="fas {{ icon }}"></i></div>
-          <div>
-            <div class="fi-title">{{ title }}</div>
-            <div class="fi-desc">{{ desc }}</div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ═══════════ COACHES ═══════════ -->
 <section class="section coaches-section" id="coaches">
   <div class="container-z">
@@ -801,6 +743,64 @@
         <i class="fas fa-location-arrow"></i>
         {% if lang == 'en' %}Get Directions{% elif lang == 'ku' %}ئامرازی ئاڕاستەکردن{% else %}احصل على الاتجاهات{% endif %}
       </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURES ═══════════ -->
+<section class="section section-alt" id="features">
+  <div class="container-z">
+    <div class="features-layout">
+      <div class="features-left reveal">
+        <span class="sec-eye" style="color:var(--bdk);font-weight:bold;">
+          <i class="fas fa-star"></i> {% if lang == 'en' %}Why Z Padel?{% else %}لماذا Z Padel؟{% endif %}
+        </span>
+        <h2 class="sec-ttl">
+          {% if lang == 'en' %}An <span>Exceptional</span> Padel Experience in Duhok{% else %}تجربة باديل<br/><span>استثنائية في دهوك</span>{% endif %}
+        </h2>
+        <p class="sec-sub">
+          {% if lang == 'en' %}Elevate your game with world-class facilities and services designed for your comfort.{% else %}ارتقِ بمستواك مع مرافق عالمية المستوى وخدمات مصممة لراحتك التامة.{% endif %}
+        </p>
+        <div style="margin-top:24px;">
+          <a href="{{ url_for('booking.index') }}" class="btn-blue">
+            <i class="fas fa-calendar-plus"></i>
+            {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
+          </a>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;">
+        {% if lang == 'en' %}
+        {% set features = [
+          ('fa-calendar-check','Easy Booking','Book your court in minutes with no pre-registration.'),
+          ('fa-person-running','Pro Coaches','A team of coaches to develop your skills.'),
+          ('fa-wind','Comfortable Environment','Modern A/C and professional LED lighting.'),
+          ('fa-clock','Open 24/7','Open around the clock, every day of the week.'),
+          ('fa-bag-shopping','Full Store','Original padel gear for all your needs.'),
+          ('fa-location-dot','Prime Location','In the heart of Duhok with parking available.'),
+          ('fa-shield-halved','International Courts','Doubles courts built to the highest global standards.')
+        ] %}
+        {% else %}
+        {% set features = [
+          ('fa-calendar-check','حجز سهل','احجز ملعبك في دقائق بدون تسجيل مسبق.'),
+          ('fa-person-running','مدربون محترفون','فريق من المدربين لتطوير مهاراتك.'),
+          ('fa-wind','بيئة مريحة','تكييف حديث وإضاءة LED احترافية.'),
+          ('fa-clock','مفتوح 24 ساعة','مفتوح على مدار الساعة، طوال أيام الأسبوع.'),
+          ('fa-bag-shopping','متجر متكامل','معدات باديل أصلية لكل احتياجاتك.'),
+          ('fa-location-dot','موقع استراتيجي','في قلب دهوك مع توفر مواقف سيارات.'),
+          ('fa-shield-halved','ملاعب دولية','ملاعب مزدوجة بأعلى المعايير العالمية.')
+        ] %}
+        {% endif %}
+        {% for icon, title, desc in features %}
+        <div class="feat-item reveal">
+          <div class="fi-icon"><i class="fas {{ icon }}"></i></div>
+          <div>
+            <div class="fi-title">{{ title }}</div>
+            <div class="fi-desc">{{ desc }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
   </div>
 </section>
