@@ -77,13 +77,13 @@
     <div class="invoice-items" id="invoiceItems">
       {% if session.items %}
         {% for item in session.items %}
-        <div class="invoice-item-row" id="item-row-{{ item.id }}">
+        <div class="invoice-item-row" id="item-row-{{ item.id }}" data-product-id="{{ item.product_id }}">
           <div>
             <div class="invoice-item-name">{{ item.product_name }}</div>
-            <div class="invoice-item-sub">{{ '{:,.0f}'.format(item.price) }} × {{ item.quantity }}</div>
+            <div class="invoice-item-sub" id="item-sub-{{ item.id }}">{{ '{:,.0f}'.format(item.price) }} × {{ item.quantity }}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem;">
-            <span class="invoice-item-price">{{ '{:,.0f}'.format(item.subtotal) }}</span>
+            <span class="invoice-item-price" id="item-price-{{ item.id }}">{{ '{:,.0f}'.format(item.subtotal) }}</span>
             {% if session.status in ('active', 'pending_payment') %}
             <span class="invoice-item-remove" onclick="removeItem({{ item.id }})"><i class="fas fa-times"></i></span>
             {% endif %}
@@ -138,8 +138,8 @@
         <i class="fas fa-arrow-right me-2"></i>{% if lang == 'en' %}Move to...{% else %}انتقل إلى...{% endif %}
       </button>
       {% endif %}
-      <button class="btn btn-outline-warning" onclick="freeCourt()" style="border-color:#f59e0b;color:#92400e;background:#fffbeb;">
-        <i class="fas fa-door-open me-2"></i>{% if lang == 'en' %}Free Court (Pay Later){% else %}تحرير الملعب — دفع لاحقاً{% endif %}
+      <button class="btn btn-warning" onclick="freeCourt()">
+        <i class="fas fa-box-archive me-2"></i>{% if lang == 'en' %}Move to Archive{% elif lang == 'ku' %}بیگەڕێنە ئەرشیف{% else %}نقل إلى الأرشيف{% endif %}
       </button>
       <a href="{{ url_for('pos.courts') }}" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back{% else %}رجوع{% endif %}
@@ -223,7 +223,7 @@
     <div class="product-grid" id="prodGrid">
       {% for p in products %}
       <div class="product-item" data-name="{{ p.name|lower }}" data-id="{{ p.id }}" data-cat="{{ p.category_id or '' }}">
-        <div class="product-card {% if p.stock == 0 %}opacity-50{% endif %}"
+        <div class="product-card {% if p.stock == 0 %}opacity-50{% endif %}" data-pid="{{ p.id }}"
              onclick='{% if p.stock != 0 %}addItem({{ p.id }}){% endif %}'>
           <div class="product-img-wrap">
             {% if p.image %}
@@ -349,16 +349,33 @@ function tickTimer() {
 setInterval(() => { updateClock(); tickTimer(); }, 1000);
 updateClock(); tickTimer();
 
+// ── Click queue: batch rapid taps into one request ──
+const _clickQueue = {};
 function addItem(productId) {
+  if (!_clickQueue[productId]) _clickQueue[productId] = { count: 0, timer: null };
+  _clickQueue[productId].count++;
+  // Flash the card immediately so user gets feedback
+  const card = document.querySelector(`.product-card[data-pid="${productId}"]`);
+  if (card) { card.classList.add('flash'); setTimeout(() => card.classList.remove('flash'), 400); }
+  clearTimeout(_clickQueue[productId].timer);
+  _clickQueue[productId].timer = setTimeout(() => {
+    const qty = _clickQueue[productId].count;
+    delete _clickQueue[productId];
+    _sendAddItem(productId, qty);
+  }, 350);
+}
+
+function _sendAddItem(productId, qty) {
   fetch(`/pos/courts/session/${sessionId}/add-item`, {
     method: 'POST',
     headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
-    body: JSON.stringify({ product_id: productId, quantity: 1 })
+    body: JSON.stringify({ product_id: productId, quantity: qty })
   })
   .then(r => r.json())
   .then(d => {
-    if (d.success) location.reload();
-    else alert(d.message || (isEn?'Error':'خطأ'));
+    if (!d.success) { alert(d.message || (isEn?'Error':'خطأ')); return; }
+    _updateInvoiceItem(d.item);
+    _updateTotals(d.items_total, d.grand_total);
   })
   .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
 }
@@ -369,8 +386,50 @@ function removeItem(itemId) {
     headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken }
   })
   .then(r => r.json())
-  .then(d => { if (d.success) location.reload(); else alert(d.message || (isEn?'Error':'خطأ')); })
+  .then(d => {
+    if (!d.success) { alert(d.message || (isEn?'Error':'خطأ')); return; }
+    const row = document.getElementById(`item-row-${itemId}`);
+    if (row) row.remove();
+    if (!document.querySelector('#invoiceItems .invoice-item-row')) {
+      document.getElementById('invoiceItems').innerHTML =
+        `<div class="invoice-empty" id="invoiceEmpty"><i class="fas fa-basket-shopping"></i><p style="margin:0;font-size:.82rem;">${isEn?'No products yet':'لا توجد منتجات بعد'}</p></div>`;
+    }
+    _updateTotals(d.items_total, d.grand_total);
+  })
   .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+
+function _updateInvoiceItem(item) {
+  const existing = document.querySelector(`#invoiceItems [data-product-id="${item.product_id}"]`);
+  const emptyEl  = document.getElementById('invoiceEmpty');
+  if (emptyEl) emptyEl.remove();
+  if (existing) {
+    existing.id = `item-row-${item.id}`;
+    const sub = existing.querySelector('.invoice-item-sub') || document.getElementById(`item-sub-${item.id}`);
+    const pr  = existing.querySelector('.invoice-item-price') || document.getElementById(`item-price-${item.id}`);
+    if (sub) sub.textContent = fmt(item.price) + ' × ' + item.quantity;
+    if (pr)  pr.textContent  = fmt(item.subtotal);
+  } else {
+    const canRemove = true;
+    const html = `<div class="invoice-item-row" id="item-row-${item.id}" data-product-id="${item.product_id}">
+      <div>
+        <div class="invoice-item-name">${item.product_name}</div>
+        <div class="invoice-item-sub" id="item-sub-${item.id}">${fmt(item.price)} × ${item.quantity}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <span class="invoice-item-price" id="item-price-${item.id}">${fmt(item.subtotal)}</span>
+        <span class="invoice-item-remove" onclick="removeItem(${item.id})"><i class="fas fa-times"></i></span>
+      </div>
+    </div>`;
+    document.getElementById('invoiceItems').insertAdjacentHTML('beforeend', html);
+  }
+}
+
+function _updateTotals(itemsTotal, grandTotal) {
+  const si = document.getElementById('summaryItems');
+  const gt = document.getElementById('grandTotalDisplay');
+  if (si) si.textContent = fmt(itemsTotal) + ' IQD';
+  if (gt) gt.textContent = fmt(grandTotal)  + ' IQD';
 }
 
 function endPlayTime() {

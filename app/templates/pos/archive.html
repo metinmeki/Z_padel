@@ -1,0 +1,318 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}{% if lang == 'en' %}Archive{% elif lang == 'ku' %}ئەرشیف{% else %}الأرشيف{% endif %} — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+<style>
+  .archive-empty { text-align:center; padding:4rem 1rem; color:var(--text-muted); }
+  .archive-empty i { font-size:3rem; opacity:.2; display:block; margin-bottom:.8rem; }
+
+  .bill-card {
+    background:var(--bg-surface); border:1.5px solid var(--border); border-radius:12px;
+    padding:.85rem 1.1rem; display:flex; align-items:center; gap:.9rem; flex-wrap:wrap;
+    transition:border-color .2s, box-shadow .2s; cursor:pointer;
+  }
+  .bill-card:hover { border-color:var(--primary); box-shadow:0 4px 16px var(--primary-glow); }
+  .bill-card.selected { border-color:var(--primary); background:var(--primary-subtle); }
+
+  .bill-check { width:20px; height:20px; accent-color:var(--primary); cursor:pointer; flex-shrink:0; }
+
+  .bill-icon {
+    width:40px; height:40px; border-radius:10px; display:flex; align-items:center;
+    justify-content:center; font-size:1rem; flex-shrink:0;
+  }
+  .bill-icon.court    { background:#e0f2fe; color:#0284c7; }
+  .bill-icon.activity { background:#fef9c3; color:#b45309; }
+
+  .bill-info { flex:1; min-width:0; }
+  .bill-name { font-weight:700; font-size:.93rem; color:var(--text-primary); }
+  .bill-meta { font-size:.76rem; color:var(--text-muted); margin-top:.1rem; }
+  .bill-total { font-size:1.05rem; font-weight:800; color:var(--primary); white-space:nowrap; }
+
+  .bill-open-btn {
+    background:var(--bg-base); color:var(--text-secondary); border:1.5px solid var(--border);
+    border-radius:8px; padding:.38rem .85rem; font-weight:700; font-size:.82rem;
+    text-decoration:none; display:inline-flex; align-items:center; gap:.35rem;
+    transition:all .15s; white-space:nowrap;
+  }
+  .bill-open-btn:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-subtle); }
+
+  .section-title {
+    font-size:.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;
+    letter-spacing:.07em; margin-bottom:.5rem; padding-bottom:.35rem; border-bottom:1px solid var(--border);
+  }
+
+  /* Pay panel */
+  .pay-panel {
+    background:var(--bg-surface); border:2px solid var(--primary); border-radius:14px;
+    padding:1.1rem 1.3rem; position:sticky; top:76px;
+  }
+  .pay-panel-title { font-weight:800; font-size:.95rem; color:var(--text-primary); margin-bottom:.9rem; display:flex; align-items:center; gap:.5rem; }
+  .pay-total-row { display:flex; justify-content:space-between; align-items:center; padding:.5rem 0; border-top:1px dashed var(--border); margin-top:.4rem; font-weight:900; }
+  .pay-after-row { display:none; justify-content:space-between; font-weight:900; color:var(--success); font-size:.9rem; padding:.3rem 0; }
+  .pay-actions { display:flex; gap:.5rem; margin-top:.85rem; flex-wrap:wrap; }
+  .pay-actions .btn { flex:1; min-width:110px; font-weight:800; font-size:.87rem; }
+
+  .select-all-row { display:flex; align-items:center; gap:.5rem; font-size:.82rem; font-weight:700; color:var(--text-secondary); margin-bottom:.6rem; cursor:pointer; user-select:none; }
+  .select-all-row input { width:17px; height:17px; accent-color:var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if not court_bills and not activity_bills %}
+<div class="pos-card">
+  <div class="archive-empty">
+    <i class="fas fa-box-archive"></i>
+    <p style="font-size:1rem;font-weight:700;margin-bottom:.3rem;">
+      {% if lang == 'en' %}No open bills{% elif lang == 'ku' %}هیچ فاتورەیەکی کراو نییە{% else %}لا توجد فواتير مفتوحة{% endif %}
+    </p>
+    <p style="font-size:.84rem;">
+      {% if lang == 'en' %}All sessions are paid.{% elif lang == 'ku' %}هەموو دانیشتنەکان دەستکراون.{% else %}جميع الجلسات مدفوعة.{% endif %}
+    </p>
+  </div>
+</div>
+
+{% else %}
+
+<div class="row g-3">
+
+  <!-- ══ Left: bill list ══ -->
+  <div class="col-lg-8">
+
+    <div class="select-all-row" onclick="toggleSelectAll()">
+      <input type="checkbox" id="selectAllChk">
+      <span>{% if lang == 'en' %}Select all{% elif lang == 'ku' %}هەموو هەڵبژێرە{% else %}تحديد الكل{% endif %}</span>
+    </div>
+
+    {% if court_bills %}
+    <div class="section-title"><i class="fas fa-futbol me-1"></i>{% if lang == 'en' %}Courts{% elif lang == 'ku' %}زەوییەکان{% else %}الملاعب{% endif %}</div>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;">
+      {% for s in court_bills %}
+      <div class="bill-card" onclick="toggleCard(this)" data-type="court" data-id="{{ s.id }}" data-total="{{ s.grand_total }}">
+        <input type="checkbox" class="bill-check" onclick="event.stopPropagation(); cardCheckChanged(this.closest('.bill-card'))">
+        <div class="bill-icon court"><i class="fas fa-futbol"></i></div>
+        <div class="bill-info">
+          <div class="bill-name">{{ s.court.name }}{% if s.customer_name %} — {{ s.customer_name }}{% endif %}</div>
+          <div class="bill-meta">
+            {% if s.end_time %}<i class="fas fa-clock me-1"></i>{{ s.end_time.strftime('%H:%M') }} &nbsp;·&nbsp;{% endif %}
+            {{ s.items|length }} {% if lang == 'en' %}item(s){% else %}عنصر{% endif %}
+          </div>
+        </div>
+        <div class="bill-total">{{ '{:,.0f}'.format(s.grand_total) }} IQD</div>
+        <a href="{{ url_for('pos.session_detail', session_id=s.id) }}" class="bill-open-btn" onclick="event.stopPropagation()">
+          <i class="fas fa-pen"></i>{% if lang == 'en' %}Edit{% elif lang == 'ku' %}دەستکاریکردن{% else %}تعديل{% endif %}
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if activity_bills %}
+    <div class="section-title"><i class="fas fa-gamepad me-1"></i>{% if lang == 'en' %}Activities{% elif lang == 'ku' %}چالاکیەکان{% else %}الأنشطة{% endif %}</div>
+    <div style="display:flex;flex-direction:column;gap:.5rem;">
+      {% for s in activity_bills %}
+      <div class="bill-card" onclick="toggleCard(this)" data-type="activity" data-id="{{ s.id }}" data-total="{{ s.grand_total }}">
+        <input type="checkbox" class="bill-check" onclick="event.stopPropagation(); cardCheckChanged(this.closest('.bill-card'))">
+        <div class="bill-icon activity"><i class="fas fa-table-tennis-paddle-ball"></i></div>
+        <div class="bill-info">
+          <div class="bill-name">{{ s.table.name }}{% if s.customer_name %} — {{ s.customer_name }}{% endif %}</div>
+          <div class="bill-meta">
+            {% if s.end_time %}<i class="fas fa-clock me-1"></i>{{ s.end_time.strftime('%H:%M') }} &nbsp;·&nbsp;{% endif %}
+            {{ s.items|length }} {% if lang == 'en' %}item(s){% else %}عنصر{% endif %}
+          </div>
+        </div>
+        <div class="bill-total">{{ '{:,.0f}'.format(s.grand_total) }} IQD</div>
+        <a href="{{ url_for('pos.activity_session', session_id=s.id) }}" class="bill-open-btn" onclick="event.stopPropagation()">
+          <i class="fas fa-pen"></i>{% if lang == 'en' %}Edit{% elif lang == 'ku' %}دەستکاریکردن{% else %}تعديل{% endif %}
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- ══ Right: pay panel ══ -->
+  <div class="col-lg-4">
+    <div class="pay-panel">
+      <div class="pay-panel-title">
+        <i class="fas fa-receipt" style="color:var(--primary);"></i>
+        {% if lang == 'en' %}Combined Receipt{% elif lang == 'ku' %}پسووڵەی یەکگرتوو{% else %}فاتورة مجمّعة{% endif %}
+      </div>
+
+      <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.6rem;">
+        {% if lang == 'en' %}Select sessions below to combine into one receipt.
+        {% elif lang == 'ku' %}دانیشتنەکان هەڵبژێرە بۆ یەک پسووڵە.
+        {% else %}حدد الجلسات أدناه لدمجها في فاتورة واحدة.{% endif %}
+      </div>
+
+      <div style="font-size:.8rem;color:var(--text-secondary);margin-bottom:.2rem;">
+        <span id="selectedCount">0</span>
+        {% if lang == 'en' %}session(s) selected{% elif lang == 'ku' %}دانیشتن هەڵبژێردراو{% else %}جلسة محددة{% endif %}
+      </div>
+
+      <div class="pay-total-row">
+        <span style="font-size:.9rem;color:var(--text-secondary);">{% if lang == 'en' %}Total{% elif lang == 'ku' %}کۆ{% else %}المجموع{% endif %}</span>
+        <span id="selectedTotal" style="font-size:1.2rem;color:var(--primary);">0 IQD</span>
+      </div>
+
+      <div style="margin:.6rem 0 .3rem;">
+        <label style="font-size:.78rem;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:.25rem;">
+          <i class="fas fa-tag me-1"></i>{% if lang == 'en' %}Discount (IQD){% elif lang == 'ku' %}داشکاندن{% else %}خصم{% endif %}
+        </label>
+        <input type="number" id="discountInput" class="form-control" min="0" placeholder="0"
+               oninput="recalc()" style="text-align:center;font-weight:800;">
+      </div>
+
+      <div class="pay-after-row" id="afterDiscountRow">
+        <span>{% if lang == 'en' %}After discount:{% elif lang == 'ku' %}دوای داشکاندن:{% else %}بعد الخصم:{% endif %}</span>
+        <span id="afterDiscountVal">0 IQD</span>
+      </div>
+
+      <div class="pay-actions">
+        <button class="btn btn-success" onclick="paySelected('cash')">
+          <i class="fas fa-money-bill-wave me-1"></i>{% if lang == 'en' %}Cash{% elif lang == 'ku' %}نەقد{% else %}نقدي{% endif %}
+        </button>
+        <button class="btn btn-danger" onclick="openDebtModal()">
+          <i class="fas fa-user-clock me-1"></i>{% if lang == 'en' %}Debt{% elif lang == 'ku' %}قەرز{% else %}دين{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Debt modal -->
+<div class="modal fade" id="debtModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#EF4444,#C01E1E);border-bottom:none;">
+        <h5 class="modal-title" style="color:#fff;">{% if lang == 'en' %}Record Debt{% elif lang == 'ku' %}تۆمارکردنی قەرز{% else %}تسجيل دين{% endif %}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">{% if lang == 'en' %}Person's Name{% elif lang == 'ku' %}ناوی کەس{% else %}اسم الشخص{% endif %}</label>
+        <input type="text" id="debtName" class="form-control">
+        <div id="debtError" style="display:none;color:var(--danger);font-size:.82rem;margin-top:.4rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+        <button class="btn btn-danger" onclick="submitDebt()">{% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+const isEn = '{{ lang }}' === 'en';
+
+function toggleCard(card) {
+  const chk = card.querySelector('.bill-check');
+  chk.checked = !chk.checked;
+  card.classList.toggle('selected', chk.checked);
+  recalc();
+}
+
+function cardCheckChanged(card) {
+  const chk = card.querySelector('.bill-check');
+  card.classList.toggle('selected', chk.checked);
+  recalc();
+}
+
+function toggleSelectAll() {
+  const masterChk = document.getElementById('selectAllChk');
+  masterChk.checked = !masterChk.checked;
+  document.querySelectorAll('.bill-card').forEach(card => {
+    const chk = card.querySelector('.bill-check');
+    chk.checked = masterChk.checked;
+    card.classList.toggle('selected', masterChk.checked);
+  });
+  recalc();
+}
+
+function recalc() {
+  let total = 0, count = 0;
+  document.querySelectorAll('.bill-card').forEach(card => {
+    if (card.querySelector('.bill-check').checked) {
+      total += parseFloat(card.dataset.total) || 0;
+      count++;
+    }
+  });
+  document.getElementById('selectedCount').textContent = count;
+  document.getElementById('selectedTotal').textContent = total.toLocaleString('en-IQ') + ' IQD';
+
+  const discount = Math.max(0, parseFloat(document.getElementById('discountInput').value) || 0);
+  const afterRow = document.getElementById('afterDiscountRow');
+  if (discount > 0 && count > 0) {
+    afterRow.style.display = 'flex';
+    document.getElementById('afterDiscountVal').textContent = Math.max(0, total - discount).toLocaleString('en-IQ') + ' IQD';
+  } else {
+    afterRow.style.display = 'none';
+  }
+}
+
+function getSelected() {
+  const court_ids = [], activity_ids = [];
+  document.querySelectorAll('.bill-card').forEach(card => {
+    if (card.querySelector('.bill-check').checked) {
+      if (card.dataset.type === 'court') court_ids.push(parseInt(card.dataset.id));
+      else activity_ids.push(parseInt(card.dataset.id));
+    }
+  });
+  return { court_ids, activity_ids };
+}
+
+function paySelected(method) {
+  const { court_ids, activity_ids } = getSelected();
+  if (!court_ids.length && !activity_ids.length) {
+    alert(isEn ? 'Select at least one session.' : 'حدد جلسة واحدة على الأقل.');
+    return;
+  }
+  if (!confirm(isEn ? 'Process payment?' : 'تأكيد الدفع؟')) return;
+  doCheckout({ court_ids, activity_ids, payment_method: method,
+               discount: Math.max(0, parseFloat(document.getElementById('discountInput').value) || 0) });
+}
+
+function openDebtModal() {
+  const { court_ids, activity_ids } = getSelected();
+  if (!court_ids.length && !activity_ids.length) {
+    alert(isEn ? 'Select at least one session.' : 'حدد جلسة واحدة على الأقل.');
+    return;
+  }
+  document.getElementById('debtName').value = '';
+  document.getElementById('debtError').style.display = 'none';
+  new bootstrap.Modal(document.getElementById('debtModal')).show();
+}
+
+function submitDebt() {
+  const name = document.getElementById('debtName').value.trim();
+  const err  = document.getElementById('debtError');
+  if (!name) {
+    err.textContent = isEn ? "Please enter the person's name" : 'الرجاء كتابة اسم الشخص';
+    err.style.display = 'block'; return;
+  }
+  const { court_ids, activity_ids } = getSelected();
+  doCheckout({ court_ids, activity_ids, payment_method: 'debt', debt_name: name,
+               discount: Math.max(0, parseFloat(document.getElementById('discountInput').value) || 0) });
+}
+
+function doCheckout(payload) {
+  fetch('/pos/combined-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) window.location.href = d.redirect;
+    else alert(d.message || (isEn ? 'Error' : 'خطأ'));
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
+}
+</script>
+{% endblock %}

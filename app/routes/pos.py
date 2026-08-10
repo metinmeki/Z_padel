@@ -25,10 +25,15 @@ def quick_sale():
     else:
         products   = Product.query.filter_by(is_active=True).all()
         categories = Category.query.order_by(Category.name).all()
-    open_court_bills    = CourtSession.query.filter_by(status='pending_payment').order_by(CourtSession.end_time.desc()).all()
-    open_activity_bills = ActivitySession.query.filter_by(status='pending_payment').order_by(ActivitySession.end_time.desc()).all()
-    return render_template('pos/quick_sale.html', products=products, categories=categories,
-                           open_court_bills=open_court_bills, open_activity_bills=open_activity_bills)
+    return render_template('pos/quick_sale.html', products=products, categories=categories)
+
+
+@pos_bp.route('/archive')
+@login_required
+def archive():
+    court_bills    = CourtSession.query.filter_by(status='pending_payment').order_by(CourtSession.end_time.desc()).all()
+    activity_bills = ActivitySession.query.filter_by(status='pending_payment').order_by(ActivitySession.end_time.desc()).all()
+    return render_template('pos/archive.html', court_bills=court_bills, activity_bills=activity_bills)
 
 
 @pos_bp.route('/checkout', methods=['POST'])
@@ -152,12 +157,7 @@ def debt():
 def courts():
     court_list = Court.query.filter_by(is_active=True).all()
     active_sessions = {s.court_id: s for s in CourtSession.query.filter_by(status='active').all()}
-    pending_court_sessions = CourtSession.query.filter_by(status='pending_payment').all()
-    pending_activity_sessions = ActivitySession.query.filter_by(status='pending_payment').all()
-    return render_template('pos/courts.html', courts=court_list, active_sessions=active_sessions,
-                           pending_court_sessions=pending_court_sessions,
-                           pending_activity_sessions=pending_activity_sessions,
-                           activity_meta=ACTIVITY_META)
+    return render_template('pos/courts.html', courts=court_list, active_sessions=active_sessions)
 
 
 @pos_bp.route('/courts/<int:court_id>/start', methods=['POST'])
@@ -306,7 +306,12 @@ def add_session_item(session_id):
     prod.stock -= qty
     db.session.commit()
 
-    return jsonify(success=True, grand_total=session_row.grand_total)
+    saved = existing_item or CourtSessionItem.query.filter_by(session_id=session_id, product_id=prod.id).first()
+    return jsonify(success=True,
+                   item=dict(id=saved.id, product_id=prod.id, product_name=saved.product_name,
+                             quantity=saved.quantity, price=saved.price, subtotal=saved.subtotal),
+                   items_total=session_row.items_total,
+                   grand_total=session_row.grand_total)
 
 
 @pos_bp.route('/courts/session/<int:session_id>/remove-item/<int:item_id>', methods=['POST'])
@@ -320,7 +325,7 @@ def remove_session_item(session_id, item_id):
     db.session.commit()
 
     session_row = CourtSession.query.get_or_404(session_id)
-    return jsonify(success=True, grand_total=session_row.grand_total)
+    return jsonify(success=True, items_total=session_row.items_total, grand_total=session_row.grand_total)
 
 
 @pos_bp.route('/courts/session/<int:session_id>/end-time', methods=['POST'])
@@ -688,7 +693,12 @@ def add_activity_item(session_id):
             quantity=qty, price=prod.price, subtotal=prod.price * qty))
     prod.stock -= qty
     db.session.commit()
-    return jsonify(success=True, grand_total=sess.grand_total)
+    saved = existing or ActivitySessionItem.query.filter_by(session_id=session_id, product_id=prod.id).first()
+    return jsonify(success=True,
+                   item=dict(id=saved.id, product_id=prod.id, product_name=saved.product_name,
+                             quantity=saved.quantity, price=saved.price, subtotal=saved.subtotal),
+                   items_total=sess.items_total,
+                   grand_total=sess.grand_total)
 
 
 @pos_bp.route('/activities/session/<int:session_id>/remove-item/<int:item_id>', methods=['POST'])
@@ -701,7 +711,7 @@ def remove_activity_item(session_id, item_id):
     db.session.delete(item)
     db.session.commit()
     sess = ActivitySession.query.get_or_404(session_id)
-    return jsonify(success=True, grand_total=sess.grand_total)
+    return jsonify(success=True, items_total=sess.items_total, grand_total=sess.grand_total)
 
 
 @pos_bp.route('/activities/session/<int:session_id>/finish-debt', methods=['POST'])

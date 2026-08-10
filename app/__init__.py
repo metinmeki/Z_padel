@@ -58,6 +58,16 @@ def create_app(config_name: str = None):
     def inject_lang():
         return dict(lang=g.lang)
 
+    @app.context_processor
+    def inject_pending_bills():
+        try:
+            from app.models.main import CourtSession, ActivitySession
+            c = CourtSession.query.filter_by(status='pending_payment').count()
+            a = ActivitySession.query.filter_by(status='pending_payment').count()
+            return dict(pending_bills_count=c + a)
+        except Exception:
+            return dict(pending_bills_count=0)
+
     # ── Register blueprints ──
     from app.routes.auth    import auth_bp
     from app.routes.main    import main_bp
