@@ -55,41 +55,45 @@
     .cp-avatar-wrap {
       position: relative; display: inline-block; margin-bottom: 1.5rem;
     }
-    /* Outer glow ring */
-    .cp-avatar-glow {
-      width: 220px; height: 220px; border-radius: 50%;
-      background: conic-gradient(from 0deg, var(--ac), #c9b48e, var(--bdk), var(--ac));
-      padding: 4px;
-      margin: 0 auto;
-      box-shadow: 0 0 60px rgba(214,195,161,.25), 0 0 120px rgba(214,195,161,.1);
-      animation: spinRing 8s linear infinite;
+    /* Static container — same size as the image circle */
+    .cp-avatar-img {
+      width: 200px; height: 200px; border-radius: 50%;
+      object-fit: cover; object-position: center top;
+      display: block; position: relative; z-index: 1;
+      box-shadow: 0 8px 40px rgba(0,0,0,.4);
+    }
+    .cp-avatar-ph {
+      width: 200px; height: 200px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--bdk), #2d3f48);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4.5rem; color: var(--ac);
+      position: relative; z-index: 1;
+    }
+    /* Spinning ring — absolutely around the image, does NOT affect image rotation */
+    .cp-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--ac) 0%, #c9b48e 25%, var(--bdk) 50%, rgba(44,53,57,0) 75%, var(--ac) 100%);
+      animation: spinRing 4s linear infinite;
+      z-index: 0;
+    }
+    .cp-ring::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      background: var(--bd);
     }
     @keyframes spinRing {
       to { transform: rotate(360deg); }
     }
-    /* Inner white separator + image */
-    .cp-avatar-inner {
-      width: 100%; height: 100%; border-radius: 50%;
-      background: var(--bd);
-      padding: 4px;
-      overflow: hidden;
-    }
-    .cp-avatar-inner img {
-      width: 100%; height: 100%; border-radius: 50%;
-      object-fit: cover; object-position: center top;
-      display: block;
-    }
-    .cp-avatar-inner .no-img {
-      width: 100%; height: 100%; border-radius: 50%;
-      background: linear-gradient(135deg, var(--bdk), #2d3f48);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 4.5rem; color: var(--ac);
-    }
     .cp-status-dot {
-      position: absolute; bottom: 14px; {% if lang == 'en' %}right{% else %}left{% endif %}: 14px;
-      width: 26px; height: 26px; border-radius: 50%;
+      position: absolute; bottom: 8px; {% if lang == 'en' %}right{% else %}left{% endif %}: 8px;
+      width: 24px; height: 24px; border-radius: 50%;
       border: 4px solid var(--bd); background: #22c55e;
       box-shadow: 0 0 0 2px rgba(34,197,94,.4);
+      z-index: 2;
     }
     .cp-status-dot.busy { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,.4); }
 
@@ -281,15 +285,12 @@
 <!-- Hero -->
 <div class="cp-hero">
   <div class="cp-avatar-wrap">
-    <div class="cp-avatar-glow">
-      <div class="cp-avatar-inner">
-        {% if coach.image %}
-          <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}">
-        {% else %}
-          <div class="no-img"><i class="fas fa-user"></i></div>
-        {% endif %}
-      </div>
-    </div>
+    <div class="cp-ring"></div>
+    {% if coach.image %}
+      <img src="{{ url_for('static', filename=coach.image) }}" alt="{{ coach.name }}" class="cp-avatar-img">
+    {% else %}
+      <div class="cp-avatar-ph"><i class="fas fa-user"></i></div>
+    {% endif %}
     <div class="cp-status-dot {{ '' if coach.status == 'available' else 'busy' }}"></div>
   </div>
 
