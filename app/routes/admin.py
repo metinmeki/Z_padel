@@ -1355,7 +1355,7 @@ def delete_coach(coach_id):
         )
     except Exception:
         db.session.rollback()
-    db.session.execute(db.text('DELETE FROM coach WHERE id = :id'), {'id': coach_id})
+    db.session.execute(db.text('DELETE FROM coaches WHERE id = :id'), {'id': coach_id})
     db.session.commit()
     flash('تم حذف المدرب.', 'success')
     return redirect(url_for('admin.coaches'))
