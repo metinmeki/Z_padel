@@ -25,6 +25,14 @@ def shop():
                            active_cat=cat_id)
 
 
+@store_bp.route('/product/<int:product_id>')
+def product_detail(product_id):
+    p = Product.query.get_or_404(product_id)
+    cart = session.get('cart', {})
+    cart_count = sum(cart.values())
+    return render_template('store/product.html', product=p, cart_count=cart_count)
+
+
 @store_bp.route('/cart/add/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     p = Product.query.get_or_404(product_id)

@@ -233,23 +233,27 @@
 <div class="products-grid">
   {% for p in products %}
   <div class="prod-card">
-    <div class="prod-img-wrap">
-      {% if p.image %}
-        <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}"
-             class="prod-img" alt="{{ p.name }}" loading="lazy">
-      {% else %}
-        <div class="prod-img-placeholder"><i class="fas fa-box-open"></i></div>
-      {% endif %}
-    </div>
-    <div class="prod-body">
-      <div class="prod-name">{{ p.name }}</div>
-      {% set desc = (p.description_ar if lang == 'ar' else (p.description_ku if lang == 'ku' else p.description)) %}
-      {% if desc %}
-      <div class="prod-desc">{{ desc }}</div>
-      {% endif %}
-      <div class="prod-price">
-        {{ "{:,.0f}".format(p.price) }} <small>IQD</small>
+    <a href="{{ url_for('store.product_detail', product_id=p.id) }}" style="text-decoration:none;color:inherit;">
+      <div class="prod-img-wrap">
+        {% if p.image %}
+          <img src="{{ url_for('static', filename='images/uploads/' ~ p.image) }}"
+               class="prod-img" alt="{{ p.name }}" loading="lazy">
+        {% else %}
+          <div class="prod-img-placeholder"><i class="fas fa-box-open"></i></div>
+        {% endif %}
       </div>
+      <div class="prod-body" style="padding-bottom:.3rem;">
+        <div class="prod-name">{{ p.name }}</div>
+        {% set desc = (p.description_ar if lang == 'ar' else (p.description_ku if lang == 'ku' else p.description)) %}
+        {% if desc %}
+        <div class="prod-desc">{{ desc }}</div>
+        {% endif %}
+        <div class="prod-price">
+          {{ "{:,.0f}".format(p.price) }} <small>IQD</small>
+        </div>
+      </div>
+    </a>
+    <div style="padding: 0 .75rem .75rem;">
       <button class="btn-add" id="btn-{{ p.id }}" onclick="addToCart({{ p.id }}, this)">
         <i class="fas fa-plus"></i>
         {% if lang == 'en' %}Add{% elif lang == 'ku' %}زیادکە{% else %}أضف{% endif %}
