@@ -715,7 +715,8 @@ def add_category():
     if not name:
         flash('اسم الفئة مطلوب. / Category name is required.', 'danger')
         return redirect(url_for('admin.categories'))
-    cat = Category(name=name, color=request.form.get('color', '#1565C0'))
+    cat = Category(name=name, color=request.form.get('color', '#1565C0'),
+                   show_in_store=request.form.get('show_in_store') == '1')
     db.session.add(cat)
     try:
         db.session.commit()
@@ -1428,8 +1429,9 @@ def new_court():
 def edit_category(cat_id):
     from sqlalchemy.exc import IntegrityError
     cat = Category.query.get_or_404(cat_id)
-    cat.name  = request.form.get('name', cat.name).strip()
-    cat.color = request.form.get('color', cat.color)
+    cat.name          = request.form.get('name', cat.name).strip()
+    cat.color         = request.form.get('color', cat.color)
+    cat.show_in_store = request.form.get('show_in_store') == '1'
     try:
         db.session.commit()
         flash('تم تحديث الفئة.', 'success')
