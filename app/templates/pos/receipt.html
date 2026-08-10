@@ -154,65 +154,65 @@ function buildReceiptHTML() {
   D.items.forEach(it => {
     rows += `
       <tr>
-        <td style="text-align:right;padding:8px 0;font-size:32px;font-weight:900;border-bottom:1px dashed #ccc;">${it.name} &times; ${it.qty}</td>
-        <td style="text-align:left;padding:8px 0;font-size:32px;font-weight:900;white-space:nowrap;border-bottom:1px dashed #ccc;"><bdi>${it.price} IQD</bdi></td>
+        <td style="text-align:right;padding:5px 0;font-size:24px;font-weight:400;border-bottom:1px dashed #ccc;">${it.name} &times; ${it.qty}</td>
+        <td style="text-align:left;padding:5px 0;font-size:24px;font-weight:700;white-space:nowrap;border-bottom:1px dashed #ccc;"><bdi>${it.price} IQD</bdi></td>
       </tr>`;
   });
   return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:#fff;width:620px;font-family:'Tajawal',sans-serif;color:#000;padding:24px 20px;}
+    body{background:#fff;width:580px;font-family:'Tajawal',sans-serif;color:#000;padding:20px 18px;}
     table{width:100%;border-collapse:collapse;table-layout:fixed;}
     td{vertical-align:middle;word-wrap:break-word;}
     bdi{unicode-bidi:isolate;direction:ltr;display:inline-block;}
   </style></head><body>
 
   <!-- Header -->
-  <div style="text-align:center;padding-bottom:14px;margin-bottom:14px;border-bottom:4px solid #000;">
-    <div style="font-size:52px;font-weight:900;letter-spacing:4px;line-height:1;">Z PADEL</div>
-    <div style="font-size:26px;font-weight:700;margin-top:4px;">دهوك، العراق</div>
+  <div style="text-align:center;padding-bottom:12px;margin-bottom:12px;border-bottom:1px dashed #000;">
+    <div style="font-size:42px;font-weight:900;letter-spacing:3px;line-height:1.1;">Z PADEL</div>
+    <div style="font-size:20px;font-weight:400;margin-top:3px;">دهوك، العراق</div>
   </div>
 
   <!-- Info -->
-  <table style="margin-bottom:14px;">
+  <table style="margin-bottom:12px;">
     <tr>
-      <td style="text-align:right;font-size:28px;font-weight:700;padding:5px 0;width:45%;">رقم الفاتورة:</td>
-      <td style="text-align:left;font-size:28px;font-weight:900;padding:5px 0;"><bdi>#${D.id}</bdi></td>
+      <td style="text-align:right;font-size:22px;font-weight:400;padding:3px 0;width:45%;">رقم الفاتورة:</td>
+      <td style="text-align:left;font-size:22px;font-weight:700;padding:3px 0;"><bdi>#${D.id}</bdi></td>
     </tr>
     <tr>
-      <td style="text-align:right;font-size:28px;font-weight:700;padding:5px 0;">التاريخ:</td>
-      <td style="text-align:left;font-size:28px;font-weight:900;padding:5px 0;"><bdi>${D.date}</bdi></td>
+      <td style="text-align:right;font-size:22px;font-weight:400;padding:3px 0;">التاريخ:</td>
+      <td style="text-align:left;font-size:22px;font-weight:700;padding:3px 0;"><bdi>${D.date}</bdi></td>
     </tr>
     <tr>
-      <td style="text-align:right;font-size:28px;font-weight:700;padding:5px 0;">الوقت:</td>
-      <td style="text-align:left;font-size:28px;font-weight:900;padding:5px 0;"><bdi>${D.time}</bdi></td>
+      <td style="text-align:right;font-size:22px;font-weight:400;padding:3px 0;">الوقت:</td>
+      <td style="text-align:left;font-size:22px;font-weight:700;padding:3px 0;"><bdi>${D.time}</bdi></td>
     </tr>
-    ${D.customer ? `<tr><td style="text-align:right;font-size:28px;font-weight:700;padding:5px 0;">الزبون:</td><td style="text-align:left;font-size:28px;font-weight:900;padding:5px 0;">${D.customer}</td></tr>` : ''}
+    ${D.customer ? `<tr><td style="text-align:right;font-size:22px;font-weight:400;padding:3px 0;">الزبون:</td><td style="text-align:left;font-size:22px;font-weight:700;padding:3px 0;">${D.customer}</td></tr>` : ''}
   </table>
 
   <!-- Items -->
-  <div style="border-top:3px solid #000;border-bottom:3px solid #000;padding:10px 0;margin-bottom:14px;">
+  <div style="border-top:1px dashed #000;border-bottom:1px dashed #000;padding:8px 0;margin-bottom:12px;">
     <table>${rows}</table>
   </div>
 
   <!-- Total -->
-  <div style="padding:12px 0;margin-bottom:14px;border-top:2px dashed #000;border-bottom:2px dashed #000;">
+  <div style="padding:10px 0;margin-bottom:12px;border-top:1px solid #000;border-bottom:1px solid #000;">
     <table><tr>
-      <td style="text-align:right;font-size:46px;font-weight:900;width:40%;">الصافي:</td>
-      <td style="text-align:left;font-size:46px;font-weight:900;"><bdi>${D.total} IQD</bdi></td>
+      <td style="text-align:right;font-size:36px;font-weight:700;width:40%;">الصافي:</td>
+      <td style="text-align:left;font-size:36px;font-weight:900;"><bdi>${D.total} IQD</bdi></td>
     </tr></table>
   </div>
 
   <!-- Payment -->
-  <div style="text-align:center;font-size:30px;font-weight:900;padding:8px 0;margin-bottom:14px;">
-    الدفع: ${D.payment}
+  <div style="text-align:center;font-size:22px;font-weight:400;padding:6px 0;margin-bottom:12px;">
+    الدفع: <strong>${D.payment}</strong>
   </div>
 
   <!-- Footer -->
-  <div style="text-align:center;border-top:3px solid #000;padding-top:12px;">
-    <div style="font-size:32px;font-weight:900;">Z PADEL — دهوك</div>
-    <div style="font-size:26px;font-weight:700;margin-top:6px;">شكراً لزيارتكم</div>
+  <div style="text-align:center;border-top:1px dashed #000;padding-top:10px;">
+    <div style="font-size:24px;font-weight:700;">Z PADEL — دهوك</div>
+    <div style="font-size:18px;font-weight:400;margin-top:4px;">شكراً لزيارتكم</div>
   </div>
 
   </body></html>`;
