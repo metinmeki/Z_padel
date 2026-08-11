@@ -186,14 +186,20 @@ def share_clip(token):
 
 @main_bp.route('/clip/<token>/stream')
 def stream_clip_file(token):
-    """Serve video inline for browser preview (no attachment header)."""
+    """Serve video inline with range-request support for mobile browsers."""
     clip = GameClip.query.filter_by(token=token).first_or_404()
     if clip.is_expired:
         abort(410)
     filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
     if not os.path.exists(filepath):
         abort(404)
-    return send_file(filepath, mimetype="video/mp4")
+    if os.path.getsize(filepath) < 10_000:   # corrupt / incomplete download
+        abort(503)
+    return send_file(
+        filepath,
+        mimetype="video/mp4",
+        conditional=True,   # enables 206 Partial Content — required by mobile browsers
+    )
 
 
 @main_bp.route('/clip/<token>/download')

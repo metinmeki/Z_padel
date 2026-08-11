@@ -186,12 +186,26 @@
 
   <!-- Video player -->
   <div class="video-wrap">
-    <video id="vid" controls playsinline webkit-playsinline preload="auto"
+    <video id="vid" controls playsinline webkit-playsinline preload="metadata"
            src="{{ url_for('main.stream_clip_file', token=clip.token) }}">
     </video>
     <div class="vid-loader" id="loader">
       <i class="fas fa-table-tennis-paddle-ball"></i>
       <span>Loading clip…</span>
+    </div>
+    <!-- Shown only on error -->
+    <div class="vid-error" id="vidError" style="display:none;
+         position:absolute;inset:0;background:rgba(10,15,30,.92);
+         display:none;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;">
+      <i class="fas fa-circle-exclamation" style="font-size:2rem;color:#f87171;"></i>
+      <span style="font-size:.82rem;color:rgba(255,255,255,.7);text-align:center;padding:0 1rem;">
+        Video preview unavailable.<br>Use the download button below.
+      </span>
+      <a href="{{ url_for('main.download_clip_file', token=clip.token) }}"
+         style="background:var(--blue);color:#fff;padding:.5rem 1.2rem;border-radius:10px;
+                font-size:.84rem;font-weight:700;text-decoration:none;">
+        <i class="fas fa-download me-1"></i> Download instead
+      </a>
     </div>
   </div>
 
@@ -278,12 +292,17 @@ const vid = document.getElementById('vid');
 const loader = document.getElementById('loader');
 
 // Hide loader once video has enough data to show first frame
-vid.addEventListener('loadeddata', () => {
+vid.addEventListener('loadedmetadata', () => {
+  loader.style.opacity = '0';
+  setTimeout(() => loader.style.display = 'none', 300);
+});
+vid.addEventListener('canplay', () => {
   loader.style.opacity = '0';
   setTimeout(() => loader.style.display = 'none', 300);
 });
 vid.addEventListener('error', () => {
-  loader.innerHTML = '<i class="fas fa-triangle-exclamation" style="color:#f87171;animation:none;"></i><span style="color:rgba(255,255,255,.6);">Could not load video</span>';
+  loader.style.display = 'none';
+  document.getElementById('vidError').style.display = 'flex';
 });
 </script>
 </body>
