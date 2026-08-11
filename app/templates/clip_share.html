@@ -3,148 +3,214 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Z Padel — Game Clip</title>
+  <title>Z Padel — Your Game Clip</title>
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #0ea5e9;
+      --blue-dark: #0284c7;
+      --blue-deep: #0D47A1;
+      --blue-mid:  #1565C0;
+      --green-wa:  #25D366;
+    }
 
     body {
       min-height: 100vh;
-      background: linear-gradient(160deg, #0D47A1 0%, #1565C0 40%, #0ea5e9 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      padding: 0 0 2rem;
+      background: linear-gradient(160deg, var(--blue-deep) 0%, var(--blue-mid) 50%, var(--blue) 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      padding-bottom: 2.5rem;
+      overflow-x: hidden;
     }
 
-    /* Header */
+    /* ── HEADER ── */
     .header {
       width: 100%; text-align: center;
-      padding: 2rem 1rem 1.5rem;
-      color: #fff;
+      padding: 2.2rem 1rem 1.6rem;
+      animation: fadeDown .6s ease both;
     }
-    .logo { font-size: 2rem; font-weight: 900; letter-spacing: -1px; }
-    .logo span { color: #38bdf8; }
-    .tagline { font-size: .85rem; opacity: .75; margin-top: .25rem; }
+    .logo {
+      font-size: 2.4rem; font-weight: 900; letter-spacing: -1px; color: #fff;
+    }
+    .logo span { color: var(--blue); }
+    .tagline {
+      font-size: .85rem; color: rgba(255,255,255,.7); margin-top: .3rem;
+      font-weight: 500;
+    }
 
-    /* Card */
+    /* ── CARD ── */
     .card {
       background: #fff;
-      border-radius: 22px;
+      border-radius: 24px;
       width: calc(100% - 2rem);
-      max-width: 420px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      max-width: 440px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.3);
       overflow: hidden;
+      animation: slideUp .55s cubic-bezier(.22,1,.36,1) .15s both;
     }
 
-    /* Video preview area */
-    .video-area {
-      background: #0D1117;
+    /* ── VIDEO ── */
+    .video-wrap {
       position: relative;
+      background: #0a0f1e;
       aspect-ratio: 16/9;
-      display: flex; align-items: center; justify-content: center;
     }
-    .video-area video {
-      width: 100%; height: 100%; object-fit: contain;
+    .video-wrap video {
+      width: 100%; height: 100%;
+      display: block; object-fit: contain;
     }
-    .play-overlay {
+    /* pulsing court icon while video loads */
+    .vid-loader {
       position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.4);
-      cursor: pointer;
-      transition: background .2s;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: .6rem; pointer-events: none;
+      transition: opacity .3s;
     }
-    .play-overlay:hover { background: rgba(0,0,0,.2); }
-    .play-btn {
-      width: 64px; height: 64px; border-radius: 50%;
-      background: rgba(255,255,255,.9);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; color: #1565C0;
-      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    .vid-loader i {
+      font-size: 2.5rem; color: var(--blue);
+      animation: pulse 1.6s ease-in-out infinite;
     }
+    .vid-loader span { font-size: .75rem; color: rgba(255,255,255,.5); }
 
-    /* Info rows */
-    .info-section { padding: 1.25rem 1.25rem .75rem; }
+    /* ── INFO ── */
+    .info { padding: 1.2rem 1.4rem .8rem; }
     .info-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: .5rem 0; border-bottom: 1px solid #f0f0f0;
-      font-size: .88rem;
+      padding: .55rem 0; border-bottom: 1px solid #f0f4f8;
+      font-size: .9rem;
     }
     .info-row:last-child { border-bottom: none; }
-    .info-label { color: #888; font-weight: 600; display: flex; align-items: center; gap: .4rem; }
-    .info-val { font-weight: 700; color: #1a1a2e; text-align: right; }
+    .info-lbl {
+      display: flex; align-items: center; gap: .5rem;
+      color: #7a8fa6; font-weight: 600; font-size: .84rem;
+    }
+    .info-lbl i { width: 16px; text-align: center; color: var(--blue-mid); }
+    .info-val { font-weight: 800; color: #1a2236; font-size: .9rem; }
 
-    /* Action buttons */
-    .actions { padding: .75rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: .65rem; }
+    /* ── BUTTONS ── */
+    .actions { padding: .8rem 1.4rem 1.2rem; display: flex; flex-direction: column; gap: .7rem; }
 
     .btn {
-      display: flex; align-items: center; justify-content: center; gap: .65rem;
-      padding: .9rem 1rem; border-radius: 14px; font-size: 1rem;
-      font-weight: 800; text-decoration: none; cursor: pointer;
-      border: none; width: 100%; transition: transform .15s, opacity .15s;
-      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center; gap: .7rem;
+      height: 54px; border-radius: 16px; font-size: 1rem; font-weight: 800;
+      text-decoration: none; cursor: pointer; border: none; width: 100%;
+      transition: transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent; letter-spacing: .2px;
     }
-    .btn:active { transform: scale(.97); opacity: .9; }
+    .btn:active { transform: scale(.97); }
 
     .btn-download {
-      background: linear-gradient(135deg, #1565C0, #0ea5e9);
+      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid), var(--blue));
       color: #fff;
-      box-shadow: 0 4px 16px rgba(14,165,233,.35);
+      box-shadow: 0 6px 20px rgba(14,165,233,.4);
+      animation: shimmer 2.5s linear infinite;
+      background-size: 200% 100%;
     }
     .btn-whatsapp {
-      background: #25D366;
+      background: var(--green-wa);
       color: #fff;
-      box-shadow: 0 4px 16px rgba(37,211,102,.3);
+      box-shadow: 0 6px 20px rgba(37,211,102,.35);
     }
+    .btn-whatsapp:active { box-shadow: none; }
 
-    /* Expiry notice */
+    /* ── EXPIRY ── */
     .expiry {
-      text-align: center; font-size: .78rem; color: #aaa;
-      padding: 0 1.25rem 1rem;
+      text-align: center; font-size: .76rem; color: #b0bec5;
+      padding: 0 1.4rem .9rem;
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
     }
-    .expiry i { color: #e67e22; margin-right: .3rem; }
+    .expiry i { color: #fb923c; }
 
-    /* Footer */
-    .footer {
-      margin-top: 1.5rem; color: rgba(255,255,255,.55);
-      font-size: .75rem; text-align: center;
+    /* ── CODA FOOTER ── */
+    .coda-footer {
+      margin-top: 1.8rem; display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      animation: fadeUp .6s ease .7s both;
+    }
+    .coda-badge {
+      display: flex; align-items: center; gap: .5rem;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 40px; padding: .45rem 1rem;
+      backdrop-filter: blur(8px);
+    }
+    .coda-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 0 rgba(14,165,233,.6);
+      animation: sonar 2s ease-out infinite;
+    }
+    .coda-text { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.85); }
+    .coda-text span { color: var(--blue); }
+    .z-padel-copy { font-size: .7rem; color: rgba(255,255,255,.4); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity:0; transform:translateY(-20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(40px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes pulse {
+      0%,100% { opacity:.4; transform:scale(1); }
+      50%      { opacity:1; transform:scale(1.15); }
+    }
+    @keyframes sonar {
+      0%   { box-shadow: 0 0 0 0 rgba(14,165,233,.6); }
+      70%  { box-shadow: 0 0 0 10px rgba(14,165,233,0); }
+      100% { box-shadow: 0 0 0 0 rgba(14,165,233,0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
     }
   </style>
 </head>
 <body>
 
+<!-- Header -->
 <div class="header">
   <div class="logo">Z <span>PADEL</span></div>
-  <div class="tagline">Duhok, Iraq — Your Game Clip is Ready!</div>
+  <div class="tagline">Duhok, Iraq &nbsp;·&nbsp; Your Game Clip is Ready 🎾</div>
 </div>
 
+<!-- Main card -->
 <div class="card">
 
   <!-- Video player -->
-  <div class="video-area" id="videoArea">
-    <video id="clipVideo" preload="metadata"
-           src="{{ url_for('main.download_clip_file', token=clip.token) }}#t=0.1"
-           playsinline webkit-playsinline>
+  <div class="video-wrap">
+    <video id="vid" controls playsinline webkit-playsinline preload="auto"
+           src="{{ url_for('main.stream_clip_file', token=clip.token) }}">
     </video>
-    <div class="play-overlay" id="playOverlay" onclick="playVid()">
-      <div class="play-btn"><i class="fas fa-play" style="margin-left:4px;"></i></div>
+    <div class="vid-loader" id="loader">
+      <i class="fas fa-table-tennis-paddle-ball"></i>
+      <span>Loading clip…</span>
     </div>
   </div>
 
-  <!-- Clip details -->
-  <div class="info-section">
+  <!-- Clip info -->
+  <div class="info">
     <div class="info-row">
-      <span class="info-label"><i class="fas fa-table-tennis-paddle-ball"></i> Court</span>
+      <span class="info-lbl"><i class="fas fa-map-marker-alt"></i> Court</span>
       <span class="info-val">{{ clip.court_label }}</span>
     </div>
     <div class="info-row">
-      <span class="info-label"><i class="fas fa-calendar"></i> Date</span>
+      <span class="info-lbl"><i class="fas fa-calendar"></i> Date</span>
       <span class="info-val">{{ clip.clip_date.strftime('%d %b %Y') }}</span>
     </div>
     <div class="info-row">
-      <span class="info-label"><i class="fas fa-clock"></i> Time</span>
+      <span class="info-lbl"><i class="fas fa-clock"></i> Time</span>
       <span class="info-val">{{ clip.start_time[:5] }}</span>
     </div>
     <div class="info-row">
-      <span class="info-label"><i class="fas fa-stopwatch"></i> Duration</span>
+      <span class="info-lbl"><i class="fas fa-stopwatch"></i> Duration</span>
       <span class="info-val">
         {% set m = clip.duration_sec // 60 %}{% set s = clip.duration_sec % 60 %}
         {% if m %}{{ m }} min{% if s %} {{ s }}s{% endif %}{% else %}{{ s }}s{% endif %}
@@ -152,61 +218,73 @@
     </div>
     {% if clip.customer_name %}
     <div class="info-row">
-      <span class="info-label"><i class="fas fa-user"></i> Player</span>
+      <span class="info-lbl"><i class="fas fa-user"></i> Player</span>
       <span class="info-val">{{ clip.customer_name }}</span>
     </div>
     {% endif %}
     {% if clip.note %}
     <div class="info-row">
-      <span class="info-label"><i class="fas fa-note-sticky"></i> Note</span>
-      <span class="info-val" style="font-style:italic;color:#555;">{{ clip.note }}</span>
+      <span class="info-lbl"><i class="fas fa-comment"></i> Note</span>
+      <span class="info-val" style="font-style:italic;color:#607080;">{{ clip.note }}</span>
     </div>
     {% endif %}
   </div>
 
-  <!-- Download button -->
+  <!-- Action buttons -->
   <div class="actions">
     <a href="{{ url_for('main.download_clip_file', token=clip.token) }}"
        class="btn btn-download" download>
-      <i class="fas fa-download"></i>
-      Save Video to Phone
+      <i class="fas fa-download"></i> Save Video to Phone
     </a>
 
-    <!-- WhatsApp share (player's phone if known) -->
     {% set clip_url = request.url_root + 'clip/' + clip.token %}
-    {% set wa_msg = 'مرحباً! مقطع مباراتك في Z Padel جاهز 🎾\n' + clip_url %}
+    {% set wa_msg = 'مرحباً! 🎾 مقطع مباراتك في Z Padel جاهز للمشاهدة والتحميل:\n' + clip_url %}
+
     {% if clip.customer_phone %}
-    {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
-    <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
-       class="btn btn-whatsapp" target="_blank">
-      <i class="fab fa-whatsapp" style="font-size:1.2rem;"></i>
-      Send to {{ clip.customer_name or clip.customer_phone }} via WhatsApp
-    </a>
+      {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
+      <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
+         class="btn btn-whatsapp" target="_blank">
+        <i class="fab fa-whatsapp" style="font-size:1.25rem;"></i>
+        Send to {{ clip.customer_name or clip.customer_phone }} via WhatsApp
+      </a>
     {% else %}
-    <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
-       class="btn btn-whatsapp" target="_blank">
-      <i class="fab fa-whatsapp" style="font-size:1.2rem;"></i>
-      Share via WhatsApp
-    </a>
+      <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
+         class="btn btn-whatsapp" target="_blank">
+        <i class="fab fa-whatsapp" style="font-size:1.25rem;"></i>
+        Share via WhatsApp
+      </a>
     {% endif %}
   </div>
 
+  <!-- Expiry -->
   <div class="expiry">
     <i class="fas fa-hourglass-half"></i>
-    This link expires on {{ clip.expires_at.strftime('%d %b %Y %H:%M') }} UTC
+    Link expires {{ clip.expires_at.strftime('%d %b %Y') }} at {{ clip.expires_at.strftime('%H:%M') }} UTC
   </div>
+
 </div>
 
-<div class="footer">Z Padel &copy; {{ clip.clip_date.year }} — Powered by Coda Agency</div>
+<!-- Coda Agency badge -->
+<div class="coda-footer">
+  <div class="coda-badge">
+    <div class="coda-dot"></div>
+    <div class="coda-text">Built by <span>Coda Agency</span></div>
+  </div>
+  <div class="z-padel-copy">Z Padel © {{ clip.clip_date.year }}</div>
+</div>
 
 <script>
-function playVid() {
-  const v = document.getElementById('clipVideo');
-  const o = document.getElementById('playOverlay');
-  o.style.display = 'none';
-  v.controls = true;
-  v.play();
-}
+const vid = document.getElementById('vid');
+const loader = document.getElementById('loader');
+
+// Hide loader once video has enough data to show first frame
+vid.addEventListener('loadeddata', () => {
+  loader.style.opacity = '0';
+  setTimeout(() => loader.style.display = 'none', 300);
+});
+vid.addEventListener('error', () => {
+  loader.innerHTML = '<i class="fas fa-triangle-exclamation" style="color:#f87171;animation:none;"></i><span style="color:rgba(255,255,255,.6);">Could not load video</span>';
+});
 </script>
 </body>
 </html>
