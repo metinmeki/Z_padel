@@ -130,20 +130,26 @@
       animation: fadeUp .6s ease .7s both;
     }
     .coda-badge {
-      display: flex; align-items: center; gap: .5rem;
-      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
-      border-radius: 40px; padding: .45rem 1rem;
-      backdrop-filter: blur(8px);
+      display: flex; align-items: center; gap: .55rem;
+      background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.22);
+      border-radius: 40px; padding: .5rem 1.1rem;
+      backdrop-filter: blur(12px);
+      transition: background .2s, transform .15s;
+      cursor: pointer;
     }
+    .coda-badge:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+    .coda-badge:active { transform: scale(.97); }
     .coda-dot {
-      width: 8px; height: 8px; border-radius: 50%;
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
       background: var(--blue);
-      box-shadow: 0 0 0 0 rgba(14,165,233,.6);
+      box-shadow: 0 0 0 0 rgba(14,165,233,.7);
       animation: sonar 2s ease-out infinite;
     }
-    .coda-text { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.85); }
-    .coda-text span { color: var(--blue); }
-    .z-padel-copy { font-size: .7rem; color: rgba(255,255,255,.4); }
+    .coda-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .coda-built { font-size: .62rem; color: rgba(255,255,255,.5); font-weight: 500; }
+    .coda-name  { font-size: .82rem; font-weight: 900; color: #fff; letter-spacing: .5px; }
+    .coda-accent { color: var(--blue); }
+    .z-padel-copy { font-size: .68rem; color: rgba(255,255,255,.35); margin-top: .2rem; }
 
     /* ── ANIMATIONS ── */
     @keyframes fadeDown {
@@ -250,24 +256,6 @@
        class="btn btn-download" download>
       <i class="fas fa-download"></i> Save Video to Phone
     </a>
-
-    {% set clip_url = request.url_root + 'clip/' + clip.token %}
-    {% set wa_msg = 'مرحباً! 🎾 مقطع مباراتك في Z Padel جاهز للمشاهدة والتحميل:\n' + clip_url %}
-
-    {% if clip.customer_phone %}
-      {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
-      <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
-         class="btn btn-whatsapp" target="_blank">
-        <i class="fab fa-whatsapp" style="font-size:1.25rem;"></i>
-        Send to {{ clip.customer_name or clip.customer_phone }} via WhatsApp
-      </a>
-    {% else %}
-      <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
-         class="btn btn-whatsapp" target="_blank">
-        <i class="fab fa-whatsapp" style="font-size:1.25rem;"></i>
-        Share via WhatsApp
-      </a>
-    {% endif %}
   </div>
 
   <!-- Expiry -->
@@ -280,10 +268,14 @@
 
 <!-- Coda Agency badge -->
 <div class="coda-footer">
-  <div class="coda-badge">
+  <a href="https://coda-agency.net" target="_blank" rel="noopener" class="coda-badge" style="text-decoration:none;">
     <div class="coda-dot"></div>
-    <div class="coda-text">Built by <span>Coda Agency</span></div>
-  </div>
+    <div class="coda-logo-text">
+      <span class="coda-built">Built by</span>
+      <span class="coda-name">CODA <span class="coda-accent">AGENCY</span></span>
+    </div>
+    <i class="fas fa-arrow-up-right-from-square" style="font-size:.7rem;color:rgba(255,255,255,.5);margin-left:2px;"></i>
+  </a>
   <div class="z-padel-copy">Z Padel © {{ clip.clip_date.year }}</div>
 </div>
 
