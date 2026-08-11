@@ -235,8 +235,20 @@ def fix_image_backgrounds():
 @login_required
 def dashboard():
     if current_user.username.lower() not in FINANCE_USERS:
-        if current_user.has_perm('perm_bookings'):
-            return redirect(url_for('admin.bookings'))
+        # Redirect staff to first admin page they can access
+        for perm, endpoint in [
+            ('perm_bookings',  'admin.bookings'),
+            ('perm_courts',    'admin.courts'),
+            ('perm_products',  'admin.products'),
+            ('perm_orders',    'admin.orders'),
+            ('perm_expenses',  'admin.expenses'),
+            ('perm_reports',   'admin.reports'),
+            ('perm_cameras',   'admin.cameras'),
+            ('perm_users',     'admin.users'),
+        ]:
+            if current_user.has_perm(perm):
+                return redirect(url_for(endpoint))
+        # No admin permissions at all → send to POS
         return redirect(url_for('pos.courts'))
     today = date.today()
     now_h = datetime.now().hour
