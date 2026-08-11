@@ -17,7 +17,7 @@ from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
                                Sponsor, CourtSession, ActivityLog)
 from app.models.store import (Category, Product, Order, OrderItem,
-                               Expense, ExpenseCategory)
+                               Expense, ExpenseCategory, StaffConsumption)
 from sqlalchemy import func, case
 admin_bp = Blueprint('admin', __name__)
 
@@ -2073,4 +2073,55 @@ def user_activity():
                            date_to=date_to,
                            user_filter=user_filter,
                            action_filter=action_filter,
+                           lang=lang)
+
+
+# ════════════════════════════════════════════
+# STAFF CONSUMPTION REPORT (finance users only)
+# ════════════════════════════════════════════
+@admin_bp.route('/staff-consumption')
+@login_required
+def staff_consumption_report():
+    if current_user.username.lower() not in FINANCE_USERS:
+        return redirect(url_for('admin.dashboard'))
+
+    lang = g.lang
+    now = datetime.utcnow()
+
+    month = int(request.args.get('month', now.month))
+    year  = int(request.args.get('year',  now.year))
+
+    entries = (StaffConsumption.query
+               .filter(db.extract('year',  StaffConsumption.consumed_at) == year)
+               .filter(db.extract('month', StaffConsumption.consumed_at) == month)
+               .order_by(StaffConsumption.username, StaffConsumption.consumed_at.desc())
+               .all())
+
+    # group by username
+    from collections import defaultdict
+    by_user = defaultdict(list)
+    for e in entries:
+        by_user[e.username].append(e)
+
+    staff_summary = []
+    for uname, items in sorted(by_user.items()):
+        staff_summary.append({
+            'username': uname,
+            'items': items,
+            'total': sum(i.subtotal for i in items),
+        })
+
+    grand_total = sum(s['total'] for s in staff_summary)
+
+    # month options for filter
+    months = [(i, datetime(2000, i, 1).strftime('%B')) for i in range(1, 13)]
+    years  = list(range(now.year, now.year - 3, -1))
+
+    return render_template('admin/staff_consumption_report.html',
+                           staff_summary=staff_summary,
+                           grand_total=grand_total,
+                           month=month,
+                           year=year,
+                           months=months,
+                           years=years,
                            lang=lang)

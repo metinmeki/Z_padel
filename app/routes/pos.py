@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from app import db
-from app.models.store import Product, Category, Order, OrderItem
+from app.models.store import Product, Category, Order, OrderItem, StaffConsumption
 from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META, Booking, ActivityLog
 
 pos_bp = Blueprint('pos', __name__)
@@ -902,3 +902,81 @@ def combined_receipt():
                            grand_total=grand_total,
                            activity_meta=ACTIVITY_META,
                            autoprint=autoprint)
+
+
+# ═══════════════════════════════════════════
+# STAFF CONSUMPTION (my personal tab)
+# ═══════════════════════════════════════════
+@pos_bp.route('/my-tab')
+@login_required
+def my_tab():
+    from datetime import date
+    now = datetime.utcnow()
+    # current month entries for this user
+    entries = (StaffConsumption.query
+               .filter_by(username=current_user.username)
+               .filter(db.extract('year',  StaffConsumption.consumed_at) == now.year)
+               .filter(db.extract('month', StaffConsumption.consumed_at) == now.month)
+               .order_by(StaffConsumption.consumed_at.desc())
+               .all())
+    total = sum(e.subtotal for e in entries)
+    products   = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('pos/my_tab.html',
+                           entries=entries,
+                           total=total,
+                           products=products,
+                           categories=categories,
+                           now=now)
+
+
+@pos_bp.route('/my-tab/add', methods=['POST'])
+@login_required
+def my_tab_add():
+    try:
+        data = request.get_json(force=True) or {}
+        product_id = data.get('product_id')
+        qty = int(data.get('quantity', 1))
+        if qty < 1:
+            return jsonify(success=False, message='Invalid quantity'), 400
+
+        prod = Product.query.get_or_404(product_id)
+        if prod.stock < qty:
+            return jsonify(success=False, message=f'Not enough stock for {prod.name}'), 400
+
+        entry = StaffConsumption(
+            user_id=current_user.id,
+            username=current_user.username,
+            product_id=prod.id,
+            product_name=prod.name,
+            quantity=qty,
+            unit_price=prod.price,
+            subtotal=prod.price * qty,
+        )
+        prod.stock -= qty
+        db.session.add(entry)
+        _log('Staff Consumption', f'{prod.name} x{qty} — {int(prod.price * qty):,} IQD')
+        db.session.commit()
+        return jsonify(success=True, entry_id=entry.id,
+                       product_name=prod.name,
+                       quantity=qty,
+                       unit_price=prod.price,
+                       subtotal=prod.price * qty)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message=str(e)), 500
+
+
+@pos_bp.route('/my-tab/remove/<int:entry_id>', methods=['POST'])
+@login_required
+def my_tab_remove(entry_id):
+    entry = StaffConsumption.query.get_or_404(entry_id)
+    if entry.username != current_user.username:
+        return jsonify(success=False, message='Not your entry'), 403
+    # restore stock
+    prod = Product.query.get(entry.product_id)
+    if prod:
+        prod.stock += entry.quantity
+    db.session.delete(entry)
+    db.session.commit()
+    return jsonify(success=True)

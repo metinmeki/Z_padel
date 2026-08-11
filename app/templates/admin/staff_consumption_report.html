@@ -1,0 +1,165 @@
+﻿{% extends 'admin/base_admin.html' %}
+{% block title %}Staff Consumption Report — Z Padel Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+.sc-filter {
+  background:#fff; border:1px solid var(--border-color); border-radius:var(--radius);
+  box-shadow:var(--shadow-sm); padding:.85rem 1.2rem; margin-bottom:1.25rem;
+  display:flex; align-items:flex-end; flex-wrap:wrap; gap:.75rem;
+}
+.sc-filter-group { display:flex; flex-direction:column; gap:.2rem; }
+.sc-filter-group label { font-size:.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+.sc-filter-group .form-select {
+  font-size:.84rem; border:1.5px solid var(--border-color); border-radius:var(--radius-sm);
+  color:var(--text-dark); height:36px; padding:.25rem .6rem;
+}
+.sc-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.sc-card {
+  background:#fff; border:1px solid var(--border-color); border-radius:var(--radius);
+  box-shadow:var(--shadow-sm); padding:1.1rem 1.3rem; display:flex; align-items:center; gap:.9rem;
+}
+.sc-card-avatar {
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue));
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; font-weight:900; flex-shrink:0;
+}
+.sc-card-name { font-size:.84rem; font-weight:800; color:var(--text-dark); }
+.sc-card-total { font-size:1.1rem; font-weight:900; color:var(--brand-blue); line-height:1; }
+.sc-card-label { font-size:.7rem; color:var(--text-muted); font-weight:600; margin-top:2px; }
+
+.sc-section { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:1rem; }
+.sc-section-head { padding:.75rem 1rem; background:linear-gradient(135deg, var(--brand-blue-deep) 0%, var(--brand-blue) 100%); display:flex; align-items:center; justify-content:space-between; }
+.sc-section-user { display:flex; align-items:center; gap:.6rem; }
+.sc-section-user-avatar { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.25); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; }
+.sc-section-username { color:#fff; font-weight:800; font-size:.92rem; }
+.sc-section-total { color:#fff; font-weight:900; font-size:1rem; }
+
+.sc-table { width:100%; border-collapse:collapse; }
+.sc-table thead tr { background:var(--brand-blue-soft); }
+.sc-table thead th { padding:.55rem 1rem; font-size:.71rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); border-bottom:1px solid var(--border-color); }
+.sc-table tbody tr { border-bottom:1px solid var(--border-color); }
+.sc-table tbody tr:last-child { border-bottom:none; }
+.sc-table tbody tr:hover { background:var(--brand-blue-soft); }
+.sc-table tbody td { padding:.6rem 1rem; font-size:.83rem; color:var(--text-dark); vertical-align:middle; }
+.sc-table tfoot td { padding:.65rem 1rem; font-weight:800; background:var(--brand-blue-soft); border-top:2px solid var(--border-color); }
+
+.sc-empty { text-align:center; padding:4rem 2rem; color:var(--text-muted); }
+.sc-empty i { font-size:3rem; opacity:.15; display:block; margin-bottom:1rem; }
+.sc-empty p { font-weight:600; margin:0; }
+
+.deduct-badge { display:inline-flex; align-items:center; gap:.3rem; background:#fee2e2; color:#b91c1c; padding:.2rem .65rem; border-radius:20px; font-size:.78rem; font-weight:800; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;">
+  <h2 style="margin:0 0 .2rem;font-size:1.45rem;font-weight:900;color:var(--text-dark);">
+    <i class="fas fa-bowl-food me-2" style="color:var(--brand-blue);"></i>
+    {% if lang == 'en' %}Staff Consumption{% else %}استهلاك الموظفين{% endif %}
+  </h2>
+  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">
+    {% if lang == 'en' %}Monthly breakdown — amounts to deduct from salary{% else %}التفاصيل الشهرية — المبالغ المخصومة من الراتب{% endif %}
+  </p>
+</div>
+
+<!-- Month/Year Filter -->
+<form method="GET" class="sc-filter">
+  <div class="sc-filter-group">
+    <label>{% if lang == 'en' %}Month{% else %}الشهر{% endif %}</label>
+    <select name="month" class="form-select" style="width:150px;">
+      {% for m_num, m_name in months %}
+      <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ m_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="sc-filter-group">
+    <label>{% if lang == 'en' %}Year{% else %}السنة{% endif %}</label>
+    <select name="year" class="form-select" style="width:110px;">
+      {% for y in years %}
+      <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div style="display:flex;gap:.5rem;align-items:flex-end;">
+    <button type="submit" style="height:36px;padding:0 1.1rem;border-radius:var(--radius-sm);border:none;background:var(--brand-blue);color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;">
+      <i class="fas fa-filter"></i>{% if lang == 'en' %}View{% else %}عرض{% endif %}
+    </button>
+  </div>
+</form>
+
+{% if staff_summary %}
+
+<!-- Summary cards (one per staff) -->
+<div class="sc-cards">
+  {% for s in staff_summary %}
+  <div class="sc-card">
+    <div class="sc-card-avatar">{{ s.username[0]|upper }}</div>
+    <div>
+      <div class="sc-card-name">{{ s.username }}</div>
+      <div class="sc-card-total">{{ '{:,.0f}'.format(s.total) }} IQD</div>
+      <div class="sc-card-label">{% if lang == 'en' %}to deduct{% else %}يُخصم من الراتب{% endif %}</div>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="sc-card" style="border-color:var(--brand-blue);background:linear-gradient(135deg,#f0f7ff,#fff);">
+    <div class="sc-card-avatar" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);"><i class="fas fa-sigma"></i></div>
+    <div>
+      <div class="sc-card-name">{% if lang == 'en' %}Grand Total{% else %}الإجمالي الكلي{% endif %}</div>
+      <div class="sc-card-total" >{{ '{:,.0f}'.format(grand_total) }} IQD</div>
+      <div class="sc-card-label">{% if lang == 'en' %}all staff{% else %}جميع الموظفين{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed table per staff member -->
+{% for s in staff_summary %}
+<div class="sc-section">
+  <div class="sc-section-head">
+    <div class="sc-section-user">
+      <div class="sc-section-user-avatar">{{ s.username[0]|upper }}</div>
+      <span class="sc-section-username">{{ s.username }}</span>
+      <span style="color:rgba(255,255,255,.65);font-size:.78rem;margin-left:.4rem;">&mdash; {{ s.items|length }} items</span>
+    </div>
+    <span class="deduct-badge"><i class="fas fa-minus"></i>{{ '{:,.0f}'.format(s.total) }} IQD</span>
+  </div>
+  <table class="sc-table">
+    <thead>
+      <tr>
+        <th>{% if lang == 'en' %}Product{% else %}المنتج{% endif %}</th>
+        <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+        <th style="text-align:center;">{% if lang == 'en' %}Qty{% else %}الكمية{% endif %}</th>
+        <th style="text-align:right;">{% if lang == 'en' %}Unit Price{% else %}سعر الوحدة{% endif %}</th>
+        <th style="text-align:right;">{% if lang == 'en' %}Subtotal{% else %}المجموع{% endif %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in s.items %}
+      <tr>
+        <td style="font-weight:600;">{{ item.product_name }}</td>
+        <td style="color:var(--text-muted);font-size:.8rem;">{{ item.consumed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td style="text-align:center;font-weight:700;">{{ item.quantity }}</td>
+        <td style="text-align:right;color:var(--text-muted);">{{ '{:,.0f}'.format(item.unit_price) }} IQD</td>
+        <td style="text-align:right;font-weight:800;color:var(--brand-blue);">{{ '{:,.0f}'.format(item.subtotal) }} IQD</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4" style="color:var(--text-muted);">{% if lang == 'en' %}Total for {{ s.username }}{% else %}إجمالي {{ s.username }}{% endif %}</td>
+        <td style="text-align:right;color:var(--brand-blue);font-size:.95rem;">{{ '{:,.0f}'.format(s.total) }} IQD</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="sc-empty">
+  <i class="fas fa-bowl-food"></i>
+  <p>{% if lang == 'en' %}No consumption recorded for this month{% else %}لا يوجد استهلاك مسجّل لهذا الشهر{% endif %}</p>
+</div>
+{% endif %}
+
+{% endblock %}

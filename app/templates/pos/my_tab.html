@@ -1,0 +1,225 @@
+﻿{% extends 'admin/base_admin.html' %}
+{% block title %}My Tab — Z Padel{% endblock %}
+
+{% block extra_styles %}
+<style>
+.mt-layout { display:grid; grid-template-columns:1fr 360px; gap:1.2rem; align-items:start; }
+.mt-card { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; }
+.mt-card-head { padding:.85rem 1.1rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
+.mt-card-title { font-size:.9rem; font-weight:800; color:var(--text-dark); }
+
+/* Product grid */
+.cat-tabs { display:flex; gap:.4rem; flex-wrap:wrap; padding:.8rem 1rem; border-bottom:1px solid var(--border-color); }
+.cat-tab { padding:.28rem .75rem; border-radius:20px; font-size:.75rem; font-weight:700; cursor:pointer; border:1.5px solid var(--border-color); background:#fff; color:var(--text-muted); transition:all .15s; }
+.cat-tab.active, .cat-tab:hover { background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); }
+.prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:.65rem; padding:1rem; max-height:480px; overflow-y:auto; }
+.prod-card { background:#fff; border:1.5px solid var(--border-color); border-radius:10px; padding:.7rem .6rem; cursor:pointer; text-align:center; transition:all .15s; position:relative; }
+.prod-card:hover { border-color:var(--brand-blue); background:var(--brand-blue-soft); transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+.prod-card.out { opacity:.45; pointer-events:none; }
+.prod-name { font-size:.78rem; font-weight:700; color:var(--text-dark); line-height:1.2; margin-bottom:.3rem; }
+.prod-price { font-size:.75rem; font-weight:800; color:var(--brand-blue); }
+.prod-stock { font-size:.65rem; color:var(--text-muted); margin-top:2px; }
+
+/* My tab list */
+.mt-entry { display:flex; align-items:center; gap:.6rem; padding:.6rem 1rem; border-bottom:1px solid var(--border-color); }
+.mt-entry:last-child { border-bottom:none; }
+.mt-entry-name { flex:1; font-size:.83rem; font-weight:600; color:var(--text-dark); }
+.mt-entry-meta { font-size:.75rem; color:var(--text-muted); }
+.mt-entry-price { font-size:.84rem; font-weight:800; color:var(--brand-blue); white-space:nowrap; }
+.mt-remove { width:24px; height:24px; border-radius:6px; border:1.5px solid #fca5a5; background:#fff; color:#dc2626; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.7rem; flex-shrink:0; transition:all .15s; }
+.mt-remove:hover { background:#fee2e2; }
+.mt-total-bar { padding:.85rem 1.1rem; background:var(--brand-blue-soft); border-top:2px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; }
+.mt-total-label { font-size:.82rem; font-weight:700; color:var(--text-muted); }
+.mt-total-val { font-size:1.2rem; font-weight:900; color:var(--brand-blue); }
+.mt-empty { text-align:center; padding:2.5rem 1rem; color:var(--text-muted); }
+.mt-empty i { font-size:2rem; opacity:.2; display:block; margin-bottom:.6rem; }
+.mt-empty p { font-size:.84rem; font-weight:600; margin:0; }
+
+/* Toast */
+#mt-toast { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--brand-blue); color:#fff; padding:.65rem 1.2rem; border-radius:10px; font-size:.84rem; font-weight:700; display:none; z-index:9999; box-shadow:var(--shadow-md); }
+@media(max-width:768px) { .mt-layout { grid-template-columns:1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.2rem;">
+  <h2 style="margin:0 0 .15rem;font-size:1.35rem;font-weight:900;color:var(--text-dark);">
+    <i class="fas fa-utensils me-2" style="color:var(--brand-blue);"></i>
+    My Tab — {{ current_user.username }}
+  </h2>
+  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">
+    {{ now.strftime('%B %Y') }} &mdash; What you consumed this month
+  </p>
+</div>
+
+<div class="mt-layout">
+
+  <!-- LEFT: Product grid -->
+  <div class="mt-card">
+    <div class="mt-card-head">
+      <span class="mt-card-title"><i class="fas fa-box-open me-2" style="color:var(--brand-blue);"></i>Products</span>
+      <input type="text" id="prodSearch" placeholder="Search..." style="height:30px;padding:0 .6rem;font-size:.8rem;border:1.5px solid var(--border-color);border-radius:8px;width:160px;">
+    </div>
+    <!-- Category tabs -->
+    <div class="cat-tabs">
+      <button class="cat-tab active" data-cat="all">All</button>
+      {% for cat in categories %}
+      <button class="cat-tab" data-cat="{{ cat.id }}">{{ cat.name }}</button>
+      {% endfor %}
+    </div>
+    <div class="prod-grid" id="prodGrid">
+      {% for p in products %}
+      <div class="prod-card {% if p.stock == 0 %}out{% endif %}"
+           data-id="{{ p.id }}"
+           data-name="{{ p.name }}"
+           data-price="{{ p.price }}"
+           data-cat="{{ p.category_id or '' }}"
+           onclick="addItem({{ p.id }})">
+        <div class="prod-name">{{ p.name }}</div>
+        <div class="prod-price">{{ '{:,.0f}'.format(p.price) }} IQD</div>
+        <div class="prod-stock">Stock: {{ p.stock }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RIGHT: My tab this month -->
+  <div>
+    <div class="mt-card">
+      <div class="mt-card-head">
+        <span class="mt-card-title"><i class="fas fa-list-check me-2" style="color:var(--brand-blue);"></i>This Month</span>
+        <span style="font-size:.75rem;color:var(--text-muted);font-weight:600;" id="entryCount">{{ entries|length }} items</span>
+      </div>
+      <div id="entryList">
+        {% if entries %}
+          {% for e in entries %}
+          <div class="mt-entry" id="entry-{{ e.id }}">
+            <div style="flex:1;min-width:0;">
+              <div class="mt-entry-name">{{ e.product_name }}</div>
+              <div class="mt-entry-meta">x{{ e.quantity }} &middot; {{ e.consumed_at.strftime('%d %b') }}</div>
+            </div>
+            <div class="mt-entry-price">{{ '{:,.0f}'.format(e.subtotal) }} IQD</div>
+            <button class="mt-remove" onclick="removeItem({{ e.id }})" title="Remove"><i class="fas fa-xmark"></i></button>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="mt-empty" id="emptyMsg">
+            <i class="fas fa-utensils"></i>
+            <p>Nothing added yet this month</p>
+          </div>
+        {% endif %}
+      </div>
+      <div class="mt-total-bar">
+        <span class="mt-total-label">Total to deduct</span>
+        <span class="mt-total-val" id="grandTotal">{{ '{:,.0f}'.format(total) }} IQD</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mt-toast"></div>
+
+<script>
+let _total = {{ total }};
+let _count = {{ entries|length }};
+
+// Category filter
+document.querySelectorAll('.cat-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterProducts();
+  });
+});
+document.getElementById('prodSearch').addEventListener('input', filterProducts);
+
+function filterProducts() {
+  const cat = document.querySelector('.cat-tab.active').dataset.cat;
+  const q   = document.getElementById('prodSearch').value.toLowerCase();
+  document.querySelectorAll('.prod-card').forEach(c => {
+    const matchCat  = cat === 'all' || c.dataset.cat == cat;
+    const matchName = c.dataset.name.toLowerCase().includes(q);
+    c.style.display = (matchCat && matchName) ? '' : 'none';
+  });
+}
+
+function toast(msg, ok=true) {
+  const el = document.getElementById('mt-toast');
+  el.textContent = msg;
+  el.style.background = ok ? 'var(--brand-blue)' : '#dc2626';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 2500);
+}
+
+function addItem(productId) {
+  fetch('/pos/my-tab/add', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCSRF()},
+    body: JSON.stringify({product_id: productId, quantity: 1})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) { toast(d.message || 'Error', false); return; }
+    toast(`Added: ${d.product_name}`);
+    _total += d.subtotal;
+    _count++;
+    document.getElementById('grandTotal').textContent = _total.toLocaleString() + ' IQD';
+    document.getElementById('entryCount').textContent = _count + ' items';
+    // remove empty msg
+    const em = document.getElementById('emptyMsg');
+    if (em) em.remove();
+    // prepend entry row
+    const row = document.createElement('div');
+    row.className = 'mt-entry';
+    row.id = 'entry-' + d.entry_id;
+    const today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short'});
+    row.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div class="mt-entry-name">${d.product_name}</div>
+        <div class="mt-entry-meta">x${d.quantity} &middot; ${today}</div>
+      </div>
+      <div class="mt-entry-price">${d.subtotal.toLocaleString()} IQD</div>
+      <button class="mt-remove" onclick="removeItem(${d.entry_id})" title="Remove"><i class="fas fa-xmark"></i></button>
+    `;
+    document.getElementById('entryList').prepend(row);
+  })
+  .catch(() => toast('Network error', false));
+}
+
+function removeItem(entryId) {
+  if (!confirm('Remove this item?')) return;
+  fetch(`/pos/my-tab/remove/${entryId}`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCSRF()}
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) { toast('Error removing', false); return; }
+    const row = document.getElementById('entry-' + entryId);
+    if (row) {
+      // read subtotal from price cell
+      const priceText = row.querySelector('.mt-entry-price').textContent.replace(/[^0-9]/g,'');
+      _total -= parseInt(priceText) || 0;
+      _count--;
+      row.remove();
+    }
+    document.getElementById('grandTotal').textContent = _total.toLocaleString() + ' IQD';
+    document.getElementById('entryCount').textContent = _count + ' items';
+    if (_count === 0) {
+      document.getElementById('entryList').innerHTML = `
+        <div class="mt-empty" id="emptyMsg">
+          <i class="fas fa-utensils"></i>
+          <p>Nothing added yet this month</p>
+        </div>`;
+    }
+    toast('Removed');
+  });
+}
+
+function getCSRF() {
+  const m = document.cookie.match(/csrf_token=([^;]+)/);
+  return m ? m[1] : (document.querySelector('meta[name=csrf-token]')?.content || '');
+}
+</script>
+{% endblock %}

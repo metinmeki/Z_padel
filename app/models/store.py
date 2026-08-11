@@ -108,3 +108,21 @@ class Expense(db.Model):
 
     def __repr__(self):
         return f'<Expense {self.description} {self.amount}>'
+
+
+class StaffConsumption(db.Model):
+    __tablename__ = 'staff_consumption'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    user_id      = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=True)
+    username     = db.Column(db.String(80),  nullable=False)
+    product_id   = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_name = db.Column(db.String(120), nullable=False)
+    quantity     = db.Column(db.Integer, default=1)
+    unit_price   = db.Column(db.Float,   default=0)
+    subtotal     = db.Column(db.Float,   default=0)
+    consumed_at  = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    note         = db.Column(db.String(200), nullable=True)
+
+    def __repr__(self):
+        return f'<StaffConsumption {self.username} {self.product_name}>'
