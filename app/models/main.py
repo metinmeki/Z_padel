@@ -424,12 +424,14 @@ class CourtSession(db.Model):
         import math
         minutes = self.elapsed_minutes
         rate = self.court.price_per_hour if self.court else 40000
+        # Each 30-min block has a 15-min grace period before stepping up:
+        # ≤75 min → 1h, ≤105 → 1.5h, ≤135 → 2h, ≤165 → 2.5h, ≤195 → 3h …
         if minutes <= 75:
             hours_billed = 1
         elif minutes <= 105:
             hours_billed = 1.5
         else:
-            hours_billed = max(2, math.ceil(minutes / 60))
+            hours_billed = max(2, math.ceil((minutes - 15) / 30) / 2)
         return round(hours_billed * rate * TIME_DISCOUNT)
 
     @property
