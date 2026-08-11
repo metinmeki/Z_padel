@@ -94,7 +94,7 @@
             <div class="invoice-item-sub" id="item-sub-{{ item.id }}">{{ '{:,.0f}'.format(item.price) }} × {{ item.quantity }}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.4rem;">
-            {% if session.status == 'active' %}
+            {% if session.status in ('active', 'pending_payment') %}
             <div class="item-qty-ctrl">
               <button class="item-qty-btn minus" onclick="adjItemQty({{ item.id }}, -1)">−</button>
               <span class="item-qty-val" id="item-qty-{{ item.id }}">{{ item.quantity }}</span>
@@ -143,7 +143,6 @@
         <span>{% if lang == 'en' %}After discount:{% else %}بعد الخصم:{% endif %}</span>
         <span id="discountedTotalDisplay">0 IQD</span>
       </div>
-
       <button class="btn btn-success" onclick="finishSession('cash')">
         <i class="fas fa-money-bill-wave me-2"></i>{% if lang == 'en' %}Finish & Pay (Cash){% else %}إنهاء ودفع (نقدي){% endif %}
       </button>
@@ -162,6 +161,29 @@
         <i class="fas fa-times me-2"></i>{% if lang == 'en' %}Cancel Session{% else %}إلغاء الجلسة{% endif %}
       </button>
     </div>
+    {% elif session.status == 'pending_payment' %}
+    <div style="background:#fff8e1;border:1.5px solid #f59e0b;border-radius:10px;padding:.75rem 1rem;margin-top:.75rem;margin-bottom:.5rem;">
+      <div style="font-weight:800;color:#92400e;font-size:.88rem;">
+        <i class="fas fa-clock me-1"></i>{% if lang == 'en' %}Awaiting Payment — Add more items below{% else %}في انتظار الدفع — يمكن إضافة منتجات إضافية{% endif %}
+      </div>
+    </div>
+    <div style="margin-bottom:.5rem;">
+      <label style="font-size:.78rem;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:.25rem;">
+        <i class="fas fa-tag me-1"></i>{% if lang == 'en' %}Discount (IQD){% else %}خصم (IQD){% endif %}
+      </label>
+      <input type="number" id="discountInput" class="form-control" min="0" placeholder="0"
+             oninput="updateDiscountedTotal()" style="text-align:center;font-weight:800;">
+    </div>
+    <div id="discountedTotalRow" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:.5rem .8rem;margin-bottom:.5rem;font-weight:900;color:#92400e;justify-content:space-between;">
+      <span>{% if lang == 'en' %}After discount:{% else %}بعد الخصم:{% endif %}</span>
+      <span id="discountedTotalDisplay">0 IQD</span>
+    </div>
+    <button class="btn btn-success w-100" onclick="finishSession('cash')" style="margin-bottom:.4rem;">
+      <i class="fas fa-money-bill-wave me-2"></i>{% if lang == 'en' %}Pay Now (Cash){% else %}ادفع الآن (نقدي){% endif %}
+    </button>
+    <a href="{{ url_for('pos.activities') }}" class="btn btn-outline-secondary w-100">
+      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }} me-2"></i>{% if lang == 'en' %}Back to Activities{% else %}رجوع للأنشطة{% endif %}
+    </a>
     {% else %}
     <div class="alert alert-success text-center" style="margin-top:1rem;">
       <i class="fas fa-check-circle me-2"></i>{% if lang == 'en' %}Session completed{% else %}تم إنهاء الجلسة{% endif %}
@@ -198,7 +220,7 @@
       </div>
     </div>
 
-    {% if session.status == 'active' %}
+    {% if session.status in ('active', 'pending_payment') %}
     <div class="search-row">
       <div style="position:relative;">
         <i class="fas fa-search" style="position:absolute;{{ 'left' if lang == 'en' else 'right' }}:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
