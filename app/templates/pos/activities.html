@@ -140,12 +140,192 @@
   </a>
 </div>
 {% endif %}
+
+<!-- ═══ STAFF TABS SECTION ═══ -->
+<div style="margin-top:2rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;">
+    <h3 style="margin:0;font-size:1rem;font-weight:800;color:var(--text-dark);">
+      <i class="fas fa-utensils me-2" style="color:var(--primary);"></i>
+      {% if lang == 'en' %}Staff Tabs{% else %}تبويبات الموظفين{% endif %}
+    </h3>
+    <span style="font-size:.75rem;color:var(--text-muted);">{% if lang == 'en' %}Select a tab then tap a product{% else %}اختر تبويباً ثم اضغط منتجاً{% endif %}</span>
+  </div>
+
+  <!-- 7 slot buttons -->
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+    {% for slot in staff_slots %}
+    <button onclick="selectStaffSlot({{ slot.id }}, {{ slot.staff_name|tojson }})"
+            id="ss-btn-{{ slot.id }}"
+            style="padding:.5rem 1rem;border-radius:10px;border:2px solid var(--border);background:#fff;font-size:.84rem;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all .18s;">
+      {{ slot.staff_name }}
+      <span style="display:block;font-size:.68rem;opacity:.7;" id="ss-total-{{ slot.id }}">{{ '{:,.0f}'.format(slot.total) }} IQD</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- Staff tab detail panel (hidden until slot selected) -->
+  <div id="ssPanel" style="display:none;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+    <div style="padding:.75rem 1rem;background:linear-gradient(135deg,#0D47A1,#1565C0);display:flex;align-items:center;justify-content:space-between;">
+      <span id="ssPanelTitle" style="color:#fff;font-weight:800;font-size:.95rem;"></span>
+      <button onclick="closeStaffSlot()" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-size:.85rem;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:0;">
+
+      <!-- Product grid -->
+      <div style="border-right:1px solid var(--border);">
+        <!-- Category filter -->
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;padding:.6rem .9rem;border-bottom:1px solid var(--border);background:#f0f7ff;">
+          <button class="ss-cat active" data-cat="all" onclick="filterSSCat(this)"
+                  style="padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid #d0e4ff;background:#1565C0;color:#fff;">All</button>
+          {% for cat in categories %}
+          <button class="ss-cat" data-cat="{{ cat.id }}" onclick="filterSSCat(this)"
+                  style="padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-muted);">{{ cat.name }}</button>
+          {% endfor %}
+        </div>
+        <!-- Search -->
+        <div style="padding:.5rem .9rem;border-bottom:1px solid var(--border);">
+          <input id="ssProdSearch" type="text" placeholder="Search..." oninput="filterSSProds()"
+                 style="width:100%;height:32px;padding:0 .7rem;font-size:.82rem;border:1.5px solid var(--border);border-radius:8px;">
+        </div>
+        <!-- Products -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.5rem;padding:.75rem;max-height:380px;overflow-y:auto;" id="ssProdGrid">
+          {% for p in products %}
+          <div class="ss-prod {% if p.stock == 0 %}ss-out{% endif %}"
+               data-id="{{ p.id }}" data-name="{{ p.name }}" data-cat="{{ p.category_id or '' }}"
+               onclick="ssAddItem({{ p.id }})"
+               style="border:1.5px solid var(--border);border-radius:9px;padding:.6rem .5rem;cursor:pointer;text-align:center;transition:all .15s;">
+            <div style="font-size:.74rem;font-weight:700;line-height:1.2;margin-bottom:.2rem;">{{ p.name }}</div>
+            <div style="font-size:.72rem;font-weight:800;color:#1565C0;">{{ '{:,.0f}'.format(p.price) }} IQD</div>
+            <div style="font-size:.62rem;color:var(--text-muted);">{{ p.stock }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Items list -->
+      <div style="display:flex;flex-direction:column;">
+        <div style="padding:.6rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.82rem;font-weight:800;">Items added</span>
+          <span style="font-size:.72rem;color:var(--text-muted);" id="ssItemCount">0 items</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;max-height:340px;" id="ssItemsList">
+          <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.82rem;">Nothing added yet</div>
+        </div>
+        <div style="padding:.75rem 1rem;background:#f0f7ff;border-top:2px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:.8rem;font-weight:700;color:var(--text-muted);">Total</span>
+          <span style="font-size:1.1rem;font-weight:900;color:#1565C0;" id="ssSlotTotal">0 IQD</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="ssToast" style="position:fixed;bottom:1.5rem;right:1.5rem;background:#1565C0;color:#fff;padding:.6rem 1.2rem;border-radius:10px;font-size:.83rem;font-weight:700;display:none;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);"></div>
+
+<style>
+.ss-prod:hover { border-color:#1565C0!important; background:#f0f7ff!important; }
+.ss-out { opacity:.4; pointer-events:none; }
+.ss-btn-active { border-color:#1565C0!important; background:#1565C0!important; color:#fff!important; }
+.ss-item-row { display:flex;align-items:center;gap:.5rem;padding:.5rem .9rem;border-bottom:1px solid var(--border); }
+.ss-item-row:last-child { border-bottom:none; }
+.ss-del { width:22px;height:22px;border-radius:6px;border:1.5px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.68rem;flex-shrink:0; }
+.ss-del:hover { background:#fee2e2; }
+.ss-cat.active { background:#1565C0!important;color:#fff!important;border-color:#1565C0!important; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 const isEn = '{{ lang }}' === 'en';
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+/* ─── Staff Tabs JS ─── */
+let ssActiveId = null;
+const ssData = {};
+{% for slot in staff_slots %}
+ssData[{{ slot.id }}] = {
+  name: {{ slot.staff_name|tojson }},
+  total: {{ slot.total }},
+  items: [{% for item in slot.items %}{id:{{ item.id }},name:{{ item.product_name|tojson }},qty:{{ item.quantity }},sub:{{ item.subtotal }},date:{{ item.added_at.strftime('%d %b')|tojson }}},{% endfor %}]
+};
+{% endfor %}
+
+function selectStaffSlot(id, name) {
+  if (ssActiveId) document.getElementById('ss-btn-' + ssActiveId)?.classList.remove('ss-btn-active');
+  ssActiveId = id;
+  document.getElementById('ss-btn-' + id).classList.add('ss-btn-active');
+  document.getElementById('ssPanelTitle').textContent = name + ' — Tab';
+  document.getElementById('ssPanel').style.display = 'block';
+  ssRender();
+  document.getElementById('ssPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeStaffSlot() {
+  if (ssActiveId) document.getElementById('ss-btn-' + ssActiveId)?.classList.remove('ss-btn-active');
+  ssActiveId = null;
+  document.getElementById('ssPanel').style.display = 'none';
+}
+function ssRender() {
+  const d = ssData[ssActiveId];
+  document.getElementById('ssItemCount').textContent = d.items.length + ' items';
+  document.getElementById('ssSlotTotal').textContent = d.total.toLocaleString() + ' IQD';
+  document.getElementById('ss-total-' + ssActiveId).textContent = d.total.toLocaleString() + ' IQD';
+  const list = document.getElementById('ssItemsList');
+  if (!d.items.length) { list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.82rem;">Nothing added yet</div>'; return; }
+  list.innerHTML = d.items.map(it => `
+    <div class="ss-item-row" id="ssitem-${it.id}">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.8rem;font-weight:600;">${it.name}</div>
+        <div style="font-size:.68rem;color:var(--text-muted);">x${it.qty} &middot; ${it.date}</div>
+      </div>
+      <div style="font-size:.8rem;font-weight:800;color:#1565C0;white-space:nowrap;">${it.sub.toLocaleString()} IQD</div>
+      <button class="ss-del" onclick="ssRemove(${it.id})"><i class="fas fa-xmark"></i></button>
+    </div>`).join('');
+}
+function ssAddItem(productId) {
+  if (!ssActiveId) { ssToast('Select a staff tab first!', false); return; }
+  fetch(`/pos/staff-slots/${ssActiveId}/add`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},
+    body:JSON.stringify({product_id:productId,quantity:1})
+  }).then(r=>r.json()).then(d=>{
+    if (!d.success) { ssToast(d.message||'Error',false); return; }
+    ssToast('Added: '+d.product_name);
+    const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+    ssData[ssActiveId].items.unshift({id:d.item_id,name:d.product_name,qty:d.quantity,sub:d.subtotal,date:today});
+    ssData[ssActiveId].total = d.slot_total;
+    ssRender();
+  }).catch(()=>ssToast('Network error',false));
+}
+function ssRemove(itemId) {
+  if (!confirm('Remove this item?')) return;
+  fetch(`/pos/staff-slots/${ssActiveId}/remove/${itemId}`,{method:'POST',headers:{'X-CSRFToken':csrfToken}})
+  .then(r=>r.json()).then(d=>{
+    if (!d.success) return;
+    ssData[ssActiveId].items = ssData[ssActiveId].items.filter(i=>i.id!==itemId);
+    ssData[ssActiveId].total = d.slot_total;
+    ssRender();
+    ssToast('Removed');
+  });
+}
+function filterSSCat(btn) {
+  document.querySelectorAll('.ss-cat').forEach(b=>{ b.classList.remove('active'); b.style.background='#fff'; b.style.color='var(--text-muted)'; b.style.borderColor='var(--border)'; });
+  btn.classList.add('active');
+  filterSSProds();
+}
+function filterSSProds() {
+  const cat = document.querySelector('.ss-cat.active')?.dataset.cat || 'all';
+  const q = document.getElementById('ssProdSearch').value.toLowerCase();
+  document.querySelectorAll('.ss-prod').forEach(c=>{
+    const ok = (cat==='all'||c.dataset.cat==cat) && c.dataset.name.toLowerCase().includes(q);
+    c.style.display = ok?'':'none';
+  });
+}
+function ssToast(msg,ok=true) {
+  const el=document.getElementById('ssToast');
+  el.textContent=msg; el.style.background=ok?'#1565C0':'#dc2626';
+  el.style.display='block'; setTimeout(()=>el.style.display='none',2400);
+}
 
 function filterAct(act, btn) {
   document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
