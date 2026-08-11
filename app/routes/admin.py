@@ -235,8 +235,9 @@ def fix_image_backgrounds():
 @login_required
 def dashboard():
     if current_user.username.lower() not in FINANCE_USERS:
-        flash('Access denied.', 'danger')
-        return redirect(url_for('admin.bookings'))
+        if current_user.has_perm('perm_bookings'):
+            return redirect(url_for('admin.bookings'))
+        return redirect(url_for('pos.courts'))
     today = date.today()
     now_h = datetime.now().hour
 
@@ -298,6 +299,8 @@ def dashboard():
 @admin_bp.route('/bookings', methods=['GET', 'POST'])
 @login_required
 def bookings():
+    if not current_user.has_perm('perm_bookings'):
+        return redirect(url_for('pos.courts'))
     if request.method == 'POST':
         return redirect(url_for('admin.bookings'))
     q = Booking.query
