@@ -3,7 +3,7 @@
 {% block page_icon %}fas fa-video{% endblock %}
 {% block page_title %}{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %}{% endblock %}
 
-{% block styles %}
+{% block extra_styles %}
 <style>
 /* ══ Stats ══ */
 .stats-strip { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
@@ -153,7 +153,7 @@
 .empty-state { text-align:center; padding:50px 20px; color:var(--text-muted); }
 .empty-state i { font-size:40px; opacity:.3; display:block; margin-bottom:12px; }
 </style>
-{% endblock %}
+{% endblock extra_styles %}
 
 {% block content %}
 
