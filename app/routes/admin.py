@@ -2133,6 +2133,10 @@ def staff_consumption_report():
 @admin_bp.route('/staff-slots')
 @login_required
 def staff_slots_admin():
+    if StaffSlot.query.count() == 0:
+        for i in range(1, 8):
+            db.session.add(StaffSlot(slot_number=i, staff_name=f'Staff {i}'))
+        db.session.commit()
     slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
     return render_template('admin/staff_slots_admin.html', slots=slots, lang=g.lang)
 

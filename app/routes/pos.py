@@ -988,6 +988,10 @@ def my_tab_remove(entry_id):
 @pos_bp.route('/staff-slots')
 @login_required
 def staff_slots():
+    if StaffSlot.query.count() == 0:
+        for i in range(1, 8):
+            db.session.add(StaffSlot(slot_number=i, staff_name=f'Staff {i}'))
+        db.session.commit()
     slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
     products   = Product.query.filter_by(is_active=True).order_by(Product.name).all()
     categories = Category.query.order_by(Category.name).all()
