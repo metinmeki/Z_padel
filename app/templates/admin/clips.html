@@ -257,6 +257,17 @@
           </button>
           {% endif %}
           {% endif %}
+          {% if clip.status == 'failed' %}
+          <form method="POST" action="{{ url_for('admin.retry_clip', clip_id=clip.id) }}"
+                style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-sm-z ms-1"
+                    style="background:rgba(230,126,34,.15);color:#e67e22;"
+                    title="{% if lang == 'en' %}Retry download{% else %}إعادة التحميل{% endif %}">
+              <i class="fas fa-rotate-right"></i>
+            </button>
+          </form>
+          {% endif %}
           <form method="POST" action="{{ url_for('admin.delete_clip', clip_id=clip.id) }}"
                 style="display:inline;"
                 onsubmit="return confirm('{% if lang == 'en' %}Delete this clip?{% else %}حذف هذا المقطع؟{% endif %}')">

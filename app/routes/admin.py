@@ -1763,6 +1763,17 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
 @admin_bp.route('/clips')
 @login_required
 def clips():
+    # Auto-fail clips stuck in "processing" for more than 45 minutes
+    # (daemon threads die on server restart, leaving clips stuck forever)
+    stuck = GameClip.query.filter_by(status='processing').filter(
+        GameClip.created_at < datetime.utcnow() - timedelta(minutes=45)
+    ).all()
+    for c in stuck:
+        c.status = 'failed'
+        c.status_msg = 'Download timed out — server was likely restarted. Click Retry to try again.'
+    if stuck:
+        db.session.commit()
+
     all_clips = GameClip.query.order_by(GameClip.created_at.desc()).all()
     return render_template('admin/clips.html', clips=all_clips)
 
@@ -1844,6 +1855,47 @@ def download_admin_clip(clip_id):
     return send_file(filepath, as_attachment=True,
                      download_name=f"padel-{clip.court}-{clip.clip_date}.mp4",
                      mimetype='video/mp4')
+
+
+@admin_bp.route('/clips/<int:clip_id>/retry', methods=['POST'])
+@login_required
+def retry_clip(clip_id):
+    import threading
+    clip = GameClip.query.get_or_404(clip_id)
+    clips_dir = current_app.config['CLIPS_FOLDER']
+    os.makedirs(clips_dir, exist_ok=True)
+    output_path = os.path.join(clips_dir, clip.filename)
+
+    # Reconstruct start/end datetimes from stored fields
+    from datetime import time as _t
+    parts = clip.start_time.split(':')
+    start_dt = datetime.combine(
+        clip.clip_date,
+        _t(int(parts[0]), int(parts[1]), int(parts[2]) if len(parts) > 2 else 0)
+    )
+    end_dt = start_dt + timedelta(seconds=clip.duration_sec)
+
+    clip.status = 'processing'
+    clip.status_msg = None
+    db.session.commit()
+
+    channel = COURT_CHANNELS.get(clip.court)
+    if not channel:
+        clip.status = 'failed'
+        clip.status_msg = f'Unknown court: {clip.court}'
+        db.session.commit()
+        flash('Unknown court mapping.', 'danger')
+        return redirect(url_for('admin.clips'))
+
+    app = current_app._get_current_object()
+    t = threading.Thread(
+        target=_download_nvr_clip,
+        args=(app, clip.id, channel, start_dt, end_dt, output_path),
+        daemon=True
+    )
+    t.start()
+    flash('⏳ Retrying download from NVR…', 'info')
+    return redirect(url_for('admin.clips'))
 
 
 @admin_bp.route('/clips/<int:clip_id>/delete', methods=['POST'])
