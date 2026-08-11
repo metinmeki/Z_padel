@@ -251,8 +251,27 @@
             <i class="fas fa-download"></i>
           </a>
           {% if not clip.is_expired %}
+          {% set clip_url = request.host_url + 'clip/' + clip.token %}
+          {% set wa_msg = 'مرحباً! مقطع مباراتك في Z Padel جاهز 🎾\n' + clip_url %}
+          {% if clip.customer_phone %}
+          {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
+          <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
+             class="btn-sm-z ms-1" target="_blank"
+             style="background:#dcfce7;color:#16a34a;"
+             title="Send to {{ clip.customer_phone }} via WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          {% else %}
+          <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
+             class="btn-sm-z ms-1" target="_blank"
+             style="background:#dcfce7;color:#16a34a;"
+             title="Share via WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          {% endif %}
           <button class="btn-sm-z btn-cp ms-1"
-                  onclick="copyLink('{{ request.host_url }}clip/{{ clip.token }}', this)">
+                  onclick="copyLink('{{ clip_url }}', this)"
+                  title="Copy share link">
             <i class="fas fa-share-nodes"></i>
           </button>
           {% endif %}

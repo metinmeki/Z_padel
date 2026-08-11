@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Z Padel — Game Clip</title>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(160deg, #0D47A1 0%, #1565C0 40%, #0ea5e9 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 0 0 2rem;
+    }
+
+    /* Header */
+    .header {
+      width: 100%; text-align: center;
+      padding: 2rem 1rem 1.5rem;
+      color: #fff;
+    }
+    .logo { font-size: 2rem; font-weight: 900; letter-spacing: -1px; }
+    .logo span { color: #38bdf8; }
+    .tagline { font-size: .85rem; opacity: .75; margin-top: .25rem; }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 22px;
+      width: calc(100% - 2rem);
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      overflow: hidden;
+    }
+
+    /* Video preview area */
+    .video-area {
+      background: #0D1117;
+      position: relative;
+      aspect-ratio: 16/9;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .video-area video {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+    .play-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.4);
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .play-overlay:hover { background: rgba(0,0,0,.2); }
+    .play-btn {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(255,255,255,.9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: #1565C0;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+
+    /* Info rows */
+    .info-section { padding: 1.25rem 1.25rem .75rem; }
+    .info-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .5rem 0; border-bottom: 1px solid #f0f0f0;
+      font-size: .88rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #888; font-weight: 600; display: flex; align-items: center; gap: .4rem; }
+    .info-val { font-weight: 700; color: #1a1a2e; text-align: right; }
+
+    /* Action buttons */
+    .actions { padding: .75rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: .65rem; }
+
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: .65rem;
+      padding: .9rem 1rem; border-radius: 14px; font-size: 1rem;
+      font-weight: 800; text-decoration: none; cursor: pointer;
+      border: none; width: 100%; transition: transform .15s, opacity .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(.97); opacity: .9; }
+
+    .btn-download {
+      background: linear-gradient(135deg, #1565C0, #0ea5e9);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(14,165,233,.35);
+    }
+    .btn-whatsapp {
+      background: #25D366;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(37,211,102,.3);
+    }
+
+    /* Expiry notice */
+    .expiry {
+      text-align: center; font-size: .78rem; color: #aaa;
+      padding: 0 1.25rem 1rem;
+    }
+    .expiry i { color: #e67e22; margin-right: .3rem; }
+
+    /* Footer */
+    .footer {
+      margin-top: 1.5rem; color: rgba(255,255,255,.55);
+      font-size: .75rem; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Z <span>PADEL</span></div>
+  <div class="tagline">Duhok, Iraq — Your Game Clip is Ready!</div>
+</div>
+
+<div class="card">
+
+  <!-- Video player -->
+  <div class="video-area" id="videoArea">
+    <video id="clipVideo" preload="metadata"
+           src="{{ url_for('main.download_clip_file', token=clip.token) }}#t=0.1"
+           playsinline webkit-playsinline>
+    </video>
+    <div class="play-overlay" id="playOverlay" onclick="playVid()">
+      <div class="play-btn"><i class="fas fa-play" style="margin-left:4px;"></i></div>
+    </div>
+  </div>
+
+  <!-- Clip details -->
+  <div class="info-section">
+    <div class="info-row">
+      <span class="info-label"><i class="fas fa-table-tennis-paddle-ball"></i> Court</span>
+      <span class="info-val">{{ clip.court_label }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label"><i class="fas fa-calendar"></i> Date</span>
+      <span class="info-val">{{ clip.clip_date.strftime('%d %b %Y') }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label"><i class="fas fa-clock"></i> Time</span>
+      <span class="info-val">{{ clip.start_time[:5] }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label"><i class="fas fa-stopwatch"></i> Duration</span>
+      <span class="info-val">
+        {% set m = clip.duration_sec // 60 %}{% set s = clip.duration_sec % 60 %}
+        {% if m %}{{ m }} min{% if s %} {{ s }}s{% endif %}{% else %}{{ s }}s{% endif %}
+      </span>
+    </div>
+    {% if clip.customer_name %}
+    <div class="info-row">
+      <span class="info-label"><i class="fas fa-user"></i> Player</span>
+      <span class="info-val">{{ clip.customer_name }}</span>
+    </div>
+    {% endif %}
+    {% if clip.note %}
+    <div class="info-row">
+      <span class="info-label"><i class="fas fa-note-sticky"></i> Note</span>
+      <span class="info-val" style="font-style:italic;color:#555;">{{ clip.note }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Download button -->
+  <div class="actions">
+    <a href="{{ url_for('main.download_clip_file', token=clip.token) }}"
+       class="btn btn-download" download>
+      <i class="fas fa-download"></i>
+      Save Video to Phone
+    </a>
+
+    <!-- WhatsApp share (player's phone if known) -->
+    {% set clip_url = request.url_root + 'clip/' + clip.token %}
+    {% set wa_msg = 'مرحباً! مقطع مباراتك في Z Padel جاهز 🎾\n' + clip_url %}
+    {% if clip.customer_phone %}
+    {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
+    <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
+       class="btn btn-whatsapp" target="_blank">
+      <i class="fab fa-whatsapp" style="font-size:1.2rem;"></i>
+      Send to {{ clip.customer_name or clip.customer_phone }} via WhatsApp
+    </a>
+    {% else %}
+    <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
+       class="btn btn-whatsapp" target="_blank">
+      <i class="fab fa-whatsapp" style="font-size:1.2rem;"></i>
+      Share via WhatsApp
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="expiry">
+    <i class="fas fa-hourglass-half"></i>
+    This link expires on {{ clip.expires_at.strftime('%d %b %Y %H:%M') }} UTC
+  </div>
+</div>
+
+<div class="footer">Z Padel &copy; {{ clip.clip_date.year }} — Powered by Coda Agency</div>
+
+<script>
+function playVid() {
+  const v = document.getElementById('clipVideo');
+  const o = document.getElementById('playOverlay');
+  o.style.display = 'none';
+  v.controls = true;
+  v.play();
+}
+</script>
+</body>
+</html>

@@ -181,6 +181,17 @@ def share_clip(token):
     filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
     if not os.path.exists(filepath):
         abort(404)
+    return render_template('clip_share.html', clip=clip)
+
+
+@main_bp.route('/clip/<token>/download')
+def download_clip_file(token):
+    clip = GameClip.query.filter_by(token=token).first_or_404()
+    if clip.is_expired:
+        return render_template('clip_expired.html'), 410
+    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
+    if not os.path.exists(filepath):
+        abort(404)
     return send_file(
         filepath,
         as_attachment=True,
