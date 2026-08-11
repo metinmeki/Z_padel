@@ -15,7 +15,7 @@ from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
-                               Sponsor)
+                               Sponsor, CourtSession)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory)
 from sqlalchemy import func, case
@@ -796,6 +796,110 @@ def delete_order(order_id):
     db.session.delete(o)
     db.session.commit()
     return jsonify({"success": True})
+# ════════════════════════════════════════════
+# RECEIPT HISTORY (finance users only)
+# ════════════════════════════════════════════
+@admin_bp.route('/receipt-history')
+@login_required
+def receipt_history():
+    if current_user.username.lower() not in FINANCE_USERS:
+        return redirect(url_for('admin.dashboard'))
+
+    # --- date filter ---
+    date_from_str = request.args.get('date_from', '')
+    date_to_str   = request.args.get('date_to', '')
+    type_filter   = request.args.get('type', 'all')
+
+    try:
+        date_from = datetime.strptime(date_from_str, '%Y-%m-%d') if date_from_str else None
+    except ValueError:
+        date_from = None
+    try:
+        date_to = datetime.strptime(date_to_str, '%Y-%m-%d') + timedelta(days=1) if date_to_str else None
+    except ValueError:
+        date_to = None
+
+    records = []
+
+    # ── Quick Sales ──
+    if type_filter in ('all', 'quick'):
+        q = Order.query.options(joinedload(Order.items)).filter_by(status='completed')
+        if date_from: q = q.filter(Order.created_at >= date_from)
+        if date_to:   q = q.filter(Order.created_at <  date_to)
+        for o in q.all():
+            local_dt = o.created_at + timedelta(hours=3)
+            records.append({
+                'type':        'quick',
+                'type_label':  'Quick Sale',
+                'id':          o.id,
+                'date':        o.created_at,
+                'local_time':  local_dt.strftime('%H:%M'),
+                'description': ', '.join(f"{i.product_name}×{i.quantity}" for i in o.items) or '—',
+                'customer':    o.customer_name or '—',
+                'total':       o.total_price,
+                'payment':     (o.notes or 'cash').split()[0],
+                'receipt_url': url_for('pos.receipt', order_id=o.id),
+            })
+
+    # ── Court Sessions ──
+    if type_filter in ('all', 'court'):
+        q = CourtSession.query.options(joinedload(CourtSession.items)).filter_by(status='completed')
+        if date_from: q = q.filter(CourtSession.created_at >= date_from)
+        if date_to:   q = q.filter(CourtSession.created_at <  date_to)
+        for s in q.all():
+            local_dt = s.created_at + timedelta(hours=3)
+            records.append({
+                'type':        'court',
+                'type_label':  'Court',
+                'id':          s.id,
+                'date':        s.created_at,
+                'local_time':  local_dt.strftime('%H:%M'),
+                'description': s.court.name if s.court else f'Court #{s.court_id}',
+                'customer':    s.customer_name or '—',
+                'total':       s.grand_total,
+                'payment':     s.payment_method or 'cash',
+                'receipt_url': url_for('pos.session_receipt', session_id=s.id),
+            })
+
+    # ── Activity Sessions ──
+    if type_filter in ('all', 'activity'):
+        q = ActivitySession.query.options(joinedload(ActivitySession.items)).filter_by(status='completed')
+        if date_from: q = q.filter(ActivitySession.created_at >= date_from)
+        if date_to:   q = q.filter(ActivitySession.created_at <  date_to)
+        for s in q.all():
+            local_dt = s.created_at + timedelta(hours=3)
+            records.append({
+                'type':        'activity',
+                'type_label':  'Activity',
+                'id':          s.id,
+                'date':        s.created_at,
+                'local_time':  local_dt.strftime('%H:%M'),
+                'description': (s.table.name if s.table else f'Table #{s.table_id}'),
+                'customer':    s.customer_name or '—',
+                'total':       s.grand_total,
+                'payment':     s.payment_method or 'cash',
+                'receipt_url': url_for('pos.activity_receipt', session_id=s.id),
+            })
+
+    records.sort(key=lambda r: r['date'], reverse=True)
+
+    # ── Summary stats ──
+    today = date.today()
+    total_all   = sum(r['total'] for r in records)
+    total_today = sum(r['total'] for r in records if r['date'].date() == today)
+    total_month = sum(r['total'] for r in records
+                      if r['date'].year == today.year and r['date'].month == today.month)
+
+    return render_template('admin/receipt_history.html',
+                           records=records,
+                           total_all=total_all,
+                           total_today=total_today,
+                           total_month=total_month,
+                           date_from=date_from_str,
+                           date_to=date_to_str,
+                           type_filter=type_filter)
+
+
 # ════════════════════════════════════════════
 # EXPENSES
 # ════════════════════════════════════════════

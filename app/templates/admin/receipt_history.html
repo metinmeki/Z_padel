@@ -1,0 +1,173 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Receipt History — Z Padel Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.rh-stat { background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1rem; }
+.rh-stat-icon { width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+.rh-stat-val { font-size:1.35rem;font-weight:900;color:var(--text-primary);line-height:1; }
+.rh-stat-label { font-size:.75rem;color:var(--text-muted);font-weight:600;margin-top:2px; }
+.type-badge { display:inline-block;padding:.18rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700; }
+.badge-quick    { background:#dcfce7;color:#166534; }
+.badge-court    { background:#dbeafe;color:#1e40af; }
+.badge-activity { background:#fef3c7;color:#92400e; }
+.rh-table th { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);white-space:nowrap; }
+.rh-table td { font-size:.84rem;vertical-align:middle; }
+.rh-table tr:hover td { background:var(--bg-surface); }
+.filter-card { background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.2rem;display:flex;flex-wrap:wrap;gap:.7rem;align-items:flex-end; }
+.filter-card label { font-size:.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:.25rem; }
+.filter-card .form-control, .filter-card .form-select { font-size:.84rem; }
+.total-row td { font-weight:800;border-top:2px solid var(--border)!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 style="margin:0;font-size:1.4rem;font-weight:800;">
+    <i class="fas fa-clock-rotate-left me-2" style="color:var(--primary);"></i>
+    {% if lang == 'en' %}Receipt History{% else %}سجل الفواتير{% endif %}
+  </h2>
+  <span style="font-size:.82rem;color:var(--text-muted);">{{ records|length }} {% if lang == 'en' %}records{% else %}سجل{% endif %}</span>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="rh-stat">
+      <div class="rh-stat-icon" style="background:#dcfce7;">
+        <i class="fas fa-calendar-day" style="color:#166534;"></i>
+      </div>
+      <div>
+        <div class="rh-stat-val">{{ '{:,.0f}'.format(total_today) }} IQD</div>
+        <div class="rh-stat-label">{% if lang == 'en' %}Today{% else %}اليوم{% endif %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="rh-stat">
+      <div class="rh-stat-icon" style="background:#dbeafe;">
+        <i class="fas fa-calendar-alt" style="color:#1e40af;"></i>
+      </div>
+      <div>
+        <div class="rh-stat-val">{{ '{:,.0f}'.format(total_month) }} IQD</div>
+        <div class="rh-stat-label">{% if lang == 'en' %}This Month{% else %}هذا الشهر{% endif %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="rh-stat">
+      <div class="rh-stat-icon" style="background:#fef3c7;">
+        <i class="fas fa-coins" style="color:#92400e;"></i>
+      </div>
+      <div>
+        <div class="rh-stat-val">{{ '{:,.0f}'.format(total_all) }} IQD</div>
+        <div class="rh-stat-label">{% if lang == 'en' %}Total (filtered){% else %}الإجمالي (حسب الفلتر){% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="filter-card">
+  <div>
+    <label>{% if lang == 'en' %}From{% else %}من{% endif %}</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" style="width:150px;">
+  </div>
+  <div>
+    <label>{% if lang == 'en' %}To{% else %}إلى{% endif %}</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" style="width:150px;">
+  </div>
+  <div>
+    <label>{% if lang == 'en' %}Type{% else %}النوع{% endif %}</label>
+    <select name="type" class="form-select" style="width:160px;">
+      <option value="all"      {% if type_filter=='all' %}selected{% endif %}>{% if lang == 'en' %}All Types{% else %}جميع الأنواع{% endif %}</option>
+      <option value="quick"    {% if type_filter=='quick' %}selected{% endif %}>{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %}</option>
+      <option value="court"    {% if type_filter=='court' %}selected{% endif %}>{% if lang == 'en' %}Court Session{% else %}جلسة ملعب{% endif %}</option>
+      <option value="activity" {% if type_filter=='activity' %}selected{% endif %}>{% if lang == 'en' %}Activity{% else %}نشاط{% endif %}</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:.5rem;align-items:flex-end;">
+    <button type="submit" class="btn btn-primary btn-sm px-3">
+      <i class="fas fa-filter me-1"></i>{% if lang == 'en' %}Filter{% else %}فلتر{% endif %}
+    </button>
+    <a href="{{ url_for('admin.receipt_history') }}" class="btn btn-outline-secondary btn-sm px-3">
+      <i class="fas fa-rotate-left me-1"></i>{% if lang == 'en' %}Reset{% else %}إعادة{% endif %}
+    </a>
+  </div>
+</form>
+
+<!-- Table -->
+<div class="pos-card" style="padding:0;overflow:hidden;">
+  {% if records %}
+  <div style="overflow-x:auto;">
+    <table class="table table-hover mb-0 rh-table">
+      <thead style="background:var(--bg-surface);">
+        <tr>
+          <th style="padding:.75rem 1rem;">#</th>
+          <th>{% if lang == 'en' %}Type{% else %}النوع{% endif %}</th>
+          <th>{% if lang == 'en' %}Date & Time{% else %}التاريخ والوقت{% endif %}</th>
+          <th>{% if lang == 'en' %}Description{% else %}التفاصيل{% endif %}</th>
+          <th>{% if lang == 'en' %}Customer{% else %}الزبون{% endif %}</th>
+          <th>{% if lang == 'en' %}Payment{% else %}الدفع{% endif %}</th>
+          <th style="text-align:{{ 'right' if lang != 'en' else 'left' }};">{% if lang == 'en' %}Total{% else %}المبلغ{% endif %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td style="padding:.65rem 1rem;color:var(--text-muted);font-weight:700;">#{{ r.id }}</td>
+          <td>
+            {% if r.type == 'quick' %}
+              <span class="type-badge badge-quick"><i class="fas fa-bolt me-1"></i>{% if lang == 'en' %}Quick Sale{% else %}بيع سريع{% endif %}</span>
+            {% elif r.type == 'court' %}
+              <span class="type-badge badge-court"><i class="fas fa-shield-halved me-1"></i>{% if lang == 'en' %}Court{% else %}ملعب{% endif %}</span>
+            {% else %}
+              <span class="type-badge badge-activity"><i class="fas fa-gamepad me-1"></i>{% if lang == 'en' %}Activity{% else %}نشاط{% endif %}</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            <div style="font-weight:700;">{{ r.date.strftime('%Y-%m-%d') }}</div>
+            <div style="font-size:.72rem;color:var(--text-muted);">{{ r.local_time }}</div>
+          </td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ r.description }}">
+            {{ r.description }}
+          </td>
+          <td style="color:var(--text-secondary);">{{ r.customer }}</td>
+          <td>
+            {% if r.payment in ('cash','نقدي') %}
+              <span style="color:var(--success);font-weight:700;font-size:.78rem;"><i class="fas fa-money-bill-wave me-1"></i>{% if lang == 'en' %}Cash{% else %}نقدي{% endif %}</span>
+            {% elif r.payment in ('card','بطاقة') %}
+              <span style="color:var(--primary);font-weight:700;font-size:.78rem;"><i class="fas fa-credit-card me-1"></i>{% if lang == 'en' %}Card{% else %}بطاقة{% endif %}</span>
+            {% else %}
+              <span style="font-size:.78rem;color:var(--text-muted);">{{ r.payment }}</span>
+            {% endif %}
+          </td>
+          <td style="font-weight:800;color:var(--primary);white-space:nowrap;">{{ '{:,.0f}'.format(r.total) }} IQD</td>
+          <td>
+            <a href="{{ r.receipt_url }}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2" title="{% if lang == 'en' %}View Receipt{% else %}عرض الفاتورة{% endif %}">
+              <i class="fas fa-receipt"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="6" style="padding:.75rem 1rem;text-align:{{ 'right' if lang != 'en' else 'left' }};">
+            {% if lang == 'en' %}Total ({{ records|length }} records){% else %}الإجمالي ({{ records|length }} سجل){% endif %}
+          </td>
+          <td style="color:var(--primary);font-size:1rem;">{{ '{:,.0f}'.format(total_all) }} IQD</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+    <i class="fas fa-receipt fa-3x mb-3" style="opacity:.2;display:block;"></i>
+    <p style="margin:0;font-weight:600;">{% if lang == 'en' %}No receipts found{% else %}لا توجد فواتير{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
