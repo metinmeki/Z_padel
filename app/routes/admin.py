@@ -1075,7 +1075,7 @@ def edit_permissions(user_id):
 
     # Only superadmin can assign perm_users and perm_settings to others
     perm_keys = ['perm_pos', 'perm_bookings', 'perm_courts', 'perm_products', 'perm_orders',
-                 'perm_expenses', 'perm_reports', 'perm_users', 'perm_settings']
+                 'perm_expenses', 'perm_reports', 'perm_cameras', 'perm_users', 'perm_settings']
 
     if current_user.role != 'superadmin':
         # non-superadmin cannot grant perm_users or perm_settings
@@ -1806,6 +1806,8 @@ def delete_activity_table(table_id):
 @admin_bp.route('/cameras')
 @login_required
 def cameras():
+    if not current_user.has_perm('perm_cameras'):
+        return redirect(url_for('pos.courts'))
     nvr_url = current_app.config.get('NVR_URL', 'http://45.81.147.210:65021')
     return render_template('admin/cameras.html', nvr_url=nvr_url)
 

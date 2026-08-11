@@ -1184,6 +1184,9 @@
       </a>
     </div>
 
+    {% endif %}
+
+    {% if current_user.has_perm('perm_cameras') %}
     <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.cameras') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.cameras' %}active{% endif %}">
