@@ -540,11 +540,21 @@ def activities():
     tables = ActivityTable.query.filter_by(is_active=True).order_by(
         ActivityTable.activity, ActivityTable.name).all()
     active_sessions = {s.table_id: s for s in ActivitySession.query.filter_by(status='active').all()}
+    if StaffSlot.query.count() == 0:
+        for i in range(1, 8):
+            db.session.add(StaffSlot(slot_number=i, staff_name=f'Staff {i}'))
+        db.session.commit()
+    staff_slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
+    products   = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    categories = Category.query.order_by(Category.name).all()
     return render_template('pos/activities.html',
                            tables=tables,
                            active_sessions=active_sessions,
                            activity_meta=ACTIVITY_META,
-                           activities_order=['snooker', 'billiard', 'table_tennis'])
+                           activities_order=['snooker', 'billiard', 'table_tennis'],
+                           staff_slots=staff_slots,
+                           products=products,
+                           categories=categories)
 
 
 @pos_bp.route('/activities/table/<int:table_id>/start', methods=['POST'])

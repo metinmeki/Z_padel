@@ -9,16 +9,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blue:      #0ea5e9;
-      --blue-dark: #0284c7;
-      --blue-deep: #0D47A1;
-      --blue-mid:  #1565C0;
-      --green-wa:  #25D366;
+      --bd:   #2C3539;
+      --bdk:  #596770;
+      --ac:   #D6C3A1;
+      --ac2:  #C9B48E;
+      --green-wa: #25D366;
     }
 
     body {
       min-height: 100vh;
-      background: linear-gradient(160deg, var(--blue-deep) 0%, var(--blue-mid) 50%, var(--blue) 100%);
+      background: linear-gradient(160deg, var(--bd) 0%, #3a4a52 50%, var(--bdk) 100%);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       display: flex; flex-direction: column; align-items: center;
       padding-bottom: 2.5rem;
@@ -34,9 +34,9 @@
     .logo {
       font-size: 2.4rem; font-weight: 900; letter-spacing: -1px; color: #fff;
     }
-    .logo span { color: var(--blue); }
+    .logo span { color: var(--ac); }
     .tagline {
-      font-size: .85rem; color: rgba(255,255,255,.7); margin-top: .3rem;
+      font-size: .85rem; color: rgba(255,255,255,.65); margin-top: .3rem;
       font-weight: 500;
     }
 
@@ -70,7 +70,7 @@
       transition: opacity .3s;
     }
     .vid-loader i {
-      font-size: 2.5rem; color: var(--blue);
+      font-size: 2.5rem; color: var(--ac);
       animation: pulse 1.6s ease-in-out infinite;
     }
     .vid-loader span { font-size: .75rem; color: rgba(255,255,255,.5); }
@@ -87,7 +87,7 @@
       display: flex; align-items: center; gap: .5rem;
       color: #7a8fa6; font-weight: 600; font-size: .84rem;
     }
-    .info-lbl i { width: 16px; text-align: center; color: var(--blue-mid); }
+    .info-lbl i { width: 16px; text-align: center; color: var(--bdk); }
     .info-val { font-weight: 800; color: #1a2236; font-size: .9rem; }
 
     /* ── BUTTONS ── */
@@ -103,9 +103,9 @@
     .btn:active { transform: scale(.97); }
 
     .btn-download {
-      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid), var(--blue));
-      color: #fff;
-      box-shadow: 0 6px 20px rgba(14,165,233,.4);
+      background: linear-gradient(135deg, var(--ac2), var(--ac), #e8d5b5);
+      color: var(--bd);
+      box-shadow: 0 6px 20px rgba(214,195,161,.45);
       animation: shimmer 2.5s linear infinite;
       background-size: 200% 100%;
     }
@@ -130,26 +130,31 @@
       animation: fadeUp .6s ease .7s both;
     }
     .coda-badge {
-      display: flex; align-items: center; gap: .55rem;
-      background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.22);
-      border-radius: 40px; padding: .5rem 1.1rem;
+      display: flex; align-items: center; gap: .65rem;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+      border-radius: 40px; padding: .45rem 1rem .45rem .65rem;
       backdrop-filter: blur(12px);
       transition: background .2s, transform .15s;
       cursor: pointer;
     }
-    .coda-badge:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+    .coda-badge:hover { background: rgba(255,255,255,.18); transform: translateY(-1px); }
     .coda-badge:active { transform: scale(.97); }
+    .coda-logo-img {
+      height: 26px; width: auto;
+      display: block;
+      /* logo is white-on-black; drop the black bg and keep the white artwork */
+      filter: brightness(0) invert(1);
+      opacity: .9;
+    }
+    .coda-built-wrap { display: flex; flex-direction: column; line-height: 1.1; }
+    .coda-built { font-size: .6rem; color: rgba(255,255,255,.45); font-weight: 500; letter-spacing: .3px; }
     .coda-dot {
-      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
-      background: var(--blue);
-      box-shadow: 0 0 0 0 rgba(14,165,233,.7);
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--ac);
+      box-shadow: 0 0 0 0 rgba(214,195,161,.7);
       animation: sonar 2s ease-out infinite;
     }
-    .coda-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
-    .coda-built { font-size: .62rem; color: rgba(255,255,255,.5); font-weight: 500; }
-    .coda-name  { font-size: .82rem; font-weight: 900; color: #fff; letter-spacing: .5px; }
-    .coda-accent { color: var(--blue); }
-    .z-padel-copy { font-size: .68rem; color: rgba(255,255,255,.35); margin-top: .2rem; }
+    .z-padel-copy { font-size: .67rem; color: rgba(255,255,255,.3); margin-top: .2rem; }
 
     /* ── ANIMATIONS ── */
     @keyframes fadeDown {
@@ -169,9 +174,9 @@
       50%      { opacity:1; transform:scale(1.15); }
     }
     @keyframes sonar {
-      0%   { box-shadow: 0 0 0 0 rgba(14,165,233,.6); }
-      70%  { box-shadow: 0 0 0 10px rgba(14,165,233,0); }
-      100% { box-shadow: 0 0 0 0 rgba(14,165,233,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(214,195,161,.6); }
+      70%  { box-shadow: 0 0 0 10px rgba(214,195,161,0); }
+      100% { box-shadow: 0 0 0 0 rgba(214,195,161,0); }
     }
     @keyframes shimmer {
       0%   { background-position: 200% center; }
@@ -208,7 +213,7 @@
         Video preview unavailable.<br>Use the download button below.
       </span>
       <a href="{{ url_for('main.download_clip_file', token=clip.token) }}"
-         style="background:var(--blue);color:#fff;padding:.5rem 1.2rem;border-radius:10px;
+         style="background:var(--ac);color:var(--bd);padding:.5rem 1.2rem;border-radius:10px;
                 font-size:.84rem;font-weight:700;text-decoration:none;">
         <i class="fas fa-download me-1"></i> Download instead
       </a>
@@ -270,11 +275,12 @@
 <div class="coda-footer">
   <a href="https://coda-agency.net" target="_blank" rel="noopener" class="coda-badge" style="text-decoration:none;">
     <div class="coda-dot"></div>
-    <div class="coda-logo-text">
+    <div class="coda-built-wrap">
       <span class="coda-built">Built by</span>
-      <span class="coda-name">CODA <span class="coda-accent">AGENCY</span></span>
     </div>
-    <i class="fas fa-arrow-up-right-from-square" style="font-size:.7rem;color:rgba(255,255,255,.5);margin-left:2px;"></i>
+    <img src="{{ url_for('static', filename='uploads/coaches/coda-logo.png') }}"
+         alt="Coda Agency" class="coda-logo-img">
+    <i class="fas fa-arrow-up-right-from-square" style="font-size:.65rem;color:rgba(255,255,255,.4);margin-left:2px;"></i>
   </a>
   <div class="z-padel-copy">Z Padel © {{ clip.clip_date.year }}</div>
 </div>
