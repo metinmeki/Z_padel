@@ -1,337 +1,463 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %} — Z Padel Admin{% endblock %}
 {% block page_icon %}fas fa-video{% endblock %}
 {% block page_title %}{% if lang == 'en' %}Game Clips{% else %}مقاطع المباريات{% endif %}{% endblock %}
 
 {% block styles %}
 <style>
-/* ── Stats strip ── */
-.stats-strip { display:flex; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
-.stat-card   { background:#fff; border-radius:var(--radius); padding:20px 24px;
-               box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:16px;
-               flex:1; min-width:160px; border:1.5px solid var(--border-color); }
-.stat-icon   { width:48px; height:48px; border-radius:12px; display:flex;
-               align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-.stat-icon.blue { background:var(--brand-blue-soft); color:var(--brand-blue); }
+/* ══ Stats ══ */
+.stats-strip { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.stat-card   { background:#fff; border-radius:var(--radius); padding:16px 20px;
+               box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:14px;
+               flex:1; min-width:130px; border:1.5px solid var(--border-color); }
+.stat-icon   { width:44px; height:44px; border-radius:11px; display:flex;
+               align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.stat-icon.blue  { background:var(--brand-blue-soft); color:var(--brand-blue); }
 .stat-icon.green { background:rgba(67,160,71,.12); color:#388E3C; }
-.stat-icon.red  { background:rgba(229,57,53,.10); color:#C62828; }
-.stat-value  { font-size:28px; font-weight:900; color:var(--text-dark); line-height:1; }
-.stat-label  { font-size:12px; color:var(--text-muted); margin-top:3px; }
+.stat-icon.red   { background:rgba(229,57,53,.10);  color:#C62828; }
+.stat-value { font-size:26px; font-weight:900; color:var(--text-dark); line-height:1; }
+.stat-label { font-size:11px; color:var(--text-muted); margin-top:2px; }
 
-/* ── Section cards ── */
-.section-card {
-  background:#fff; border-radius:var(--radius); border:1.5px solid var(--border-color);
-  box-shadow:var(--shadow-sm); margin-bottom:28px; overflow:hidden;
+/* ══ Form card ══ */
+.clip-form-card {
+  background:#fff; border-radius:16px; border:1.5px solid var(--border-color);
+  box-shadow:0 4px 24px rgba(21,101,192,.08); overflow:hidden; margin-bottom:24px;
 }
-.section-hd {
-  padding:18px 24px; border-bottom:1.5px solid var(--border-color);
+.clip-form-header {
+  background:linear-gradient(135deg,#0D47A1,#1565C0);
+  padding:18px 20px; display:flex; align-items:center; gap:10px;
+}
+.clip-form-header i { color:#fff; font-size:20px; }
+.clip-form-header h2 { color:#fff; font-size:16px; font-weight:800; margin:0; }
+.clip-form-body { padding:20px; }
+
+/* ══ Field groups ══ */
+.field-label {
+  font-size:12px; font-weight:800; color:var(--brand-blue-dark);
+  text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px;
+  display:flex; align-items:center; gap:6px;
+}
+
+/* ══ Court toggle ══ */
+.court-toggle { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.court-btn {
+  padding:16px 10px; border-radius:12px; border:2px solid var(--border-color);
+  background:#f8faff; cursor:pointer; text-align:center; transition:all .2s;
+  font-size:15px; font-weight:800; color:var(--text-muted);
+  -webkit-tap-highlight-color:transparent;
+}
+.court-btn:hover { border-color:var(--brand-blue); color:var(--brand-blue); }
+.court-btn.selected { border-color:var(--brand-blue); background:var(--brand-blue); color:#fff; box-shadow:0 4px 14px rgba(21,101,192,.3); }
+.court-btn i { display:block; font-size:22px; margin-bottom:5px; }
+
+/* ══ Date row ══ */
+.date-row { display:flex; gap:8px; align-items:stretch; margin-bottom:18px; }
+.date-quick { display:flex; gap:6px; flex-shrink:0; }
+.date-q-btn {
+  padding:0 14px; border-radius:10px; border:2px solid var(--border-color);
+  background:#f8faff; cursor:pointer; font-size:13px; font-weight:700;
+  color:var(--text-muted); transition:all .2s; white-space:nowrap;
+  -webkit-tap-highlight-color:transparent; height:52px; display:flex; align-items:center;
+}
+.date-q-btn.active, .date-q-btn:hover { border-color:var(--brand-blue); background:var(--brand-blue-soft); color:var(--brand-blue); }
+.big-input {
+  flex:1; height:52px; border:2px solid var(--border-color); border-radius:12px;
+  padding:0 14px; font-size:15px; font-weight:700; color:var(--text-dark);
+  background:#fff; font-family:inherit; outline:none; transition:border-color .2s;
+  -webkit-appearance:none;
+}
+.big-input:focus { border-color:var(--brand-blue); box-shadow:0 0 0 3px rgba(21,101,192,.1); }
+
+/* ══ Time row ══ */
+.time-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.time-block label { font-size:11px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px; }
+.time-input-wrap { position:relative; }
+.time-input-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--brand-blue); font-size:14px; pointer-events:none; }
+.big-input.time-in { padding-left:36px; }
+
+/* ══ Quick duration ══ */
+.dur-pills { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; margin-top:8px; }
+.dur-pill {
+  padding:7px 14px; border-radius:20px; border:2px solid var(--border-color);
+  background:#f8faff; cursor:pointer; font-size:13px; font-weight:700;
+  color:var(--text-muted); transition:all .18s; -webkit-tap-highlight-color:transparent;
+}
+.dur-pill:hover, .dur-pill.active { border-color:var(--brand-blue); background:var(--brand-blue-soft); color:var(--brand-blue); }
+
+/* ══ Text inputs ══ */
+.input-group-z { margin-bottom:14px; }
+.input-icon-wrap { position:relative; }
+.input-icon-wrap i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--brand-blue); font-size:14px; pointer-events:none; }
+.big-input.with-icon { padding-left:40px; }
+
+/* ══ Submit ══ */
+.btn-clip-submit {
+  width:100%; height:56px; border-radius:14px; border:none;
+  background:linear-gradient(135deg,#0D47A1,#1565C0,#0ea5e9);
+  color:#fff; font-size:16px; font-weight:800; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  box-shadow:0 6px 20px rgba(21,101,192,.35); transition:transform .15s, opacity .15s;
+  margin-top:6px; -webkit-tap-highlight-color:transparent;
+}
+.btn-clip-submit:active { transform:scale(.98); opacity:.9; }
+
+/* ══ Clips list (card style) ══ */
+.clips-section-hd {
+  background:#fff; border-radius:var(--radius); border:1.5px solid var(--border-color);
+  box-shadow:var(--shadow-sm); overflow:hidden;
+}
+.clips-hd {
+  padding:16px 20px; border-bottom:1.5px solid var(--border-color);
   display:flex; align-items:center; gap:10px;
   background:linear-gradient(135deg,var(--brand-blue-soft),#fff);
 }
-.section-hd i { color:var(--brand-blue); font-size:18px; }
-.section-hd-title { font-size:15px; font-weight:800; color:var(--brand-blue-dark); }
-.section-body { padding:24px; }
+.clips-hd i { color:var(--brand-blue); font-size:18px; }
+.clips-hd-title { font-size:14px; font-weight:800; color:var(--brand-blue-dark); }
 
-/* ── Form grid ── */
-.clip-grid {
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;
+/* Processing banner */
+.proc-banner {
+  background:#fff3cd; border-bottom:1px solid #ffc107;
+  padding:10px 18px; font-size:.84rem;
+  display:flex; align-items:center; gap:8px;
 }
-.form-group { display:flex; flex-direction:column; gap:6px; }
-.form-label-z { font-size:13px; font-weight:700; color:var(--text-dark); }
-.form-control-z {
-  border:1.5px solid var(--border-color); border-radius:8px;
-  padding:10px 13px; font-size:13px; color:var(--text-dark);
-  background:#fff; outline:none; font-family:inherit; width:100%;
-  transition:border-color .2s;
-}
-.form-control-z:focus { border-color:var(--brand-blue); box-shadow:0 0 0 3px rgba(21,101,192,.10); }
-.btn-save-clip {
-  background:var(--brand-blue); color:#fff; border:none; border-radius:8px;
-  padding:11px 28px; font-size:14px; font-weight:700; cursor:pointer;
-  display:inline-flex; align-items:center; gap:8px; transition:background .2s;
-  margin-top:20px;
-}
-.btn-save-clip:hover { background:var(--brand-blue-dark); }
 
-/* ── Clips table ── */
-.table-wrapper { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border-color); box-shadow:var(--shadow-sm); overflow:hidden; }
-.table-z { width:100%; border-collapse:collapse; }
-.table-z thead tr { background:var(--brand-blue-soft); }
-.table-z th { padding:12px 16px; font-size:12px; font-weight:800; color:var(--brand-blue-dark); text-transform:uppercase; letter-spacing:.7px; white-space:nowrap; }
-.table-z td { padding:13px 16px; border-bottom:1px solid var(--border-color); font-size:13px; vertical-align:middle; }
-.table-z tr:last-child td { border-bottom:none; }
-.table-z tr:hover td { background:var(--off-white); }
+/* Clip card */
+.clip-card {
+  padding:16px 18px; border-bottom:1px solid var(--border-color);
+  display:flex; flex-direction:column; gap:10px;
+}
+.clip-card:last-child { border-bottom:none; }
+.clip-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.clip-court { font-size:14px; font-weight:800; color:var(--text-dark); }
+.clip-meta  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.clip-pills { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:2px; }
 
-.badge-active  { background:rgba(67,160,71,.12); color:#2E7D32; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+.badge-ready   { background:rgba(67,160,71,.12); color:#2E7D32; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 .badge-expired { background:rgba(229,57,53,.10);  color:#C62828; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+.badge-dl      { background:rgba(21,101,192,.10); color:var(--brand-blue); padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:4px; }
 
-.btn-sm-z {
-  border:none; border-radius:6px; padding:5px 12px; font-size:12px;
-  font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
-  text-decoration:none; transition:opacity .15s;
+.clip-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.cact {
+  height:38px; padding:0 14px; border-radius:10px; border:none; cursor:pointer;
+  font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:6px;
+  text-decoration:none; transition:opacity .15s; -webkit-tap-highlight-color:transparent;
 }
-.btn-dl  { background:rgba(21,101,192,.10); color:var(--brand-blue); }
-.btn-del { background:rgba(229,57,53,.10); color:#C62828; }
-.btn-cp  { background:rgba(67,160,71,.12); color:#2E7D32; }
-.btn-sm-z:hover { opacity:.75; }
+.cact:active { opacity:.75; }
+.cact-dl   { background:rgba(21,101,192,.10); color:var(--brand-blue); }
+.cact-wa   { background:#dcfce7; color:#16a34a; }
+.cact-copy { background:rgba(67,160,71,.12); color:#2E7D32; }
+.cact-retry { background:rgba(230,126,34,.15); color:#e67e22; }
+.cact-del  { background:rgba(229,57,53,.10); color:#C62828; }
 
-.share-url {
-  font-size:11px; color:var(--text-muted); word-break:break-all;
-  background:var(--off-white); border-radius:6px; padding:4px 8px;
-  display:block; margin-top:4px; max-width:280px;
-}
-.empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
-.empty-state i { font-size:48px; opacity:.3; display:block; margin-bottom:14px; }
-
-/* ── Countdown ── */
 .countdown { font-size:11px; font-weight:700; color:#FB8C00; }
-.expired-txt { font-size:11px; color:#C62828; font-weight:700; }
+.empty-state { text-align:center; padding:50px 20px; color:var(--text-muted); }
+.empty-state i { font-size:40px; opacity:.3; display:block; margin-bottom:12px; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Stats strip -->
+<!-- Stats -->
 <div class="stats-strip">
-  {% set active_c = clips|selectattr('is_expired','equalto',false)|list|length %}
+  {% set active_c  = clips|selectattr('is_expired','equalto',false)|selectattr('status','equalto','ready')|list|length %}
   {% set expired_c = clips|selectattr('is_expired','equalto',true)|list|length %}
   <div class="stat-card">
     <div class="stat-icon blue"><i class="fas fa-film"></i></div>
-    <div>
-      <div class="stat-value">{{ clips|length }}</div>
-      <div class="stat-label">{% if lang == 'en' %}Total Clips{% else %}إجمالي المقاطع{% endif %}</div>
-    </div>
+    <div><div class="stat-value">{{ clips|length }}</div><div class="stat-label">Total Clips</div></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
-    <div>
-      <div class="stat-value">{{ active_c }}</div>
-      <div class="stat-label">{% if lang == 'en' %}Active (< 1h){% else %}نشطة (أقل من ساعة){% endif %}</div>
-    </div>
+    <div><div class="stat-value">{{ active_c }}</div><div class="stat-label">Ready</div></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon red"><i class="fas fa-clock-rotate-left"></i></div>
-    <div>
-      <div class="stat-value">{{ expired_c }}</div>
-      <div class="stat-label">{% if lang == 'en' %}Expired{% else %}منتهية الصلاحية{% endif %}</div>
-    </div>
+    <div><div class="stat-value">{{ expired_c }}</div><div class="stat-label">Expired</div></div>
   </div>
 </div>
 
-<!-- Save new clip form -->
-<div class="section-card">
-  <div class="section-hd">
-    <i class="fas fa-scissors"></i>
-    <div class="section-hd-title">{% if lang == 'en' %}Save a Game Clip{% else %}حفظ مقطع مباراة{% endif %}</div>
+<!-- ══ SAVE CLIP FORM ══ -->
+<div class="clip-form-card">
+  <div class="clip-form-header">
+    <i class="fas fa-video"></i>
+    <h2>{% if lang == 'en' %}Save a Game Clip{% else %}حفظ مقطع مباراة{% endif %}</h2>
   </div>
-  <div class="section-body">
-    <form method="POST" action="{{ url_for('admin.save_clip') }}">
+  <div class="clip-form-body">
+    <form method="POST" action="{{ url_for('admin.save_clip') }}" id="clipForm">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <div class="clip-grid">
+      <input type="hidden" name="court" id="courtVal" required/>
 
-        <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</label>
-          <select name="court" class="form-control-z" required>
-            <option value="">— {% if lang == 'en' %}Select{% else %}اختر{% endif %} —</option>
-            <option value="court1">{% if lang == 'en' %}Court 1{% else %}ملعب ١{% endif %}</option>
-            <option value="court2">{% if lang == 'en' %}Court 2{% else %}ملعب ٢{% endif %}</option>
-          </select>
+      <!-- Court selector -->
+      <div class="field-label"><i class="fas fa-table-tennis-paddle-ball"></i> Court</div>
+      <div class="court-toggle" style="margin-bottom:18px;">
+        <div class="court-btn" id="c1btn" onclick="pickCourt('court1')">
+          <i class="fas fa-table-tennis-paddle-ball"></i>
+          {% if lang == 'en' %}Court 1{% else %}ملعب ١{% endif %}
         </div>
-
-        <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</label>
-          <input type="date" name="clip_date" class="form-control-z" required id="clipDateInput"/>
+        <div class="court-btn" id="c2btn" onclick="pickCourt('court2')">
+          <i class="fas fa-table-tennis-paddle-ball"></i>
+          {% if lang == 'en' %}Court 2{% else %}ملعب ٢{% endif %}
         </div>
-
-        <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}Start Time{% else %}وقت البداية{% endif %}</label>
-          <input type="time" name="start_time" id="clipStartTime" class="form-control-z" step="60" required
-                 onchange="autoSetEndTime()"/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}End Time{% else %}وقت النهاية{% endif %}</label>
-          <input type="time" name="end_time" id="clipEndTime" class="form-control-z" step="60" required/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}Customer Name{% else %}اسم اللاعب{% endif %} <span style="color:var(--text-muted);font-weight:400">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span></label>
-          <input type="text" name="customer_name" class="form-control-z" placeholder="{% if lang == 'en' %}e.g. Ahmed{% else %}مثال: أحمد{% endif %}"/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label-z">{% if lang == 'en' %}Phone{% else %}رقم الهاتف{% endif %} <span style="color:var(--text-muted);font-weight:400">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span></label>
-          <input type="text" name="customer_phone" class="form-control-z" placeholder="07xx xxx xxxx"/>
-        </div>
-
       </div>
 
-      <div class="form-group" style="margin-top:16px;">
-        <label class="form-label-z">{% if lang == 'en' %}Note{% else %}ملاحظة{% endif %} <span style="color:var(--text-muted);font-weight:400">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span></label>
-        <input type="text" name="note" class="form-control-z" placeholder="{% if lang == 'en' %}e.g. Final point, great rally...{% else %}مثال: نقطة ختامية، تبادل رائع...{% endif %}"/>
+      <!-- Date -->
+      <div class="field-label"><i class="fas fa-calendar-days"></i> Date</div>
+      <div class="date-row">
+        <div class="date-quick">
+          <button type="button" class="date-q-btn active" id="todayBtn" onclick="setDate(0,this)">Today</button>
+          <button type="button" class="date-q-btn" id="yestBtn"  onclick="setDate(-1,this)">Yesterday</button>
+        </div>
+        <input type="date" name="clip_date" id="clipDateInput" class="big-input" required/>
       </div>
 
-      <button type="submit" class="btn-save-clip">
+      <!-- Start / End time -->
+      <div class="field-label"><i class="fas fa-clock"></i> Time</div>
+      <div class="time-row">
+        <div class="time-block">
+          <label>Start time</label>
+          <div class="time-input-wrap">
+            <i class="fas fa-play"></i>
+            <input type="time" name="start_time" id="clipStartTime" class="big-input time-in" step="60" required
+                   onchange="onStartChange()"/>
+          </div>
+        </div>
+        <div class="time-block">
+          <label>End time</label>
+          <div class="time-input-wrap">
+            <i class="fas fa-stop"></i>
+            <input type="time" name="end_time" id="clipEndTime" class="big-input time-in" step="60" required/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration quick-pick -->
+      <div class="field-label" style="margin-top:4px;"><i class="fas fa-stopwatch"></i> Duration (tap to set end time)</div>
+      <div class="dur-pills">
+        <div class="dur-pill" onclick="setDur(15)">15 min</div>
+        <div class="dur-pill" onclick="setDur(30)">30 min</div>
+        <div class="dur-pill" onclick="setDur(45)">45 min</div>
+        <div class="dur-pill" onclick="setDur(60)">1 hr</div>
+        <div class="dur-pill" onclick="setDur(90)">1.5 hr</div>
+        <div class="dur-pill" onclick="setDur(120)">2 hr</div>
+      </div>
+
+      <!-- Customer name -->
+      <div class="field-label"><i class="fas fa-user"></i> Player name <span style="font-weight:400;color:var(--text-muted);text-transform:none;">(optional)</span></div>
+      <div class="input-group-z">
+        <div class="input-icon-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" name="customer_name" class="big-input with-icon"
+                 placeholder="Ahmed, Dani…"/>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="field-label"><i class="fab fa-whatsapp"></i> WhatsApp number <span style="font-weight:400;color:var(--text-muted);text-transform:none;">(optional — for direct send)</span></div>
+      <div class="input-group-z">
+        <div class="input-icon-wrap">
+          <i class="fab fa-whatsapp" style="color:#25D366;"></i>
+          <input type="tel" name="customer_phone" id="phoneInput" class="big-input with-icon"
+                 placeholder="07xx xxx xxxx" inputmode="tel"/>
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div class="field-label"><i class="fas fa-note-sticky"></i> Note <span style="font-weight:400;color:var(--text-muted);text-transform:none;">(optional)</span></div>
+      <div class="input-group-z">
+        <input type="text" name="note" class="big-input"
+               placeholder="Final point, great rally…"/>
+      </div>
+
+      <button type="submit" class="btn-clip-submit" id="submitBtn">
         <i class="fas fa-scissors"></i>
-        {% if lang == 'en' %}Save Clip{% else %}حفظ المقطع{% endif %}
+        {% if lang == 'en' %}Save Clip & Start Download{% else %}حفظ المقطع وبدء التحميل{% endif %}
       </button>
     </form>
   </div>
 </div>
 
-<!-- Clips list -->
-<div class="table-wrapper">
-  <div class="section-hd" style="border-bottom:1.5px solid var(--border-color);">
+<!-- ══ SAVED CLIPS ══ -->
+<div class="clips-section-hd">
+  <div class="clips-hd">
     <i class="fas fa-list-video"></i>
-    <div class="section-hd-title">{% if lang == 'en' %}Saved Clips{% else %}المقاطع المحفوظة{% endif %}</div>
+    <div class="clips-hd-title">{% if lang == 'en' %}Saved Clips{% else %}المقاطع المحفوظة{% endif %}</div>
   </div>
+
   {% set has_processing = clips | selectattr('status', 'equalto', 'processing') | list | length > 0 %}
   {% if has_processing %}
-  <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:.84rem;display:flex;align-items:center;gap:8px;">
+  <div class="proc-banner">
     <i class="fas fa-circle-notch fa-spin" style="color:#e67e22;"></i>
-    {% if lang == 'en' %}Some clips are still downloading from the NVR. Page auto-refreshes every 15 seconds.{% else %}بعض المقاطع لا تزال تُحمَّل من NVR. يتجدد الصفحة كل 15 ثانية.{% endif %}
+    {% if lang == 'en' %}Clips are downloading from NVR — page refreshes every 15 s{% else %}جاري التحميل من NVR — الصفحة تتجدد كل 15 ثانية{% endif %}
   </div>
   {% endif %}
 
   {% if clips %}
-  <table class="table-z">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>{% if lang == 'en' %}Court / Date / Time{% else %}الملعب / التاريخ / الوقت{% endif %}</th>
-        <th>{% if lang == 'en' %}Duration{% else %}المدة{% endif %}</th>
-        <th>{% if lang == 'en' %}Customer{% else %}اللاعب{% endif %}</th>
-        <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
-        <th>{% if lang == 'en' %}Actions{% else %}إجراءات{% endif %}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for clip in clips %}
-      <tr>
-        <td style="color:var(--text-muted);font-weight:700;">{{ clip.id }}</td>
-        <td>
-          <div style="font-weight:800;font-size:13px;">{{ clip.court_label }}</div>
-          <div style="font-size:12px;color:var(--text-muted);">{{ clip.clip_date.strftime('%Y-%m-%d') }} — {{ clip.start_time }}</div>
-        </td>
-        <td>
-          {% if clip.duration_sec < 60 %}{{ clip.duration_sec }}s
-          {% else %}{{ (clip.duration_sec // 60) }}{% if lang == 'en' %} min{% else %} د{% endif %}{% endif %}
-        </td>
-        <td>
+    {% for clip in clips %}
+    <div class="clip-card">
+
+      <!-- Top row: court info + status badge -->
+      <div class="clip-top">
+        <div>
+          <div class="clip-court">{{ clip.court_label }}</div>
+          <div class="clip-meta">
+            {{ clip.clip_date.strftime('%Y-%m-%d') }} — {{ clip.start_time[:5] }}
+            &nbsp;·&nbsp;
+            {% if clip.duration_sec < 60 %}{{ clip.duration_sec }}s
+            {% else %}{{ clip.duration_sec // 60 }} min{% endif %}
+          </div>
           {% if clip.customer_name %}
-          <div style="font-weight:700;">{{ clip.customer_name }}</div>
-          {% if clip.customer_phone %}<div style="font-size:11px;color:var(--text-muted);">{{ clip.customer_phone }}</div>{% endif %}
-          {% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
-          {% if clip.note %}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ clip.note }}</div>{% endif %}
-        </td>
-        <td>
-          {% if clip.status == 'processing' %}
-            <span style="color:#e67e22;font-weight:700;font-size:.82rem;">
-              <i class="fas fa-circle-notch fa-spin me-1"></i>{% if lang == 'en' %}Downloading…{% else %}جاري التحميل…{% endif %}
-            </span>
-          {% elif clip.status == 'failed' %}
-            <span class="badge-expired" title="{{ clip.status_msg or '' }}">
-              <i class="fas fa-triangle-exclamation me-1"></i>{% if lang == 'en' %}Failed{% else %}فشل{% endif %}
-            </span>
-            {% if clip.status_msg %}
-            <div style="font-size:.7rem;color:#C62828;margin-top:3px;max-width:240px;word-break:break-word;">{{ clip.status_msg[:120] }}</div>
-            {% endif %}
-          {% elif clip.is_expired %}
-            <span class="badge-expired">{% if lang == 'en' %}Expired{% else %}منتهية{% endif %}</span>
-          {% else %}
-            <span class="badge-active">{% if lang == 'en' %}Ready{% else %}جاهز{% endif %}</span>
-            <div class="countdown" data-expires="{{ clip.expires_at.isoformat() }}">—</div>
+          <div class="clip-meta" style="margin-top:2px;">
+            <i class="fas fa-user" style="font-size:10px;"></i> {{ clip.customer_name }}
+            {% if clip.customer_phone %}&nbsp;·&nbsp;<i class="fab fa-whatsapp" style="color:#25D366;font-size:10px;"></i> {{ clip.customer_phone }}{% endif %}
+          </div>
           {% endif %}
-        </td>
-        <td style="white-space:nowrap;">
-          {% if clip.is_ready and clip.filename %}
-          <a href="{{ url_for('admin.download_admin_clip', clip_id=clip.id) }}"
-             class="btn-sm-z btn-dl" title="{% if lang == 'en' %}Download{% else %}تحميل{% endif %}">
-            <i class="fas fa-download"></i>
-          </a>
-          {% if not clip.is_expired %}
+          {% if clip.note %}
+          <div class="clip-meta" style="font-style:italic;margin-top:2px;">{{ clip.note }}</div>
+          {% endif %}
+        </div>
+        <div style="flex-shrink:0;">
+          {% if clip.status == 'processing' %}
+            <span class="badge-dl"><i class="fas fa-circle-notch fa-spin"></i> Downloading</span>
+          {% elif clip.status == 'failed' %}
+            <span class="badge-expired"><i class="fas fa-triangle-exclamation"></i> Failed</span>
+          {% elif clip.is_expired %}
+            <span class="badge-expired">Expired</span>
+          {% else %}
+            <span class="badge-ready">✓ Ready</span>
+            <div class="countdown" data-expires="{{ clip.expires_at.isoformat() }}"></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Status message for failed -->
+      {% if clip.status == 'failed' and clip.status_msg %}
+      <div style="font-size:.72rem;color:#C62828;background:#fff1f1;border-radius:8px;padding:6px 10px;">{{ clip.status_msg[:160] }}</div>
+      {% endif %}
+
+      <!-- Action buttons -->
+      <div class="clip-actions">
+        {% if clip.is_ready and clip.filename %}
           {% set clip_url = request.host_url + 'clip/' + clip.token %}
           {% set wa_msg = 'مرحباً! مقطع مباراتك في Z Padel جاهز 🎾\n' + clip_url %}
-          {% if clip.customer_phone %}
-          {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
-          <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
-             class="btn-sm-z ms-1" target="_blank"
-             style="background:#dcfce7;color:#16a34a;"
-             title="Send to {{ clip.customer_phone }} via WhatsApp">
-            <i class="fab fa-whatsapp"></i>
+
+          <a href="{{ url_for('admin.download_admin_clip', clip_id=clip.id) }}" class="cact cact-dl">
+            <i class="fas fa-download"></i> Download
           </a>
-          {% else %}
-          <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
-             class="btn-sm-z ms-1" target="_blank"
-             style="background:#dcfce7;color:#16a34a;"
-             title="Share via WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-          </a>
+
+          {% if not clip.is_expired %}
+            {% if clip.customer_phone %}
+              {% set wa_phone = clip.customer_phone | replace(' ','') | replace('-','') | replace('+','') %}
+              <a href="https://wa.me/{{ wa_phone }}?text={{ wa_msg | urlencode }}"
+                 class="cact cact-wa" target="_blank">
+                <i class="fab fa-whatsapp"></i> Send to {{ clip.customer_name or clip.customer_phone }}
+              </a>
+            {% else %}
+              <a href="https://wa.me/?text={{ wa_msg | urlencode }}"
+                 class="cact cact-wa" target="_blank">
+                <i class="fab fa-whatsapp"></i> Share via WhatsApp
+              </a>
+            {% endif %}
+            <button class="cact cact-copy" onclick="copyLink('{{ clip_url }}', this)">
+              <i class="fas fa-link"></i> Copy link
+            </button>
           {% endif %}
-          <button class="btn-sm-z btn-cp ms-1"
-                  onclick="copyLink('{{ clip_url }}', this)"
-                  title="Copy share link">
-            <i class="fas fa-share-nodes"></i>
+        {% endif %}
+
+        {% if clip.status == 'failed' %}
+          <form method="POST" action="{{ url_for('admin.retry_clip', clip_id=clip.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="cact cact-retry">
+              <i class="fas fa-rotate-right"></i> Retry
+            </button>
+          </form>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('admin.delete_clip', clip_id=clip.id) }}" style="display:inline;"
+              onsubmit="return confirm('Delete this clip?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="cact cact-del">
+            <i class="fas fa-trash"></i>
           </button>
-          {% endif %}
-          {% endif %}
-          {% if clip.status == 'failed' %}
-          <form method="POST" action="{{ url_for('admin.retry_clip', clip_id=clip.id) }}"
-                style="display:inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn-sm-z ms-1"
-                    style="background:rgba(230,126,34,.15);color:#e67e22;"
-                    title="{% if lang == 'en' %}Retry download{% else %}إعادة التحميل{% endif %}">
-              <i class="fas fa-rotate-right"></i>
-            </button>
-          </form>
-          {% endif %}
-          <form method="POST" action="{{ url_for('admin.delete_clip', clip_id=clip.id) }}"
-                style="display:inline;"
-                onsubmit="return confirm('{% if lang == 'en' %}Delete this clip?{% else %}حذف هذا المقطع؟{% endif %}')">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn-sm-z btn-del ms-1">
-              <i class="fas fa-trash"></i>
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        </form>
+      </div>
+
+    </div>
+    {% endfor %}
   {% else %}
   <div class="empty-state">
     <i class="fas fa-film"></i>
-    <div style="font-size:15px;font-weight:700;margin-bottom:6px;">{% if lang == 'en' %}No clips saved yet{% else %}لا توجد مقاطع محفوظة بعد{% endif %}</div>
-    <div style="font-size:13px;">{% if lang == 'en' %}Use the form above to save a game clip{% else %}استخدم النموذج أعلاه لحفظ مقطع مباراة{% endif %}</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:6px;">No clips saved yet</div>
+    <div style="font-size:12px;">Use the form above to save a game clip</div>
   </div>
   {% endif %}
 </div>
 
 <script>
-document.getElementById('clipDateInput').value = new Date().toISOString().split('T')[0];
+/* ── Date defaults ── */
+function todayStr(offset=0) {
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
+}
+document.getElementById('clipDateInput').value = todayStr();
 
-function autoSetEndTime() {
-  const start = document.getElementById('clipStartTime').value;
-  if (!start) return;
-  const [h, m] = start.split(':').map(Number);
-  const end = new Date();
-  end.setHours(h + 1, m, 0);
-  const hh = String(end.getHours()).padStart(2, '0');
-  const mm = String(end.getMinutes()).padStart(2, '0');
-  document.getElementById('clipEndTime').value = `${hh}:${mm}`;
+function setDate(offset, btn) {
+  document.getElementById('clipDateInput').value = todayStr(offset);
+  document.querySelectorAll('.date-q-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+document.getElementById('clipDateInput').addEventListener('change', () => {
+  document.querySelectorAll('.date-q-btn').forEach(b => b.classList.remove('active'));
+});
+
+/* ── Court picker ── */
+function pickCourt(val) {
+  document.getElementById('courtVal').value = val;
+  document.getElementById('c1btn').classList.toggle('selected', val === 'court1');
+  document.getElementById('c2btn').classList.toggle('selected', val === 'court2');
 }
 
+/* ── Duration pills ── */
+function setDur(mins) {
+  const start = document.getElementById('clipStartTime').value;
+  document.querySelectorAll('.dur-pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  if (!start) { alert('Pick a start time first'); return; }
+  const [h, m] = start.split(':').map(Number);
+  const end = new Date(); end.setHours(h, m + mins, 0);
+  document.getElementById('clipEndTime').value =
+    String(end.getHours()).padStart(2,'0') + ':' + String(end.getMinutes()).padStart(2,'0');
+}
+
+function onStartChange() {
+  // clear duration active state so user re-picks
+  document.querySelectorAll('.dur-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('clipEndTime').value = '';
+}
+
+/* ── Form validation (court must be picked) ── */
+document.getElementById('clipForm').addEventListener('submit', function(e) {
+  if (!document.getElementById('courtVal').value) {
+    e.preventDefault();
+    document.getElementById('c1btn').style.outline = '3px solid red';
+    document.getElementById('c2btn').style.outline = '3px solid red';
+    alert('Please select Court 1 or Court 2');
+    return;
+  }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving…';
+});
+
+/* ── Copy link ── */
 function copyLink(url, btn) {
   navigator.clipboard.writeText(url).then(() => {
     const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i>';
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
     btn.style.background = 'rgba(67,160,71,.2)';
     setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
   });
 }
 
+/* ── Countdown timers ── */
 function updateCountdowns() {
   document.querySelectorAll('.countdown[data-expires]').forEach(el => {
     const exp = new Date(el.dataset.expires + 'Z');
@@ -340,13 +466,12 @@ function updateCountdowns() {
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    el.textContent = `${h}h ${m}m ${s}s`;
+    el.textContent = `Expires in ${h}h ${m}m ${s}s`;
   });
 }
 updateCountdowns();
 setInterval(updateCountdowns, 1000);
 
-// Auto-refresh when clips are still processing
 {% if has_processing %}
 setTimeout(() => location.reload(), 15000);
 {% endif %}
