@@ -4,12 +4,25 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app import db
 from app.models.store import Product, Category, Order, OrderItem
-from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META, Booking
+from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META, Booking, ActivityLog
 
 pos_bp = Blueprint('pos', __name__)
 
-
 BARISTA_CATEGORIES = {'beverage', 'cakes', 'cafe', 'coffee', 'drinks'}
+
+
+def _log(action, details=''):
+    try:
+        entry = ActivityLog(
+            user_id=current_user.id,
+            username=current_user.username,
+            action=action,
+            details=details,
+            ip_address=request.remote_addr or ''
+        )
+        db.session.add(entry)
+    except Exception:
+        pass
 
 @pos_bp.route('/')
 @pos_bp.route('/quick-sale')
@@ -83,6 +96,7 @@ def checkout():
             total += subtotal
 
         order.total_price = total
+        _log('Quick Sale', f'{int(total):,} IQD ({payment_method})')
         db.session.commit()
         return jsonify(success=True, order_id=order.id)
     except Exception as e:
@@ -187,6 +201,7 @@ def start_court_session(court_id):
 
     session_row = CourtSession(court_id=court.id, start_time=datetime.utcnow(), status='active', customer_name=customer_name)
     db.session.add(session_row)
+    _log('Start Court Session', court.name)
     db.session.commit()
 
     return jsonify(success=True, session_id=session_row.id)
@@ -411,6 +426,7 @@ def finish_session(session_id):
 
         session_row.payment_method = payment_method
         session_row.status = 'completed'
+        _log('Complete Court Session', f'{session_row.court.name} — {int(session_row.grand_total):,} IQD ({payment_method})')
         db.session.commit()
 
         return jsonify(success=True, grand_total=session_row.grand_total, session_id=session_row.id)
@@ -440,6 +456,7 @@ def finish_session_debt(session_id):
         session_row.customer_name = name
         session_row.payment_method = 'debt'
         session_row.status = 'completed'
+        _log('Complete Court Session (Debt)', f'{session_row.court.name} — {int(session_row.grand_total):,} IQD — {name}')
         db.session.commit()
 
         return jsonify(success=True, grand_total=session_row.grand_total, session_id=session_row.id)
@@ -455,12 +472,14 @@ def cancel_court_session(session_id):
     if session_row.status == 'completed':
         return jsonify(success=False, message='لا يمكن الإلغاء بعد الدفع'), 400
 
+    court_name = session_row.court.name
     for item in session_row.items:
         prod = Product.query.get(item.product_id)
         if prod:
             prod.stock += item.quantity
 
     db.session.delete(session_row)
+    _log('Cancel Court Session', court_name)
     db.session.commit()
     return jsonify(success=True)
 
@@ -539,6 +558,7 @@ def start_activity_session(table_id):
     customer_name = (data.get('customer_name') or '').strip() or None
     sess = ActivitySession(table_id=table.id, start_time=datetime.utcnow(), customer_name=customer_name)
     db.session.add(sess)
+    _log('Start Activity Session', table.name)
     db.session.commit()
     return jsonify(success=True, session_id=sess.id)
 
@@ -679,6 +699,7 @@ def finish_activity_session(session_id):
             sess.total_price = max(0, (sess.total_price or 0) - discount)
         sess.payment_method = payment_method
         sess.status = 'completed'
+        _log('Complete Activity Session', f'{sess.table.name} — {int(sess.grand_total):,} IQD ({payment_method})')
         db.session.commit()
         return jsonify(success=True, session_id=sess.id)
     except Exception as e:
@@ -692,7 +713,9 @@ def cancel_activity_session(session_id):
     sess = ActivitySession.query.get_or_404(session_id)
     if sess.status == 'completed':
         return jsonify(success=False, message='Cannot cancel a paid session'), 400
+    table_name = sess.table.name
     db.session.delete(sess)
+    _log('Cancel Activity Session', table_name)
     db.session.commit()
     return jsonify(success=True)
 

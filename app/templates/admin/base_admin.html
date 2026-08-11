@@ -1209,7 +1209,7 @@
     {% endif %}
     {% endif %}
 
-    {# RECEIPT HISTORY — finance users only #}
+    {# HISTORY — finance users only #}
     {% if current_user.username|lower in ('yaser', 'mazin') %}
     <div class="nav-section-label">{% if lang == 'en' %}History{% elif lang == 'ku' %}مێژوو{% else %}السجل{% endif %}</div>
     <div class="nav-item-wrapper">
@@ -1217,6 +1217,13 @@
          class="nav-link-custom {% if request.endpoint == 'admin.receipt_history' %}active{% endif %}">
         <i class="fas fa-clock-rotate-left nav-icon"></i>
         <span class="nav-label">{% if lang == 'en' %}Receipt History{% elif lang == 'ku' %}مێژووی پسووڵەکان{% else %}سجل الفواتير{% endif %}</span>
+      </a>
+    </div>
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.user_activity') }}"
+         class="nav-link-custom {% if request.endpoint == 'admin.user_activity' %}active{% endif %}">
+        <i class="fas fa-user-clock nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}User Activity{% elif lang == 'ku' %}چالاکیەکانی بەکارهێنەر{% else %}نشاط المستخدمين{% endif %}</span>
       </a>
     </div>
     {% endif %}

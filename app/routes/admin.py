@@ -15,7 +15,7 @@ from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
-                               Sponsor, CourtSession)
+                               Sponsor, CourtSession, ActivityLog)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory)
 from sqlalchemy import func, case
@@ -2017,3 +2017,60 @@ def toggle_sponsor(sponsor_id):
     s.is_active = not s.is_active
     db.session.commit()
     return redirect(url_for('admin.sponsors'))
+
+
+# ════════════════════════════════════════════
+# USER ACTIVITY LOG (finance users only)
+# ════════════════════════════════════════════
+@admin_bp.route('/user-activity')
+@login_required
+def user_activity():
+    if current_user.username.lower() not in FINANCE_USERS:
+        return redirect(url_for('admin.dashboard'))
+
+    lang = g.lang
+
+    date_from  = request.args.get('date_from', '')
+    date_to    = request.args.get('date_to', '')
+    user_filter = request.args.get('user', 'all')
+    action_filter = request.args.get('action', 'all')
+
+    q = ActivityLog.query
+
+    if date_from:
+        try:
+            q = q.filter(ActivityLog.timestamp >= datetime.strptime(date_from, '%Y-%m-%d'))
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            q = q.filter(ActivityLog.timestamp < datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1))
+        except ValueError:
+            pass
+    if user_filter != 'all':
+        q = q.filter(ActivityLog.username == user_filter)
+    if action_filter != 'all':
+        q = q.filter(ActivityLog.action == action_filter)
+
+    logs = q.order_by(ActivityLog.timestamp.desc()).limit(500).all()
+
+    # UTC+3 local time
+    for log in logs:
+        from datetime import timezone, timedelta as td
+        utc_offset = td(hours=3)
+        local_dt = log.timestamp.replace(tzinfo=timezone.utc) + utc_offset
+        log.local_time = local_dt.strftime('%H:%M')
+        log.local_date = local_dt.strftime('%Y-%m-%d')
+
+    all_users   = db.session.query(ActivityLog.username).distinct().order_by(ActivityLog.username).all()
+    all_actions = db.session.query(ActivityLog.action).distinct().order_by(ActivityLog.action).all()
+
+    return render_template('admin/user_activity.html',
+                           logs=logs,
+                           all_users=[r[0] for r in all_users],
+                           all_actions=[r[0] for r in all_actions],
+                           date_from=date_from,
+                           date_to=date_to,
+                           user_filter=user_filter,
+                           action_filter=action_filter,
+                           lang=lang)
