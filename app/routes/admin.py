@@ -1596,16 +1596,33 @@ def _set_clip_status(app, clip_id, status, msg=None):
             db.session.commit()
 
 
+def _remux_faststart(raw_path, final_path):
+    """Remux raw NVR file with +faststart so browsers can stream inline. Returns True on success."""
+    import subprocess
+    try:
+        cmd = ['ffmpeg', '-y', '-i', raw_path, '-c', 'copy', '-movflags', '+faststart', final_path]
+        result = subprocess.run(cmd, capture_output=True, timeout=600)
+        if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
+            os.remove(raw_path)
+            return True
+    except Exception:
+        pass
+    # Fall back: just move the raw file as-is
+    os.replace(raw_path, final_path)
+    return False
+
+
 def _apply_watermark(app, clip_id, raw_path, final_path):
     """
     Overlay a Coda Agency footer on the clip using FFmpeg.
-    Falls back to the raw file if FFmpeg is unavailable or fails.
+    Falls back to a +faststart remux (no watermark) if FFmpeg watermark fails.
+    Always ensures the final file has moov atom at the start for browser streaming.
     """
     import subprocess
     logo_path = os.path.join(app.static_folder, 'uploads', 'coaches', 'coda-logo.png')
 
     if not os.path.exists(logo_path):
-        os.replace(raw_path, final_path)
+        _remux_faststart(raw_path, final_path)
         _set_clip_status(app, clip_id, 'ready')
         return
 
@@ -1634,16 +1651,17 @@ def _apply_watermark(app, clip_id, raw_path, final_path):
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, timeout=7200)
-        if result.returncode == 0 and os.path.exists(final_path) and os.path.getsize(final_path) > 10_000:
+        if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
             os.remove(raw_path)
             _set_clip_status(app, clip_id, 'ready')
         else:
             stderr = (result.stderr or b'').decode('utf-8', errors='replace')[-300:]
-            os.replace(raw_path, final_path)
+            # Watermark failed — remux raw file with +faststart so browser can still play it
+            _remux_faststart(raw_path, final_path)
             _set_clip_status(app, clip_id, 'ready', f'Watermark failed (ffmpeg rc={result.returncode}): {stderr}')
     except Exception as e:
         if os.path.exists(raw_path):
-            os.replace(raw_path, final_path)
+            _remux_faststart(raw_path, final_path)
         _set_clip_status(app, clip_id, 'ready', f'Watermark skipped: {str(e)[:200]}')
 
 

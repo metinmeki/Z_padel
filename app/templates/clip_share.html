@@ -142,9 +142,9 @@
     .coda-logo-img {
       height: 26px; width: auto;
       display: block;
-      /* logo is white-on-black; drop the black bg and keep the white artwork */
-      filter: brightness(0) invert(1);
-      opacity: .9;
+      /* screen blend makes black pixels transparent, keeps white logo visible */
+      mix-blend-mode: screen;
+      opacity: .92;
     }
     .coda-built-wrap { display: flex; flex-direction: column; line-height: 1.1; }
     .coda-built { font-size: .6rem; color: rgba(255,255,255,.45); font-weight: 500; letter-spacing: .3px; }

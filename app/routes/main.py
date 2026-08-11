@@ -178,8 +178,10 @@ def share_clip(token):
     clip = GameClip.query.filter_by(token=token).first_or_404()
     if clip.is_expired:
         return render_template('clip_expired.html'), 410
-    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
-    if not os.path.exists(filepath):
+    if not clip.filename:
+        abort(404)
+    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename)
+    if not os.path.isfile(filepath):
         abort(404)
     return render_template('clip_share.html', clip=clip)
 
@@ -190,15 +192,15 @@ def stream_clip_file(token):
     clip = GameClip.query.filter_by(token=token).first_or_404()
     if clip.is_expired:
         abort(410)
-    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename or '')
-    if not os.path.exists(filepath):
+    if not clip.filename:
         abort(404)
-    if os.path.getsize(filepath) < 10_000:   # corrupt / incomplete download
-        abort(503)
+    filepath = os.path.join(current_app.config['CLIPS_FOLDER'], clip.filename)
+    if not os.path.isfile(filepath):
+        abort(404)
     return send_file(
         filepath,
         mimetype="video/mp4",
-        conditional=True,   # enables 206 Partial Content — required by mobile browsers
+        conditional=True,
     )
 
 
