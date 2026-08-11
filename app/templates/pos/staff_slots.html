@@ -1,84 +1,79 @@
-﻿{% extends 'admin/base_admin.html' %}
-{% block title %}Staff Tabs — Z Padel{% endblock %}
+{% extends 'pos/base_pos.html' %}
+{% block title %}Staff Tabs — Z Padel POS{% endblock %}
 
-{% block extra_styles %}
+{% block extra_css %}
 <style>
-/* ── Tab selector row ── */
-.slot-tabs { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
 .slot-tab {
-  padding:.5rem 1.1rem; border-radius:10px; border:2px solid var(--border-color);
-  background:#fff; font-size:.84rem; font-weight:700; color:var(--text-muted);
+  padding:.5rem 1.1rem; border-radius:10px; border:2px solid var(--border);
+  background:var(--bg-card); font-size:.84rem; font-weight:700; color:var(--text-secondary);
   cursor:pointer; transition:all .18s; white-space:nowrap;
 }
-.slot-tab:hover { border-color:var(--brand-blue); color:var(--brand-blue); }
+.slot-tab:hover { border-color:var(--primary); color:var(--primary); }
 .slot-tab.active {
-  border-color:var(--brand-blue); background:var(--brand-blue);
-  color:#fff; box-shadow:var(--shadow-sm);
+  border-color:var(--primary); background:var(--primary);
+  color:#fff; box-shadow:0 4px 12px var(--primary-glow);
 }
 .slot-tab .tab-total { font-size:.7rem; opacity:.75; display:block; }
 
-/* ── Main layout ── */
 .ss-layout { display:grid; grid-template-columns:1fr 340px; gap:1rem; align-items:start; }
+@media(max-width:900px) { .ss-layout { grid-template-columns:1fr; } }
 
-/* ── Product panel ── */
-.ss-card { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; }
-.ss-head { padding:.75rem 1rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
-.ss-head-title { font-size:.88rem; font-weight:800; color:var(--text-dark); }
+.ss-card { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.ss-head { padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.ss-head-title { font-size:.88rem; font-weight:800; color:var(--text-primary); }
 
-.cat-bar { display:flex; gap:.35rem; flex-wrap:wrap; padding:.6rem .9rem; border-bottom:1px solid var(--border-color); background:var(--brand-blue-soft); }
-.cat-btn { padding:.22rem .65rem; border-radius:20px; font-size:.72rem; font-weight:700; cursor:pointer; border:1.5px solid var(--border-color); background:#fff; color:var(--text-muted); transition:all .15s; }
-.cat-btn.active, .cat-btn:hover { background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); }
+.cat-bar { display:flex; gap:.35rem; flex-wrap:wrap; padding:.6rem .9rem; border-bottom:1px solid var(--border); background:var(--primary-subtle); }
+.cat-btn { padding:.22rem .65rem; border-radius:20px; font-size:.72rem; font-weight:700; cursor:pointer; border:1.5px solid var(--border); background:var(--bg-card); color:var(--text-secondary); transition:all .15s; }
+.cat-btn.active, .cat-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
 
-.prod-search { padding:.6rem .9rem; border-bottom:1px solid var(--border-color); }
-.prod-search input { width:100%; height:34px; padding:0 .7rem; font-size:.82rem; border:1.5px solid var(--border-color); border-radius:8px; }
-.prod-search input:focus { border-color:var(--brand-blue); outline:none; }
+.prod-search { padding:.6rem .9rem; border-bottom:1px solid var(--border); }
+.prod-search input { width:100%; height:34px; padding:0 .7rem; font-size:.82rem; border:1.5px solid var(--border); border-radius:8px; background:var(--bg-input); }
+.prod-search input:focus { border-color:var(--primary); outline:none; }
 
 .prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:.55rem; padding:.85rem; max-height:520px; overflow-y:auto; }
-.prod-card { border:1.5px solid var(--border-color); border-radius:10px; padding:.65rem .5rem; cursor:pointer; text-align:center; transition:all .15s; }
-.prod-card:hover { border-color:var(--brand-blue); background:var(--brand-blue-soft); transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+.prod-card { border:1.5px solid var(--border); border-radius:10px; padding:.65rem .5rem; cursor:pointer; text-align:center; transition:all .15s; background:var(--bg-card); }
+.prod-card:hover { border-color:var(--primary); background:var(--primary-subtle); transform:translateY(-2px); box-shadow:0 4px 12px var(--primary-glow); }
 .prod-card.out { opacity:.4; pointer-events:none; }
-.prod-name { font-size:.76rem; font-weight:700; color:var(--text-dark); margin-bottom:.25rem; line-height:1.2; }
-.prod-price { font-size:.73rem; font-weight:800; color:var(--brand-blue); }
+.prod-name { font-size:.76rem; font-weight:700; color:var(--text-primary); margin-bottom:.25rem; line-height:1.2; }
+.prod-price { font-size:.73rem; font-weight:800; color:var(--primary); }
 .prod-stock { font-size:.62rem; color:var(--text-muted); margin-top:1px; }
 
-/* ── Items panel ── */
 .items-list { max-height:430px; overflow-y:auto; }
-.item-row { display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem; border-bottom:1px solid var(--border-color); }
+.item-row { display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem; border-bottom:1px solid var(--border); }
 .item-row:last-child { border-bottom:none; }
 .item-info { flex:1; min-width:0; }
-.item-name { font-size:.8rem; font-weight:600; color:var(--text-dark); }
+.item-name { font-size:.8rem; font-weight:600; color:var(--text-primary); }
 .item-meta { font-size:.68rem; color:var(--text-muted); }
-.item-price { font-size:.8rem; font-weight:800; color:var(--brand-blue); white-space:nowrap; }
-.item-del { width:24px; height:24px; border-radius:6px; border:1.5px solid #fca5a5; background:#fff; color:#dc2626; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.68rem; flex-shrink:0; transition:all .15s; }
-.item-del:hover { background:#fee2e2; }
-.items-footer { padding:.8rem 1rem; background:var(--brand-blue-soft); border-top:2px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; }
-.items-footer-label { font-size:.8rem; font-weight:700; color:var(--text-muted); }
-.items-footer-total { font-size:1.15rem; font-weight:900; color:var(--brand-blue); }
+.item-price { font-size:.8rem; font-weight:800; color:var(--primary); white-space:nowrap; }
+.item-del { width:24px; height:24px; border-radius:6px; border:1.5px solid var(--danger-border); background:var(--bg-card); color:var(--danger); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.68rem; flex-shrink:0; transition:all .15s; }
+.item-del:hover { background:var(--danger-bg); }
+.items-footer { padding:.8rem 1rem; background:var(--primary-subtle); border-top:2px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.items-footer-label { font-size:.8rem; font-weight:700; color:var(--text-secondary); }
+.items-footer-total { font-size:1.15rem; font-weight:900; color:var(--primary); }
 .items-empty { text-align:center; padding:2.5rem 1rem; color:var(--text-muted); }
 .items-empty i { font-size:2rem; opacity:.2; display:block; margin-bottom:.5rem; }
 .items-empty p { font-size:.82rem; font-weight:600; margin:0; }
 
-/* ── No slot selected ── */
 .no-slot { text-align:center; padding:3rem 1rem; color:var(--text-muted); }
 .no-slot i { font-size:2.5rem; opacity:.2; display:block; margin-bottom:.7rem; }
 .no-slot p { font-size:.88rem; font-weight:600; margin:0; }
 
-#toast { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--brand-blue); color:#fff; padding:.6rem 1.2rem; border-radius:10px; font-size:.83rem; font-weight:700; display:none; z-index:9999; box-shadow:var(--shadow-md); }
-
-@media(max-width:900px) { .ss-layout { grid-template-columns:1fr; } }
+#toast { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--primary); color:#fff; padding:.6rem 1.2rem; border-radius:10px; font-size:.83rem; font-weight:700; display:none; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,.2); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="margin-bottom:1rem;">
-  <h2 style="margin:0 0 .15rem;font-size:1.35rem;font-weight:900;color:var(--text-dark);">
-    <i class="fas fa-utensils me-2" style="color:var(--brand-blue);"></i>Staff Tabs
-  </h2>
-  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">Select your tab, then tap a product to add it</p>
+<div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
+  <div>
+    <h2 style="margin:0 0 .15rem;font-size:1.35rem;font-weight:900;color:var(--text-primary);">
+      <i class="fas fa-utensils me-2" style="color:var(--primary);"></i>Staff Tabs
+    </h2>
+    <p style="margin:0;font-size:.82rem;color:var(--text-muted);">Select your tab, then tap a product to add it</p>
+  </div>
 </div>
 
 <!-- Slot selector tabs -->
-<div class="slot-tabs">
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.2rem;">
   {% for slot in slots %}
   <button class="slot-tab" id="tab-btn-{{ slot.id }}" onclick="selectSlot({{ slot.id }}, '{{ slot.staff_name }}')">
     {{ slot.staff_name }}
@@ -90,10 +85,10 @@
 <!-- Main layout -->
 <div class="ss-layout">
 
-  <!-- LEFT: Products (always visible) -->
+  <!-- LEFT: Products -->
   <div class="ss-card">
     <div class="ss-head">
-      <span class="ss-head-title"><i class="fas fa-box-open me-2" style="color:var(--brand-blue);"></i>Products</span>
+      <span class="ss-head-title"><i class="fas fa-box-open me-2" style="color:var(--primary);"></i>Products</span>
       <span style="font-size:.75rem;color:var(--text-muted);">Tap a product to add to selected tab</span>
     </div>
     <div class="cat-bar">
@@ -120,7 +115,7 @@
   <!-- RIGHT: Selected slot items -->
   <div class="ss-card">
     <div class="ss-head">
-      <span class="ss-head-title" id="itemsPanelTitle"><i class="fas fa-list-check me-2" style="color:var(--brand-blue);"></i>Items</span>
+      <span class="ss-head-title" id="itemsPanelTitle"><i class="fas fa-list-check me-2" style="color:var(--primary);"></i>Items</span>
       <span style="font-size:.72rem;color:var(--text-muted);" id="itemCount">—</span>
     </div>
     <div class="items-list" id="itemsList">
@@ -135,10 +130,13 @@
 </div>
 
 <div id="toast"></div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 let activeSlotId = null;
 const slotData = {};
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 {% for slot in slots %}
 slotData[{{ slot.id }}] = {
@@ -153,11 +151,10 @@ slotData[{{ slot.id }}] = {
 {% endfor %}
 
 function selectSlot(slotId, slotName) {
-  // deactivate old tab
   if (activeSlotId) document.getElementById('tab-btn-' + activeSlotId)?.classList.remove('active');
   activeSlotId = slotId;
   document.getElementById('tab-btn-' + slotId).classList.add('active');
-  document.getElementById('itemsPanelTitle').innerHTML = '<i class="fas fa-list-check me-2" style="color:var(--brand-blue);"></i>' + slotName;
+  document.getElementById('itemsPanelTitle').innerHTML = '<i class="fas fa-list-check me-2" style="color:var(--primary);"></i>' + slotName;
   renderItems();
 }
 
@@ -186,7 +183,7 @@ function addItem(productId) {
   if (!activeSlotId) { toast('Please select a staff tab first!', false); return; }
   fetch(`/pos/staff-slots/${activeSlotId}/add`, {
     method:'POST',
-    headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},
+    headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},
     body:JSON.stringify({product_id:productId, quantity:1})
   }).then(r=>r.json()).then(d=>{
     if (!d.success) { toast(d.message||'Error', false); return; }
@@ -201,7 +198,7 @@ function addItem(productId) {
 function removeItem(itemId) {
   if (!confirm('Remove this item?')) return;
   fetch(`/pos/staff-slots/${activeSlotId}/remove/${itemId}`, {
-    method:'POST', headers:{'X-CSRFToken':csrf()}
+    method:'POST', headers:{'X-CSRFToken':csrfToken}
   }).then(r=>r.json()).then(d=>{
     if (!d.success) { toast('Error',false); return; }
     slotData[activeSlotId].items = slotData[activeSlotId].items.filter(i=>i.id!==itemId);
@@ -211,7 +208,6 @@ function removeItem(itemId) {
   });
 }
 
-// Category & search filter
 document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', ()=>{
   document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); filterProds();
@@ -228,11 +224,8 @@ function filterProds() {
 
 function toast(msg, ok=true) {
   const el=document.getElementById('toast');
-  el.textContent=msg; el.style.background=ok?'var(--brand-blue)':'#dc2626';
+  el.textContent=msg; el.style.background=ok?'var(--primary)':'var(--danger)';
   el.style.display='block'; setTimeout(()=>el.style.display='none',2400);
-}
-function csrf() {
-  return document.querySelector('meta[name="csrf-token"]')?.content || '';
 }
 </script>
 {% endblock %}

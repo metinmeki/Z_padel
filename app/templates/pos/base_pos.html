@@ -265,6 +265,11 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pos.staff_slots') }}">
+            <i class="fas fa-utensils"></i>{% if lang == 'en' %}Staff Tabs{% elif lang == 'ku' %}تابەکانی ستاف{% else %}تبويبات الموظفين{% endif %}
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('pos.archive') }}" style="position:relative;">
             <i class="fas fa-box-archive"></i>{% if lang == 'en' %}Archive{% elif lang == 'ku' %}ئەرشیف{% else %}الأرشيف{% endif %}
             {% if pending_bills_count %}
