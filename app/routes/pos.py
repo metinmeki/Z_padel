@@ -328,6 +328,34 @@ def remove_session_item(session_id, item_id):
     return jsonify(success=True, items_total=session_row.items_total, grand_total=session_row.grand_total)
 
 
+@pos_bp.route('/courts/session/<int:session_id>/set-item-qty/<int:item_id>', methods=['POST'])
+@login_required
+def set_session_item_qty(session_id, item_id):
+    item = CourtSessionItem.query.get_or_404(item_id)
+    data = request.get_json(force=True) or {}
+    new_qty = int(data.get('quantity', 1))
+    if new_qty <= 0:
+        return jsonify(success=False, message='الكمية يجب أن تكون أكبر من صفر'), 400
+
+    delta = new_qty - item.quantity
+    prod = Product.query.get(item.product_id)
+    if prod:
+        if delta > 0 and prod.stock < delta:
+            return jsonify(success=False, message=f'الكمية غير متوفرة: {prod.name}'), 400
+        prod.stock -= delta
+
+    item.quantity = new_qty
+    item.subtotal = item.price * new_qty
+    db.session.commit()
+
+    session_row = CourtSession.query.get_or_404(session_id)
+    return jsonify(success=True,
+                   item=dict(id=item.id, product_id=item.product_id, product_name=item.product_name,
+                             quantity=item.quantity, price=item.price, subtotal=item.subtotal),
+                   items_total=session_row.items_total,
+                   grand_total=session_row.grand_total)
+
+
 @pos_bp.route('/courts/session/<int:session_id>/end-time', methods=['POST'])
 @login_required
 def end_session_time(session_id):
@@ -712,6 +740,34 @@ def remove_activity_item(session_id, item_id):
     db.session.commit()
     sess = ActivitySession.query.get_or_404(session_id)
     return jsonify(success=True, items_total=sess.items_total, grand_total=sess.grand_total)
+
+
+@pos_bp.route('/activities/session/<int:session_id>/set-item-qty/<int:item_id>', methods=['POST'])
+@login_required
+def set_activity_item_qty(session_id, item_id):
+    item = ActivitySessionItem.query.get_or_404(item_id)
+    data = request.get_json(force=True) or {}
+    new_qty = int(data.get('quantity', 1))
+    if new_qty <= 0:
+        return jsonify(success=False, message='الكمية يجب أن تكون أكبر من صفر'), 400
+
+    delta = new_qty - item.quantity
+    prod = Product.query.get(item.product_id)
+    if prod:
+        if delta > 0 and prod.stock < delta:
+            return jsonify(success=False, message=f'الكمية غير متوفرة: {prod.name}'), 400
+        prod.stock -= delta
+
+    item.quantity = new_qty
+    item.subtotal = item.price * new_qty
+    db.session.commit()
+
+    sess = ActivitySession.query.get_or_404(session_id)
+    return jsonify(success=True,
+                   item=dict(id=item.id, product_id=item.product_id, product_name=item.product_name,
+                             quantity=item.quantity, price=item.price, subtotal=item.subtotal),
+                   items_total=sess.items_total,
+                   grand_total=sess.grand_total)
 
 
 @pos_bp.route('/activities/session/<int:session_id>/finish-debt', methods=['POST'])

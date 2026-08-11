@@ -55,6 +55,13 @@
   .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.85rem; }
   .product-img-wrap { width:56px;height:56px;margin:0 auto .5rem;border-radius:10px;overflow:hidden;background:var(--bg-base);display:flex;align-items:center;justify-content:center; }
   .product-img-wrap img { width:100%;height:100%;object-fit:cover; }
+
+  .item-qty-ctrl { display:flex;align-items:center;gap:2px;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;padding:2px 4px; }
+  .item-qty-btn { border:none;background:none;width:22px;height:22px;cursor:pointer;font-size:.95rem;font-weight:800;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;border-radius:5px; }
+  .item-qty-btn.minus { color:var(--danger); }
+  .item-qty-btn.plus  { color:var(--primary); }
+  .item-qty-btn:hover { background:var(--bg-surface); }
+  .item-qty-val { min-width:20px;text-align:center;font-weight:800;font-size:.82rem;color:var(--text-primary); }
 {% endblock %}
 
 {% block content %}
@@ -81,16 +88,20 @@
     <div class="invoice-items" id="invoiceItems">
       {% if session.items %}
         {% for item in session.items %}
-        <div class="invoice-item-row" id="item-row-{{ item.id }}" data-product-id="{{ item.product_id }}">
+        <div class="invoice-item-row" id="item-row-{{ item.id }}" data-product-id="{{ item.product_id }}" data-qty="{{ item.quantity }}">
           <div>
             <div class="invoice-item-name">{{ item.product_name }}</div>
             <div class="invoice-item-sub" id="item-sub-{{ item.id }}">{{ '{:,.0f}'.format(item.price) }} × {{ item.quantity }}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:.5rem;">
-            <span class="invoice-item-price" id="item-price-{{ item.id }}">{{ '{:,.0f}'.format(item.subtotal) }}</span>
+          <div style="display:flex;align-items:center;gap:.4rem;">
             {% if session.status == 'active' %}
-            <span class="invoice-item-remove" onclick="removeItem({{ item.id }})"><i class="fas fa-times"></i></span>
+            <div class="item-qty-ctrl">
+              <button class="item-qty-btn minus" onclick="adjItemQty({{ item.id }}, -1)">−</button>
+              <span class="item-qty-val" id="item-qty-{{ item.id }}">{{ item.quantity }}</span>
+              <button class="item-qty-btn plus" onclick="adjItemQty({{ item.id }}, +1)">+</button>
+            </div>
             {% endif %}
+            <span class="invoice-item-price" id="item-price-{{ item.id }}">{{ '{:,.0f}'.format(item.subtotal) }}</span>
           </div>
         </div>
         {% endfor %}
@@ -172,8 +183,8 @@
           <i class="fas {{ meta.icon }}" style="color:{{ meta.color }};"></i>
           {% if lang == 'en' %}{{ meta.en }}{% else %}{{ meta.ar }}{% endif %} — {{ session.table.name }}
         </div>
-        <div class="session-start-time">
-          {% if lang == 'en' %}Started{% else %}البداية{% endif %}: {{ session.start_time.strftime('%H:%M') }}
+        <div class="session-start-time" id="startTimeDisplay">
+          <span id="startTimeText">{% if lang == 'en' %}Started{% else %}البداية{% endif %}: --:--</span>
           {% if session.customer_name %}&nbsp;·&nbsp; {{ session.customer_name }}{% endif %}
         </div>
       </div>
@@ -348,19 +359,40 @@ function tickTimer() {
 setInterval(() => { updateClock(); tickTimer(); }, 1000);
 updateClock(); tickTimer();
 
-// ── Click queue: batch rapid taps into one request ──
-const _clickQueue = {};
+// Show start time in local timezone (data-start is UTC)
+(function() {
+  const timerEl = document.getElementById('liveTimer');
+  const dispEl  = document.getElementById('startTimeText');
+  if (!timerEl || !dispEl) return;
+  const local = new Date(timerEl.dataset.start);
+  const prefix = isEn ? 'Started' : 'البداية';
+  dispEl.textContent = prefix + ': ' + pad(local.getHours()) + ':' + pad(local.getMinutes());
+})();
+
+// ── Add item (product card click) ──
 function addItem(productId) {
-  if (!_clickQueue[productId]) _clickQueue[productId] = { count: 0, timer: null };
-  _clickQueue[productId].count++;
-  const card = document.querySelector(`.product-card[data-pid="${productId}"]`);
-  if (card) { card.classList.add('flash'); setTimeout(() => card.classList.remove('flash'), 400); }
-  clearTimeout(_clickQueue[productId].timer);
-  _clickQueue[productId].timer = setTimeout(() => {
-    const qty = _clickQueue[productId].count;
-    delete _clickQueue[productId];
-    _sendAddItem(productId, qty);
-  }, 350);
+  _sendAddItem(productId, 1);
+}
+
+// ── Inline +/- on invoice rows ──
+function adjItemQty(itemId, delta) {
+  const row = document.getElementById(`item-row-${itemId}`);
+  if (!row) return;
+  const currentQty = parseInt(row.dataset.qty) || 1;
+  const newQty = currentQty + delta;
+  if (newQty <= 0) { removeItem(itemId); return; }
+  fetch(`/pos/activities/session/${sessionId}/set-item-qty/${itemId}`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ quantity: newQty })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) { alert(d.message || (isEn ? 'Error' : 'خطأ')); return; }
+    _updateInvoiceItem(d.item);
+    _updateTotals(d.items_total, d.grand_total);
+  })
+  .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));
 }
 
 function _sendAddItem(productId, qty) {
@@ -403,19 +435,27 @@ function _updateInvoiceItem(item) {
   if (emptyEl) emptyEl.remove();
   if (existing) {
     existing.id = `item-row-${item.id}`;
+    existing.dataset.qty = item.quantity;
     const sub = existing.querySelector('.invoice-item-sub');
     const pr  = existing.querySelector('.invoice-item-price');
+    const qv  = existing.querySelector('.item-qty-val');
     if (sub) sub.textContent = fmt(item.price) + ' × ' + item.quantity;
     if (pr)  pr.textContent  = fmt(item.subtotal);
+    if (qv)  qv.textContent  = item.quantity;
   } else {
-    const html = `<div class="invoice-item-row" id="item-row-${item.id}" data-product-id="${item.product_id}">
+    const qtyCtrl = `<div class="item-qty-ctrl">
+      <button class="item-qty-btn minus" onclick="adjItemQty(${item.id},-1)">−</button>
+      <span class="item-qty-val" id="item-qty-${item.id}">${item.quantity}</span>
+      <button class="item-qty-btn plus" onclick="adjItemQty(${item.id},+1)">+</button>
+    </div>`;
+    const html = `<div class="invoice-item-row" id="item-row-${item.id}" data-product-id="${item.product_id}" data-qty="${item.quantity}">
       <div>
         <div class="invoice-item-name">${item.product_name}</div>
-        <div class="invoice-item-sub">${fmt(item.price)} × ${item.quantity}</div>
+        <div class="invoice-item-sub" id="item-sub-${item.id}">${fmt(item.price)} × ${item.quantity}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:.5rem;">
-        <span class="invoice-item-price">${fmt(item.subtotal)}</span>
-        <span class="invoice-item-remove" onclick="removeItem(${item.id})"><i class="fas fa-times"></i></span>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        ${qtyCtrl}
+        <span class="invoice-item-price" id="item-price-${item.id}">${fmt(item.subtotal)}</span>
       </div>
     </div>`;
     document.getElementById('invoiceItems').insertAdjacentHTML('beforeend', html);
@@ -572,7 +612,7 @@ document.getElementById('barcodeInput')?.addEventListener('keydown', function(e)
   const code = this.value.trim(); this.value = '';
   if (!code) return;
   const item = document.querySelector(`.product-item[data-id="${code}"]`);
-  if (item) { item.querySelector('.product-card').click(); return; }
+  if (item) { _sendAddItem(parseInt(code), 1); return; }
   alert(isEn ? 'Product not found!' : 'المنتج غير موجود!');
 });
 </script>
