@@ -15,7 +15,7 @@ from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
-                               Sponsor, CourtSession, ActivityLog)
+                               Sponsor, CourtSession, ActivityLog, StaffSlot, StaffSlotItem)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory, StaffConsumption)
 from sqlalchemy import func, case
@@ -2125,3 +2125,40 @@ def staff_consumption_report():
                            months=months,
                            years=years,
                            lang=lang)
+
+
+# ════════════════════════════════════════════
+# STAFF SLOTS — admin: edit names
+# ════════════════════════════════════════════
+@admin_bp.route('/staff-slots')
+@login_required
+def staff_slots_admin():
+    slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
+    return render_template('admin/staff_slots_admin.html', slots=slots, lang=g.lang)
+
+
+@admin_bp.route('/staff-slots/<int:slot_id>/edit', methods=['POST'])
+@login_required
+def staff_slot_edit(slot_id):
+    slot = StaffSlot.query.get_or_404(slot_id)
+    name = (request.form.get('staff_name') or '').strip()
+    if name:
+        slot.staff_name = name
+        db.session.commit()
+    return redirect(url_for('admin.staff_slots_admin'))
+
+
+# ════════════════════════════════════════════
+# STAFF SLOTS — owner report (finance users)
+# ════════════════════════════════════════════
+@admin_bp.route('/staff-slots-report')
+@login_required
+def staff_slots_report():
+    if current_user.username.lower() not in FINANCE_USERS:
+        return redirect(url_for('admin.dashboard'))
+    slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
+    grand_total = sum(s.total for s in slots)
+    return render_template('admin/staff_slots_report.html',
+                           slots=slots,
+                           grand_total=grand_total,
+                           lang=g.lang)

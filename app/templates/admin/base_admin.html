@@ -1153,6 +1153,13 @@
         <span class="nav-label">{% if lang == 'en' %}Activity Tables{% elif lang == 'ku' %}مێزی چالاکی{% else %}طاولات الأنشطة{% endif %}</span>
       </a>
     </div>
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.staff_slots_admin') }}"
+         class="nav-link-custom {% if request.endpoint in ('admin.staff_slots_admin','admin.staff_slot_edit') %}active{% endif %}">
+        <i class="fas fa-users nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Staff Tabs Names{% elif lang == 'ku' %}ناوی تابەکانی ستاف{% else %}أسماء تبويبات الموظفين{% endif %}</span>
+      </a>
+    </div>
     {% endif %}
 
     {# STORE — perm_products and/or perm_orders #}
@@ -1227,10 +1234,10 @@
       </a>
     </div>
     <div class="nav-item-wrapper">
-      <a href="{{ url_for('admin.staff_consumption_report') }}"
-         class="nav-link-custom {% if request.endpoint == 'admin.staff_consumption_report' %}active{% endif %}">
+      <a href="{{ url_for('admin.staff_slots_report') }}"
+         class="nav-link-custom {% if request.endpoint == 'admin.staff_slots_report' %}active{% endif %}">
         <i class="fas fa-bowl-food nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}Staff Consumption{% elif lang == 'ku' %}خواردنی ستاف{% else %}استهلاك الموظفين{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Staff Tabs Report{% elif lang == 'ku' %}ڕاپۆرتی تابی ستاف{% else %}تقرير تبويبات الموظفين{% endif %}</span>
       </a>
     </div>
     {% endif %}
@@ -1253,10 +1260,10 @@
       </a>
     </div>
     <div class="nav-item-wrapper">
-      <a href="{{ url_for('pos.my_tab') }}"
-         class="nav-link-custom {% if request.endpoint == 'pos.my_tab' %}active{% endif %}">
+      <a href="{{ url_for('pos.staff_slots') }}"
+         class="nav-link-custom {% if request.endpoint and 'staff_slot' in request.endpoint %}active{% endif %}">
         <i class="fas fa-utensils nav-icon"></i>
-        <span class="nav-label">{% if lang == 'en' %}My Tab{% elif lang == 'ku' %}تابی من{% else %}تبويبتي{% endif %}</span>
+        <span class="nav-label">{% if lang == 'en' %}Staff Tabs{% elif lang == 'ku' %}تابی ستاف{% else %}تبويبات الموظفين{% endif %}</span>
       </a>
     </div>
     {% endif %}

@@ -1,0 +1,250 @@
+﻿{% extends 'admin/base_admin.html' %}
+{% block title %}Staff Tabs — Z Padel{% endblock %}
+
+{% block extra_styles %}
+<style>
+/* ── Slot grid ── */
+.slots-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.slot-card {
+  background:#fff; border:2px solid var(--border-color); border-radius:var(--radius);
+  box-shadow:var(--shadow-sm); padding:1.3rem 1.2rem; cursor:pointer;
+  transition:all .2s; position:relative; overflow:hidden;
+}
+.slot-card:hover { border-color:var(--brand-blue); transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.slot-card.active-slot { border-color:var(--brand-blue); background:var(--brand-blue-soft); }
+.slot-number { font-size:.7rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.4rem; }
+.slot-name { font-size:1.15rem; font-weight:900; color:var(--text-dark); margin-bottom:.6rem; }
+.slot-total { font-size:1.05rem; font-weight:800; color:var(--brand-blue); }
+.slot-count { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+.slot-arrow { position:absolute; top:50%; right:1rem; transform:translateY(-50%); color:var(--brand-blue); opacity:.4; font-size:1.1rem; }
+
+/* ── Detail panel ── */
+.detail-panel { display:none; background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-md); margin-bottom:1.5rem; overflow:hidden; }
+.detail-panel.show { display:block; }
+.detail-head { padding:1rem 1.2rem; background:linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue)); display:flex; align-items:center; justify-content:space-between; }
+.detail-title { color:#fff; font-size:1rem; font-weight:800; }
+.detail-close { width:32px; height:32px; border-radius:8px; border:none; background:rgba(255,255,255,.2); color:#fff; cursor:pointer; font-size:.9rem; display:flex; align-items:center; justify-content:center; }
+.detail-close:hover { background:rgba(255,255,255,.35); }
+.detail-body { display:grid; grid-template-columns:1fr 340px; gap:0; }
+
+/* Product grid */
+.prod-panel { border-right:1px solid var(--border-color); }
+.cat-bar { display:flex; gap:.35rem; flex-wrap:wrap; padding:.7rem .9rem; border-bottom:1px solid var(--border-color); background:var(--brand-blue-soft); }
+.cat-btn { padding:.22rem .65rem; border-radius:20px; font-size:.72rem; font-weight:700; cursor:pointer; border:1.5px solid var(--border-color); background:#fff; color:var(--text-muted); transition:all .15s; }
+.cat-btn.active { background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); }
+.prod-search { padding:.6rem .9rem; border-bottom:1px solid var(--border-color); }
+.prod-search input { width:100%; height:34px; padding:0 .7rem; font-size:.82rem; border:1.5px solid var(--border-color); border-radius:8px; }
+.prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:.5rem; padding:.8rem; max-height:400px; overflow-y:auto; }
+.prod-card { border:1.5px solid var(--border-color); border-radius:9px; padding:.6rem .5rem; cursor:pointer; text-align:center; transition:all .15s; }
+.prod-card:hover { border-color:var(--brand-blue); background:var(--brand-blue-soft); }
+.prod-card.out { opacity:.4; pointer-events:none; }
+.prod-name { font-size:.74rem; font-weight:700; color:var(--text-dark); margin-bottom:.25rem; line-height:1.2; }
+.prod-price { font-size:.72rem; font-weight:800; color:var(--brand-blue); }
+.prod-stock { font-size:.62rem; color:var(--text-muted); }
+
+/* Items panel */
+.items-panel { display:flex; flex-direction:column; }
+.items-head { padding:.65rem 1rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
+.items-head-title { font-size:.82rem; font-weight:800; color:var(--text-dark); }
+.items-list { flex:1; overflow-y:auto; max-height:370px; }
+.item-row { display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem; border-bottom:1px solid var(--border-color); }
+.item-row:last-child { border-bottom:none; }
+.item-name { flex:1; font-size:.8rem; font-weight:600; color:var(--text-dark); }
+.item-meta { font-size:.7rem; color:var(--text-muted); }
+.item-price { font-size:.8rem; font-weight:800; color:var(--brand-blue); white-space:nowrap; }
+.item-del { width:22px; height:22px; border-radius:6px; border:1.5px solid #fca5a5; background:#fff; color:#dc2626; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.65rem; flex-shrink:0; }
+.item-del:hover { background:#fee2e2; }
+.items-footer { padding:.75rem 1rem; background:var(--brand-blue-soft); border-top:2px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; }
+.items-footer-label { font-size:.8rem; font-weight:700; color:var(--text-muted); }
+.items-footer-total { font-size:1.1rem; font-weight:900; color:var(--brand-blue); }
+.items-empty { text-align:center; padding:2.5rem 1rem; color:var(--text-muted); }
+.items-empty i { font-size:1.8rem; opacity:.2; display:block; margin-bottom:.5rem; }
+
+#toast { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--brand-blue); color:#fff; padding:.6rem 1.1rem; border-radius:10px; font-size:.83rem; font-weight:700; display:none; z-index:9999; box-shadow:var(--shadow-md); }
+@media(max-width:768px) { .detail-body { grid-template-columns:1fr; } .prod-panel { border-right:none; border-bottom:1px solid var(--border-color); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.2rem;">
+  <h2 style="margin:0 0 .15rem;font-size:1.35rem;font-weight:900;color:var(--text-dark);">
+    <i class="fas fa-utensils me-2" style="color:var(--brand-blue);"></i>
+    Staff Tabs
+  </h2>
+  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">Click your tab to add what you ate or drank</p>
+</div>
+
+<!-- 7 slot cards -->
+<div class="slots-grid" id="slotsGrid">
+  {% for slot in slots %}
+  <div class="slot-card" id="card-{{ slot.id }}" onclick="openSlot({{ slot.id }}, '{{ slot.staff_name }}')">
+    <div class="slot-number">Tab {{ slot.slot_number }}</div>
+    <div class="slot-name">{{ slot.staff_name }}</div>
+    <div class="slot-total" id="card-total-{{ slot.id }}">{{ '{:,.0f}'.format(slot.total) }} IQD</div>
+    <div class="slot-count" id="card-count-{{ slot.id }}">{{ slot.items|length }} items</div>
+    <span class="slot-arrow"><i class="fas fa-chevron-right"></i></span>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Detail panel (single, reused for any slot) -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-head">
+    <span class="detail-title" id="detailTitle">—</span>
+    <button class="detail-close" onclick="closeSlot()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="detail-body">
+    <!-- Products -->
+    <div class="prod-panel">
+      <div class="cat-bar" id="catBar">
+        <button class="cat-btn active" data-cat="all">All</button>
+        {% for cat in categories %}
+        <button class="cat-btn" data-cat="{{ cat.id }}">{{ cat.name }}</button>
+        {% endfor %}
+      </div>
+      <div class="prod-search"><input type="text" id="prodSearch" placeholder="Search product..."></div>
+      <div class="prod-grid" id="prodGrid">
+        {% for p in products %}
+        <div class="prod-card {% if p.stock == 0 %}out{% endif %}"
+             data-id="{{ p.id }}" data-name="{{ p.name }}"
+             data-price="{{ p.price }}" data-cat="{{ p.category_id or '' }}"
+             onclick="addItem({{ p.id }})">
+          <div class="prod-name">{{ p.name }}</div>
+          <div class="prod-price">{{ '{:,.0f}'.format(p.price) }} IQD</div>
+          <div class="prod-stock">{{ p.stock }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <!-- Items list -->
+    <div class="items-panel">
+      <div class="items-head">
+        <span class="items-head-title">Items added</span>
+        <span style="font-size:.72rem;color:var(--text-muted);" id="itemCount">0 items</span>
+      </div>
+      <div class="items-list" id="itemsList">
+        <div class="items-empty"><i class="fas fa-utensils"></i><p>Nothing added yet</p></div>
+      </div>
+      <div class="items-footer">
+        <span class="items-footer-label">Total</span>
+        <span class="items-footer-total" id="slotTotal">0 IQD</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let activeSlotId = null;
+// slot data loaded from server when opened
+const slotData = {};
+
+{% for slot in slots %}
+slotData[{{ slot.id }}] = {
+  items: [
+    {% for item in slot.items %}
+    {id:{{ item.id }}, name:{{ item.product_name|tojson }}, qty:{{ item.quantity }}, price:{{ item.unit_price }}, sub:{{ item.subtotal }}, date:{{ item.added_at.strftime('%d %b')|tojson }}},
+    {% endfor %}
+  ],
+  total: {{ slot.total }}
+};
+{% endfor %}
+
+function openSlot(slotId, slotName) {
+  // deactivate old card
+  if (activeSlotId) document.getElementById('card-' + activeSlotId)?.classList.remove('active-slot');
+  activeSlotId = slotId;
+  document.getElementById('card-' + slotId).classList.add('active-slot');
+  document.getElementById('detailTitle').textContent = slotName + ' — Tab';
+  document.getElementById('detailPanel').classList.add('show');
+  renderItems();
+  document.getElementById('detailPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function closeSlot() {
+  if (activeSlotId) document.getElementById('card-' + activeSlotId)?.classList.remove('active-slot');
+  activeSlotId = null;
+  document.getElementById('detailPanel').classList.remove('show');
+}
+
+function renderItems() {
+  const data = slotData[activeSlotId];
+  const list = document.getElementById('itemsList');
+  document.getElementById('itemCount').textContent = data.items.length + ' items';
+  document.getElementById('slotTotal').textContent = data.total.toLocaleString() + ' IQD';
+  if (!data.items.length) {
+    list.innerHTML = '<div class="items-empty"><i class="fas fa-utensils"></i><p>Nothing added yet</p></div>';
+    return;
+  }
+  list.innerHTML = data.items.map(it => `
+    <div class="item-row" id="item-${it.id}">
+      <div style="flex:1;min-width:0;">
+        <div class="item-name">${it.name}</div>
+        <div class="item-meta">x${it.qty} &middot; ${it.date}</div>
+      </div>
+      <div class="item-price">${it.sub.toLocaleString()} IQD</div>
+      <button class="item-del" onclick="removeItem(${it.id})"><i class="fas fa-xmark"></i></button>
+    </div>`).join('');
+}
+
+function addItem(productId) {
+  if (!activeSlotId) return;
+  fetch(`/pos/staff-slots/${activeSlotId}/add`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},
+    body:JSON.stringify({product_id:productId, quantity:1})
+  }).then(r=>r.json()).then(d=>{
+    if (!d.success) { toast(d.message||'Error', false); return; }
+    toast('Added: ' + d.product_name);
+    const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+    slotData[activeSlotId].items.unshift({id:d.item_id, name:d.product_name, qty:d.quantity, price:d.unit_price, sub:d.subtotal, date:today});
+    slotData[activeSlotId].total = d.slot_total;
+    renderItems();
+    // update card
+    document.getElementById('card-total-' + activeSlotId).textContent = d.slot_total.toLocaleString() + ' IQD';
+    document.getElementById('card-count-' + activeSlotId).textContent = slotData[activeSlotId].items.length + ' items';
+  }).catch(()=>toast('Network error',false));
+}
+
+function removeItem(itemId) {
+  if (!confirm('Remove this item?')) return;
+  fetch(`/pos/staff-slots/${activeSlotId}/remove/${itemId}`, {
+    method:'POST', headers:{'X-CSRFToken':csrf()}
+  }).then(r=>r.json()).then(d=>{
+    if (!d.success) { toast('Error',false); return; }
+    slotData[activeSlotId].items = slotData[activeSlotId].items.filter(i=>i.id!==itemId);
+    slotData[activeSlotId].total = d.slot_total;
+    renderItems();
+    document.getElementById('card-total-' + activeSlotId).textContent = d.slot_total.toLocaleString() + ' IQD';
+    document.getElementById('card-count-' + activeSlotId).textContent = slotData[activeSlotId].items.length + ' items';
+    toast('Removed');
+  });
+}
+
+// Category & search filter
+document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', ()=>{
+  document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); filterProds();
+}));
+document.getElementById('prodSearch').addEventListener('input', filterProds);
+function filterProds() {
+  const cat = document.querySelector('.cat-btn.active').dataset.cat;
+  const q   = document.getElementById('prodSearch').value.toLowerCase();
+  document.querySelectorAll('.prod-card').forEach(c=>{
+    const ok = (cat==='all'||c.dataset.cat==cat) && c.dataset.name.toLowerCase().includes(q);
+    c.style.display = ok ? '' : 'none';
+  });
+}
+
+function toast(msg, ok=true) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.style.background=ok?'var(--brand-blue)':'#dc2626';
+  el.style.display='block'; setTimeout(()=>el.style.display='none',2400);
+}
+function csrf() {
+  const m=document.cookie.match(/csrf_token=([^;]+)/);
+  return m?m[1]:(document.querySelector('meta[name=csrf-token]')?.content||'');
+}
+</script>
+{% endblock %}

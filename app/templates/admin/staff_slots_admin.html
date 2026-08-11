@@ -1,0 +1,69 @@
+﻿{% extends 'admin/base_admin.html' %}
+{% block title %}Staff Tabs Names — Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+.sn-wrap { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; }
+.sn-table { width:100%; border-collapse:collapse; }
+.sn-table thead tr { background:linear-gradient(135deg, var(--brand-blue-deep), var(--brand-blue)); }
+.sn-table thead th { padding:.7rem 1rem; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.85); border:none; }
+.sn-table tbody tr { border-bottom:1px solid var(--border-color); }
+.sn-table tbody tr:last-child { border-bottom:none; }
+.sn-table tbody tr:hover { background:var(--brand-blue-soft); }
+.sn-table tbody td { padding:.7rem 1rem; font-size:.84rem; color:var(--text-dark); vertical-align:middle; }
+.sn-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--brand-blue-deep),var(--brand-blue)); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; }
+.sn-edit-form { display:flex; align-items:center; gap:.5rem; }
+.sn-input { height:34px; padding:0 .7rem; font-size:.84rem; border:1.5px solid var(--border-color); border-radius:8px; width:200px; }
+.sn-input:focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px rgba(21,101,192,.12); }
+.sn-save { height:34px; padding:0 1rem; border-radius:8px; border:none; background:var(--brand-blue); color:#fff; font-size:.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.35rem; }
+.sn-save:hover { background:var(--brand-blue-dark); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.4rem;">
+  <h2 style="margin:0 0 .2rem;font-size:1.4rem;font-weight:900;color:var(--text-dark);">
+    <i class="fas fa-users me-2" style="color:var(--brand-blue);"></i>
+    {% if lang == 'en' %}Staff Tabs — Edit Names{% else %}تبويبات الموظفين — تعديل الأسماء{% endif %}
+  </h2>
+  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">
+    {% if lang == 'en' %}Set the staff member name for each tab{% else %}حدد اسم الموظف لكل تبويب{% endif %}
+  </p>
+</div>
+
+<div class="sn-wrap">
+  <table class="sn-table">
+    <thead>
+      <tr>
+        <th style="width:60px;">Tab</th>
+        <th>{% if lang == 'en' %}Current Name{% else %}الاسم الحالي{% endif %}</th>
+        <th>{% if lang == 'en' %}Total Consumed{% else %}إجمالي الاستهلاك{% endif %}</th>
+        <th>{% if lang == 'en' %}Edit Name{% else %}تعديل الاسم{% endif %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for slot in slots %}
+      <tr>
+        <td style="font-weight:800;color:var(--text-muted);">#{{ slot.slot_number }}</td>
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:.6rem;">
+            <span class="sn-avatar">{{ slot.staff_name[0]|upper }}</span>
+            <strong>{{ slot.staff_name }}</strong>
+          </span>
+        </td>
+        <td style="font-weight:800;color:var(--brand-blue);">{{ '{:,.0f}'.format(slot.total) }} IQD
+          <span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">({{ slot.items|length }} items)</span>
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('admin.staff_slot_edit', slot_id=slot.id) }}" class="sn-edit-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="staff_name" class="sn-input" value="{{ slot.staff_name }}" placeholder="Staff name" required>
+            <button type="submit" class="sn-save"><i class="fas fa-check"></i>{% if lang == 'en' %}Save{% else %}حفظ{% endif %}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

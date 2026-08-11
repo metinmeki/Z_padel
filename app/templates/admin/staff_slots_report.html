@@ -1,0 +1,118 @@
+﻿{% extends 'admin/base_admin.html' %}
+{% block title %}Staff Tabs Report — Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+.sr-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.sr-card { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:1.1rem 1.2rem; display:flex; align-items:center; gap:.9rem; }
+.sr-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--brand-blue-deep),var(--brand-blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:900; flex-shrink:0; }
+.sr-name { font-size:.84rem; font-weight:800; color:var(--text-dark); }
+.sr-total { font-size:1.05rem; font-weight:900; color:var(--brand-blue); }
+.sr-count { font-size:.7rem; color:var(--text-muted); }
+.deduct-tag { display:inline-flex; align-items:center; gap:.3rem; background:#fee2e2; color:#b91c1c; padding:.18rem .6rem; border-radius:20px; font-size:.75rem; font-weight:800; }
+
+.sr-section { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:1rem; }
+.sr-section-head { padding:.75rem 1.1rem; background:linear-gradient(135deg,var(--brand-blue-deep),var(--brand-blue)); display:flex; align-items:center; justify-content:space-between; }
+.sr-section-left { display:flex; align-items:center; gap:.6rem; }
+.sr-section-avatar { width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.25); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.82rem; }
+.sr-section-name { color:#fff; font-weight:800; }
+.sr-table { width:100%; border-collapse:collapse; }
+.sr-table thead tr { background:var(--brand-blue-soft); }
+.sr-table thead th { padding:.55rem 1rem; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); border-bottom:1px solid var(--border-color); }
+.sr-table tbody tr { border-bottom:1px solid var(--border-color); }
+.sr-table tbody tr:last-child { border-bottom:none; }
+.sr-table tbody tr:hover { background:var(--brand-blue-soft); }
+.sr-table tbody td { padding:.6rem 1rem; font-size:.83rem; color:var(--text-dark); }
+.sr-table tfoot td { padding:.65rem 1rem; font-weight:800; background:var(--brand-blue-soft); border-top:2px solid var(--border-color); }
+.sr-empty { text-align:center; padding:3rem; color:var(--text-muted); }
+.sr-empty i { font-size:2.5rem; opacity:.15; display:block; margin-bottom:.8rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.4rem;">
+  <h2 style="margin:0 0 .2rem;font-size:1.4rem;font-weight:900;color:var(--text-dark);">
+    <i class="fas fa-bowl-food me-2" style="color:var(--brand-blue);"></i>
+    {% if lang == 'en' %}Staff Tabs Report{% else %}تقرير تبويبات الموظفين{% endif %}
+  </h2>
+  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">
+    {% if lang == 'en' %}All accumulated consumption per staff member — deduct from salary{% else %}إجمالي استهلاك كل موظف — يُخصم من الراتب{% endif %}
+  </p>
+</div>
+
+<!-- Summary cards -->
+<div class="sr-cards">
+  {% for slot in slots %}
+  {% if slot.items %}
+  <div class="sr-card">
+    <div class="sr-avatar">{{ slot.staff_name[0]|upper }}</div>
+    <div>
+      <div class="sr-name">{{ slot.staff_name }}</div>
+      <div class="sr-total">{{ '{:,.0f}'.format(slot.total) }} IQD</div>
+      <div class="sr-count">{{ slot.items|length }} items</div>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+  <div class="sr-card" style="border-color:var(--brand-blue);background:linear-gradient(135deg,#f0f7ff,#fff);">
+    <div class="sr-avatar" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);"><i class="fas fa-sigma" style="font-size:.9rem;"></i></div>
+    <div>
+      <div class="sr-name">{% if lang == 'en' %}Grand Total{% else %}الإجمالي الكلي{% endif %}</div>
+      <div class="sr-total">{{ '{:,.0f}'.format(grand_total) }} IQD</div>
+      <div class="sr-count">{% if lang == 'en' %}all staff{% else %}جميع الموظفين{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail per slot -->
+{% set has_data = slots|selectattr('items')|list %}
+{% if has_data %}
+  {% for slot in slots %}
+  {% if slot.items %}
+  <div class="sr-section">
+    <div class="sr-section-head">
+      <div class="sr-section-left">
+        <div class="sr-section-avatar">{{ slot.staff_name[0]|upper }}</div>
+        <span class="sr-section-name">{{ slot.staff_name }}</span>
+        <span style="color:rgba(255,255,255,.6);font-size:.75rem;margin-left:.4rem;">&mdash; {{ slot.items|length }} items</span>
+      </div>
+      <span class="deduct-tag"><i class="fas fa-minus"></i>{{ '{:,.0f}'.format(slot.total) }} IQD</span>
+    </div>
+    <table class="sr-table">
+      <thead>
+        <tr>
+          <th>{% if lang == 'en' %}Product{% else %}المنتج{% endif %}</th>
+          <th>{% if lang == 'en' %}Date & Time{% else %}التاريخ{% endif %}</th>
+          <th style="text-align:center;">{% if lang == 'en' %}Qty{% else %}الكمية{% endif %}</th>
+          <th style="text-align:right;">{% if lang == 'en' %}Unit{% else %}سعر الوحدة{% endif %}</th>
+          <th style="text-align:right;">{% if lang == 'en' %}Total{% else %}المجموع{% endif %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in slot.items %}
+        <tr>
+          <td style="font-weight:600;">{{ item.product_name }}</td>
+          <td style="color:var(--text-muted);font-size:.78rem;">{{ item.added_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td style="text-align:center;font-weight:700;">{{ item.quantity }}</td>
+          <td style="text-align:right;color:var(--text-muted);">{{ '{:,.0f}'.format(item.unit_price) }} IQD</td>
+          <td style="text-align:right;font-weight:800;color:var(--brand-blue);">{{ '{:,.0f}'.format(item.subtotal) }} IQD</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" style="color:var(--text-muted);">Total — {{ slot.staff_name }}</td>
+          <td style="text-align:right;color:var(--brand-blue);">{{ '{:,.0f}'.format(slot.total) }} IQD</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% endif %}
+  {% endfor %}
+{% else %}
+<div class="sr-empty">
+  <i class="fas fa-bowl-food"></i>
+  <p>{% if lang == 'en' %}No consumption recorded yet{% else %}لا يوجد استهلاك مسجّل بعد{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

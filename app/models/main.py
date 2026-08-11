@@ -537,6 +537,45 @@ class TabItem(db.Model):
 
 
 # ═══════════════════════════════════════════
+# STAFF SLOTS (7 permanent staff food/drink tabs)
+# ═══════════════════════════════════════════
+class StaffSlot(db.Model):
+    __tablename__ = 'staff_slots'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    slot_number = db.Column(db.Integer, unique=True, nullable=False)
+    staff_name  = db.Column(db.String(100), nullable=False, default='Staff')
+    is_active   = db.Column(db.Boolean, default=True)
+
+    items = db.relationship('StaffSlotItem', backref='slot', lazy=True,
+                            cascade='all, delete-orphan',
+                            order_by='StaffSlotItem.added_at.desc()')
+
+    @property
+    def total(self):
+        return sum(i.subtotal for i in self.items)
+
+    def __repr__(self):
+        return f'<StaffSlot #{self.slot_number} {self.staff_name}>'
+
+
+class StaffSlotItem(db.Model):
+    __tablename__ = 'staff_slot_items'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    slot_id      = db.Column(db.Integer, db.ForeignKey('staff_slots.id'), nullable=False)
+    product_id   = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_name = db.Column(db.String(120), nullable=False)
+    quantity     = db.Column(db.Integer, default=1)
+    unit_price   = db.Column(db.Float,   default=0)
+    subtotal     = db.Column(db.Float,   default=0)
+    added_at     = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<StaffSlotItem slot#{self.slot_id} {self.product_name}>'
+
+
+# ═══════════════════════════════════════════
 # ACTIVITY LOG (user audit trail)
 # ═══════════════════════════════════════════
 class ActivityLog(db.Model):

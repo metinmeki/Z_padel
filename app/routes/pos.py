@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app import db
 from app.models.store import Product, Category, Order, OrderItem, StaffConsumption
-from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META, Booking, ActivityLog
+from app.models.main import Court, CourtSession, CourtSessionItem, ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META, Booking, ActivityLog, StaffSlot, StaffSlotItem
 
 pos_bp = Blueprint('pos', __name__)
 
@@ -978,5 +978,80 @@ def my_tab_remove(entry_id):
     if prod:
         prod.stock += entry.quantity
     db.session.delete(entry)
+    db.session.commit()
+    return jsonify(success=True)
+
+
+# ═══════════════════════════════════════════
+# STAFF SLOTS (7 named tabs, persistent)
+# ═══════════════════════════════════════════
+@pos_bp.route('/staff-slots')
+@login_required
+def staff_slots():
+    slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
+    products   = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('pos/staff_slots.html',
+                           slots=slots,
+                           products=products,
+                           categories=categories)
+
+
+@pos_bp.route('/staff-slots/<int:slot_id>/add', methods=['POST'])
+@login_required
+def staff_slot_add(slot_id):
+    slot = StaffSlot.query.get_or_404(slot_id)
+    data = request.get_json(force=True) or {}
+    product_id = data.get('product_id')
+    qty = int(data.get('quantity', 1))
+    if qty < 1:
+        return jsonify(success=False, message='Invalid quantity'), 400
+    prod = Product.query.get_or_404(product_id)
+    if prod.stock < qty:
+        return jsonify(success=False, message=f'Not enough stock: {prod.name}'), 400
+    item = StaffSlotItem(
+        slot_id=slot.id,
+        product_id=prod.id,
+        product_name=prod.name,
+        quantity=qty,
+        unit_price=prod.price,
+        subtotal=prod.price * qty,
+    )
+    prod.stock -= qty
+    db.session.add(item)
+    db.session.commit()
+    return jsonify(success=True,
+                   item_id=item.id,
+                   product_name=prod.name,
+                   quantity=qty,
+                   unit_price=prod.price,
+                   subtotal=prod.price * qty,
+                   slot_total=slot.total)
+
+
+@pos_bp.route('/staff-slots/<int:slot_id>/remove/<int:item_id>', methods=['POST'])
+@login_required
+def staff_slot_remove(slot_id, item_id):
+    item = StaffSlotItem.query.get_or_404(item_id)
+    if item.slot_id != slot_id:
+        return jsonify(success=False, message='Bad request'), 400
+    prod = Product.query.get(item.product_id)
+    if prod:
+        prod.stock += item.quantity
+    db.session.delete(item)
+    db.session.commit()
+    slot = StaffSlot.query.get(slot_id)
+    return jsonify(success=True, slot_total=slot.total if slot else 0)
+
+
+@pos_bp.route('/staff-slots/<int:slot_id>/clear', methods=['POST'])
+@login_required
+def staff_slot_clear(slot_id):
+    slot = StaffSlot.query.get_or_404(slot_id)
+    for item in slot.items:
+        prod = Product.query.get(item.product_id)
+        if prod:
+            prod.stock += item.quantity
+    StaffSlotItem.query.filter_by(slot_id=slot_id).delete()
     db.session.commit()
     return jsonify(success=True)
