@@ -15,7 +15,7 @@ from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
-                               Sponsor, CourtSession, ActivityLog, StaffSlot, StaffSlotItem,
+                               Sponsor, CourtSession, CourtSessionItem, ActivityLog, StaffSlot, StaffSlotItem,
                                PushSubscription)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory, StaffConsumption)
@@ -1247,7 +1247,40 @@ def reports():
         Order.created_at >= dt_start, Order.created_at <= dt_end).count()
     store_rev  = db.session.query(func.sum(Order.total_price)).filter(
         Order.status == 'completed',
+        Order.customer_name != 'زبون POS',
         Order.created_at >= dt_start, Order.created_at <= dt_end).scalar() or 0
+
+    # ── POS Revenue (court sessions + activity sessions + quick-sale orders) ──
+    court_sessions_rev = db.session.query(func.sum(CourtSession.total_price)).filter(
+        CourtSession.status == 'completed',
+        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
+
+    court_items_rev = db.session.query(func.sum(CourtSessionItem.subtotal)).join(
+        CourtSession, CourtSession.id == CourtSessionItem.session_id).filter(
+        CourtSession.status == 'completed',
+        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
+
+    activity_sessions_rev = db.session.query(func.sum(ActivitySession.total_price)).filter(
+        ActivitySession.status == 'completed',
+        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
+
+    activity_items_rev = db.session.query(func.sum(ActivitySessionItem.subtotal)).join(
+        ActivitySession, ActivitySession.id == ActivitySessionItem.session_id).filter(
+        ActivitySession.status == 'completed',
+        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
+
+    quick_sale_rev = db.session.query(func.sum(Order.total_price)).filter(
+        Order.status == 'completed',
+        Order.customer_name == 'زبون POS',
+        Order.created_at >= dt_start, Order.created_at <= dt_end).scalar() or 0
+
+    pos_rev = int(court_sessions_rev + court_items_rev + activity_sessions_rev + activity_items_rev + quick_sale_rev)
+    pos_sessions_count = CourtSession.query.filter(
+        CourtSession.status == 'completed',
+        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).count() + \
+        ActivitySession.query.filter(
+        ActivitySession.status == 'completed',
+        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).count()
 
     top_products = (db.session.query(Product.name,
                     func.sum(OrderItem.quantity).label('sold'))
@@ -1264,6 +1297,7 @@ def reports():
         confirmed_bookings=conf_bks, pending_bookings_count=pend_bks,
         cancelled_bookings=canc_bks, avg_booking_value=avg_val,
         total_orders=total_ords, store_revenue=store_rev,
+        pos_revenue=pos_rev, pos_sessions_count=pos_sessions_count,
         total_expenses=total_exp, occupancy_rate=occ_rate,
         chart_labels=labels, bookings_data=bk_data, revenue_data=rev_data,
         hourly_data=hourly,

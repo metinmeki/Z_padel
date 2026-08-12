@@ -312,12 +312,13 @@
 </div>
 
 <!-- ── Revenue Sources + Financial Summary ── -->
-{% set net_profit = (total_revenue|default(0)) + (store_revenue|default(0)) - (total_expenses|default(0)) %}
-{% set total_income = (total_revenue|default(0)) + (store_revenue|default(0)) %}
+{% set net_profit = (total_revenue|default(0)) + (store_revenue|default(0)) + (pos_revenue|default(0)) - (total_expenses|default(0)) %}
+{% set total_income = (total_revenue|default(0)) + (store_revenue|default(0)) + (pos_revenue|default(0)) %}
 {% set bk_pct  = ((total_revenue|default(0)) / [total_income, 1]|max * 100)|round|int %}
-{% set str_pct = 100 - bk_pct %}
+{% set pos_pct = ((pos_revenue|default(0)) / [total_income, 1]|max * 100)|round|int %}
+{% set str_pct = 100 - bk_pct - pos_pct %}
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
 
   <!-- Bookings Revenue card -->
   <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-color);
@@ -367,6 +368,32 @@
       {{ total_orders|default(0) }} {% if lang == 'en' %}orders in period{% else %}طلب في الفترة{% endif %}
     </div>
   </div>
+
+  <!-- POS Revenue card -->
+  <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-color);
+              box-shadow:var(--shadow-sm);padding:20px 24px;border-top:4px solid #7B1FA2;
+              animation:fadeSlideIn .4s ease both .14s;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:rgba(123,31,162,.1);
+                  display:flex;align-items:center;justify-content:middle;font-size:17px;color:#7B1FA2;justify-content:center;">
+        <i class="fas fa-cash-register"></i>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--text-muted);">
+        {% if lang == 'en' %}POS Revenue{% else %}إيرادات الكاشير{% endif %}
+      </span>
+    </div>
+    <div style="font-size:30px;font-weight:900;color:#4A148C;line-height:1.1;margin-bottom:6px;">
+      {{ "{:,.0f}".format(pos_revenue|default(0)) }}
+      <small style="font-size:13px;font-weight:400;color:var(--text-muted);">{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-muted);">
+      <i class="fas fa-gamepad" style="color:#7B1FA2;margin-left:3px;"></i>
+      {{ pos_sessions_count|default(0) }} {% if lang == 'en' %}sessions paid{% else %}جلسة مدفوعة{% endif %}
+      &nbsp;·&nbsp;
+      <i class="fas fa-burger" style="color:#7B1FA2;"></i>
+      {% if lang == 'en' %}drinks & food{% else %}مشروبات وطعام{% endif %}
+    </div>
+  </div>
 </div>
 
 <!-- Revenue split bar -->
@@ -374,16 +401,21 @@
             box-shadow:var(--shadow-sm);padding:16px 24px;margin-bottom:16px;
             animation:fadeSlideIn .4s ease both .1s;">
   <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;
-              color:var(--text-muted);margin-bottom:8px;">
+              color:var(--text-muted);margin-bottom:8px;gap:12px;flex-wrap:wrap;">
     <span><i class="fas fa-circle" style="color:#1565C0;font-size:9px;margin-left:4px;"></i>
       {% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %} {{ bk_pct }}%</span>
-    <span>{% if lang == 'en' %}Store{% else %}المتجر{% endif %} {{ str_pct }}%
+    <span><i class="fas fa-circle" style="color:#7B1FA2;font-size:9px;margin-left:4px;"></i>
+      {% if lang == 'en' %}POS{% else %}الكاشير{% endif %} {{ pos_pct }}%</span>
+    <span>{% if lang == 'en' %}Store{% else %}المتجر{% endif %} {{ [str_pct, 0]|max }}%
       <i class="fas fa-circle" style="color:#FB8C00;font-size:9px;margin-right:4px;"></i></span>
   </div>
-  <div style="height:10px;border-radius:10px;background:rgba(251,140,0,.2);overflow:hidden;">
-    <div style="height:100%;border-radius:10px;
-                background:linear-gradient(90deg,var(--brand-blue-light),var(--brand-blue));
+  <div style="height:10px;border-radius:10px;background:var(--border-color);overflow:hidden;display:flex;">
+    <div style="height:100%;background:linear-gradient(90deg,var(--brand-blue-light),var(--brand-blue));
                 width:{{ bk_pct }}%;transition:width 1s ease;"></div>
+    <div style="height:100%;background:linear-gradient(90deg,#7B1FA2,#AB47BC);
+                width:{{ pos_pct }}%;transition:width 1s ease;"></div>
+    <div style="height:100%;background:linear-gradient(90deg,#FB8C00,#FFA726);
+                width:{{ [str_pct, 0]|max }}%;transition:width 1s ease;"></div>
   </div>
 </div>
 
