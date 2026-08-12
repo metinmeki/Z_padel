@@ -96,6 +96,11 @@ def create():
             bk2.total_price = bk2.calc_price(court.price_per_hour)
             db.session.add_all([bk1, bk2])
             db.session.commit()
+            try:
+                from app.routes.admin import _send_push_all
+                _send_push_all('حجز جديد', f'{name} — {court.name}', '/admin/bookings')
+            except Exception:
+                pass
             flash('تم استلام طلب حجزك بنجاح! سيتم التأكيد قريباً.', 'success')
             return redirect(url_for('booking.success', booking_id=bk1.id))
 
@@ -117,6 +122,11 @@ def create():
         bk.total_price = bk.calc_price(court.price_per_hour)
         db.session.add(bk)
         db.session.commit()
+        try:
+            from app.routes.admin import _send_push_all
+            _send_push_all('حجز جديد', f'{name} — {court.name}', '/admin/bookings')
+        except Exception:
+            pass
         flash('تم استلام طلب حجزك بنجاح! سيتم التأكيد قريباً.', 'success')
         return redirect(url_for('booking.success', booking_id=bk.id))
     except Exception as e:

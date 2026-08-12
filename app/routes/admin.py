@@ -15,7 +15,8 @@ from app import db
 from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
-                               Sponsor, CourtSession, ActivityLog, StaffSlot, StaffSlotItem)
+                               Sponsor, CourtSession, ActivityLog, StaffSlot, StaffSlotItem,
+                               PushSubscription)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory, StaffConsumption)
 from sqlalchemy import func, case
@@ -252,6 +253,26 @@ def notifications_poll():
         'orders':   new_orders,
         'server_time': datetime.utcnow().timestamp(),
     })
+
+
+@admin_bp.route('/push/subscribe', methods=['POST'])
+@login_required
+def push_subscribe():
+    data = request.get_json(silent=True) or {}
+    endpoint = data.get('endpoint', '').strip()
+    p256dh   = data.get('keys', {}).get('p256dh', '').strip()
+    auth     = data.get('keys', {}).get('auth', '').strip()
+    if not endpoint or not p256dh or not auth:
+        return jsonify({'ok': False, 'error': 'missing fields'}), 400
+    sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
+    if sub:
+        sub.p256dh = p256dh
+        sub.auth   = auth
+    else:
+        sub = PushSubscription(endpoint=endpoint, p256dh=p256dh, auth=auth)
+        db.session.add(sub)
+    db.session.commit()
+    return jsonify({'ok': True})
 
 
 @admin_bp.route('/')
@@ -1633,6 +1654,43 @@ def edit_category(cat_id):
 
 # Court → NVR channel mapping
 COURT_CHANNELS = {'court1': 12, 'court2': 15}
+
+
+def _send_push_all(title, body, url='/'):
+    """Send a Web Push notification to every stored subscription."""
+    try:
+        from pywebpush import webpush, WebPushException
+        from flask import current_app
+        pub_key  = current_app.config.get('VAPID_PUBLIC_KEY', '')
+        pem_path = current_app.config.get('VAPID_PRIVATE_PEM', '')
+        email    = current_app.config.get('VAPID_CLAIMS_EMAIL', 'admin@z-padel.com')
+        if not pub_key or not os.path.isfile(pem_path):
+            return
+        import json
+        subs = PushSubscription.query.all()
+        dead = []
+        for s in subs:
+            try:
+                webpush(
+                    subscription_info={
+                        'endpoint': s.endpoint,
+                        'keys': {'p256dh': s.p256dh, 'auth': s.auth},
+                    },
+                    data=json.dumps({'title': title, 'body': body, 'url': url}),
+                    vapid_private_key=pem_path,
+                    vapid_claims={'sub': f'mailto:{email}'},
+                )
+            except WebPushException as e:
+                if e.response and e.response.status_code in (404, 410):
+                    dead.append(s)
+            except Exception:
+                pass
+        for s in dead:
+            db.session.delete(s)
+        if dead:
+            db.session.commit()
+    except Exception:
+        pass
 
 
 def _set_clip_status(app, clip_id, status, msg=None):

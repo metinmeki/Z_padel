@@ -132,12 +132,15 @@ def checkout():
                                price=item['product'].price, subtotal=item['subtotal'])
                 db.session.add(oi)
             db.session.commit()
+            try:
+                from app.routes.admin import _send_push_all
+                cname = request.form.get('customer_name', '') or 'زبون'
+                _send_push_all('طلب جديد من المتجر', f'{cname}', '/admin/orders')
+            except Exception:
+                pass
             return render_template('store/success.html',
                                    order_id=order.id,
                                    total_price=total)
-            session.pop('cart', None)
-            flash('تم استلام طلبك بنجاح!', 'success')
-            return redirect(url_for('store.shop'))
         except Exception as e:
             db.session.rollback()
             flash(f'حدث خطأ: {e}', 'danger')

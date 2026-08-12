@@ -1565,10 +1565,21 @@
   const LS_KEY    = 'zp_notif_since';
   const toastWrap = document.getElementById('notif-toast-wrap');
 
-  /* ── Web Audio notification beep ── */
+  /* ── Web Audio — single shared context, unlocked on first touch ── */
+  let _audioCtx = null;
+  function _getCtx() {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    return _audioCtx;
+  }
+  // Pre-unlock AudioContext on first user interaction (required on mobile)
+  ['touchstart', 'click', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, () => _getCtx(), { once: true, passive: true })
+  );
+
   function playBeep(type) {
     try {
-      const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx  = _getCtx();
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(.35, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .6);
@@ -1643,7 +1654,7 @@
 </style>
 
 <script>
-const VAPID_PUBLIC = "BHyuLMem1RurSQhZza9zWn32gE_b0lt3-7bLVxxYTc4Ki9XjIzvLLS9m-6fQxSFul6BrATK1T4qN0ZxABDhMSdo";
+const VAPID_PUBLIC = "BK0DMCR_lBGcOFj16EA4B3K55YrHapRJMBlY3aA1u2UL2iJikmxAMLWJ85v6rmNF4oSKQ8WFgOhDGEcax4RqPds";
 function urlBase64ToUint8Array(b){const p="=".repeat((4-b.length%4)%4);const base64=(b+p).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
 async function subscribeToPush(){
   if(!("serviceWorker" in navigator)||!("PushManager" in window))return;
@@ -1654,7 +1665,8 @@ async function subscribeToPush(){
     const existing=await reg.pushManager.getSubscription();
     if(existing)return;
     const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});
-    await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(sub.toJSON())});
+    const csrf=document.querySelector('meta[name="csrf-token"]')?.content||'';
+    await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify(sub.toJSON())});
     console.log("Push subscribed.");
   }catch(err){console.error("Push error:",err);}
 }
