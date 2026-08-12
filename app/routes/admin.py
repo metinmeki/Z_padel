@@ -295,18 +295,29 @@ def dashboard():
                 return redirect(url_for(endpoint))
         # No admin permissions at all → send to POS
         return redirect(url_for('pos.courts'))
-    today = date.today()
-    now_h = datetime.now().hour
 
-    total_bookings   = Booking.query.count()
-    today_bookings   = Booking.query.filter_by(booking_date=today).count()
-    pending_count    = Booking.query.filter_by(status='pending').count()
-    confirmed_count  = Booking.query.filter_by(status='confirmed').count()
-    cancelled_count  = Booking.query.filter_by(status='cancelled').count()
-    total_orders     = Order.query.count()
+    now   = datetime.now()
+    now_h = now.hour
+    # Business day starts at 06:00 — before that, "today" is still yesterday
+    BUSINESS_START = 6
+    today = date.today() if now_h >= BUSINESS_START else date.today() - timedelta(days=1)
+    biz_tomorrow = today + timedelta(days=1)
 
+    total_bookings  = Booking.query.count()
+    pending_count   = Booking.query.filter_by(status='pending').count()
+    confirmed_count = Booking.query.filter_by(status='confirmed').count()
+    cancelled_count = Booking.query.filter_by(status='cancelled').count()
+    total_orders    = Order.query.count()
+
+    # Today's bookings = business date + post-midnight continuation (bk2 parts)
+    today_bookings = Booking.query.filter(
+        Booking.booking_date.in_([today, biz_tomorrow]),
+        Booking.status != 'cancelled',
+    ).count()
+
+    # Today's revenue = business date + cross-midnight parts on next calendar day
     today_revenue = (db.session.query(func.sum(Booking.total_price))
-                     .filter(Booking.booking_date == today,
+                     .filter(Booking.booking_date.in_([today, biz_tomorrow]),
                              Booking.status == 'confirmed').scalar() or 0)
 
     month_start   = today.replace(day=1)
