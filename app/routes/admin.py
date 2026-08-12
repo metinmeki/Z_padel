@@ -453,6 +453,8 @@ def _find_midnight_continuation(b):
 @admin_bp.route('/bookings/<int:booking_id>/confirm', methods=['GET', 'POST'])
 @login_required
 def confirm_booking(booking_id):
+    if not current_user.has_perm('perm_bookings'):
+        abort(403)
     b = Booking.query.get_or_404(booking_id)
     b.status = 'confirmed'
     linked = _find_midnight_continuation(b)
@@ -466,6 +468,8 @@ def confirm_booking(booking_id):
 @admin_bp.route('/bookings/<int:booking_id>/reject', methods=['GET', 'POST'])
 @login_required
 def reject_booking(booking_id):
+    if not current_user.has_perm('perm_bookings'):
+        abort(403)
     b = Booking.query.get_or_404(booking_id)
     b.status = 'cancelled'
     linked = _find_midnight_continuation(b)
@@ -479,6 +483,8 @@ def reject_booking(booking_id):
 @admin_bp.route('/bookings/<int:booking_id>/cancel', methods=['POST'])
 @login_required
 def cancel_booking(booking_id):
+    if not current_user.has_perm('perm_bookings'):
+        abort(403)
     b = Booking.query.get_or_404(booking_id)
     b.status = 'cancelled'
     db.session.commit()
@@ -585,6 +591,8 @@ def courts():
 @admin_bp.route('/courts/add', methods=['POST'])
 @login_required
 def add_court():
+    if not current_user.has_perm('perm_courts'):
+        abort(403)
     court = Court(
         name=request.form['name'],
         price_per_hour=float(request.form.get('price_per_hour', 25000)),
@@ -602,6 +610,8 @@ def add_court():
 @admin_bp.route('/courts/<int:court_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_court(court_id):
+    if not current_user.has_perm('perm_courts'):
+        abort(403)
     court = Court.query.get_or_404(court_id)
     if request.method == 'POST':
         court.name           = request.form.get('name', court.name)
@@ -634,6 +644,8 @@ def toggle_court(court_id):
 @admin_bp.route('/courts/<int:court_id>/delete', methods=['POST'])
 @login_required
 def delete_court(court_id):
+    if not current_user.has_perm('perm_courts'):
+        abort(403)
     c = Court.query.get_or_404(court_id)
     db.session.delete(c)
     db.session.commit()
@@ -782,6 +794,8 @@ def orders():
 @admin_bp.route('/orders/<int:order_id>/status', methods=['POST'])
 @login_required
 def update_order_status(order_id):
+    if not current_user.has_perm('perm_orders'):
+        return jsonify({"success": False, "error": "Permission denied"}), 403
     o = Order.query.get_or_404(order_id)
     # Get status from the form
     o.status = request.form.get('status')
@@ -970,6 +984,8 @@ def expenses():
 @admin_bp.route('/expenses/add', methods=['POST'])
 @login_required
 def add_expense():
+    if not current_user.has_perm('perm_expenses'):
+        abort(403)
     try:
         # ✅ receipt is optional — only save if a file was actually uploaded
         receipt = None
@@ -999,6 +1015,8 @@ def add_expense():
 @admin_bp.route('/expenses/<int:exp_id>/edit', methods=['POST'])
 @login_required
 def edit_expense(exp_id):
+    if not current_user.has_perm('perm_expenses'):
+        abort(403)
     try:
         e = Expense.query.get_or_404(exp_id)
         e.description = request.form.get('description', e.description)
@@ -1018,6 +1036,8 @@ def edit_expense(exp_id):
 @admin_bp.route('/expenses/<int:exp_id>/delete', methods=['POST'])
 @login_required
 def delete_expense(exp_id):
+    if not current_user.has_perm('perm_expenses'):
+        abort(403)
     try:
         e = Expense.query.get_or_404(exp_id)
         db.session.delete(e)
@@ -1148,10 +1168,15 @@ def add_user():
         flash('اسم المستخدم مستخدم بالفعل.', 'danger')
         return redirect(url_for('admin.users'))
 
+    raw_password = request.form.get('password', '')
+    if len(raw_password) < 8:
+        flash('كلمة المرور يجب أن تكون 8 أحرف على الأقل.', 'danger')
+        return redirect(url_for('admin.users'))
+
     u = Admin(
         username=request.form['username'],
         email=request.form.get('email') or None,
-        password=generate_password_hash(request.form['password']),
+        password=generate_password_hash(raw_password),
         role=request.form.get('role', 'staff'),
         is_active=bool(int(request.form.get('is_active', 1))),
         permissions={},

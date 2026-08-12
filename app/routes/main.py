@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, request, send_file, jsonify, current_app, send_from_directory, abort
+from flask_login import login_required
 from app.models.main import Court, Booking, Coach, GameClip, Sponsor
 from app.models.store import Product
 
@@ -147,6 +148,7 @@ def download_clip():
 _PUBLIC_COURT_CHANNELS = {'court1': 15, 'court2': 12}
 
 @main_bp.route('/live-snapshot/<court>')
+@login_required
 def live_snapshot(court):
     """Public blurred snapshot proxy — only court1 / court2 allowed, no login required."""
     from flask import Response

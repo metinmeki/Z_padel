@@ -8,7 +8,7 @@ class Config:
     # ── Security ──
     SECRET_KEY = os.environ.get('SECRET_KEY', 'z-padel-secret-change-in-production')
     WTF_CSRF_ENABLED    = True
-    WTF_CSRF_TIME_LIMIT = None   # no token expiry — prevents 400 after idle
+    WTF_CSRF_TIME_LIMIT = 7200   # 2-hour token expiry
 
     # ── Database ──
     SQLALCHEMY_DATABASE_URI = os.environ.get(
@@ -29,10 +29,10 @@ class Config:
     MAX_CONTENT_LENGTH   = 4 * 1024 * 1024   # 4 MB
     ALLOWED_EXTENSIONS   = {'png', 'jpg', 'jpeg', 'webp', 'pdf'}
 
-    # ── NVR / Camera ──
-    NVR_URL  = os.environ.get('NVR_URL',  'http://45.81.147.210:65021')
-    NVR_USER = os.environ.get('NVR_USER', 'admin')
-    NVR_PASS = os.environ.get('NVR_PASS', 'caMera12')
+    # ── NVR / Camera ── (set these in .env — no fallback defaults)
+    NVR_URL  = os.environ.get('NVR_URL')
+    NVR_USER = os.environ.get('NVR_USER')
+    NVR_PASS = os.environ.get('NVR_PASS')
 
     # ── Business defaults (overridden by DB settings) ──
     DEFAULT_PRICE_PER_HOUR = 25_000   # IQD
