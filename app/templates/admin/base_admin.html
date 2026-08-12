@@ -1663,11 +1663,18 @@ async function subscribeToPush(){
     await navigator.serviceWorker.ready;
     const permission=await Notification.requestPermission();
     if(permission!=="granted"){console.warn("Push permission denied");return;}
+    // If VAPID key changed, force unsubscribe so browser creates fresh subscription
+    const storedKey=localStorage.getItem('zp_vapid_key');
     let sub=await reg.pushManager.getSubscription();
+    if(sub && storedKey !== VAPID_PUBLIC){
+      await sub.unsubscribe();
+      sub=null;
+      localStorage.removeItem('zp_vapid_key');
+    }
     if(!sub){
       sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});
     }
-    // Always send to server (upsert) so DB stays in sync
+    localStorage.setItem('zp_vapid_key', VAPID_PUBLIC);
     const csrf=document.querySelector('meta[name="csrf-token"]')?.content||'';
     const res=await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify(sub.toJSON())});
     console.log("Push subscribe response:",res.status);
