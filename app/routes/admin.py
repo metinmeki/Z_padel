@@ -1667,9 +1667,15 @@ def _send_push_all(title, body, url='/'):
         if not os.path.isfile(pem_path):
             log.error('PUSH: vapid_private.pem not found at %s', pem_path)
             return
-        # Read PEM content — pywebpush 2.x expects the key string, not a file path
-        with open(pem_path, 'r') as f:
-            pem_content = f.read().strip()
+        # Load and re-serialize as EC PRIVATE KEY (TraditionalOpenSSL) — pywebpush needs EC format
+        from cryptography.hazmat.primitives.serialization import (
+            load_pem_private_key, Encoding, PrivateFormat, NoEncryption)
+        with open(pem_path, 'rb') as f:
+            raw = f.read()
+        private_key = load_pem_private_key(raw, password=None)
+        pem_content = private_key.private_bytes(
+            Encoding.PEM, PrivateFormat.TraditionalOpenSSL, NoEncryption()
+        ).decode()
         subs = PushSubscription.query.all()
         log.info('PUSH: sending "%s" to %d subscription(s)', title, len(subs))
         dead = []
