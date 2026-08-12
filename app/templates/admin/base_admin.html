@@ -1660,14 +1660,17 @@ async function subscribeToPush(){
   if(!("serviceWorker" in navigator)||!("PushManager" in window))return;
   try{
     const reg=await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
     const permission=await Notification.requestPermission();
-    if(permission!=="granted")return;
-    const existing=await reg.pushManager.getSubscription();
-    if(existing)return;
-    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});
+    if(permission!=="granted"){console.warn("Push permission denied");return;}
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});
+    }
+    // Always send to server (upsert) so DB stays in sync
     const csrf=document.querySelector('meta[name="csrf-token"]')?.content||'';
-    await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify(sub.toJSON())});
-    console.log("Push subscribed.");
+    const res=await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify(sub.toJSON())});
+    console.log("Push subscribe response:",res.status);
   }catch(err){console.error("Push error:",err);}
 }
 subscribeToPush();
