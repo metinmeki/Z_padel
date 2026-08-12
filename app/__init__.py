@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()   # load .env before config reads os.environ
 from flask import Flask, session, g, request as flask_request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
