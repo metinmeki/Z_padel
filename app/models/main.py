@@ -135,8 +135,8 @@ class Booking(db.Model):
         # 23:59 is stored as a proxy for midnight (24:00) — treat as 1440 min
         if self.end_time.hour == 23 and self.end_time.minute == 59:
             end_m = 24 * 60
-        # cross-midnight: end is on next day
-        if end_m <= start_m:
+        # cross-midnight: end is on next day (strict < avoids treating 0→0 as 24h)
+        if end_m < start_m:
             end_m += 24 * 60
         hours = (end_m - start_m) / 60
         return round(hours * base_price * TIME_DISCOUNT)
