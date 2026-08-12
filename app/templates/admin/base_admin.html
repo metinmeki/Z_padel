@@ -1656,14 +1656,14 @@
 <script>
 const VAPID_PUBLIC = "BHuc7T8bA_h93NeeYsmTtGnA6FliSkASMrWAYqf7JQCflqZ-okkyZGzaS7U8Lepv7SzUYA66XdhsciFMmKOndiM";
 function urlBase64ToUint8Array(b){const p="=".repeat((4-b.length%4)%4);const base64=(b+p).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
-async function subscribeToPush(){
+
+async function _doSubscribe(){
   if(!("serviceWorker" in navigator)||!("PushManager" in window))return;
   try{
     const reg=await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
     const permission=await Notification.requestPermission();
     if(permission!=="granted"){console.warn("Push permission denied");return;}
-    // If VAPID key changed, force unsubscribe so browser creates fresh subscription
     const storedKey=localStorage.getItem('zp_vapid_key');
     let sub=await reg.pushManager.getSubscription();
     if(sub && storedKey !== VAPID_PUBLIC){
@@ -1676,11 +1676,34 @@ async function subscribeToPush(){
     }
     localStorage.setItem('zp_vapid_key', VAPID_PUBLIC);
     const csrf=document.querySelector('meta[name="csrf-token"]')?.content||'';
-    const res=await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify(sub.toJSON())});
-    console.log("Push subscribe response:",res.status);
+    await fetch("/admin/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify(sub.toJSON())});
+    // Hide banner if visible
+    const b=document.getElementById('push-enable-banner');
+    if(b) b.remove();
+    console.log("Push: subscribed OK");
   }catch(err){console.error("Push error:",err);}
 }
-subscribeToPush();
+
+function _initPush(){
+  if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window))return;
+  if(Notification.permission==="granted"){
+    // Already allowed — subscribe silently (no gesture needed)
+    _doSubscribe();
+  } else if(Notification.permission==="default"){
+    // Must ask via user gesture — show tap banner (required on iOS)
+    const banner=document.createElement('div');
+    banner.id='push-enable-banner';
+    banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:#1565C0;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;white-space:nowrap;';
+    banner.innerHTML='<span style="font-size:20px">🔔</span> اضغط لتفعيل الإشعارات';
+    banner.addEventListener('click',()=>{ _doSubscribe(); });
+    document.body.appendChild(banner);
+    // Auto-hide after 15s if ignored
+    setTimeout(()=>{ if(document.getElementById('push-enable-banner')) banner.remove(); }, 15000);
+  }
+  // If "denied" → do nothing
+}
+
+window.addEventListener('load', _initPush);
 </script>
 </body>
 </html>
