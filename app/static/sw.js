@@ -47,13 +47,17 @@ self.addEventListener('push', (e) => {
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: '/static/images/logo/Zpadel.jpeg',
+      badge: '/static/images/logo/Zpadel.jpeg',
       data: { url: data.url }
+    }).then(() => {
+      if (navigator.setAppBadge) navigator.setAppBadge();
     })
   );
 });
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  if (navigator.clearAppBadge) navigator.clearAppBadge();
   e.waitUntil(
     clients.openWindow(e.notification.data.url)
   );
