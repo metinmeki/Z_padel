@@ -215,16 +215,16 @@
 
 <!-- Period selector -->
 <div class="period-tabs">
-  <button class="period-tab active" onclick="setPeriod('today', this)">
+  <button class="period-tab {% if current_period == 'today' %}active{% endif %}" onclick="setPeriod('today', this)">
     <i class="fas fa-sun"></i> {% if lang == 'en' %}Today{% else %}اليوم{% endif %}
   </button>
-  <button class="period-tab" onclick="setPeriod('week', this)">
+  <button class="period-tab {% if current_period == 'week' %}active{% endif %}" onclick="setPeriod('week', this)">
     <i class="fas fa-calendar-week"></i> {% if lang == 'en' %}This Week{% else %}هذا الأسبوع{% endif %}
   </button>
-  <button class="period-tab" onclick="setPeriod('month', this)">
+  <button class="period-tab {% if current_period == 'month' %}active{% endif %}" onclick="setPeriod('month', this)">
     <i class="fas fa-calendar"></i> {% if lang == 'en' %}This Month{% else %}هذا الشهر{% endif %}
   </button>
-  <button class="period-tab" onclick="setPeriod('year', this)">
+  <button class="period-tab {% if current_period == 'year' %}active{% endif %}" onclick="setPeriod('year', this)">
     <i class="fas fa-calendar-days"></i> {% if lang == 'en' %}This Year{% else %}هذا العام{% endif %}
   </button>
   <div class="date-range-wrap">

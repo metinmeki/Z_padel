@@ -1107,35 +1107,136 @@ def export_expenses():
 @login_required
 def reports():
     today  = date.today()
-    period = request.args.get('period', 'month')
+    period = request.args.get('period', 'today')
+    date_from_str = request.args.get('date_from', '')
+    date_to_str   = request.args.get('date_to', '')
 
-    if period == 'today':
-        start = today
+    # ── Determine date range ──
+    if date_from_str and date_to_str:
+        try:
+            start = date.fromisoformat(date_from_str)
+            end   = date.fromisoformat(date_to_str)
+            period = 'custom'
+        except ValueError:
+            start = end = today
+    elif period == 'today':
+        start = end = today
     elif period == 'week':
         start = today - timedelta(days=6)
+        end   = today
     elif period == 'year':
-        start = today.replace(month=1, day=1)
-    else:
+        start = date(today.year, 1, 1)
+        end   = today
+    else:  # month
         start = today.replace(day=1)
+        end   = today
 
-    bks = Booking.query.filter(Booking.booking_date >= start).all()
-    total_rev  = sum(b.total_price or 0 for b in bks if b.status == 'confirmed')
-    total_bks  = len(bks)
-    conf_bks   = sum(1 for b in bks if b.status == 'confirmed')
-    pend_bks   = sum(1 for b in bks if b.status == 'pending')
-    canc_bks   = sum(1 for b in bks if b.status == 'cancelled')
-    avg_val    = round(total_rev / conf_bks) if conf_bks else 0
-    courts     = Court.query.all()
-    court_names   = [c.name for c in courts]
-    court_counts  = [Booking.query.filter_by(court_id=c.id, status='confirmed').count() for c in courts]
-    court_colors  = [c.color for c in courts]
+    # ── Bookings in range ──
+    bks = Booking.query.filter(
+        Booking.booking_date >= start,
+        Booking.booking_date <= end,
+    ).all()
+    total_rev = sum(b.total_price or 0 for b in bks if b.status == 'confirmed')
+    total_bks = len(bks)
+    conf_bks  = sum(1 for b in bks if b.status == 'confirmed')
+    pend_bks  = sum(1 for b in bks if b.status == 'pending')
+    canc_bks  = sum(1 for b in bks if b.status == 'cancelled')
+    avg_val   = round(total_rev / conf_bks) if conf_bks else 0
+
+    # ── Court stats (filtered) ──
+    courts = Court.query.all()
+    court_names  = [c.name for c in courts]
+    court_counts = [
+        Booking.query.filter(
+            Booking.court_id == c.id,
+            Booking.status == 'confirmed',
+            Booking.booking_date >= start,
+            Booking.booking_date <= end,
+        ).count() for c in courts
+    ]
+    court_colors = [c.color for c in courts]
 
     top_courts = sorted(
         [{'name': c.name, 'revenue': sum(
-            b.total_price or 0 for b in c.bookings if b.status == 'confirmed'
-          )} for c in courts],
+            b.total_price or 0 for b in c.bookings
+            if b.status == 'confirmed' and start <= b.booking_date <= end
+        )} for c in courts],
         key=lambda x: x['revenue'], reverse=True
     )[:5]
+
+    # ── Chart: adapt granularity to period ──
+    labels, bk_data, rev_data = [], [], []
+    delta = (end - start).days
+    if delta == 0:
+        # Today → hourly
+        for h in range(24):
+            t_start = dtime(h, 0)
+            t_end   = dtime((h + 1) % 24, 0)
+            labels.append(f'{h:02d}:00')
+            q = Booking.query.filter(
+                Booking.booking_date == today,
+                Booking.status == 'confirmed',
+                Booking.start_time >= t_start,
+                Booking.start_time <  t_end if h < 23 else Booking.start_time >= t_start,
+            )
+            cnt = q.count()
+            bk_data.append(cnt)
+            rev_data.append(int(db.session.query(func.sum(Booking.total_price)).filter(
+                Booking.booking_date == today, Booking.status == 'confirmed',
+                Booking.start_time >= t_start,
+            ).scalar() or 0) if h == 23 else int(db.session.query(func.sum(Booking.total_price)).filter(
+                Booking.booking_date == today, Booking.status == 'confirmed',
+                Booking.start_time >= t_start, Booking.start_time < t_end,
+            ).scalar() or 0))
+    elif delta <= 31:
+        # Week / month → daily
+        for i in range(delta + 1):
+            d = start + timedelta(days=i)
+            fmt = '%a' if delta <= 7 else '%-d'
+            try:
+                labels.append(d.strftime(fmt))
+            except ValueError:
+                labels.append(d.strftime('%d'))
+            bk_data.append(Booking.query.filter_by(booking_date=d, status='confirmed').count())
+            rev_data.append(int(db.session.query(func.sum(Booking.total_price))
+                               .filter_by(booking_date=d, status='confirmed').scalar() or 0))
+    else:
+        # Year → monthly
+        for m in range(1, 13):
+            ms = date(start.year, m, 1)
+            me = date(start.year, m + 1, 1) if m < 12 else date(start.year + 1, 1, 1)
+            labels.append(ms.strftime('%b'))
+            bk_data.append(Booking.query.filter(
+                Booking.booking_date >= ms, Booking.booking_date < me,
+                Booking.status == 'confirmed').count())
+            rev_data.append(int(db.session.query(func.sum(Booking.total_price)).filter(
+                Booking.booking_date >= ms, Booking.booking_date < me,
+                Booking.status == 'confirmed').scalar() or 0))
+
+    # ── Hourly distribution (period-filtered) ──
+    hourly = []
+    for h in range(24):
+        t_s = dtime(h, 0)
+        t_e = dtime((h + 1) % 24, 0)
+        q = Booking.query.filter(
+            Booking.booking_date >= start, Booking.booking_date <= end,
+            Booking.status == 'confirmed',
+            Booking.start_time >= t_s,
+        )
+        if h < 23:
+            q = q.filter(Booking.start_time < t_e)
+        hourly.append(q.count())
+
+    # ── Store / expense stats (period-filtered) ──
+    total_exp = db.session.query(func.sum(Expense.amount)).filter(
+        Expense.date >= start, Expense.date <= end).scalar() or 0
+    dt_start = datetime.combine(start, dtime.min)
+    dt_end   = datetime.combine(end,   dtime.max)
+    total_ords = Order.query.filter(
+        Order.created_at >= dt_start, Order.created_at <= dt_end).count()
+    store_rev  = db.session.query(func.sum(Order.total_price)).filter(
+        Order.status == 'completed',
+        Order.created_at >= dt_start, Order.created_at <= dt_end).scalar() or 0
 
     top_products = (db.session.query(Product.name,
                     func.sum(OrderItem.quantity).label('sold'))
@@ -1143,28 +1244,9 @@ def reports():
                     .order_by(func.sum(OrderItem.quantity).desc())
                     .limit(5).all())
 
-    # Chart labels/data
-    labels, bk_data, rev_data = [], [], []
-    for i in range(6, -1, -1):
-        d = today - timedelta(days=i)
-        labels.append(d.strftime('%a'))
-        bk_data.append(Booking.query.filter_by(booking_date=d, status='confirmed').count())
-        rev_data.append(int(db.session.query(func.sum(Booking.total_price))
-                            .filter_by(booking_date=d, status='confirmed').scalar() or 0))
-
-    hourly = [Booking.query.filter(
-        Booking.start_time >= datetime.strptime(f'{h:02d}:00', '%H:%M').time(),
-        Booking.start_time <  datetime.strptime(f'{(h+1)%24:02d}:00', '%H:%M').time(),
-        Booking.status == 'confirmed').count()
-        for h in range(24)]
-
-    total_exp  = db.session.query(func.sum(Expense.amount)).scalar() or 0
-    total_ords = Order.query.count()
-    store_rev  = (db.session.query(func.sum(Order.total_price))
-                  .filter_by(status='completed').scalar() or 0)
-    total_slots = len(courts) * 18
+    total_slots  = len(courts) * 18
     booked_today = sum(len(c.today_booked_slots) for c in courts)
-    occ_rate = round(booked_today / total_slots * 100) if total_slots else 0
+    occ_rate     = round(booked_today / total_slots * 100) if total_slots else 0
 
     return render_template('admin/reports.html',
         total_revenue=total_rev, total_bookings=total_bks,
@@ -1178,6 +1260,7 @@ def reports():
         top_courts=top_courts,
         top_products=[{'name': p.name, 'sold': p.sold} for p in top_products],
         current_period=period, courts=courts,
+        date_from=start.isoformat(), date_to=end.isoformat(),
     )
 
 
