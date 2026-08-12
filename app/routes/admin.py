@@ -230,6 +230,30 @@ def fix_image_backgrounds():
     return redirect(url_for('admin.dashboard'))
 
 
+@admin_bp.route('/notifications/poll')
+@login_required
+def notifications_poll():
+    """Lightweight polling endpoint — returns counts of new items since `since` (UTC unix timestamp)."""
+    since_ts = request.args.get('since', 0, type=float)
+    since_dt = datetime.utcfromtimestamp(since_ts) if since_ts else datetime.utcnow()
+
+    new_bookings = Booking.query.filter(
+        Booking.status == 'pending',
+        Booking.created_at > since_dt
+    ).count()
+
+    new_orders = Order.query.filter(
+        Order.status == 'pending',
+        Order.created_at > since_dt
+    ).count()
+
+    return jsonify({
+        'bookings': new_bookings,
+        'orders':   new_orders,
+        'server_time': datetime.utcnow().timestamp(),
+    })
+
+
 @admin_bp.route('/')
 @admin_bp.route('/dashboard')
 @login_required
