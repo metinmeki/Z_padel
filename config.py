@@ -35,7 +35,7 @@ class Config:
     NVR_PASS = os.environ.get('NVR_PASS')
 
     # ── Web Push (VAPID) ──
-    VAPID_PUBLIC_KEY  = 'BK0DMCR_lBGcOFj16EA4B3K55YrHapRJMBlY3aA1u2UL2iJikmxAMLWJ85v6rmNF4oSKQ8WFgOhDGEcax4RqPds'
+    VAPID_PUBLIC_KEY  = 'BLOG4sm1ABtTW5cIb6ThRLc9WOETAw3xYZkVbTeym6jjRNnnq86yJ2-t19mmYOuPY-CETPsppd2pHRZjoIcWfGM'
     VAPID_PRIVATE_PEM = os.path.join(BASE_DIR, 'vapid_private.pem')
     VAPID_CLAIMS_EMAIL = os.environ.get('VAPID_EMAIL', 'admin@z-padel.com')
 
