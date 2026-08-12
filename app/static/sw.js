@@ -42,23 +42,34 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (e) => {
-  const data = e.data.json();
+  let title = 'Z Padel', body = 'إشعار جديد', url = '/admin';
+  try {
+    const d = e.data.json();
+    title = d.title || title;
+    body  = d.body  || body;
+    url   = d.url   || url;
+  } catch(_) {}
+
   e.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: '/static/images/logo/Zpadel.jpeg',
-      badge: '/static/images/logo/Zpadel.jpeg',
-      data: { url: data.url }
-    }).then(() => {
-      if (navigator.setAppBadge) navigator.setAppBadge();
+    self.registration.showNotification(title, {
+      body,
+      icon:             '/static/images/logo/Zpadel.jpeg',
+      badge:            '/static/images/logo/Zpadel.jpeg',
+      vibrate:          [200, 100, 200],
+      requireInteraction: true,
+      data:             { url },
     })
   );
 });
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  if (navigator.clearAppBadge) navigator.clearAppBadge();
   e.waitUntil(
-    clients.openWindow(e.notification.data.url)
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) {
+        if (c.url.includes('/admin') && 'focus' in c) return c.focus();
+      }
+      return clients.openWindow(e.notification.data.url || '/admin');
+    })
   );
 });
