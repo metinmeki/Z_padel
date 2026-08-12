@@ -38,7 +38,7 @@ def index():
             booked_slots[key] = []
         start_m = b.start_time.hour * 60 + b.start_time.minute
         end_m   = b.end_time.hour   * 60 + b.end_time.minute
-        if end_m <= start_m:  # cross-midnight: extend end past 24h boundary
+        if end_m < start_m:  # cross-midnight: extend end past 24h boundary
             end_m += 24 * 60
         next_key = None
         m = start_m
