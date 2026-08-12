@@ -311,6 +311,123 @@
 
 </div>
 
+<!-- ── Revenue Sources + Financial Summary ── -->
+{% set net_profit = (total_revenue|default(0)) + (store_revenue|default(0)) - (total_expenses|default(0)) %}
+{% set total_income = (total_revenue|default(0)) + (store_revenue|default(0)) %}
+{% set bk_pct  = ((total_revenue|default(0)) / [total_income, 1]|max * 100)|round|int %}
+{% set str_pct = 100 - bk_pct %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+  <!-- Bookings Revenue card -->
+  <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-color);
+              box-shadow:var(--shadow-sm);padding:20px 24px;border-top:4px solid #1565C0;
+              animation:fadeSlideIn .4s ease both;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--brand-blue-soft);
+                  display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--brand-blue);">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--text-muted);">
+        {% if lang == 'en' %}Bookings Revenue{% else %}إيرادات الحجوزات{% endif %}
+      </span>
+    </div>
+    <div style="font-size:30px;font-weight:900;color:var(--brand-blue-dark);line-height:1.1;margin-bottom:6px;">
+      {{ "{:,.0f}".format(total_revenue|default(0)) }}
+      <small style="font-size:13px;font-weight:400;color:var(--text-muted);">{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-muted);">
+      <i class="fas fa-check-circle" style="color:#43A047;margin-left:3px;"></i>
+      {{ confirmed_bookings|default(0) }} {% if lang == 'en' %}confirmed bookings{% else %}حجز مؤكد{% endif %}
+      &nbsp;·&nbsp;
+      <i class="fas fa-clock" style="color:#FB8C00;"></i>
+      {{ pending_bookings_count|default(0) }} {% if lang == 'en' %}pending{% else %}معلق{% endif %}
+    </div>
+  </div>
+
+  <!-- Store Revenue card -->
+  <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-color);
+              box-shadow:var(--shadow-sm);padding:20px 24px;border-top:4px solid #FB8C00;
+              animation:fadeSlideIn .4s ease both .07s;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:rgba(251,140,0,.1);
+                  display:flex;align-items:center;justify-content:center;font-size:17px;color:#FB8C00;">
+        <i class="fas fa-bag-shopping"></i>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--text-muted);">
+        {% if lang == 'en' %}Store Revenue{% else %}إيرادات المتجر{% endif %}
+      </span>
+    </div>
+    <div style="font-size:30px;font-weight:900;color:#E65100;line-height:1.1;margin-bottom:6px;">
+      {{ "{:,.0f}".format(store_revenue|default(0)) }}
+      <small style="font-size:13px;font-weight:400;color:var(--text-muted);">{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-muted);">
+      <i class="fas fa-shopping-cart" style="color:#FB8C00;margin-left:3px;"></i>
+      {{ total_orders|default(0) }} {% if lang == 'en' %}orders in period{% else %}طلب في الفترة{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Revenue split bar -->
+<div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border-color);
+            box-shadow:var(--shadow-sm);padding:16px 24px;margin-bottom:16px;
+            animation:fadeSlideIn .4s ease both .1s;">
+  <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;
+              color:var(--text-muted);margin-bottom:8px;">
+    <span><i class="fas fa-circle" style="color:#1565C0;font-size:9px;margin-left:4px;"></i>
+      {% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %} {{ bk_pct }}%</span>
+    <span>{% if lang == 'en' %}Store{% else %}المتجر{% endif %} {{ str_pct }}%
+      <i class="fas fa-circle" style="color:#FB8C00;font-size:9px;margin-right:4px;"></i></span>
+  </div>
+  <div style="height:10px;border-radius:10px;background:rgba(251,140,0,.2);overflow:hidden;">
+    <div style="height:100%;border-radius:10px;
+                background:linear-gradient(90deg,var(--brand-blue-light),var(--brand-blue));
+                width:{{ bk_pct }}%;transition:width 1s ease;"></div>
+  </div>
+</div>
+
+<!-- Total Expenses + Net Profit -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+
+  <div style="background:linear-gradient(135deg,#C62828,#E53935);border-radius:var(--radius);
+              padding:22px 24px;display:flex;align-items:center;justify-content:space-between;
+              box-shadow:0 4px 20px rgba(229,57,53,.25);animation:fadeSlideIn .4s ease both .14s;">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <i class="fas fa-receipt" style="color:rgba(255,255,255,.8);font-size:15px;"></i>
+        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85);">
+          {% if lang == 'en' %}Total Expenses{% else %}إجمالي المصروفات{% endif %}
+        </span>
+      </div>
+      <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;">
+        {{ "{:,.0f}".format(total_expenses|default(0)) }}
+        <small style="font-size:14px;font-weight:400;opacity:.8;">{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
+      </div>
+    </div>
+    <i class="fas fa-arrow-trend-down" style="font-size:40px;color:rgba(255,255,255,.2);"></i>
+  </div>
+
+  <div style="background:linear-gradient(135deg,#1565C0,#1976D2);border-radius:var(--radius);
+              padding:22px 24px;display:flex;align-items:center;justify-content:space-between;
+              box-shadow:0 4px 20px rgba(21,101,192,.25);animation:fadeSlideIn .4s ease both .21s;">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <i class="fas fa-circle-check" style="color:rgba(255,255,255,.8);font-size:15px;"></i>
+        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85);">
+          {% if lang == 'en' %}Net Profit{% else %}صافي الربح{% endif %}
+        </span>
+      </div>
+      <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;">
+        {{ "{:,.0f}".format(net_profit) }}
+        <small style="font-size:14px;font-weight:400;opacity:.8;">{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
+      </div>
+    </div>
+    <i class="fas fa-arrow-trend-up" style="font-size:40px;color:rgba(255,255,255,.2);"></i>
+  </div>
+
+</div>
+
 <!-- Main Chart + Court Breakdown -->
 <div class="charts-row">
 
