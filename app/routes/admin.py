@@ -1658,16 +1658,20 @@ COURT_CHANNELS = {'court1': 12, 'court2': 15}
 
 def _send_push_all(title, body, url='/'):
     """Send a Web Push notification to every stored subscription."""
+    import json, logging
+    log = logging.getLogger(__name__)
     try:
         from pywebpush import webpush, WebPushException
-        from flask import current_app
-        pub_key  = current_app.config.get('VAPID_PUBLIC_KEY', '')
         pem_path = current_app.config.get('VAPID_PRIVATE_PEM', '')
         email    = current_app.config.get('VAPID_CLAIMS_EMAIL', 'admin@z-padel.com')
-        if not pub_key or not os.path.isfile(pem_path):
+        if not os.path.isfile(pem_path):
+            log.error('PUSH: vapid_private.pem not found at %s', pem_path)
             return
-        import json
+        # Read PEM content — pywebpush 2.x expects the key string, not a file path
+        with open(pem_path, 'r') as f:
+            pem_content = f.read().strip()
         subs = PushSubscription.query.all()
+        log.info('PUSH: sending "%s" to %d subscription(s)', title, len(subs))
         dead = []
         for s in subs:
             try:
@@ -1677,20 +1681,23 @@ def _send_push_all(title, body, url='/'):
                         'keys': {'p256dh': s.p256dh, 'auth': s.auth},
                     },
                     data=json.dumps({'title': title, 'body': body, 'url': url}),
-                    vapid_private_key=pem_path,
+                    vapid_private_key=pem_content,
                     vapid_claims={'sub': f'mailto:{email}'},
                 )
+                log.info('PUSH: sent OK to %s', s.endpoint[:50])
             except WebPushException as e:
+                log.error('PUSH WebPushException: %s | response: %s',
+                          e, e.response.text if e.response else 'none')
                 if e.response and e.response.status_code in (404, 410):
                     dead.append(s)
-            except Exception:
-                pass
+            except Exception as e:
+                log.error('PUSH error: %s: %s', type(e).__name__, e)
         for s in dead:
             db.session.delete(s)
         if dead:
             db.session.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        log.error('PUSH outer error: %s: %s', type(e).__name__, e)
 
 
 def _set_clip_status(app, clip_id, status, msg=None):
