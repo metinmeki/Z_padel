@@ -419,5 +419,22 @@ function finish(btn) {
   }, 2000);
 }
 </script>
+<style>@keyframes _rpl { to { transform: scale(4); opacity: 0; } }</style>
+<script>
+/* Ripple on Add to Cart button */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-add-detail');
+  if (!btn || btn.disabled) return;
+  const r = document.createElement('span');
+  const rect = btn.getBoundingClientRect();
+  const sz = Math.max(rect.width, rect.height) * 2;
+  r.style.cssText = `position:absolute;border-radius:50%;width:${sz}px;height:${sz}px;` +
+    `left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px;` +
+    `background:rgba(255,255,255,0.38);transform:scale(0);pointer-events:none;` +
+    `animation:_rpl .55s linear forwards;`;
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+});
+</script>
 </body>
 </html>

@@ -925,7 +925,45 @@
     });
   });
 
+
+  /* ── Ripple on main-site buttons ── */
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-main,.btn-blue,.btn-ghost');
+    if (!btn) return;
+    btn.style.position = 'relative'; btn.style.overflow = 'hidden';
+    const r = document.createElement('span');
+    const rect = btn.getBoundingClientRect();
+    const sz = Math.max(rect.width, rect.height) * 2;
+    r.style.cssText = `position:absolute;border-radius:50%;width:${sz}px;height:${sz}px;` +
+      `left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px;` +
+      `background:rgba(255,255,255,0.38);transform:scale(0);pointer-events:none;` +
+      `animation:_rpl .55s linear forwards;`;
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+  });
+
+  /* ── Counter animation for hero stats (.hst-val) ── */
+  function _countUp(el) {
+    const tn = el.childNodes[0];
+    if (!tn) return;
+    const n = parseFloat(tn.textContent.replace(/[,\s]/g,''));
+    if (isNaN(n) || n === 0 || el.dataset.ct) return;
+    el.dataset.ct = '1';
+    const dur = Math.min(1400, Math.max(600, n / 300));
+    const t0 = performance.now();
+    (function tick(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      tn.textContent = Math.floor(n * (1 - Math.pow(1-p, 3))).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+      else tn.textContent = Math.floor(n).toLocaleString();
+    })(t0);
+  }
+  const _cObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { _countUp(e.target); _cObs.unobserve(e.target); } });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.hst-val').forEach(el => _cObs.observe(el));
 </script>
+<style>@keyframes _rpl { to { transform: scale(4); opacity: 0; } }</style>
 
 </body>
 </html>

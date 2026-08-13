@@ -573,6 +573,39 @@ function closeMobileMenu() { document.getElementById('mobileMenu').classList.rem
 window.addEventListener('scroll', () => {
   document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
 });
+
+/* Ripple on booking buttons */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-main,.btn-blue,.btn-ghost');
+  if (!btn) return;
+  btn.style.position = 'relative'; btn.style.overflow = 'hidden';
+  const r = document.createElement('span');
+  const rect = btn.getBoundingClientRect();
+  const sz = Math.max(rect.width, rect.height) * 2;
+  r.style.cssText = `position:absolute;border-radius:50%;width:${sz}px;height:${sz}px;` +
+    `left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px;` +
+    `background:rgba(255,255,255,0.38);transform:scale(0);pointer-events:none;` +
+    `animation:_rpl .55s linear forwards;`;
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+});
+
+/* Scroll reveal for profile sections */
+const _rv = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }, i*70);
+      _rv.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.profile-card, .coach-card-real, .slot-item').forEach(el => {
+  if (el.getBoundingClientRect().top > window.innerHeight * 0.88) {
+    el.style.cssText += 'opacity:0;transform:translateY(22px);transition:opacity 0.45s ease,transform 0.45s ease;';
+    _rv.observe(el);
+  }
+});
 </script>
+<style>@keyframes _rpl { to { transform: scale(4); opacity: 0; } }</style>
 </body>
 </html>
