@@ -725,6 +725,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 // ══════════════════════════════════════════
+// CHART.JS GLOBAL ANIMATION DEFAULTS
+// ══════════════════════════════════════════
+Chart.defaults.animation = {
+  duration: 900,
+  easing: 'easeOutQuart',
+};
+Chart.defaults.animations.numbers = {
+  type: 'number',
+  properties: ['x', 'y', 'borderWidth', 'radius', 'tension'],
+};
+
+// ══════════════════════════════════════════
 // DATA FROM FLASK
 // ══════════════════════════════════════════
 const isEn = '{{ lang }}' === 'en';

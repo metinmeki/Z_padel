@@ -92,6 +92,42 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    @keyframes rippleOut {
+      to { transform: scale(4); opacity: 0; }
+    }
+    @keyframes scrollReveal {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes countPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* ── Ripple host ── */
+    .btn-z-primary, .btn-z-outline, .btn-z-danger {
+      position: relative; overflow: hidden;
+    }
+    .ripple-circle {
+      position: absolute; border-radius: 50%;
+      width: 10px; height: 10px;
+      background: rgba(255,255,255,0.45);
+      transform: scale(0);
+      animation: rippleOut 0.55s linear forwards;
+      pointer-events: none;
+    }
+
+    /* ── Scroll-reveal target (hidden by default until JS kicks in) ── */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .reveal-on-scroll.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     /* ═══════════════════════════════════════════
        SIDEBAR
@@ -1652,6 +1688,94 @@
   to   { opacity:1; transform:translateX(0); }
 }
 </style>
+
+<script>
+/* ═══════════════════════════════════════════
+   1. RIPPLE EFFECT on all z-buttons
+═══════════════════════════════════════════ */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-z-primary, .btn-z-outline, .btn-z-danger');
+  if (!btn) return;
+  const r = document.createElement('span');
+  r.className = 'ripple-circle';
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2;
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+});
+
+/* ═══════════════════════════════════════════
+   2. NUMBER COUNTER for stat/kpi values
+═══════════════════════════════════════════ */
+function animateCounter(el) {
+  const raw = el.textContent.replace(/[,\s]/g, '').trim();
+  const target = parseFloat(raw);
+  if (isNaN(target) || target === 0) return;
+  const isFloat = raw.includes('.');
+  const duration = Math.min(1200, Math.max(400, target / 500));
+  const start = performance.now();
+  el.dataset.animated = '1';
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3); // ease-out cubic
+    const cur = target * ease;
+    el.textContent = isFloat
+      ? cur.toFixed(1)
+      : Math.floor(cur).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+    else {
+      el.textContent = isFloat ? target.toFixed(1) : target.toLocaleString();
+      el.style.animation = 'countPop 0.3s ease';
+      setTimeout(() => el.style.animation = '', 300);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function initCounters() {
+  document.querySelectorAll('.stat-value, .kpi-value').forEach(el => {
+    if (el.dataset.animated) return;
+    // Only animate numeric content (strip IQD/% suffixes)
+    const text = el.childNodes[0]?.textContent || el.textContent;
+    const num = parseFloat(text.replace(/[,\s]/g, ''));
+    if (!isNaN(num) && num > 0) animateCounter(el.childNodes[0] || el);
+  });
+}
+// Run once after page settles
+setTimeout(initCounters, 200);
+
+/* ═══════════════════════════════════════════
+   3. SCROLL REVEAL for cards
+═══════════════════════════════════════════ */
+(function() {
+  // Tag cards that haven't already been animated by CSS
+  const targets = document.querySelectorAll(
+    '.stat-card, .kpi-card, .chart-card, .card'
+  );
+  // Only apply to cards below the fold
+  targets.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top > window.innerHeight * 0.85) {
+      el.classList.add('reveal-on-scroll');
+    }
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('revealed');
+          entry.target.classList.remove('reveal-on-scroll');
+        }, i * 60); // stagger
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal-on-scroll').forEach(el => io.observe(el));
+})();
+</script>
 
 <script>
 const VAPID_PUBLIC = "BHuc7T8bA_h93NeeYsmTtGnA6FliSkASMrWAYqf7JQCflqZ-okkyZGzaS7U8Lepv7SzUYA66XdhsciFMmKOndiM";
