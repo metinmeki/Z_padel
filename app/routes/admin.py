@@ -440,6 +440,11 @@ def add_booking():
         s_time = _parse_time(request.form['start_time'])
         e_time = _parse_time(request.form['end_time'])
 
+        # Auto-shift: midnight bookings (00:00–07:59) entered for today are meant
+        # for tonight → move to tomorrow so slots display and conflict-check correctly
+        if s_time.hour < 8 and b_date == date.today():
+            b_date = b_date + timedelta(days=1)
+
         bk = Booking(
             court_id=court.id,
             customer_name=request.form['customer_name'],

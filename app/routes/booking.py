@@ -60,6 +60,22 @@ def index():
                     booked_slots[key].append(ts)
             m += 30
 
+        # Early morning standalone bookings (00:00–08:00, not a cross-midnight bk2)
+        # must also block the "bottom slots" of the previous day's booking page,
+        # which checks the next_key of that day (= this booking's date key).
+        # Additionally mirror into THIS date's next_key so today's bottom slots
+        # correctly show them as blocked.
+        if not getattr(b, 'is_continuation', False) and b.start_time.hour < 8:
+            mirror_key = f"{b.court_id}:{(b.booking_date + timedelta(days=1)).isoformat()}"
+            if mirror_key not in booked_slots:
+                booked_slots[mirror_key] = []
+            m2 = start_m
+            while m2 < min(end_m, 8 * 60):
+                ts2 = f"{m2//60:02d}:{m2%60:02d}"
+                if ts2 not in booked_slots[mirror_key]:
+                    booked_slots[mirror_key].append(ts2)
+                m2 += 30
+
     return render_template('booking.html',
         courts=courts,
         courts_data=courts_data,
