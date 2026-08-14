@@ -5,150 +5,215 @@
 {% block page_title %}{% if lang == 'en' %}Expenses{% else %}المصروفات{% endif %}{% endblock %}
 
 {% block extra_styles %}
-.budget-card {
-  background: white;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  padding: 20px 24px;
-  margin-bottom: 20px;
-}
-.budget-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.budget-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--brand-blue-dark);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.budget-numbers { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
-.budget-bar-track {
-  height: 10px;
-  border-radius: 20px;
-  background: var(--off-white);
-  overflow: hidden;
-}
-.budget-bar-fill {
-  height: 100%;
-  border-radius: 20px;
-  transition: width 0.6s ease;
-}
-.budget-bar-fill.ok       { background: linear-gradient(90deg, #43A047, #66BB6A); }
-.budget-bar-fill.warn     { background: linear-gradient(90deg, #FB8C00, #FFB74D); }
-.budget-bar-fill.danger   { background: linear-gradient(90deg, #E53935, #EF5350); }
-.budget-pct-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; margin-top: 6px; }
 
-.trend-card, .breakdown-card {
-  background: white;
+/* ── Budget hero card ── */
+.budget-hero {
+  background: linear-gradient(135deg, #C62828 0%, #E53935 50%, #EF5350 100%);
   border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  padding: 20px 24px;
+  padding: 24px 28px;
+  color: #fff;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 28px rgba(198,40,40,.30);
+  animation: fadeSlideIn .4s ease both;
+  position: relative; overflow: hidden;
+}
+.budget-hero::after {
+  content: '';
+  position: absolute; top: -30px; right: -30px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,.07);
+}
+.budget-hero-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+}
+.budget-hero-label {
+  font-size: 13px; font-weight: 700; opacity: .85;
+  display: flex; align-items: center; gap: 7px;
+}
+.budget-hero-pct {
+  font-size: 38px; font-weight: 900; line-height: 1;
+}
+.budget-hero-sub { font-size: 12.5px; opacity: .8; margin-top: 3px; }
+.budget-track {
+  height: 12px; border-radius: 20px;
+  background: rgba(255,255,255,.22); overflow: hidden;
+}
+.budget-fill {
+  height: 100%; border-radius: 20px;
+  background: #fff;
+  transition: width .8s ease;
+}
+.budget-meta {
+  display: flex; justify-content: space-between;
+  font-size: 12px; opacity: .8; margin-top: 8px;
+}
+
+/* ── Analytics row ── */
+.analytics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
   margin-bottom: 20px;
 }
-.trend-title, .breakdown-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--brand-blue-dark);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+@media (max-width: 768px) { .analytics-row { grid-template-columns: 1fr; } }
+
+.analytics-card {
+  background: #fff; border-radius: var(--radius);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  padding: 20px 22px;
+  animation: fadeSlideIn .45s ease both;
 }
+.analytics-title {
+  font-size: 14px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+}
+.analytics-title i { color: var(--brand-blue); }
+
+/* trend bars */
 .trend-bars {
-  display: flex;
-  gap: 14px;
-  align-items: flex-end;
-  height: 90px;
+  display: flex; gap: 8px; align-items: flex-end; height: 90px;
 }
-.trend-bar-col { text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
 .trend-bar {
-  width: 100%;
-  max-width: 34px;
+  width: 100%; max-width: 32px;
   border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, #E53935, #C62828);
-  min-height: 4px;
-  transition: height 0.5s ease;
+  background: linear-gradient(180deg, #EF5350, #B71C1C);
+  min-height: 4px; transition: height .6s ease;
 }
-.trend-label { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
-.trend-amount { font-size: 11px; color: #E53935; font-weight: 700; }
+.trend-lbl { font-size: 10px; color: var(--text-muted); margin-top: 5px; font-weight: 600; }
+.trend-amt { font-size: 10px; color: #C62828; font-weight: 700; margin-bottom: 3px; }
 
-.breakdown-grid {
+/* category breakdown */
+.cat-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border-color);
+}
+.cat-row:last-child { border-bottom: none; }
+.cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cat-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.cat-bar-wrap { width: 70px; }
+.cat-bar { height: 5px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 3px; }
+.cat-total { font-size: 13px; font-weight: 800; color: var(--text-dark); min-width: 65px; text-align: left; }
+
+/* ── Filter + Add form ── */
+.expense-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
+}
+.filter-inline {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.filter-inline input[type="month"] {
+  padding: 7px 12px;
+  border: 1.5px solid var(--border-color); border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif; font-size: 13px;
+  color: var(--text-dark); outline: none;
+}
+.filter-inline input[type="month"]:focus { border-color: var(--brand-blue-light); }
+
+.add-panel {
+  background: #fff; border-radius: var(--radius);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  margin-bottom: 20px; overflow: hidden;
+  animation: fadeSlideIn .4s ease both;
+}
+.add-panel-header {
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+  background: linear-gradient(135deg, var(--brand-blue-soft), #fff);
+  border-bottom: 1px solid var(--border-color);
+}
+.add-panel-title {
+  font-size: 14px; font-weight: 700; color: var(--brand-blue-dark);
+  display: flex; align-items: center; gap: 8px;
+}
+.add-panel-toggle { color: var(--brand-blue); font-size: 16px; transition: transform .25s; }
+.add-panel-toggle.open { transform: rotate(45deg); }
+.add-panel-body { padding: 20px; }
+
+.add-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-}
-.breakdown-item {
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  text-align: center;
-  transition: var(--transition);
-}
-.breakdown-item:hover { box-shadow: var(--shadow-sm); transform: translateY(-2px); }
-.breakdown-cat-name { font-size: 12.5px; font-weight: 700; margin-bottom: 4px; }
-.breakdown-cat-total { font-size: 16px; font-weight: 800; color: var(--brand-blue-dark); }
-
-.filter-bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
-
-.add-expense-form .form-label-z { margin-bottom: 4px; }
-.add-expense-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 14px;
-  align-items: end;
 }
+@media (max-width: 900px) { .add-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .add-grid { grid-template-columns: 1fr; } }
+.add-grid .span2 { grid-column: span 2; }
+@media (max-width: 560px) { .add-grid .span2 { grid-column: span 1; } }
+
+/* ── Expense list cards (mobile) ── */
+.exp-card-list { display: none; flex-direction: column; gap: 10px; }
+.exp-card {
+  background: #fff; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.exp-card-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+}
+.exp-card-desc { font-size: 14px; font-weight: 700; color: var(--text-dark); flex: 1; }
+.exp-card-amount {
+  font-size: 17px; font-weight: 900; color: #C62828;
+  white-space: nowrap;
+}
+.exp-card-amount small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.exp-card-meta {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.exp-card-date { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+.exp-card-notes { font-size: 12px; color: var(--text-muted); flex: 1; }
+.exp-card-actions { display: flex; gap: 6px; justify-content: flex-end; }
 
 .cat-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  color: white;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; color: white;
 }
 .cat-badge.none {
-  background: var(--off-white);
-  color: var(--text-muted);
+  background: var(--off-white); color: var(--text-muted);
   border: 1px solid var(--border-color);
+}
+
+/* responsive: on mobile hide table, show cards */
+@media (max-width: 700px) {
+  .exp-table-wrap { display: none; }
+  .exp-card-list  { display: flex; }
+  .filter-inline  { width: 100%; }
+  .filter-inline input[type="month"] { flex: 1; }
 }
 {% endblock %}
 
 {% block content %}
 
-<!-- Stats Strip -->
+<!-- ── KPI Strip ── -->
 <div class="stats-strip">
   <div class="stat-card" style="animation-delay:0s;">
-    <div class="stat-icon" style="background:rgba(229,57,53,0.10);color:#C62828;"><i class="fas fa-receipt"></i></div>
+    <div class="stat-icon" style="background:rgba(229,57,53,.12);color:#C62828;"><i class="fas fa-receipt"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ '{:,.0f}'.format(total_expenses) }}</div>
       <div class="stat-label">{% if lang == 'en' %}Total Expenses (IQD){% else %}إجمالي المصروفات (د.ع){% endif %}</div>
     </div>
   </div>
-  <div class="stat-card orange" style="animation-delay:0.07s;">
+  <div class="stat-card orange" style="animation-delay:.07s;">
     <div class="stat-icon orange"><i class="fas fa-calendar-day"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ '{:,.0f}'.format(today_expenses) }}</div>
       <div class="stat-label">{% if lang == 'en' %}Today (IQD){% else %}اليوم (د.ع){% endif %}</div>
     </div>
   </div>
-  <div class="stat-card" style="animation-delay:0.14s;">
-    <div class="stat-icon" style="background:rgba(123,31,162,0.10);color:#7B1FA2;"><i class="fas fa-calendar-days"></i></div>
+  <div class="stat-card" style="animation-delay:.14s;">
+    <div class="stat-icon" style="background:rgba(123,31,162,.12);color:#7B1FA2;"><i class="fas fa-calendar-days"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ '{:,.0f}'.format(month_expenses) }}</div>
       <div class="stat-label">{% if lang == 'en' %}This Month (IQD){% else %}هذا الشهر (د.ع){% endif %}</div>
     </div>
   </div>
-  <div class="stat-card cyan" style="animation-delay:0.21s;">
-    <div class="stat-icon" style="background:rgba(67,160,71,0.10);color:#2E7D32;"><i class="fas fa-sack-dollar"></i></div>
+  <div class="stat-card cyan" style="animation-delay:.21s;">
+    <div class="stat-icon" style="background:rgba(67,160,71,.12);color:#2E7D32;"><i class="fas fa-sack-dollar"></i></div>
     <div class="stat-info">
       <div class="stat-value">{{ '{:,.0f}'.format(total_revenue) }}</div>
       <div class="stat-label">{% if lang == 'en' %}Total Revenue (IQD){% else %}إجمالي الإيرادات (د.ع){% endif %}</div>
@@ -156,90 +221,111 @@
   </div>
 </div>
 
-<!-- Budget Progress -->
-{% set budget_pct = [(month_expenses / monthly_budget * 100), 100] | min if monthly_budget else 0 %}
-<div class="budget-card">
-  <div class="budget-header">
-    <span class="budget-title"><i class="fas fa-bullseye"></i>{% if lang == 'en' %}Monthly Budget{% else %}الميزانية الشهرية{% endif %}</span>
-    <span class="budget-numbers">{{ '{:,.0f}'.format(month_expenses) }} / {{ '{:,.0f}'.format(monthly_budget) }} {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>
+<!-- ── Budget Hero ── -->
+{% set budget_pct = [(month_expenses / monthly_budget * 100), 100]|min if monthly_budget else 0 %}
+<div class="budget-hero">
+  <div class="budget-hero-top">
+    <div>
+      <div class="budget-hero-label"><i class="fas fa-bullseye"></i> {% if lang == 'en' %}Monthly Budget{% else %}الميزانية الشهرية{% endif %}</div>
+      <div class="budget-hero-pct">{{ '{:.0f}'.format(budget_pct) }}<span style="font-size:22px;opacity:.8;">%</span></div>
+      <div class="budget-hero-sub">
+        {% if budget_pct > 90 %}⚠️ {% if lang == 'en' %}Over budget!{% else %}تجاوز الميزانية!{% endif %}
+        {% elif budget_pct > 70 %}⚡ {% if lang == 'en' %}Approaching limit{% else %}يقترب من الحد{% endif %}
+        {% else %}✅ {% if lang == 'en' %}Within budget{% else %}ضمن الميزانية{% endif %}
+        {% endif %}
+      </div>
+    </div>
+    <div style="text-align:{{ 'right' if lang != 'en' else 'left' }};">
+      <div style="font-size:22px;font-weight:900;">{{ '{:,.0f}'.format(month_expenses) }}</div>
+      <div style="font-size:12px;opacity:.75;">{% if lang == 'en' %}spent of{% else %}أُنفق من{% endif %} {{ '{:,.0f}'.format(monthly_budget) }} {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</div>
+      <div style="font-size:12px;opacity:.75;margin-top:4px;">
+        {% set remaining = monthly_budget - month_expenses %}
+        {% if remaining > 0 %}
+          {{ '{:,.0f}'.format(remaining) }} {% if lang == 'en' %}IQD remaining{% else %}د.ع متبقي{% endif %}
+        {% else %}
+          {{ '{:,.0f}'.format(-remaining) }} {% if lang == 'en' %}IQD over budget{% else %}د.ع فوق الميزانية{% endif %}
+        {% endif %}
+      </div>
+    </div>
   </div>
-  <div class="budget-bar-track">
-    <div class="budget-bar-fill {% if budget_pct > 90 %}danger{% elif budget_pct > 70 %}warn{% else %}ok{% endif %}"
-         style="width: {{ budget_pct }}%;"></div>
+  <div class="budget-track">
+    <div class="budget-fill" style="width:{{ budget_pct }}%;{% if budget_pct > 90 %}background:rgba(255,200,200,.9);{% elif budget_pct > 70 %}background:rgba(255,220,100,.9);{% endif %}"></div>
   </div>
-  <div class="budget-pct-label">{{ '{:.1f}'.format(budget_pct) }}% {% if lang == 'en' %}of monthly budget used{% else %}من الميزانية الشهرية{% endif %}</div>
+  <div class="budget-meta">
+    <span>0</span>
+    <span>{{ '{:,.0f}'.format(monthly_budget // 2) }}</span>
+    <span>{{ '{:,.0f}'.format(monthly_budget) }}</span>
+  </div>
 </div>
 
-<!-- Monthly Trend + Category Breakdown -->
-<div class="row g-3 mb-0">
+<!-- ── Analytics Row ── -->
+<div class="analytics-row">
+
   {% if monthly_trend %}
-  <div class="col-lg-6">
-    <div class="trend-card" style="margin-bottom:0;height:100%;">
-      <div class="trend-title"><i class="fas fa-chart-column" style="color:var(--brand-blue);"></i>{% if lang == 'en' %}Monthly Trend{% else %}الاتجاه الشهري{% endif %}</div>
-      {% set max_trend = monthly_trend | map(attribute='total') | max %}
-      <div class="trend-bars">
-        {% for item in monthly_trend %}
-        {% set bar_h = (item.total / max_trend * 70) | int if max_trend > 0 else 4 %}
-        <div class="trend-bar-col">
-          <div class="trend-amount">{{ '{:,.0f}'.format(item.total) }}</div>
-          <div class="trend-bar" style="height:{{ bar_h }}px;"></div>
-          <div class="trend-label">{{ item.label }}</div>
-        </div>
-        {% endfor %}
+  <div class="analytics-card" style="animation-delay:.1s;">
+    <div class="analytics-title"><i class="fas fa-chart-column"></i> {% if lang == 'en' %}Monthly Trend{% else %}الاتجاه الشهري{% endif %}</div>
+    {% set max_t = monthly_trend|map(attribute='total')|max %}
+    <div class="trend-bars">
+      {% for item in monthly_trend %}
+      {% set bh = (item.total / max_t * 78)|int if max_t > 0 else 4 %}
+      <div class="trend-col">
+        <div class="trend-amt">{{ '{:,.0f}'.format(item.total // 1000) }}k</div>
+        <div class="trend-bar" style="height:{{ bh }}px;"></div>
+        <div class="trend-lbl">{{ item.label }}</div>
       </div>
+      {% endfor %}
     </div>
   </div>
   {% endif %}
 
   {% if expense_categories %}
-  <div class="col-lg-6">
-    <div class="breakdown-card" style="margin-bottom:0;height:100%;">
-      <div class="breakdown-title"><i class="fas fa-chart-pie" style="color:var(--brand-blue);"></i>{% if lang == 'en' %}By Category{% else %}حسب الفئة{% endif %}</div>
-      <div class="breakdown-grid">
-        {% for cat in expense_categories %}
-        <div class="breakdown-item">
-          <div class="breakdown-cat-name" style="color:{{ cat.color or '#6c757d' }};">{{ cat.name }}</div>
-          <div class="breakdown-cat-total">{{ '{:,.0f}'.format(cat.total) }}</div>
+  <div class="analytics-card" style="animation-delay:.17s;">
+    <div class="analytics-title"><i class="fas fa-chart-pie"></i> {% if lang == 'en' %}By Category{% else %}حسب الفئة{% endif %}</div>
+    {% set max_cat = expense_categories|map(attribute='total')|max %}
+    {% for cat in expense_categories %}
+    <div class="cat-row">
+      <div class="cat-dot" style="background:{{ cat.color or '#6c757d' }};"></div>
+      <div class="cat-name">{{ cat.name }}</div>
+      <div class="cat-bar-wrap">
+        <div class="cat-bar">
+          <div class="cat-bar-fill" style="width:{{ (cat.total/max_cat*100)|int if max_cat else 0 }}%;background:{{ cat.color or '#6c757d' }};"></div>
         </div>
-        {% endfor %}
       </div>
+      <div class="cat-total">{{ '{:,.0f}'.format(cat.total) }}</div>
     </div>
+    {% endfor %}
   </div>
   {% endif %}
+
 </div>
 
-<div style="height:20px;"></div>
-
-<!-- Filter -->
-<div class="filter-bar">
-  <form method="GET" action="{{ url_for('admin.expenses') }}" style="display:contents;">
-    <div class="filter-group">
-      <label><i class="fas fa-calendar-days" style="margin-left:4px;"></i>{% if lang == 'en' %}Month{% else %}الشهر{% endif %}</label>
-      <input type="month" name="month" value="{{ request.args.get('month', '') }}"/>
-    </div>
-    <div class="filter-group">
-      <label>&nbsp;</label>
-      <div style="display:flex;gap:8px;">
-        <button type="submit" class="btn-z-primary" style="padding:7px 18px;">
-          <i class="fas fa-filter"></i> {% if lang == 'en' %}Filter{% else %}تصفية{% endif %}
-        </button>
-        <a href="{{ url_for('admin.expenses') }}" class="btn-z-outline" style="padding:7px 14px;">
-          <i class="fas fa-rotate-left"></i>
-        </a>
-      </div>
-    </div>
+<!-- ── Toolbar: filter + add toggle ── -->
+<div class="expense-toolbar">
+  <form method="GET" action="{{ url_for('admin.expenses') }}" class="filter-inline">
+    <input type="month" name="month" value="{{ request.args.get('month','') }}">
+    <button type="submit" class="btn-z-primary" style="padding:7px 16px;">
+      <i class="fas fa-filter"></i> {% if lang == 'en' %}Filter{% else %}تصفية{% endif %}
+    </button>
+    <a href="{{ url_for('admin.expenses') }}" class="btn-z-outline" style="padding:7px 12px;" title="Reset">
+      <i class="fas fa-rotate-left"></i>
+    </a>
   </form>
+  <button class="btn-z-primary" onclick="toggleAdd()" id="addToggleBtn" style="gap:8px;">
+    <i class="fas fa-plus" id="addToggleIcon"></i>
+    {% if lang == 'en' %}Add Expense{% else %}إضافة مصروف{% endif %}
+  </button>
 </div>
 
-<!-- Add New Expense -->
-<div class="card-z" style="margin-bottom:20px;">
-  <div class="card-header-z">
-    <span class="card-title-z"><i class="fas fa-circle-plus"></i>{% if lang == 'en' %}Add New Expense{% else %}إضافة مصروف جديد{% endif %}</span>
+<!-- ── Add Expense Panel (collapsible) ── -->
+<div class="add-panel" id="addPanel" style="display:none;">
+  <div class="add-panel-header" onclick="toggleAdd()">
+    <div class="add-panel-title"><i class="fas fa-circle-plus" style="color:var(--brand-blue);"></i> {% if lang == 'en' %}New Expense{% else %}مصروف جديد{% endif %}</div>
+    <i class="fas fa-times add-panel-toggle open" id="addPanelIcon"></i>
   </div>
-  <div class="card-body-z">
-    <form method="POST" action="{{ url_for('admin.add_expense') }}" enctype="multipart/form-data" class="add-expense-form">
+  <div class="add-panel-body">
+    <form method="POST" action="{{ url_for('admin.add_expense') }}" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="add-expense-grid">
+      <div class="add-grid">
         <div>
           <label class="form-label-z">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %} <span style="color:#e53935;">*</span></label>
           <input type="date" name="date" class="form-control-z" value="{{ today }}" required>
@@ -257,7 +343,7 @@
           <label class="form-label-z">{% if lang == 'en' %}Amount (IQD){% else %}المبلغ (د.ع){% endif %} <span style="color:#e53935;">*</span></label>
           <input type="number" name="amount" class="form-control-z" min="1" step="any" required placeholder="0">
         </div>
-        <div style="grid-column: span 2;">
+        <div class="span2">
           <label class="form-label-z">{% if lang == 'en' %}Description{% else %}الوصف{% endif %} <span style="color:#e53935;">*</span></label>
           <input type="text" name="description" class="form-control-z" required
                  placeholder="{% if lang == 'en' %}Expense description...{% else %}وصف المصروف...{% endif %}">
@@ -267,7 +353,8 @@
           <input type="text" name="notes" class="form-control-z" placeholder="{% if lang == 'en' %}Optional{% else %}اختياري{% endif %}">
         </div>
       </div>
-      <div style="margin-top:16px;text-align:{{ 'left' if lang == 'en' else 'right' }};">
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;">
+        <button type="button" class="btn-z-outline" onclick="toggleAdd()">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
         <button type="submit" class="btn-z-primary">
           <i class="fas fa-save"></i> {% if lang == 'en' %}Save Expense{% else %}حفظ المصروف{% endif %}
         </button>
@@ -276,8 +363,8 @@
   </div>
 </div>
 
-<!-- Expenses Table -->
-<div class="table-wrapper">
+<!-- ── Expenses Table (desktop) ── -->
+<div class="table-wrapper exp-table-wrap">
   <div class="table-toolbar">
     <div class="table-toolbar-title">
       <i class="fas fa-list" style="color:var(--brand-blue);"></i>
@@ -288,7 +375,6 @@
       <i class="fas fa-file-export"></i> {% if lang == 'en' %}Export{% else %}تصدير{% endif %}
     </a>
   </div>
-
   <div style="overflow-x:auto;">
     <table class="table-z">
       <thead>
@@ -299,96 +385,114 @@
           <th>{% if lang == 'en' %}Description{% else %}الوصف{% endif %}</th>
           <th>{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</th>
           <th>{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
-          <th>{% if lang == 'en' %}Added By{% else %}أضيف بواسطة{% endif %}</th>
+          <th>{% if lang == 'en' %}By{% else %}بواسطة{% endif %}</th>
           <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
         </tr>
       </thead>
       <tbody>
         {% if expenses %}
-          {% for expense in expenses %}
+          {% for e in expenses %}
           <tr>
-            <td style="color:var(--text-muted);font-size:12px;">{{ expense.id }}</td>
-            <td style="font-size:13px;white-space:nowrap;">
-              <i class="fas fa-calendar-day" style="color:var(--text-muted);margin-left:5px;font-size:11px;"></i>
-              {{ expense.date.strftime('%Y-%m-%d') }}
-            </td>
+            <td style="color:var(--text-muted);font-size:12px;">{{ e.id }}</td>
+            <td style="font-size:13px;white-space:nowrap;">{{ e.date.strftime('%Y-%m-%d') }}</td>
             <td>
-              {% if expense.category %}
-                <span class="cat-badge" style="background-color:{{ expense.category.color or '#6c757d' }};">{{ expense.category.name }}</span>
+              {% if e.category %}
+                <span class="cat-badge" style="background:{{ e.category.color or '#6c757d' }};">{{ e.category.name }}</span>
               {% else %}
-                <span class="cat-badge none">{% if lang == 'en' %}No Category{% else %}بدون فئة{% endif %}</span>
+                <span class="cat-badge none">—</span>
               {% endif %}
             </td>
-            <td class="booking-name">{{ expense.description or '—' }}</td>
-            <td style="font-size:12.5px;color:var(--text-muted);">{{ expense.notes or '—' }}</td>
-            <td style="font-weight:700;color:#C62828;font-size:13.5px;">
-              {{ '{:,.0f}'.format(expense.amount) }}
-              <span style="font-size:11px;font-weight:400;color:var(--text-muted);"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>
+            <td class="booking-name">{{ e.description or '—' }}</td>
+            <td style="font-size:12px;color:var(--text-muted);">{{ e.notes or '—' }}</td>
+            <td style="font-weight:800;color:#C62828;font-size:14px;white-space:nowrap;">
+              {{ '{:,.0f}'.format(e.amount) }}
+              <small style="font-size:11px;font-weight:400;color:var(--text-muted);"> د.ع</small>
             </td>
-            <td><span style="font-size:12px;color:var(--text-muted);">{{ expense.added_by or '—' }}</span></td>
+            <td><span style="font-size:12px;color:var(--text-muted);">{{ e.added_by or '—' }}</span></td>
             <td>
               <div class="action-btns">
-                <button type="button" class="action-btn edit" title="{% if lang == 'en' %}Edit{% else %}تعديل{% endif %}"
-                  onclick="editExpense(
-                    {{ expense.id }},
-                    {{ expense.date.strftime('%Y-%m-%d')|tojson }},
-                    {{ expense.category_id|tojson if expense.category_id else 'null' }},
-                    {{ expense.amount }},
-                    {{ (expense.description or '')|tojson }},
-                    {{ (expense.notes or '')|tojson }}
-                  )">
+                <button type="button" class="action-btn edit"
+                  onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }})">
                   <i class="fas fa-pen"></i>
                 </button>
-                <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=expense.id) }}" style="display:inline;"
-                      onsubmit="return confirm('{% if lang == 'en' %}Delete this expense?{% else %}هل تريد حذف هذا المصروف؟{% endif %}')">
+                <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=e.id) }}" style="display:inline;"
+                      onsubmit="return confirm('{% if lang == 'en' %}Delete?{% else %}حذف؟{% endif %}')">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="action-btn cancel" title="{% if lang == 'en' %}Delete{% else %}حذف{% endif %}">
-                    <i class="fas fa-trash"></i>
-                  </button>
+                  <button type="submit" class="action-btn cancel"><i class="fas fa-trash"></i></button>
                 </form>
               </div>
             </td>
           </tr>
           {% endfor %}
         {% else %}
-          <tr>
-            <td colspan="8">
-              <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <p>{% if lang == 'en' %}No expenses in this period{% else %}لا توجد مصروفات في هذه الفترة{% endif %}</p>
-              </div>
-            </td>
-          </tr>
+          <tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>{% if lang == 'en' %}No expenses{% else %}لا توجد مصروفات{% endif %}</p></div></td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
-
   {% if pagination and pagination.pages > 1 %}
   <div class="pagination-wrap">
-    <div class="pagination-info">
-      {% if lang == 'en' %}Page {{ pagination.page }} of {{ pagination.pages }}{% else %}صفحة {{ pagination.page }} من {{ pagination.pages }}{% endif %}
-    </div>
+    <div class="pagination-info">{% if lang == 'en' %}Page {{ pagination.page }} of {{ pagination.pages }}{% else %}صفحة {{ pagination.page }} من {{ pagination.pages }}{% endif %}</div>
     <div class="pagination-btns">
-      {% if pagination.has_prev %}
-        <a href="{{ url_for('admin.expenses', page=pagination.prev_num, month=request.args.get('month','')) }}" class="page-btn"><i class="fas fa-chevron-right"></i></a>
-      {% endif %}
+      {% if pagination.has_prev %}<a href="{{ url_for('admin.expenses', page=pagination.prev_num, month=request.args.get('month','')) }}" class="page-btn"><i class="fas fa-chevron-right"></i></a>{% endif %}
       {% for p in pagination.iter_pages() %}
-        {% if p %}
-          <a href="{{ url_for('admin.expenses', page=p, month=request.args.get('month','')) }}" class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
-        {% else %}
-          <span class="page-btn" style="cursor:default;color:var(--text-muted);">…</span>
-        {% endif %}
+        {% if p %}<a href="{{ url_for('admin.expenses', page=p, month=request.args.get('month','')) }}" class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+        {% else %}<span class="page-btn" style="cursor:default;color:var(--text-muted);">…</span>{% endif %}
       {% endfor %}
-      {% if pagination.has_next %}
-        <a href="{{ url_for('admin.expenses', page=pagination.next_num, month=request.args.get('month','')) }}" class="page-btn"><i class="fas fa-chevron-left"></i></a>
-      {% endif %}
+      {% if pagination.has_next %}<a href="{{ url_for('admin.expenses', page=pagination.next_num, month=request.args.get('month','')) }}" class="page-btn"><i class="fas fa-chevron-left"></i></a>{% endif %}
     </div>
   </div>
   {% endif %}
 </div>
 
-<!-- Edit Modal -->
+<!-- ── Expense Cards (mobile) ── -->
+<div class="exp-card-list">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+    <span style="font-size:14px;font-weight:700;color:var(--brand-blue-dark);">
+      <i class="fas fa-list" style="color:var(--brand-blue);margin-left:6px;"></i>
+      {% if lang == 'en' %}Expenses{% else %}المصروفات{% endif %}
+      <span class="count-pill" style="margin-right:6px;">{{ expenses|length if expenses else 0 }}</span>
+    </span>
+    <a href="{{ url_for('admin.export_expenses') }}" class="btn-z-outline" style="padding:6px 12px;font-size:12px;">
+      <i class="fas fa-file-export"></i>
+    </a>
+  </div>
+
+  {% if expenses %}
+    {% for e in expenses %}
+    <div class="exp-card">
+      <div class="exp-card-top">
+        <div class="exp-card-desc">{{ e.description or '—' }}</div>
+        <div class="exp-card-amount">
+          {{ '{:,.0f}'.format(e.amount) }}<small> د.ع</small>
+        </div>
+      </div>
+      <div class="exp-card-meta">
+        <span class="exp-card-date"><i class="fas fa-calendar-day"></i> {{ e.date.strftime('%Y-%m-%d') }}</span>
+        {% if e.category %}
+          <span class="cat-badge" style="background:{{ e.category.color or '#6c757d' }};">{{ e.category.name }}</span>
+        {% endif %}
+        {% if e.notes %}<span class="exp-card-notes">{{ e.notes }}</span>{% endif %}
+      </div>
+      <div class="exp-card-actions">
+        <button type="button" class="action-btn edit"
+          onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }})">
+          <i class="fas fa-pen"></i>
+        </button>
+        <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=e.id) }}" style="display:inline;"
+              onsubmit="return confirm('حذف؟')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="action-btn cancel"><i class="fas fa-trash"></i></button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state"><i class="fas fa-inbox"></i><p>{% if lang == 'en' %}No expenses{% else %}لا توجد مصروفات{% endif %}</p></div>
+  {% endif %}
+</div>
+
+<!-- ── Edit Modal ── -->
 <div class="modal fade modal-z" id="editModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <form class="modal-content" id="editForm" method="POST">
@@ -413,7 +517,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label-z">{% if lang == 'en' %}Amount (IQD){% else %}المبلغ (د.ع){% endif %}</label>
-          <input type="number" name="amount" id="editAmount" class="form-control-z" min="1" step="any" required>
+          <input type="number" name="amount" id="editAmount" class="form-control-z" min="1" required>
         </div>
         <div class="mb-3">
           <label class="form-label-z">{% if lang == 'en' %}Description{% else %}الوصف{% endif %}</label>
@@ -426,28 +530,31 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-z-outline" data-bs-dismiss="modal">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
-        <button type="submit" class="btn-z-primary">
-          <i class="fas fa-save"></i> {% if lang == 'en' %}Save Changes{% else %}حفظ التعديلات{% endif %}
-        </button>
+        <button type="submit" class="btn-z-primary"><i class="fas fa-save"></i> {% if lang == 'en' %}Save{% else %}حفظ{% endif %}</button>
       </div>
     </form>
   </div>
 </div>
-
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+function toggleAdd() {
+  const panel = document.getElementById('addPanel');
+  const icon  = document.getElementById('addToggleIcon');
+  const open  = panel.style.display === 'none' || panel.style.display === '';
+  panel.style.display = open ? 'block' : 'none';
+  icon.className = open ? 'fas fa-times' : 'fas fa-plus';
+  if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 function editExpense(id, date, categoryId, amount, description, notes) {
   document.getElementById('editForm').action = `/admin/expenses/${id}/edit`;
-  document.getElementById('editDate').value = date;
-  document.getElementById('editAmount').value = amount;
+  document.getElementById('editDate').value       = date;
+  document.getElementById('editAmount').value     = amount;
   document.getElementById('editDescription').value = description;
-  document.getElementById('editNotes').value = notes;
-
-  const catSelect = document.getElementById('editCategory');
-  catSelect.value = categoryId !== null ? categoryId : '';
-
+  document.getElementById('editNotes').value      = notes;
+  document.getElementById('editCategory').value   = categoryId !== null ? categoryId : '';
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 </script>
