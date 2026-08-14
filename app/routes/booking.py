@@ -91,7 +91,7 @@ def create():
                 flash('عذراً، هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
                 return redirect(url_for('booking.index'))
             bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=b_date,   start_time=s_time,      end_time=midnight,  status='pending', notes=notes)
-            bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,    status='pending', notes=notes)
+            bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,    status='pending', notes=notes, is_continuation=True)
             bk1.total_price = bk1.calc_price(court.price_per_hour)
             bk2.total_price = bk2.calc_price(court.price_per_hour)
             db.session.add_all([bk1, bk2])

@@ -109,10 +109,11 @@ class Booking(db.Model):
     booking_date   = db.Column(db.Date,        nullable=False)
     start_time     = db.Column(db.Time,        nullable=False)
     end_time       = db.Column(db.Time,        nullable=False)
-    total_price    = db.Column(db.Float,       default=0)
-    status         = db.Column(db.String(20),  default='pending')
+    total_price      = db.Column(db.Float,   default=0)
+    status           = db.Column(db.String(20), default='pending')
     # pending | confirmed | cancelled
-    notes          = db.Column(db.Text,        nullable=True)
+    is_continuation  = db.Column(db.Boolean, default=False)   # True for bk2 of cross-midnight splits
+    notes            = db.Column(db.Text,    nullable=True)
     created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
     updated_at     = db.Column(db.DateTime,    default=datetime.utcnow,
                                onupdate=datetime.utcnow)

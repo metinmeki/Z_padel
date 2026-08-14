@@ -36,11 +36,12 @@ def product_detail(product_id):
 @store_bp.route('/cart/add/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     p = Product.query.get_or_404(product_id)
-    if p.stock == 0:
-        return jsonify(success=False, message='نفذ المخزون')
     cart = session.get('cart', {})
     key = str(product_id)
-    cart[key] = cart.get(key, 0) + 1
+    in_cart = cart.get(key, 0)
+    if in_cart >= p.stock:
+        return jsonify(success=False, message='نفذ المخزون')
+    cart[key] = in_cart + 1
     session['cart'] = cart
     session.modified = True
     return jsonify(success=True, qty=cart[key], cart_count=sum(cart.values()))
@@ -50,13 +51,14 @@ def add_to_cart(product_id):
 @store_bp.route('/cart/update/<int:product_id>', methods=['POST'])
 def update_cart(product_id):
     qty = request.json.get('qty', 0)
+    p = Product.query.get_or_404(product_id)
     cart = session.get('cart', {})
     key = str(product_id)
 
     if qty <= 0:
         cart.pop(key, None)
     else:
-        cart[key] = qty
+        cart[key] = min(qty, p.stock)
 
     session['cart'] = cart
     session.modified = True
@@ -118,6 +120,10 @@ def checkout():
         if not items:
             flash('السلة فارغة!', 'danger')
             return redirect(url_for('store.shop'))
+        for item in items:
+            if item['qty'] > item['product'].stock:
+                flash(f'نفذ المخزون: {item["product"].name}', 'danger')
+                return redirect(url_for('store.cart'))
         try:
             order = Order(
                 customer_name=request.form.get('customer_name', ''),
@@ -128,10 +134,13 @@ def checkout():
             db.session.add(order)
             db.session.flush()
             for item in items:
+                item['product'].stock -= item['qty']
                 oi = OrderItem(order_id=order.id, product_id=item['product'].id, quantity=item['qty'],
                                price=item['product'].price, subtotal=item['subtotal'])
                 db.session.add(oi)
             db.session.commit()
+            session['cart'] = {}
+            session.modified = True
             try:
                 from app.routes.admin import _send_push_all
                 cname = request.form.get('customer_name', '') or 'زبون'

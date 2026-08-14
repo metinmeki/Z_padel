@@ -137,6 +137,10 @@ def add_item(tab_id):
 
     if product_id:
         product = Product.query.get_or_404(product_id)
+        if product.stock < qty:
+            flash('نفذ المخزون', 'danger')
+            return redirect(url_for('tabs.index', tab=tab_id))
+        product.stock -= qty
         item = TabItem(
             tab_id=tab_id,
             product_id=product_id,
@@ -155,6 +159,10 @@ def add_item(tab_id):
 @login_required
 def remove_item(tab_id, item_id):
     item = TabItem.query.filter_by(id=item_id, tab_id=tab_id).first_or_404()
+    if item.product_id:
+        prod = Product.query.get(item.product_id)
+        if prod:
+            prod.stock += item.quantity
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for('tabs.index', tab=tab_id))

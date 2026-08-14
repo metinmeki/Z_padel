@@ -303,16 +303,16 @@ def dashboard():
     today = date.today() if now_h >= BUSINESS_START else date.today() - timedelta(days=1)
     biz_tomorrow = today + timedelta(days=1)
 
-    total_bookings  = Booking.query.count()
-    pending_count   = Booking.query.filter_by(status='pending').count()
-    confirmed_count = Booking.query.filter_by(status='confirmed').count()
-    cancelled_count = Booking.query.filter_by(status='cancelled').count()
+    total_bookings  = Booking.query.filter_by(is_continuation=False).count()
+    pending_count   = Booking.query.filter_by(status='pending',   is_continuation=False).count()
+    confirmed_count = Booking.query.filter_by(status='confirmed', is_continuation=False).count()
+    cancelled_count = Booking.query.filter_by(status='cancelled', is_continuation=False).count()
     total_orders    = Order.query.count()
 
-    # Today's bookings = business date + post-midnight continuation (bk2 parts)
     today_bookings = Booking.query.filter(
         Booking.booking_date.in_([today, biz_tomorrow]),
         Booking.status != 'cancelled',
+        Booking.is_continuation == False,
     ).count()
 
     # Today's revenue = business date + cross-midnight parts on next calendar day
@@ -342,7 +342,7 @@ def dashboard():
     for i in range(6, -1, -1):
         d = today - timedelta(days=i)
         week_labels.append(d.strftime('%a'))
-        cnt = Booking.query.filter_by(booking_date=d, status='confirmed').count()
+        cnt = Booking.query.filter_by(booking_date=d, status='confirmed', is_continuation=False).count()
         rev = (db.session.query(func.sum(Booking.total_price))
                .filter_by(booking_date=d, status='confirmed').scalar() or 0)
         week_data.append(cnt)
@@ -1142,10 +1142,11 @@ def reports():
         start = today.replace(day=1)
         end   = today
 
-    # ── Bookings in range ──
+    # ── Bookings in range (exclude continuation bk2 parts from counts) ──
     bks = Booking.query.filter(
         Booking.booking_date >= start,
         Booking.booking_date <= end,
+        Booking.is_continuation == False,
     ).all()
     total_rev = sum(b.total_price or 0 for b in bks if b.status == 'confirmed')
     total_bks = len(bks)
@@ -1163,6 +1164,7 @@ def reports():
             Booking.status == 'confirmed',
             Booking.booking_date >= start,
             Booking.booking_date <= end,
+            Booking.is_continuation == False,
         ).count() for c in courts
     ]
     court_colors = [c.color for c in courts]
@@ -1335,7 +1337,8 @@ def reports():
     _prev_start  = _prev_end - timedelta(days=_period_days - 1)
     _prev_bks    = Booking.query.filter(
         Booking.booking_date >= _prev_start,
-        Booking.booking_date <= _prev_end).all()
+        Booking.booking_date <= _prev_end,
+        Booking.is_continuation == False).all()
     _prev_rev  = sum(b.total_price or 0 for b in _prev_bks if b.status == 'confirmed')
     _prev_conf = sum(1 for b in _prev_bks if b.status == 'confirmed')
     _prev_avg  = round(_prev_rev / _prev_conf) if _prev_conf else 0

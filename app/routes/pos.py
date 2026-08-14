@@ -260,10 +260,12 @@ def move_court_session(session_id):
         if time_charge > 0:
             db.session.add(ActivitySessionItem(session_id=new_sess.id,
                 product_name=label, quantity=1, price=time_charge, subtotal=time_charge))
-        for it in sess.items:
+        old_items = list(sess.items)
+        for it in old_items:
             db.session.add(ActivitySessionItem(session_id=new_sess.id,
                 product_id=it.product_id, product_name=it.product_name,
                 quantity=it.quantity, price=it.price, subtotal=it.subtotal))
+            db.session.delete(it)
         sess.status = 'closed'; sess.total_price = 0
         db.session.commit()
         return jsonify(success=True, redirect=url_for('pos.activity_session', session_id=new_sess.id))
@@ -280,10 +282,12 @@ def move_court_session(session_id):
         if time_charge > 0:
             db.session.add(CourtSessionItem(session_id=new_sess.id,
                 product_name=label, quantity=1, price=time_charge, subtotal=time_charge))
-        for it in sess.items:
+        old_items = list(sess.items)
+        for it in old_items:
             db.session.add(CourtSessionItem(session_id=new_sess.id,
                 product_id=it.product_id, product_name=it.product_name,
                 quantity=it.quantity, price=it.price, subtotal=it.subtotal))
+            db.session.delete(it)
         sess.status = 'closed'; sess.total_price = 0
         db.session.commit()
         return jsonify(success=True, redirect=url_for('pos.session_detail', session_id=new_sess.id))
@@ -417,11 +421,13 @@ def finish_session(session_id):
         if session_row.status == 'completed':
             return jsonify(success=False, message='تم الدفع مسبقاً'), 400
 
+        was_active = session_row.status == 'active'
         if not session_row.end_time:
             session_row.end_time = datetime.utcnow()
             session_row.total_price = session_row.calc_price()
 
-        if discount > 0:
+        # Only apply discount if session wasn't already discounted via free_court_session
+        if discount > 0 and was_active:
             session_row.total_price = max(0, (session_row.total_price or 0) - discount)
 
         session_row.payment_method = payment_method
@@ -629,10 +635,12 @@ def move_activity_session(session_id):
             db.session.add(ActivitySessionItem(session_id=new_sess.id,
                 product_name=label, quantity=1, price=time_charge, subtotal=time_charge))
         # Transfer products
-        for it in sess.items:
+        old_items = list(sess.items)
+        for it in old_items:
             db.session.add(ActivitySessionItem(session_id=new_sess.id,
                 product_id=it.product_id, product_name=it.product_name,
                 quantity=it.quantity, price=it.price, subtotal=it.subtotal))
+            db.session.delete(it)
         sess.status = 'closed'; sess.total_price = 0
         db.session.commit()
         return jsonify(success=True, redirect=url_for('pos.activity_session', session_id=new_sess.id))
@@ -649,10 +657,12 @@ def move_activity_session(session_id):
         if time_charge > 0:
             db.session.add(CourtSessionItem(session_id=new_sess.id,
                 product_name=label, quantity=1, price=time_charge, subtotal=time_charge))
-        for it in sess.items:
+        old_items = list(sess.items)
+        for it in old_items:
             db.session.add(CourtSessionItem(session_id=new_sess.id,
                 product_id=it.product_id, product_name=it.product_name,
                 quantity=it.quantity, price=it.price, subtotal=it.subtotal))
+            db.session.delete(it)
         sess.status = 'closed'; sess.total_price = 0
         db.session.commit()
         return jsonify(success=True, redirect=url_for('pos.session_detail', session_id=new_sess.id))
@@ -702,10 +712,11 @@ def finish_activity_session(session_id):
         sess = ActivitySession.query.get_or_404(session_id)
         if sess.status == 'completed':
             return jsonify(success=False, message='Already paid'), 400
+        was_active = sess.status == 'active'
         if not sess.end_time:
             sess.end_time = datetime.utcnow()
             sess.total_price = sess.calc_price()
-        if discount > 0:
+        if discount > 0 and was_active:
             sess.total_price = max(0, (sess.total_price or 0) - discount)
         sess.payment_method = payment_method
         sess.status = 'completed'
@@ -724,6 +735,11 @@ def cancel_activity_session(session_id):
     if sess.status == 'completed':
         return jsonify(success=False, message='Cannot cancel a paid session'), 400
     table_name = sess.table.name
+    for item in sess.items:
+        if item.product_id:
+            prod = Product.query.get(item.product_id)
+            if prod:
+                prod.stock += item.quantity
     db.session.delete(sess)
     _log('Cancel Activity Session', table_name)
     db.session.commit()
@@ -852,36 +868,51 @@ def combined_checkout():
 
         done_court_ids, done_activity_ids = [], []
 
-        # Spread discount proportionally across sessions
-        all_sessions_count = len(court_ids) + len(activity_ids)
-        discount_per_session = round(discount / all_sessions_count) if all_sessions_count else 0
+        # Guard: fail early if any session is already paid
+        already_paid = []
+        for sid in court_ids:
+            s = CourtSession.query.get(int(sid))
+            if s and s.status == 'completed':
+                already_paid.append(str(sid))
+        for sid in activity_ids:
+            s = ActivitySession.query.get(int(sid))
+            if s and s.status == 'completed':
+                already_paid.append(str(sid))
+        if already_paid:
+            return jsonify(success=False, message=f'جلسات مدفوعة مسبقاً: {", ".join(already_paid)}'), 400
 
+        # Spread discount evenly; last session absorbs remainder to avoid rounding loss
+        all_sessions_count = len(court_ids) + len(activity_ids)
+        per_session = int(discount // all_sessions_count) if all_sessions_count else 0
+        remaining_discount = int(discount)
+
+        sessions_to_pay = []
         for sid in court_ids:
             s = CourtSession.query.get(int(sid))
             if s and s.status in ('active', 'pending_payment'):
-                if not s.end_time:
-                    s.end_time = datetime.utcnow()
-                    s.total_price = s.calc_price()
-                if discount_per_session > 0:
-                    s.total_price = max(0, (s.total_price or 0) - discount_per_session)
-                s.payment_method = payment_method
-                s.status = 'completed'
-                if debt_name:
-                    s.customer_name = debt_name
-                done_court_ids.append(s.id)
-
+                sessions_to_pay.append(('court', s))
         for sid in activity_ids:
             s = ActivitySession.query.get(int(sid))
             if s and s.status in ('active', 'pending_payment'):
-                if not s.end_time:
-                    s.end_time = datetime.utcnow()
-                    s.total_price = s.calc_price()
-                if discount_per_session > 0:
-                    s.total_price = max(0, (s.total_price or 0) - discount_per_session)
-                s.payment_method = payment_method
-                s.status = 'completed'
-                if debt_name:
-                    s.customer_name = debt_name
+                sessions_to_pay.append(('activity', s))
+
+        for i, (stype, s) in enumerate(sessions_to_pay):
+            was_active = s.status == 'active'
+            if not s.end_time:
+                s.end_time = datetime.utcnow()
+                s.total_price = s.calc_price()
+            # Only apply discount to active sessions (pending_payment already discounted)
+            if was_active and discount > 0:
+                d = remaining_discount if i == len(sessions_to_pay) - 1 else per_session
+                remaining_discount -= d
+                s.total_price = max(0, (s.total_price or 0) - d)
+            s.payment_method = payment_method
+            s.status = 'completed'
+            if debt_name:
+                s.customer_name = debt_name
+            if stype == 'court':
+                done_court_ids.append(s.id)
+            else:
                 done_activity_ids.append(s.id)
 
         db.session.commit()
