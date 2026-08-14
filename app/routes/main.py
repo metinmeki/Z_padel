@@ -145,7 +145,7 @@ def download_clip():
     )
 
 
-_PUBLIC_COURT_CHANNELS = {'court1': 15, 'court2': 12}
+_PUBLIC_COURT_CHANNELS = {'court1': 12, 'court2': 15}
 
 @main_bp.route('/live-snapshot/<court>')
 @login_required
