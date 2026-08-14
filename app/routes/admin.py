@@ -1282,15 +1282,79 @@ def reports():
         ActivitySession.status == 'completed',
         ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).count()
 
+    # ── Top products (date-filtered) ──
     top_products = (db.session.query(Product.name,
                     func.sum(OrderItem.quantity).label('sold'))
-                    .join(OrderItem).group_by(Product.id)
+                    .join(OrderItem)
+                    .join(Order, Order.id == OrderItem.order_id)
+                    .filter(Order.created_at >= dt_start, Order.created_at <= dt_end)
+                    .group_by(Product.id)
                     .order_by(func.sum(OrderItem.quantity).desc())
                     .limit(5).all())
 
+    # ── Occupancy rate (today's slots vs capacity) ──
     total_slots  = len(courts) * 18
     booked_today = sum(len(c.today_booked_slots) for c in courts)
     occ_rate     = round(booked_today / total_slots * 100) if total_slots else 0
+
+    # ── Court colors with fallback ──
+    _default_colors = ['#1565C0','#00B0FF','#26C6DA','#43A047','#FB8C00','#7B1FA2','#E53935']
+    safe_court_colors = [c.color or _default_colors[i % len(_default_colors)] for i, c in enumerate(courts)]
+
+    # ── Weekday distribution (filtered by period) ──
+    from collections import defaultdict
+    _wd_counts = defaultdict(int)
+    for b in bks:
+        if b.status == 'confirmed':
+            _wd_counts[b.booking_date.weekday()] += 1
+    # Python weekday: 0=Mon … 6=Sun
+    weekday_data   = [_wd_counts[i] for i in range(7)]
+    weekday_labels = (['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+                      if g.lang == 'en' else
+                      ['الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','الأحد'])
+
+    # ── Balance chart: last 6 calendar months ──
+    balance_labels, balance_revenue, balance_expenses = [], [], []
+    for i in range(5, -1, -1):
+        _m = (today.replace(day=1).month - i - 1) % 12 + 1
+        _y = today.year + ((today.replace(day=1).month - i - 1) // 12)
+        ms = date(_y, _m, 1)
+        me = date(_y, _m + 1, 1) if _m < 12 else date(_y + 1, 1, 1)
+        balance_labels.append(ms.strftime('%b'))
+        _rev = db.session.query(func.sum(Booking.total_price)).filter(
+            Booking.booking_date >= ms, Booking.booking_date < me,
+            Booking.status == 'confirmed').scalar() or 0
+        _exp = db.session.query(func.sum(Expense.amount)).filter(
+            Expense.date >= ms, Expense.date < me).scalar() or 0
+        balance_revenue.append(int(_rev))
+        balance_expenses.append(int(_exp))
+
+    # ── Growth vs previous equivalent period ──
+    _period_days = (end - start).days + 1
+    _prev_end    = start - timedelta(days=1)
+    _prev_start  = _prev_end - timedelta(days=_period_days - 1)
+    _prev_bks    = Booking.query.filter(
+        Booking.booking_date >= _prev_start,
+        Booking.booking_date <= _prev_end).all()
+    _prev_rev  = sum(b.total_price or 0 for b in _prev_bks if b.status == 'confirmed')
+    _prev_conf = sum(1 for b in _prev_bks if b.status == 'confirmed')
+    _prev_avg  = round(_prev_rev / _prev_conf) if _prev_conf else 0
+    _prev_ords = Order.query.filter(
+        Order.created_at >= datetime.combine(_prev_start, dtime.min),
+        Order.created_at <= datetime.combine(_prev_end,   dtime.max)).count()
+    _prev_exp  = db.session.query(func.sum(Expense.amount)).filter(
+        Expense.date >= _prev_start, Expense.date <= _prev_end).scalar() or 0
+
+    def _growth(cur, prev):
+        if prev == 0:
+            return 100 if cur > 0 else 0
+        return round((cur - prev) / prev * 100)
+
+    revenue_growth  = _growth(total_rev,  _prev_rev)
+    bookings_growth = _growth(conf_bks,   _prev_conf)
+    avg_growth      = _growth(avg_val,    _prev_avg)
+    orders_growth   = _growth(total_ords, _prev_ords)
+    expense_change  = _growth(int(total_exp), int(_prev_exp))
 
     return render_template('admin/reports.html',
         total_revenue=total_rev, total_bookings=total_bks,
@@ -1299,9 +1363,14 @@ def reports():
         total_orders=total_ords, store_revenue=store_rev,
         pos_revenue=pos_rev, pos_sessions_count=pos_sessions_count,
         total_expenses=total_exp, occupancy_rate=occ_rate,
+        revenue_growth=revenue_growth, bookings_growth=bookings_growth,
+        avg_growth=avg_growth, orders_growth=orders_growth, expense_change=expense_change,
         chart_labels=labels, bookings_data=bk_data, revenue_data=rev_data,
         hourly_data=hourly,
-        court_names=court_names, court_counts=court_counts, court_colors=court_colors,
+        weekday_data=weekday_data, weekday_labels=weekday_labels,
+        balance_labels=balance_labels, balance_revenue=balance_revenue,
+        balance_expenses=balance_expenses,
+        court_names=court_names, court_counts=court_counts, court_colors=safe_court_colors,
         top_courts=top_courts,
         top_products=[{'name': p.name, 'sold': p.sold} for p in top_products],
         current_period=period, courts=courts,
