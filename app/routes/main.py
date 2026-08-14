@@ -145,12 +145,11 @@ def download_clip():
     )
 
 
-_PUBLIC_COURT_CHANNELS = {'court1': 12, 'court2': 15}
+_PUBLIC_COURT_CHANNELS = {'court1': 15, 'court2': 12}
 
 @main_bp.route('/live-snapshot/<court>')
-@login_required
 def live_snapshot(court):
-    """Public blurred snapshot proxy — only court1 / court2 allowed, no login required."""
+    """Public blurred snapshot proxy — only court1 / court2 allowed."""
     from flask import Response
     import requests as req
     from requests.auth import HTTPDigestAuth
