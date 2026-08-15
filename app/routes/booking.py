@@ -95,7 +95,8 @@ def create():
         name  = request.form['customer_name']
         phone = request.form['customer_phone']
         notes = request.form.get('notes', '')
-        crosses_midnight = e_time < s_time  # e.g. start=23:00 end=01:00
+        # end=00:00 means "ends exactly at midnight" — no next-day portion needed
+        crosses_midnight = e_time < s_time and e_time != dtime(0, 0)
 
         if crosses_midnight:
             # Split into two bookings: tonight → 23:59, tomorrow 00:00 → end
