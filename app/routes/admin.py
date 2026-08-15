@@ -440,6 +440,11 @@ def add_booking():
         s_time = _parse_time(request.form['start_time'])
         e_time = _parse_time(request.form['end_time'])
 
+        # Reject zero-duration bookings (start == end)
+        if s_time == e_time:
+            flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
+            return redirect(url_for('admin.bookings'))
+
         # Auto-shift: midnight bookings (00:00–07:59) entered for today are meant
         # for tonight → move to tomorrow so slots display and conflict-check correctly
         if s_time.hour < 8 and b_date == date.today():
@@ -484,8 +489,13 @@ def edit_booking(booking_id):
         s_str = request.form.get('start_time', '')
         e_str = request.form.get('end_time', '')
         if s_str and e_str:
-            b.start_time = _parse_time(s_str)
-            b.end_time   = _parse_time(e_str)
+            new_s = _parse_time(s_str)
+            new_e = _parse_time(e_str)
+            if new_s == new_e:
+                flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
+                return redirect(url_for('admin.bookings'))
+            b.start_time = new_s
+            b.end_time   = new_e
             court = b.court
             if court:
                 b.total_price = b.calc_price(court.price_per_hour)
