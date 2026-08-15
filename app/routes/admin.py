@@ -563,6 +563,22 @@ def cancel_booking(booking_id):
     return redirect(url_for('admin.bookings'))
 
 
+@admin_bp.route('/bookings/<int:booking_id>/delete', methods=['POST'])
+@login_required
+def delete_booking(booking_id):
+    if not current_user.has_perm('perm_bookings'):
+        abort(403)
+    b = Booking.query.get_or_404(booking_id)
+    # Also delete paired continuation (bk2) if this is the primary booking
+    linked = _find_midnight_continuation(b)
+    if linked:
+        db.session.delete(linked)
+    db.session.delete(b)
+    db.session.commit()
+    flash('تم حذف الحجز نهائياً.', 'success')
+    return redirect(url_for('admin.bookings'))
+
+
 @admin_bp.route('/bookings/confirm-all-pending')
 @login_required
 def confirm_all_pending():

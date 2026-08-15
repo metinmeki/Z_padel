@@ -440,6 +440,15 @@
                   </button>
                 </form>
                 {% endif %}
+                <form method="POST"
+                      action="{{ url_for('admin.delete_booking', booking_id=b.id) }}"
+                      onsubmit="return confirm('{% if lang == 'en' %}Permanently delete this booking? This cannot be undone.{% else %}حذف هذا الحجز نهائياً؟ لا يمكن التراجع عن هذا.{% endif %}')"
+                      style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="action-btn" style="color:#7f1d1d;background:#fef2f2;border:1px solid #fecaca;" title="{% if lang == 'en' %}Delete Permanently{% else %}حذف نهائي{% endif %}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
               </div>
             </td>
           </tr>
