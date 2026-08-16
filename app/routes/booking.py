@@ -38,13 +38,23 @@ def index():
         (b.court_id, b.booking_date)
         for b in Booking.query.filter_by(is_continuation=True).all()
     }
+    # Also treat non-continuation bookings in 00:00–02:59 as "next-day" slots that
+    # belong to the previous business day.  This prevents bk1 from spilling into a
+    # date that already has such a booking.
+    continuation_keys |= {
+        (b.court_id, b.booking_date)
+        for b in bookings
+        if not b.is_continuation and b.start_time and b.start_time.hour < 3
+    }
 
     for b in bookings:
         if not b.start_time or not b.end_time:
             continue
-        # Continuation bk2: display under the original booking date's grid (date-1),
-        # because the frontend checks current-day slots for the bottom rows (00:00–02:30).
-        display_date = (b.booking_date - timedelta(days=1)) if b.is_continuation else b.booking_date
+        # Display rule: both is_continuation bk2 records AND non-continuation bookings
+        # that start between 00:00–02:59 (bottom-row slots) belong to the PREVIOUS
+        # business day's grid.
+        is_bottom_row = (not b.is_continuation and b.start_time.hour < 3)
+        display_date = (b.booking_date - timedelta(days=1)) if (b.is_continuation or is_bottom_row) else b.booking_date
         key = f"{b.court_id}:{display_date.isoformat()}"
         if key not in booked_slots:
             booked_slots[key] = []

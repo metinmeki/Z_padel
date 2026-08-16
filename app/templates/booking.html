@@ -660,8 +660,17 @@ function selectDuration(d, endRealMin) {
   dur = d;
   const endTs = minsToTs(endRealMin);
 
+  // Bottom-row slots (00:00–02:30, realMin≥1440) are the late-night continuation
+  // of tonight's business day. The actual calendar date is the NEXT day.
+  let bookingDate = selDate;
+  if (selStartRealMin >= 24 * 60) {
+    const dt = new Date(selDate + 'T00:00:00');
+    dt.setDate(dt.getDate() + 1);
+    bookingDate = localDate(dt);
+  }
+
   document.getElementById('f_court_id').value = selCourt;
-  document.getElementById('f_date').value     = selDate;
+  document.getElementById('f_date').value     = bookingDate;
   document.getElementById('f_start').value    = selStart;
   document.getElementById('f_end').value      = endTs;
   renderSlots();
@@ -682,7 +691,13 @@ function updateSummary() {
   const em     = selStartRealMin + Math.round(dur * 60);
   const et     = minsToTs(em);
   const total = Math.round(selPrice * dur);
-  const dt    = new Date(selDate + 'T00:00:00');
+  let bookingDateStr = selDate;
+  if (selStartRealMin >= 24 * 60) {
+    const dtNext = new Date(selDate + 'T00:00:00');
+    dtNext.setDate(dtNext.getDate() + 1);
+    bookingDateStr = localDate(dtNext);
+  }
+  const dt    = new Date(bookingDateStr + 'T00:00:00');
   const dateLbl = `${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`;
   const durLbl  = dur === 1 ? (IS_EN ? '1 Hour' : 'ساعة') : dur === 1.5 ? (IS_EN ? '1.5 Hours' : 'ساعة ونص') : (IS_EN ? '2 Hours' : 'ساعتان');
 
