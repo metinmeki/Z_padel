@@ -1151,6 +1151,39 @@ def delete_expense(exp_id):
     return redirect(url_for('admin.expenses'))
 
 
+@admin_bp.route('/expenses/categories/add', methods=['POST'])
+@login_required
+def add_expense_category():
+    if not current_user.has_perm('perm_expenses'):
+        abort(403)
+    name  = request.form.get('name', '').strip()
+    color = request.form.get('color', '#E53935')
+    if not name:
+        flash('اسم الفئة مطلوب.', 'danger')
+        return redirect(url_for('admin.expenses'))
+    if ExpenseCategory.query.filter_by(name=name).first():
+        flash(f'فئة باسم "{name}" موجودة مسبقاً.', 'danger')
+        return redirect(url_for('admin.expenses'))
+    db.session.add(ExpenseCategory(name=name, color=color))
+    db.session.commit()
+    flash('تم إضافة الفئة.', 'success')
+    return redirect(url_for('admin.expenses'))
+
+
+@admin_bp.route('/expenses/categories/<int:cat_id>/delete', methods=['POST'])
+@login_required
+def delete_expense_category(cat_id):
+    if not current_user.has_perm('perm_expenses'):
+        abort(403)
+    cat = ExpenseCategory.query.get_or_404(cat_id)
+    # Detach expenses from this category before deleting
+    Expense.query.filter_by(category_id=cat_id).update({'category_id': None})
+    db.session.delete(cat)
+    db.session.commit()
+    flash('تم حذف الفئة.', 'success')
+    return redirect(url_for('admin.expenses'))
+
+
 @admin_bp.route('/expenses/export')
 @login_required
 def export_expenses():
