@@ -563,8 +563,6 @@ function renderSlots() {
   if (!selCourt) { container.innerHTML = `<div class="slots-loading"><i class="fas fa-shield-halved"></i><span>${IS_EN ? 'No courts available' : 'لا توجد ملاعب'}</span></div>`; return; }
 
   const booked = BOOKED_SLOTS[`${selCourt}:${selDate}`] || [];
-  const nextDayStr = (() => { const d = new Date(selDate+'T00:00:00'); d.setDate(d.getDate()+1); return localDate(d); })();
-  const bookedNext = BOOKED_SLOTS[`${selCourt}:${nextDayStr}`] || [];
   const now = new Date(), isToday = selDate === todayStr;
   const nowMins = now.getHours() * 60 + now.getMinutes();
 
@@ -574,8 +572,10 @@ function renderSlots() {
   const slots = [];
   for (let m = OPEN*60; m < CLOSE*60; m += 30) {
     const ts   = minsToTs(m);
-    const bkd  = m >= 24*60 ? bookedNext.includes(ts) : booked.includes(ts);
-    const past = isToday && m < nowMins;
+    const bkd  = booked.includes(ts);
+    // For bottom slots (00:00–02:30), wall-clock time is m-24*60; compare against nowMins
+    const wallMin = m >= 24*60 ? m - 24*60 : m;
+    const past = isToday && wallMin < nowMins;
 
     const isSelStart = selStartRealMin === m;
     const isCovered  = selStartRealMin >= 0 && m > selStartRealMin && m < selEndMin;
@@ -608,9 +608,6 @@ function selectSlot(ts, realMin) {
 
 function showDurPanel(startTs, startRealMin) {
   const booked = BOOKED_SLOTS[`${selCourt}:${selDate}`] || [];
-  // For night slots (after midnight), also check tomorrow's booked slots
-  const nextDay = (() => { const d = new Date(selDate+'T00:00:00'); d.setDate(d.getDate()+1); return localDate(d); })();
-  const bookedNext = BOOKED_SLOTS[`${selCourt}:${nextDay}`] || [];
   const now = new Date(), isToday = selDate === todayStr;
   const nowMins = now.getHours() * 60 + now.getMinutes();
 
@@ -627,10 +624,10 @@ function showDurPanel(startTs, startRealMin) {
     let blocked = endRealMin > CLOSE * 60;  // past closing time
     if (!blocked) {
       for (let m = startRealMin + 30; m < endRealMin; m += 30) {
-        const cts  = minsToTs(m);
-        const pool = m >= 24*60 ? bookedNext : booked;
-        if (pool.includes(cts)) { blocked = true; break; }
-        if (isToday && m < nowMins) { blocked = true; break; }
+        const cts = minsToTs(m);
+        if (booked.includes(cts)) { blocked = true; break; }
+        const wallMin = m >= 24*60 ? m - 24*60 : m;
+        if (isToday && wallMin < nowMins) { blocked = true; break; }
       }
     }
 
@@ -656,16 +653,8 @@ function selectDuration(d, endRealMin) {
   dur = d;
   const endTs = minsToTs(endRealMin);
 
-  // Night slots (≥24:00 real) belong to next calendar day
-  let bookingDate = selDate;
-  let startTs = selStart;
-  if (selStartRealMin >= 24*60) {
-    const nd = new Date(selDate+'T00:00:00'); nd.setDate(nd.getDate()+1);
-    bookingDate = localDate(nd);
-  }
-
   document.getElementById('f_court_id').value = selCourt;
-  document.getElementById('f_date').value     = bookingDate;
+  document.getElementById('f_date').value     = selDate;
   document.getElementById('f_start').value    = startTs;
   document.getElementById('f_end').value      = endTs;
   renderSlots();
