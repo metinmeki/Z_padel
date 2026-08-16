@@ -31,13 +31,12 @@ def index():
     booked_slots = {}
     bookings = Booking.query.filter(Booking.status != 'cancelled').all()
 
-    # Pre-collect (court_id, date) pairs that already have a bk2 continuation.
-    # bk1 records paired with a bk2 must NOT also push slots to next day
-    # (the bk2 handles that via the display_date-1 logic below).
+    # Pre-collect (court_id, date) pairs that have a bk2 continuation — including
+    # cancelled ones. This prevents bk1 from overflowing to the next day even when
+    # its paired bk2 was cancelled or has a wrong end_time due to admin editing.
     continuation_keys = {
         (b.court_id, b.booking_date)
-        for b in bookings
-        if b.is_continuation
+        for b in Booking.query.filter_by(is_continuation=True).all()
     }
 
     for b in bookings:
