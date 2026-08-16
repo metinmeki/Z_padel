@@ -138,6 +138,8 @@
         <div class="receipt-footer">
           <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
           <p><i class="fas fa-heart"></i> {% if lang == 'en' %}Thank you for your visit{% else %}شكراً لزيارتكم{% endif %}</p>
+            <p style="margin-top:6px;font-size:.7rem;color:#888;">Developed by <strong>Coda Agency</strong><br>www.coda-agency.net &nbsp;|&nbsp; +964 750 236 5028</p>
+
           <p><strong>Z PADEL</strong></p>
         </div>
 
@@ -149,26 +151,46 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const BACK_URL = "{{ url_for('pos.courts') }}";
 
 function printReceipt() {
-  var iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;left:-9999px;width:650px;height:1000px;';
-  document.body.appendChild(iframe);
-  var doc = iframe.contentDocument;
-  doc.open();
-  doc.write(document.getElementById('receipt').outerHTML);
-  doc.close();
+  var content = document.getElementById('receipt').innerHTML;
+  var w = window.open('', '_blank', 'width=420,height=900');
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    @page{size:80mm auto;margin:4mm;}
+    *{box-sizing:border-box;margin:0;padding:0;color:#000 !important;-webkit-text-stroke:0.3px #000;}
+    body{background:#fff;width:72mm;font-family:'Tajawal',Arial,sans-serif;color:#000;padding:4mm 3mm;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-weight:700;direction:rtl;text-align:right;}
+    .receipt-header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:10px;}
+    .receipt-header h3{font-size:30px;font-weight:900;letter-spacing:3px;margin:0;}
+    .receipt-header p{font-size:14px;font-weight:700;margin:3px 0;}
+    .receipt-section{margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed #000;}
+    .receipt-section-title{font-weight:900;font-size:15px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px dashed #ccc;}
+    .info-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;font-size:14px;}
+    .info-label{color:#000;font-weight:700;}
+    .info-value{font-weight:900;color:#000;}
+    .receipt-items{border-top:1px dashed #000;border-bottom:1px dashed #000;padding:6px 0;margin:6px 0;}
+    .receipt-item{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:3px 0;}
+    .item-name{flex:1;text-align:right;}
+    .item-price{font-weight:900;white-space:nowrap;text-align:left;direction:ltr;}
+    .receipt-item.subtotal{border-top:1px dashed #999;margin-top:4px;padding-top:4px;font-weight:900;}
+    .receipt-total{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:2px solid #000;border-bottom:2px solid #000;margin:10px 0;font-size:18px;font-weight:900;}
+    .receipt-total span:last-child{direction:ltr;}
+    .payment-method{text-align:center;font-size:14px;padding:5px 0;margin:8px 0;border-bottom:1px dashed #000;font-weight:700;}
+    .receipt-footer{text-align:center;padding-top:8px;font-size:14px;direction:ltr;}
+    .receipt-footer p{margin:3px 0;font-weight:700;}
+    .receipt-footer hr{border:0;border-top:1px dashed #000;margin:6px 0;}
+    i{display:none;}
+  </style></head><body>
+  ${content}
+  </body></html>`);
+  w.document.close();
   setTimeout(function() {
-    html2canvas(doc.body, { scale:3, useCORS:true, backgroundColor:'#ffffff' }).then(function(canvas) {
-      document.body.removeChild(iframe);
-      var img = canvas.toDataURL('image/png');
-      var w = window.open('','_blank','width=400,height=800');
-      w.document.write(`<html><head><style>@page{size:58mm auto;margin:0;}body{margin:0;padding:0;width:58mm;}img{width:58mm;display:block;}</style></head><body><img src="${img}"><script>window.onload=function(){window.print();setTimeout(window.close,1000);};<\/script></body></html>`);
-      w.document.close();
-    });
+    w.focus();
+    w.print();
   }, 800);
 }
 
