@@ -30,12 +30,21 @@ def index():
     # Build booked slots dict: {"court_id:date": ["HH:MM", ...]} covering every 30-min interval
     booked_slots = {}
     bookings = Booking.query.filter(Booking.status != 'cancelled').all()
+
+    # Pre-collect (court_id, date) pairs that already have a bk2 continuation.
+    # bk1 records paired with a bk2 must NOT also push slots to next day
+    # (the bk2 handles that via the display_date-1 logic below).
+    continuation_keys = {
+        (b.court_id, b.booking_date)
+        for b in bookings
+        if b.is_continuation
+    }
+
     for b in bookings:
         if not b.start_time or not b.end_time:
             continue
-        # Continuation bookings (cross-midnight tail, e.g. 00:00–01:00 on Aug 17)
-        # must display under the ORIGINAL booking date's grid (Aug 16), because the
-        # frontend renders 00:00–02:30 as "bottom rows" of the selected date.
+        # Continuation bk2: display under the original booking date's grid (date-1),
+        # because the frontend checks current-day slots for the bottom rows (00:00–02:30).
         display_date = (b.booking_date - timedelta(days=1)) if b.is_continuation else b.booking_date
         key = f"{b.court_id}:{display_date.isoformat()}"
         if key not in booked_slots:
@@ -47,17 +56,20 @@ def index():
         next_key = None
         m = start_m
         while m < end_m:
-            if m >= 24 * 60:
-                # Legacy single cross-midnight booking: post-midnight slots on next day
-                if next_key is None:
-                    next_date = display_date + timedelta(days=1)
-                    next_key = f"{b.court_id}:{next_date.isoformat()}"
-                    if next_key not in booked_slots:
-                        booked_slots[next_key] = []
-                actual_m = m - 24 * 60
-                ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
-                if ts not in booked_slots[next_key]:
-                    booked_slots[next_key].append(ts)
+            if m >= 24 * 60 and not b.is_continuation:
+                # Cross-midnight overflow: only push to next day when there is NO
+                # paired bk2 continuation (i.e. admin-created single cross-midnight record).
+                # If a bk2 exists for this court+next_day, bk2 already handles display.
+                next_day = b.booking_date + timedelta(days=1)
+                if (b.court_id, next_day) not in continuation_keys:
+                    if next_key is None:
+                        next_key = f"{b.court_id}:{next_day.isoformat()}"
+                        if next_key not in booked_slots:
+                            booked_slots[next_key] = []
+                    actual_m = m - 24 * 60
+                    ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
+                    if ts not in booked_slots[next_key]:
+                        booked_slots[next_key].append(ts)
             else:
                 ts = f"{m//60:02d}:{m%60:02d}"
                 if ts not in booked_slots[key]:

@@ -450,18 +450,32 @@ def add_booking():
         if s_time.hour < 8 and b_date == date.today():
             b_date = b_date + timedelta(days=1)
 
-        bk = Booking(
-            court_id=court.id,
-            customer_name=request.form['customer_name'],
-            customer_phone=request.form['customer_phone'],
-            booking_date=b_date,
-            start_time=s_time,
-            end_time=e_time,
-            status=request.form.get('status', 'confirmed'),
-            notes=request.form.get('notes', ''),
-        )
-        bk.total_price = bk.calc_price(court.price_per_hour)
-        db.session.add(bk)
+        name   = request.form['customer_name']
+        phone  = request.form['customer_phone']
+        status = request.form.get('status', 'confirmed')
+        notes  = request.form.get('notes', '')
+
+        crosses_midnight = e_time < s_time and e_time != dtime(0, 0)
+
+        if crosses_midnight:
+            tomorrow = b_date + timedelta(days=1)
+            midnight = dtime(23, 59)
+            bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
+                          booking_date=b_date,   start_time=s_time,      end_time=midnight,
+                          status=status, notes=notes)
+            bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
+                          booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,
+                          status=status, notes=notes, is_continuation=True)
+            bk1.total_price = bk1.calc_price(court.price_per_hour)
+            bk2.total_price = bk2.calc_price(court.price_per_hour)
+            db.session.add_all([bk1, bk2])
+        else:
+            bk = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
+                         booking_date=b_date, start_time=s_time, end_time=e_time,
+                         status=status, notes=notes)
+            bk.total_price = bk.calc_price(court.price_per_hour)
+            db.session.add(bk)
+
         db.session.commit()
         flash('تم إضافة الحجز بنجاح.', 'success')
     except Exception as e:
