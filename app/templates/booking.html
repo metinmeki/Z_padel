@@ -158,9 +158,9 @@
       background: #fff; cursor: pointer; transition: all .15s ease;
       font-family: 'Montserrat', sans-serif; user-select: none;
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      -webkit-appearance: none; appearance: none; width: 100%;
     }
-    .slot-btn.free:hover  { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,.15); transform: translateY(-1px); }
-    .slot-btn.free:active { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,.15); transform: translateY(-1px); }
+    .slot-btn.free:hover, .slot-btn.free:active  { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,.15); transform: translateY(-1px); }
     .slot-btn.booked      { cursor: not-allowed; opacity: .75; }
     .slot-btn.past        { cursor: not-allowed; opacity: .4; }
     .slot-btn.selected    { background: var(--ink) !important; border-color: var(--ink) !important; }
@@ -195,6 +195,7 @@
       cursor: pointer; transition: var(--transition); background: var(--white);
       font-family: 'Montserrat', sans-serif;
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      -webkit-appearance: none; appearance: none; width: 100%; text-align: start;
     }
     .dur-opt:last-child { margin-bottom: 0; }
     .dur-opt:hover { border-color: var(--slate); background: var(--sand); }
@@ -593,10 +594,10 @@ function renderSlots() {
     else if (bkd)       cls += 'booked';
     else                cls += 'free';
 
-    slots.push(`<div class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${m})"` : ''}>
+    slots.push(`<button type="button" class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${m})"` : ''}>
       <span class="slot-time">${ts}</span>
       <span class="slot-dot"></span>
-    </div>`);
+    </button>`);
   }
 
   container.innerHTML = `<div class="slots-grid">${slots.join('')}</div>`;
@@ -638,15 +639,15 @@ function showDurPanel(startTs, startRealMin) {
     }
 
     if (blocked) {
-      html += `<div class="dur-opt blocked">
+      html += `<button type="button" class="dur-opt blocked">
         <div><div class="dur-opt-range">${startTs} → ${endTs}</div><div class="dur-opt-meta">${dLabel}</div></div>
         <div class="dur-opt-price">—</div>
-      </div>`;
+      </button>`;
     } else {
-      html += `<div class="dur-opt" onclick="selectDuration(${d},${endRealMin})">
+      html += `<button type="button" class="dur-opt" onclick="selectDuration(${d},${endRealMin})">
         <div><div class="dur-opt-range">${startTs} → ${endTs}</div><div class="dur-opt-meta">${dLabel}</div></div>
         <div class="dur-opt-price">${price.toLocaleString()} ${IS_EN ? 'IQD' : 'د.ع'}</div>
-      </div>`;
+      </button>`;
     }
   });
 
