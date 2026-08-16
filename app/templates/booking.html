@@ -577,11 +577,10 @@ function renderSlots() {
   for (let m = OPEN*60; m < CLOSE*60; m += 30) {
     const ts   = minsToTs(m);
     const bkd  = booked.includes(ts);
-    // Bottom slots (00:00–02:30, realMin≥1440) represent tonight's late session.
-    // Only mark past if we are currently past midnight (nowMins < 3*60) and the
-    // specific slot's wall-clock time has already passed. During daytime they're future.
-    const wallMin = m >= 24*60 ? m - 24*60 : m;
-    const past = isToday && (m >= 24*60 ? (nowMins < 3*60 && wallMin < nowMins) : m < nowMins);
+    // Bottom slots (00:00–02:30, realMin≥1440) represent TONIGHT's upcoming late session
+    // (physically tomorrow's early hours). They are never "past" when viewing today —
+    // booking them sends the reservation to the next calendar day automatically.
+    const past = isToday && m < 24*60 && m < nowMins;
 
     const isSelStart = selStartRealMin === m;
     const isCovered  = selStartRealMin >= 0 && m > selStartRealMin && m < selEndMin;
@@ -632,8 +631,7 @@ function showDurPanel(startTs, startRealMin) {
       for (let m = startRealMin + 30; m < endRealMin; m += 30) {
         const cts = minsToTs(m);
         if (booked.includes(cts)) { blocked = true; break; }
-        const wallMin = m >= 24*60 ? m - 24*60 : m;
-        const slotPast = isToday && (m >= 24*60 ? (nowMins < 3*60 && wallMin < nowMins) : m < nowMins);
+        const slotPast = isToday && m < 24*60 && m < nowMins;
         if (slotPast) { blocked = true; break; }
       }
     }
