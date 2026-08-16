@@ -157,8 +157,10 @@
       padding: 10px 11px; border-radius: 10px; border: 1.5px solid #E8E8E8;
       background: #fff; cursor: pointer; transition: all .15s ease;
       font-family: 'Montserrat', sans-serif; user-select: none;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
     .slot-btn.free:hover  { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,.15); transform: translateY(-1px); }
+    .slot-btn.free:active { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,.15); transform: translateY(-1px); }
     .slot-btn.booked      { cursor: not-allowed; opacity: .75; }
     .slot-btn.past        { cursor: not-allowed; opacity: .4; }
     .slot-btn.selected    { background: var(--ink) !important; border-color: var(--ink) !important; }
@@ -192,6 +194,7 @@
       border: 1.5px solid var(--sand-mid); margin-bottom: 7px;
       cursor: pointer; transition: var(--transition); background: var(--white);
       font-family: 'Montserrat', sans-serif;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
     .dur-opt:last-child { margin-bottom: 0; }
     .dur-opt:hover { border-color: var(--slate); background: var(--sand); }
