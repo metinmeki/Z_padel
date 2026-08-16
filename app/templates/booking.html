@@ -594,13 +594,20 @@ function renderSlots() {
     else if (bkd)       cls += 'booked';
     else                cls += 'free';
 
-    slots.push(`<button type="button" class="${cls}"${ok ? ` onclick="selectSlot('${ts}',${m})"` : ''}>
+    slots.push(`<button type="button" class="${cls}"${ok ? ` data-ts="${ts}" data-m="${m}"` : ''}>
       <span class="slot-time">${ts}</span>
       <span class="slot-dot"></span>
     </button>`);
   }
 
   container.innerHTML = `<div class="slots-grid">${slots.join('')}</div>`;
+
+  // Attach events via addEventListener (more reliable on mobile than inline onclick)
+  container.querySelectorAll('.slot-btn.free').forEach(function(btn) {
+    var ts = btn.dataset.ts, m = parseInt(btn.dataset.m);
+    btn.addEventListener('touchend', function(e) { e.preventDefault(); selectSlot(ts, m); }, {passive: false});
+    btn.addEventListener('click', function() { selectSlot(ts, m); });
+  });
 }
 
 function selectSlot(ts, realMin) {
@@ -644,7 +651,7 @@ function showDurPanel(startTs, startRealMin) {
         <div class="dur-opt-price">—</div>
       </button>`;
     } else {
-      html += `<button type="button" class="dur-opt" onclick="selectDuration(${d},${endRealMin})">
+      html += `<button type="button" class="dur-opt" data-d="${d}" data-end="${endRealMin}">
         <div><div class="dur-opt-range">${startTs} → ${endTs}</div><div class="dur-opt-meta">${dLabel}</div></div>
         <div class="dur-opt-price">${price.toLocaleString()} ${IS_EN ? 'IQD' : 'د.ع'}</div>
       </button>`;
@@ -653,6 +660,13 @@ function showDurPanel(startTs, startRealMin) {
 
   panel.innerHTML = html;
   panel.style.display = 'block';
+
+  // Attach events via addEventListener (more reliable on mobile)
+  panel.querySelectorAll('.dur-opt:not(.blocked)').forEach(function(btn) {
+    var d = parseFloat(btn.dataset.d), end = parseInt(btn.dataset.end);
+    btn.addEventListener('touchend', function(e) { e.preventDefault(); selectDuration(d, end); }, {passive: false});
+    btn.addEventListener('click', function() { selectDuration(d, end); });
+  });
   setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
 }
 
