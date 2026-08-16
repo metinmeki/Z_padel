@@ -33,7 +33,11 @@ def index():
     for b in bookings:
         if not b.start_time or not b.end_time:
             continue
-        key = f"{b.court_id}:{b.booking_date.isoformat()}"
+        # Continuation bookings (cross-midnight tail, e.g. 00:00–01:00 on Aug 17)
+        # must display under the ORIGINAL booking date's grid (Aug 16), because the
+        # frontend renders 00:00–02:30 as "bottom rows" of the selected date.
+        display_date = (b.booking_date - timedelta(days=1)) if b.is_continuation else b.booking_date
+        key = f"{b.court_id}:{display_date.isoformat()}"
         if key not in booked_slots:
             booked_slots[key] = []
         start_m = b.start_time.hour * 60 + b.start_time.minute
@@ -44,9 +48,9 @@ def index():
         m = start_m
         while m < end_m:
             if m >= 24 * 60:
-                # Post-midnight slots belong to the next calendar day
+                # Legacy single cross-midnight booking: post-midnight slots on next day
                 if next_key is None:
-                    next_date = b.booking_date + timedelta(days=1)
+                    next_date = display_date + timedelta(days=1)
                     next_key = f"{b.court_id}:{next_date.isoformat()}"
                     if next_key not in booked_slots:
                         booked_slots[next_key] = []
