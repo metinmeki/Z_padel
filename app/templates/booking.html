@@ -594,7 +594,7 @@ function renderSlots() {
     else if (bkd)       cls += 'booked';
     else                cls += 'free';
 
-    slots.push(`<button type="button" class="${cls}"${ok ? ` data-ts="${ts}" data-m="${m}"` : ''}>
+    slots.push(`<button type="button" class="${cls}"${ok ? ` data-ts="${ts}" data-m="${m}" onclick="selectSlot('${ts}',${m})"` : ''}>
       <span class="slot-time">${ts}</span>
       <span class="slot-dot"></span>
     </button>`);
@@ -644,7 +644,7 @@ function showDurPanel(startTs, startRealMin) {
         <div class="dur-opt-price">—</div>
       </button>`;
     } else {
-      html += `<button type="button" class="dur-opt" data-d="${d}" data-end="${endRealMin}">
+      html += `<button type="button" class="dur-opt" data-d="${d}" data-end="${endRealMin}" onclick="selectDuration(${d},${endRealMin})">
         <div><div class="dur-opt-range">${startTs} → ${endTs}</div><div class="dur-opt-meta">${dLabel}</div></div>
         <div class="dur-opt-price">${price.toLocaleString()} ${IS_EN ? 'IQD' : 'د.ع'}</div>
       </button>`;
@@ -729,27 +729,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   }
 
-  // Delegated slot handler — lives on the container so it survives innerHTML replacements
-  var sc = document.getElementById('slotsContainer');
-  function handleSlot(e) {
+  // Touchstart delegation for mobile — onclick attributes handle desktop.
+  // preventDefault on touchstart blocks the subsequent onclick on mobile (no double-call).
+  document.getElementById('slotsContainer').addEventListener('touchstart', function(e) {
     var btn = e.target.closest('button[data-m]');
     if (!btn) return;
-    if (e.cancelable) e.preventDefault();
+    e.preventDefault();
     selectSlot(btn.dataset.ts, parseInt(btn.dataset.m));
-  }
-  sc.addEventListener('touchstart', handleSlot, {passive: false});
-  sc.addEventListener('click',      handleSlot);
+  }, {passive: false});
 
-  // Delegated duration handler
-  var dp2 = document.getElementById('durPanel');
-  function handleDur(e) {
+  document.getElementById('durPanel').addEventListener('touchstart', function(e) {
     var btn = e.target.closest('button[data-d]');
     if (!btn) return;
-    if (e.cancelable) e.preventDefault();
+    e.preventDefault();
     selectDuration(parseFloat(btn.dataset.d), parseInt(btn.dataset.end));
-  }
-  dp2.addEventListener('touchstart', handleDur, {passive: false});
-  dp2.addEventListener('click',      handleDur);
+  }, {passive: false});
 });
 </script>
 <style>@keyframes _rpl { to { transform: scale(4); opacity: 0; } }</style>
