@@ -329,43 +329,99 @@
     <i class="fas fa-times add-panel-toggle open"></i>
   </div>
   <div class="add-panel-body">
-    <!-- Existing categories -->
+
+    <!-- Category table -->
     {% if expense_categories %}
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-      {% for cat in expense_categories %}
-      <div style="display:flex;align-items:center;gap:6px;background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:6px 10px;">
-        <span style="width:12px;height:12px;border-radius:50%;background:{{ cat.color }};display:inline-block;flex-shrink:0;"></span>
-        <span style="font-weight:600;font-size:14px;">{{ cat.name }}</span>
-        <span style="font-size:12px;color:#888;">{{ '{:,.0f}'.format(cat.total) }} IQD</span>
-        <form method="POST" action="{{ url_for('admin.delete_expense_category', cat_id=cat.id) }}"
-              onsubmit="return confirm('حذف فئة {{ cat.name }}؟ ستُفصل مصروفاتها عن الفئة.')"
-              style="margin:0;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" style="background:none;border:none;color:#e53935;cursor:pointer;padding:0 2px;" title="حذف">
-            <i class="fas fa-times"></i>
-          </button>
-        </form>
-      </div>
-      {% endfor %}
-    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:14px;">
+      <thead>
+        <tr style="border-bottom:2px solid #e0e0e0;color:#888;font-size:12px;text-align:right;">
+          <th style="padding:6px 10px;font-weight:600;">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</th>
+          <th style="padding:6px 10px;font-weight:600;">{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</th>
+          <th style="padding:6px 10px;font-weight:600;">{% if lang == 'en' %}Total Spent{% else %}إجمالي المصروف{% endif %}</th>
+          <th style="padding:6px 10px;width:90px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in expense_categories %}
+        <!-- Display row -->
+        <tr id="cat-row-{{ cat.id }}" style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:10px 10px;">
+            <span style="width:18px;height:18px;border-radius:50%;background:{{ cat.color }};display:inline-block;border:2px solid rgba(0,0,0,.1);"></span>
+          </td>
+          <td style="padding:10px 10px;font-weight:600;">{{ cat.name }}</td>
+          <td style="padding:10px 10px;color:#555;">{{ '{:,.0f}'.format(cat.total) }} IQD</td>
+          <td style="padding:10px 10px;">
+            <div style="display:flex;gap:6px;justify-content:flex-end;">
+              <button onclick="showCatEdit({{ cat.id }},'{{ cat.name }}','{{ cat.color }}')"
+                      style="background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;">
+                <i class="fas fa-pen"></i>
+              </button>
+              <form method="POST" action="{{ url_for('admin.delete_expense_category', cat_id=cat.id) }}"
+                    onsubmit="return confirm('حذف فئة {{ cat.name }}؟')" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <!-- Inline edit row (hidden by default) -->
+        <tr id="cat-edit-{{ cat.id }}" style="display:none;background:#f8fbff;border-bottom:1px solid #e0e0e0;">
+          <td colspan="4" style="padding:10px 10px;">
+            <form method="POST" action="{{ url_for('admin.edit_expense_category', cat_id=cat.id) }}"
+                  style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div>
+                <label class="form-label-z" style="font-size:12px;">{% if lang == 'en' %}Name{% else %}الاسم{% endif %}</label>
+                <input type="text" name="name" id="cat-name-{{ cat.id }}" class="form-control-z" required style="min-width:180px;">
+              </div>
+              <div>
+                <label class="form-label-z" style="font-size:12px;">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</label>
+                <input type="color" name="color" id="cat-color-{{ cat.id }}"
+                       style="height:38px;width:60px;border-radius:6px;border:1px solid #ddd;cursor:pointer;">
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button type="submit" class="btn-z-primary" style="padding:7px 14px;font-size:13px;">
+                  <i class="fas fa-save"></i> {% if lang == 'en' %}Save{% else %}حفظ{% endif %}
+                </button>
+                <button type="button" onclick="hideCatEdit({{ cat.id }})"
+                        class="btn-z-outline" style="padding:7px 12px;font-size:13px;">
+                  {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+                </button>
+              </div>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
     {% else %}
     <p style="color:#888;font-size:14px;margin-bottom:14px;">{% if lang == 'en' %}No categories yet.{% else %}لا توجد فئات بعد.{% endif %}</p>
     {% endif %}
+
     <!-- Add new category -->
-    <form method="POST" action="{{ url_for('admin.add_expense_category') }}" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div>
-        <label class="form-label-z">{% if lang == 'en' %}Category Name{% else %}اسم الفئة{% endif %} <span style="color:#e53935;">*</span></label>
-        <input type="text" name="name" class="form-control-z" required placeholder="{% if lang == 'en' %}e.g. Utilities{% else %}مثال: كهرباء{% endif %}" style="min-width:200px;">
+    <div style="border-top:1px dashed #e0e0e0;padding-top:16px;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#444;">
+        <i class="fas fa-plus-circle" style="color:var(--brand-blue);"></i>
+        {% if lang == 'en' %}New Category{% else %}فئة جديدة{% endif %}
       </div>
-      <div>
-        <label class="form-label-z">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</label>
-        <input type="color" name="color" value="#E53935" style="height:38px;width:60px;border-radius:6px;border:1px solid #ddd;cursor:pointer;">
-      </div>
-      <button type="submit" class="btn-z-primary">
-        <i class="fas fa-plus"></i> {% if lang == 'en' %}Add Category{% else %}إضافة فئة{% endif %}
-      </button>
-    </form>
+      <form method="POST" action="{{ url_for('admin.add_expense_category') }}" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label class="form-label-z">{% if lang == 'en' %}Category Name{% else %}اسم الفئة{% endif %} <span style="color:#e53935;">*</span></label>
+          <input type="text" name="name" class="form-control-z" required placeholder="{% if lang == 'en' %}e.g. Utilities{% else %}مثال: كهرباء{% endif %}" style="min-width:200px;">
+        </div>
+        <div>
+          <label class="form-label-z">{% if lang == 'en' %}Color{% else %}اللون{% endif %}</label>
+          <input type="color" name="color" value="#E53935" style="height:38px;width:60px;border-radius:6px;border:1px solid #ddd;cursor:pointer;">
+        </div>
+        <button type="submit" class="btn-z-primary">
+          <i class="fas fa-plus"></i> {% if lang == 'en' %}Add{% else %}إضافة{% endif %}
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -606,6 +662,18 @@ function toggleCats() {
   const open  = panel.style.display === 'none' || panel.style.display === '';
   panel.style.display = open ? 'block' : 'none';
   if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showCatEdit(id, name, color) {
+  document.getElementById('cat-row-'  + id).style.display = 'none';
+  document.getElementById('cat-edit-' + id).style.display = 'table-row';
+  document.getElementById('cat-name-' + id).value  = name;
+  document.getElementById('cat-color-'+ id).value  = color;
+}
+
+function hideCatEdit(id) {
+  document.getElementById('cat-edit-' + id).style.display = 'none';
+  document.getElementById('cat-row-'  + id).style.display = 'table-row';
 }
 
 function editExpense(id, date, categoryId, amount, description, notes) {
