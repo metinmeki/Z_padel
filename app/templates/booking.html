@@ -601,13 +601,6 @@ function renderSlots() {
   }
 
   container.innerHTML = `<div class="slots-grid">${slots.join('')}</div>`;
-
-  // Attach events via addEventListener (more reliable on mobile than inline onclick)
-  container.querySelectorAll('.slot-btn.free').forEach(function(btn) {
-    var ts = btn.dataset.ts, m = parseInt(btn.dataset.m);
-    btn.addEventListener('touchend', function(e) { e.preventDefault(); selectSlot(ts, m); }, {passive: false});
-    btn.addEventListener('click', function() { selectSlot(ts, m); });
-  });
 }
 
 function selectSlot(ts, realMin) {
@@ -660,13 +653,6 @@ function showDurPanel(startTs, startRealMin) {
 
   panel.innerHTML = html;
   panel.style.display = 'block';
-
-  // Attach events via addEventListener (more reliable on mobile)
-  panel.querySelectorAll('.dur-opt:not(.blocked)').forEach(function(btn) {
-    var d = parseFloat(btn.dataset.d), end = parseInt(btn.dataset.end);
-    btn.addEventListener('touchend', function(e) { e.preventDefault(); selectDuration(d, end); }, {passive: false});
-    btn.addEventListener('click', function() { selectDuration(d, end); });
-  });
   setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
 }
 
@@ -727,6 +713,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('courtBannerText').textContent = firstCourt.dataset.courtName;
     renderSlots();
   }
+
+  // Delegated slot handler — lives on the container so it survives innerHTML replacements
+  var sc = document.getElementById('slotsContainer');
+  function handleSlot(e) {
+    var btn = e.target.closest('button[data-m]');
+    if (!btn) return;
+    if (e.cancelable) e.preventDefault();
+    selectSlot(btn.dataset.ts, parseInt(btn.dataset.m));
+  }
+  sc.addEventListener('touchstart', handleSlot, {passive: false});
+  sc.addEventListener('click',      handleSlot);
+
+  // Delegated duration handler
+  var dp2 = document.getElementById('durPanel');
+  function handleDur(e) {
+    var btn = e.target.closest('button[data-d]');
+    if (!btn) return;
+    if (e.cancelable) e.preventDefault();
+    selectDuration(parseFloat(btn.dataset.d), parseInt(btn.dataset.end));
+  }
+  dp2.addEventListener('touchstart', handleDur, {passive: false});
+  dp2.addEventListener('click',      handleDur);
 });
 </script>
 <style>@keyframes _rpl { to { transform: scale(4); opacity: 0; } }</style>
