@@ -445,9 +445,10 @@ def add_booking():
             flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
             return redirect(url_for('admin.bookings'))
 
-        # Auto-shift: midnight bookings (00:00–07:59) entered for today are meant
-        # for tonight → move to tomorrow so slots display and conflict-check correctly
-        if s_time.hour < 8 and b_date == date.today():
+        # Midnight slots (00:00–02:59) are the late-night extension of the chosen
+        # business date. Store under the NEXT calendar day so the display logic
+        # correctly shows them in the chosen date's bottom-row grid.
+        if s_time.hour < 3:
             b_date = b_date + timedelta(days=1)
 
         name   = request.form['customer_name']
