@@ -66,19 +66,17 @@ def index():
         m = start_m
         while m < end_m:
             if m >= 24 * 60 and not b.is_continuation:
-                # Cross-midnight overflow: only push to next day when there is NO
-                # paired bk2 continuation (i.e. admin-created single cross-midnight record).
-                # If a bk2 exists for this court+next_day, bk2 already handles display.
+                # Single cross-midnight record (not split into bk1+bk2).
+                # If a paired bk2 continuation exists, it handles the overflow
+                # display itself — skip. Otherwise add the overflow slot to the
+                # SAME date key so the bottom row of THIS date's grid shows it
+                # as booked (the frontend checks "court:date" for bottom-row slots).
                 next_day = b.booking_date + timedelta(days=1)
                 if (b.court_id, next_day) not in continuation_keys:
-                    if next_key is None:
-                        next_key = f"{b.court_id}:{next_day.isoformat()}"
-                        if next_key not in booked_slots:
-                            booked_slots[next_key] = []
                     actual_m = m - 24 * 60
                     ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
-                    if ts not in booked_slots[next_key]:
-                        booked_slots[next_key].append(ts)
+                    if ts not in booked_slots[key]:
+                        booked_slots[key].append(ts)
             else:
                 ts = f"{m//60:02d}:{m%60:02d}"
                 if ts not in booked_slots[key]:
