@@ -363,6 +363,12 @@ class ActivitySession(db.Model):
         return self.total_price or 0
 
     @property
+    def discount(self):
+        if not self.end_time:
+            return 0
+        return max(0, round(self.calc_price()) - round(self.total_price or 0))
+
+    @property
     def grand_total(self):
         return round(self.time_amount + self.items_total)
 
@@ -444,6 +450,12 @@ class CourtSession(db.Model):
         if self.status == 'active' and not self.end_time:
             return self.calc_price()
         return self.total_price or 0
+
+    @property
+    def discount(self):
+        if not self.end_time:
+            return 0
+        return max(0, round(self.calc_price()) - round(self.total_price or 0))
 
     @property
     def grand_total(self):

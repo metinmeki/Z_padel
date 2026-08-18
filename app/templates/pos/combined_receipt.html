@@ -76,8 +76,14 @@
           <div class="receipt-items" style="margin:6px 0;padding:6px 0;">
             <div class="receipt-item">
               <span class="item-name">{% if lang == 'en' %}Court time{% else %}وقت اللعب{% endif %}</span>
-              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount) }} IQD</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount + s.discount) }} IQD</span>
             </div>
+            {% if s.discount > 0 %}
+            <div class="receipt-item" style="color:#dc3545;">
+              <span class="item-name">{% if lang == 'en' %}Discount{% else %}خصم{% endif %}</span>
+              <span class="item-price" style="direction:ltr;">- {{ '{:,.0f}'.format(s.discount) }} IQD</span>
+            </div>
+            {% endif %}
             {% for item in s.items %}
             <div class="receipt-item">
               <span class="item-name">{{ item.product_name }} × {{ item.quantity }}</span>
@@ -107,8 +113,14 @@
           <div class="receipt-items" style="margin:6px 0;padding:6px 0;">
             <div class="receipt-item">
               <span class="item-name">{% if lang == 'en' %}Play time{% else %}وقت اللعب{% endif %}</span>
-              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount) }} IQD</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount + s.discount) }} IQD</span>
             </div>
+            {% if s.discount > 0 %}
+            <div class="receipt-item" style="color:#dc3545;">
+              <span class="item-name">{% if lang == 'en' %}Discount{% else %}خصم{% endif %}</span>
+              <span class="item-price" style="direction:ltr;">- {{ '{:,.0f}'.format(s.discount) }} IQD</span>
+            </div>
+            {% endif %}
             {% for item in s.items %}
             <div class="receipt-item">
               <span class="item-name">{{ item.product_name }} × {{ item.quantity }}</span>
