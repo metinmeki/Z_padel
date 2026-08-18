@@ -551,7 +551,7 @@ function submitDebtSession() {
   fetch(`/pos/activities/session/${sessionId}/finish-debt`, {
     method: 'POST',
     headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name, discount: getDiscount() })
   })
   .then(r => r.json())
   .then(d => {

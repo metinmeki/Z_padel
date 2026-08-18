@@ -86,7 +86,7 @@
             {% endfor %}
             <div class="receipt-item subtotal">
               <span class="item-name">{% if lang == 'en' %}Subtotal{% else %}المجموع{% endif %}</span>
-              <span class="item-price">{{ '{:,.0f}'.format(s.grand_total) }} IQD</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount + s.items_total) }} IQD</span>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@
             {% endfor %}
             <div class="receipt-item subtotal">
               <span class="item-name">{% if lang == 'en' %}Subtotal{% else %}المجموع{% endif %}</span>
-              <span class="item-price">{{ '{:,.0f}'.format(s.grand_total) }} IQD</span>
+              <span class="item-price">{{ '{:,.0f}'.format(s.time_amount + s.items_total) }} IQD</span>
             </div>
           </div>
         </div>

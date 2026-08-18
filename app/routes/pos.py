@@ -445,6 +445,7 @@ def finish_session_debt(session_id):
     try:
         data = request.get_json(force=True) or {}
         name = (data.get('name') or '').strip()
+        discount = max(0, float(data.get('discount', 0) or 0))
 
         if not name:
             return jsonify(success=False, message='الرجاء كتابة اسم الشخص'), 400
@@ -453,10 +454,13 @@ def finish_session_debt(session_id):
         if session_row.status == 'completed':
             return jsonify(success=False, message='تم الدفع مسبقاً'), 400
 
+        was_active = session_row.status == 'active'
         if not session_row.end_time:
             session_row.end_time = datetime.utcnow()
             session_row.total_price = session_row.calc_price()
 
+        if was_active:
+            session_row.discount = discount
         session_row.customer_name = name
         session_row.payment_method = 'debt'
         session_row.status = 'completed'
@@ -823,14 +827,18 @@ def finish_activity_session_debt(session_id):
     try:
         data = request.get_json(force=True) or {}
         name = (data.get('name') or '').strip()
+        discount = max(0, float(data.get('discount', 0) or 0))
         if not name:
             return jsonify(success=False, message='Please enter name'), 400
         sess = ActivitySession.query.get_or_404(session_id)
         if sess.status == 'completed':
             return jsonify(success=False, message='Already paid'), 400
+        was_active = sess.status == 'active'
         if not sess.end_time:
             sess.end_time    = datetime.utcnow()
             sess.total_price = sess.calc_price()
+        if was_active:
+            sess.discount = discount
         sess.customer_name  = name
         sess.payment_method = 'debt'
         sess.status         = 'completed'
