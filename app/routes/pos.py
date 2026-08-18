@@ -402,8 +402,7 @@ def free_court_session(session_id):
     if not session_row.end_time:
         session_row.end_time = datetime.utcnow()
         session_row.total_price = session_row.calc_price()
-    if discount > 0:
-        session_row.total_price = max(0, (session_row.total_price or 0) - discount)
+    session_row.discount = discount
     session_row.status = 'pending_payment'
     db.session.commit()
     return jsonify(success=True)
@@ -426,9 +425,8 @@ def finish_session(session_id):
             session_row.end_time = datetime.utcnow()
             session_row.total_price = session_row.calc_price()
 
-        # Only apply discount if session wasn't already discounted via free_court_session
-        if discount > 0 and was_active:
-            session_row.total_price = max(0, (session_row.total_price or 0) - discount)
+        if was_active:
+            session_row.discount = discount
 
         session_row.payment_method = payment_method
         session_row.status = 'completed'
@@ -533,7 +531,7 @@ def receipt(order_id):
 def session_receipt(session_id):
     session_row = CourtSession.query.get_or_404(session_id)
     autoprint = request.args.get('autoprint', '0') == '1'
-    discount = max(0, float(request.args.get('discount', 0) or 0))
+    discount = session_row.discount or 0
     return render_template('pos/session_receipt.html', session=session_row, autoprint=autoprint, discount=discount)
 
 
@@ -696,8 +694,7 @@ def free_activity_session(session_id):
     if not sess.end_time:
         sess.end_time = datetime.utcnow()
         sess.total_price = sess.calc_price()
-    if discount > 0:
-        sess.total_price = max(0, (sess.total_price or 0) - discount)
+    sess.discount = discount
     sess.status = 'pending_payment'
     db.session.commit()
     return jsonify(success=True)
@@ -717,8 +714,8 @@ def finish_activity_session(session_id):
         if not sess.end_time:
             sess.end_time = datetime.utcnow()
             sess.total_price = sess.calc_price()
-        if discount > 0 and was_active:
-            sess.total_price = max(0, (sess.total_price or 0) - discount)
+        if was_active:
+            sess.discount = discount
         sess.payment_method = payment_method
         sess.status = 'completed'
         _log('Complete Activity Session', f'{sess.table.name} — {int(sess.grand_total):,} IQD ({payment_method})')
@@ -849,7 +846,7 @@ def finish_activity_session_debt(session_id):
 def activity_receipt(session_id):
     sess = ActivitySession.query.get_or_404(session_id)
     autoprint = request.args.get('autoprint', '0') == '1'
-    discount = max(0, float(request.args.get('discount', 0) or 0))
+    discount = sess.discount or 0
     return render_template('pos/activity_receipt.html', session=sess,
                            activity_meta=ACTIVITY_META, autoprint=autoprint, discount=discount)
 
@@ -907,7 +904,7 @@ def combined_checkout():
             if was_active and discount > 0:
                 d = remaining_discount if i == len(sessions_to_pay) - 1 else per_session
                 remaining_discount -= d
-                s.total_price = max(0, (s.total_price or 0) - d)
+                s.discount = d
             s.payment_method = payment_method
             s.status = 'completed'
             if debt_name:
@@ -938,7 +935,7 @@ def combined_receipt():
     court_sessions    = [s for s in court_sessions if s]
     activity_sessions = [s for s in activity_sessions if s]
     autoprint = request.args.get('autoprint', '0') == '1'
-    discount = max(0, float(request.args.get('discount', 0) or 0))
+    discount = sum((s.discount or 0) for s in court_sessions + activity_sessions)
     grand_total = sum(s.grand_total for s in court_sessions) + sum(s.grand_total for s in activity_sessions)
     return render_template('pos/combined_receipt.html',
                            court_sessions=court_sessions,

@@ -97,7 +97,7 @@
       <div class="receipt-items">
         <div class="receipt-item">
           <span class="item-name">{% if lang == 'en' %}Play time{% else %}وقت اللعب{% endif %}</span>
-          <span class="item-price">{{ '{:,.0f}'.format(session.time_amount + discount) }} IQD</span>
+          <span class="item-price">{{ '{:,.0f}'.format(session.time_amount) }} IQD</span>
         </div>
         {% if discount > 0 %}
         <div class="receipt-item" style="color:#dc3545;">
@@ -157,7 +157,7 @@ const D = {
   activity: {{ (meta.ar ~ ' — ' ~ session.table.name) | tojson }},
   duration: "{{ session.elapsed_minutes // 60 }}h {{ session.elapsed_minutes % 60 }}m",
   customer: {{ (session.customer_name or '') | tojson }},
-  timeAmt:  "{{ '{:,.0f}'.format(session.time_amount + discount) }}",
+  timeAmt:  "{{ '{:,.0f}'.format(session.time_amount) }}",
   discount: {{ discount }},
   discountFmt: "{{ '{:,.0f}'.format(discount) }}",
   total:    "{{ '{:,.0f}'.format(session.grand_total) }}",

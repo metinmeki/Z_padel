@@ -336,6 +336,7 @@ class ActivitySession(db.Model):
     status         = db.Column(db.String(20), default='active')
     payment_method = db.Column(db.String(20), nullable=True)
     total_price    = db.Column(db.Float,  default=0)
+    discount       = db.Column(db.Float,  default=0)
     created_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
@@ -363,14 +364,8 @@ class ActivitySession(db.Model):
         return self.total_price or 0
 
     @property
-    def discount(self):
-        if not self.end_time:
-            return 0
-        return max(0, round(self.calc_price()) - round(self.total_price or 0))
-
-    @property
     def grand_total(self):
-        return round(self.time_amount + self.items_total)
+        return round(self.time_amount + self.items_total - (self.discount or 0))
 
     def __repr__(self):
         return f'<ActivitySession table#{self.table_id} status={self.status}>'
@@ -415,6 +410,7 @@ class CourtSession(db.Model):
     end_time       = db.Column(db.DateTime, nullable=True)
     status         = db.Column(db.String(20), default='active')
     total_price    = db.Column(db.Float, default=0)
+    discount       = db.Column(db.Float, default=0)
     payment_method = db.Column(db.String(20), nullable=True)
     customer_name  = db.Column(db.String(100), nullable=True)
     created_at     = db.Column(db.DateTime, default=datetime.utcnow)
@@ -452,14 +448,8 @@ class CourtSession(db.Model):
         return self.total_price or 0
 
     @property
-    def discount(self):
-        if not self.end_time:
-            return 0
-        return max(0, round(self.calc_price()) - round(self.total_price or 0))
-
-    @property
     def grand_total(self):
-        return round(self.time_amount + self.items_total)
+        return round(self.time_amount + self.items_total - (self.discount or 0))
 
     def __repr__(self):
         return f'<CourtSession court#{self.court_id} status={self.status}>'
