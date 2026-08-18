@@ -530,7 +530,7 @@ function finishSession(method) {
   })
   .then(r => r.json())
   .then(d => {
-    if (d.success) window.location.href = `/pos/activities/session/${sessionId}/receipt?autoprint=1`;
+    if (d.success) window.location.href = `/pos/activities/session/${sessionId}/receipt?autoprint=1&discount=${getDiscount()}`;
     else alert(d.message || (isEn ? 'Error' : 'خطأ'));
   })
   .catch(() => alert(isEn ? 'Connection failed' : 'فشل الاتصال'));

@@ -95,12 +95,12 @@
         <div class="receipt-items">
           <div class="receipt-item">
             <span class="item-name">{% if lang == 'en' %}Court time{% else %}وقت اللعب{% endif %}</span>
-            <span class="item-price">{{ '{:,.0f}'.format(session.time_amount + session.discount) }} IQD</span>
+            <span class="item-price">{{ '{:,.0f}'.format(session.time_amount + discount) }} IQD</span>
           </div>
-          {% if session.discount > 0 %}
+          {% if discount > 0 %}
           <div class="receipt-item" style="color:#dc3545;">
             <span class="item-name">{% if lang == 'en' %}Discount{% else %}خصم{% endif %}</span>
-            <span class="item-price" style="direction:ltr;">- {{ '{:,.0f}'.format(session.discount) }} IQD</span>
+            <span class="item-price" style="direction:ltr;">- {{ '{:,.0f}'.format(discount) }} IQD</span>
           </div>
           {% endif %}
           {% for item in session.items %}
@@ -154,9 +154,9 @@ const D = {
   court:    {{ session.court.name | tojson }},
   duration: "{{ session.elapsed_minutes // 60 }}h {{ session.elapsed_minutes % 60 }}m",
   customer: {{ (session.customer_name or '') | tojson }},
-  timeAmt:  "{{ '{:,.0f}'.format(session.time_amount + session.discount) }}",
-  discount: {{ session.discount }},
-  discountFmt: "{{ '{:,.0f}'.format(session.discount) }}",
+  timeAmt:  "{{ '{:,.0f}'.format(session.time_amount + discount) }}",
+  discount: {{ discount }},
+  discountFmt: "{{ '{:,.0f}'.format(discount) }}",
   total:    "{{ '{:,.0f}'.format(session.grand_total) }}",
   payment:  "{{ 'نقدي' if session.payment_method == 'cash' else 'بطاقة' if session.payment_method == 'card' else 'دين' }}",
   items: [

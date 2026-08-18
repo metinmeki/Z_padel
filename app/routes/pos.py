@@ -533,7 +533,8 @@ def receipt(order_id):
 def session_receipt(session_id):
     session_row = CourtSession.query.get_or_404(session_id)
     autoprint = request.args.get('autoprint', '0') == '1'
-    return render_template('pos/session_receipt.html', session=session_row, autoprint=autoprint)
+    discount = max(0, float(request.args.get('discount', 0) or 0))
+    return render_template('pos/session_receipt.html', session=session_row, autoprint=autoprint, discount=discount)
 
 
 # ══════════════════════════════════════════════════════
@@ -848,8 +849,9 @@ def finish_activity_session_debt(session_id):
 def activity_receipt(session_id):
     sess = ActivitySession.query.get_or_404(session_id)
     autoprint = request.args.get('autoprint', '0') == '1'
+    discount = max(0, float(request.args.get('discount', 0) or 0))
     return render_template('pos/activity_receipt.html', session=sess,
-                           activity_meta=ACTIVITY_META, autoprint=autoprint)
+                           activity_meta=ACTIVITY_META, autoprint=autoprint, discount=discount)
 
 
 @pos_bp.route('/combined-checkout', methods=['POST'])
@@ -920,7 +922,7 @@ def combined_checkout():
         a_param = ','.join(str(i) for i in done_activity_ids)
         return jsonify(success=True, redirect=url_for('pos.combined_receipt',
                                                        court_ids=c_param, activity_ids=a_param,
-                                                       autoprint='1'))
+                                                       autoprint='1', discount=int(discount)))
     except Exception as e:
         db.session.rollback()
         return jsonify(success=False, message=str(e)), 500
@@ -936,11 +938,13 @@ def combined_receipt():
     court_sessions    = [s for s in court_sessions if s]
     activity_sessions = [s for s in activity_sessions if s]
     autoprint = request.args.get('autoprint', '0') == '1'
+    discount = max(0, float(request.args.get('discount', 0) or 0))
     grand_total = sum(s.grand_total for s in court_sessions) + sum(s.grand_total for s in activity_sessions)
     return render_template('pos/combined_receipt.html',
                            court_sessions=court_sessions,
                            activity_sessions=activity_sessions,
                            grand_total=grand_total,
+                           discount=discount,
                            activity_meta=ACTIVITY_META,
                            autoprint=autoprint)
 
