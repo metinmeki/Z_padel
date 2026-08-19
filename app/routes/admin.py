@@ -2008,13 +2008,19 @@ def _set_clip_status(app, clip_id, status, msg=None):
             db.session.commit()
 
 
+def _ffmpeg():
+    """Return the ffmpeg binary path, searching common locations."""
+    import shutil
+    return shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
+
+
 def _remux_faststart(raw_path, final_path, ss_offset=0, duration_sec=None):
     """Trim + remux raw NVR file with +faststart. ss_offset/duration_sec trim to exact window."""
     import subprocess
     seek = ['-ss', str(int(ss_offset))] if ss_offset > 1 else []
     dur  = ['-t',  str(int(duration_sec))] if duration_sec else []
     try:
-        cmd = ['ffmpeg', '-y'] + seek + ['-i', raw_path] + dur + ['-c', 'copy', '-movflags', '+faststart', final_path]
+        cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + ['-c', 'copy', '-movflags', '+faststart', final_path]
         result = subprocess.run(cmd, capture_output=True, timeout=600)
         if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
             os.remove(raw_path)
@@ -2052,7 +2058,7 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
                 "[v2]drawtext=text='Coda Agency':fontsize=15:fontcolor=white@0.80:"
                 "x=14:y=H-24:shadowcolor=black@0.8:shadowx=1:shadowy=1[out]"
             )
-            cmd = ['ffmpeg', '-y'] + seek + ['-i', raw_path] + dur + [
+            cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + [
                 '-i', logo_path,
                 '-filter_complex', vf,
                 '-map', '[out]', '-map', '0:a?',
@@ -2067,7 +2073,7 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
                 "[v2]drawtext=text='Coda Agency':fontsize=15:fontcolor=white@0.80:"
                 "x=14:y=H-24:shadowcolor=black@0.8:shadowx=1:shadowy=1[out]"
             )
-            cmd = ['ffmpeg', '-y'] + seek + ['-i', raw_path] + dur + [
+            cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + [
                 '-filter_complex', vf,
                 '-map', '[out]', '-map', '0:a?',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
@@ -2205,7 +2211,7 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                     for sf in seg_files:
                         fh.write(f"file '{sf}'\n")
                 concat_result = _sp.run(
-                    ['ffmpeg', '-y', '-f', 'concat', '-safe', '0',
+                    [_ffmpeg(), '-y', '-f', 'concat', '-safe', '0',
                      '-i', concat_txt, '-c', 'copy', raw_path],
                     capture_output=True, timeout=1200
                 )
