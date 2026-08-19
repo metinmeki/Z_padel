@@ -2008,72 +2008,83 @@ def _set_clip_status(app, clip_id, status, msg=None):
             db.session.commit()
 
 
-def _remux_faststart(raw_path, final_path):
-    """Remux raw NVR file with +faststart so browsers can stream inline. Returns True on success."""
+def _remux_faststart(raw_path, final_path, ss_offset=0, duration_sec=None):
+    """Trim + remux raw NVR file with +faststart. ss_offset/duration_sec trim to exact window."""
     import subprocess
+    seek = ['-ss', str(int(ss_offset))] if ss_offset > 1 else []
+    dur  = ['-t',  str(int(duration_sec))] if duration_sec else []
     try:
-        cmd = ['ffmpeg', '-y', '-i', raw_path, '-c', 'copy', '-movflags', '+faststart', final_path]
+        cmd = ['ffmpeg', '-y'] + seek + ['-i', raw_path] + dur + ['-c', 'copy', '-movflags', '+faststart', final_path]
         result = subprocess.run(cmd, capture_output=True, timeout=600)
         if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
             os.remove(raw_path)
             return True
     except Exception:
         pass
-    # Fall back: just move the raw file as-is
     os.replace(raw_path, final_path)
     return False
 
 
-def _apply_watermark(app, clip_id, raw_path, final_path):
+def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_sec=None):
     """
-    Overlay a Coda Agency footer on the clip using FFmpeg.
-    Falls back to a +faststart remux (no watermark) if FFmpeg watermark fails.
-    Always ensures the final file has moov atom at the start for browser streaming.
+    Trim clip to exact requested window and overlay Z PADEL + Coda Agency footer.
+    Works with or without a logo file. Falls back to plain remux if ffmpeg fails.
+    ss_offset: seconds to skip from start of downloaded NVR segment.
+    duration_sec: exact length to keep.
     """
     import subprocess
     logo_path = os.path.join(app.static_folder, 'uploads', 'coaches', 'coda-logo.png')
+    has_logo  = os.path.exists(logo_path)
 
-    if not os.path.exists(logo_path):
-        _remux_faststart(raw_path, final_path)
-        _set_clip_status(app, clip_id, 'ready')
-        return
+    seek = ['-ss', str(int(ss_offset))] if ss_offset > 1 else []
+    dur  = ['-t',  str(int(duration_sec))] if duration_sec else []
 
-    _set_clip_status(app, clip_id, 'processing', 'Adding Coda Agency watermark…')
+    _set_clip_status(app, clip_id, 'processing', 'Trimming & adding Z PADEL watermark…')
 
-    # Footer bar (52px) + logo bottom-right + text bottom-left
-    vf = (
-        '[1:v]scale=110:-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.90[logo];'
-        '[0:v]drawbox=x=0:y=ih-52:w=iw:h=52:color=black@0.55:t=fill[bg];'
-        '[bg][logo]overlay=W-w-12:H-h-8[vid];'
-        "[vid]drawtext=text='Coda Agency':"
-        'fontsize=21:fontcolor=white:'
-        'x=14:y=H-32:'
-        'shadowcolor=black@0.8:shadowx=1:shadowy=1[out]'
-    )
-    cmd = [
-        'ffmpeg', '-y',
-        '-i', raw_path,
-        '-i', logo_path,
-        '-filter_complex', vf,
-        '-map', '[out]', '-map', '0:a?',
-        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
-        '-c:a', 'copy',
-        '-movflags', '+faststart',
-        final_path,
-    ]
     try:
+        if has_logo:
+            vf = (
+                '[1:v]scale=110:-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.90[logo];'
+                '[0:v]drawbox=x=0:y=ih-56:w=iw:h=56:color=black@0.65:t=fill[bg];'
+                '[bg][logo]overlay=W-w-12:H-h-10[vid];'
+                "[vid]drawtext=text='Z PADEL':fontsize=23:fontcolor=white:"
+                "x=14:y=H-50:shadowcolor=black@0.9:shadowx=1:shadowy=1[v2];"
+                "[v2]drawtext=text='Coda Agency':fontsize=15:fontcolor=white@0.80:"
+                "x=14:y=H-24:shadowcolor=black@0.8:shadowx=1:shadowy=1[out]"
+            )
+            cmd = ['ffmpeg', '-y'] + seek + ['-i', raw_path] + dur + [
+                '-i', logo_path,
+                '-filter_complex', vf,
+                '-map', '[out]', '-map', '0:a?',
+                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+                '-c:a', 'aac', '-movflags', '+faststart', final_path,
+            ]
+        else:
+            vf = (
+                "[0:v]drawbox=x=0:y=ih-56:w=iw:h=56:color=black@0.65:t=fill[bg];"
+                "[bg]drawtext=text='Z PADEL':fontsize=23:fontcolor=white:"
+                "x=14:y=H-50:shadowcolor=black@0.9:shadowx=1:shadowy=1[v2];"
+                "[v2]drawtext=text='Coda Agency':fontsize=15:fontcolor=white@0.80:"
+                "x=14:y=H-24:shadowcolor=black@0.8:shadowx=1:shadowy=1[out]"
+            )
+            cmd = ['ffmpeg', '-y'] + seek + ['-i', raw_path] + dur + [
+                '-filter_complex', vf,
+                '-map', '[out]', '-map', '0:a?',
+                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+                '-c:a', 'aac', '-movflags', '+faststart', final_path,
+            ]
+
         result = subprocess.run(cmd, capture_output=True, timeout=7200)
         if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
             os.remove(raw_path)
             _set_clip_status(app, clip_id, 'ready')
         else:
             stderr = (result.stderr or b'').decode('utf-8', errors='replace')[-300:]
-            # Watermark failed — remux raw file with +faststart so browser can still play it
-            _remux_faststart(raw_path, final_path)
+            _remux_faststart(raw_path, final_path, ss_offset, duration_sec)
             _set_clip_status(app, clip_id, 'ready', f'Watermark failed (ffmpeg rc={result.returncode}): {stderr}')
     except Exception as e:
         if os.path.exists(raw_path):
-            _remux_faststart(raw_path, final_path)
+            _remux_faststart(raw_path, final_path, ss_offset, duration_sec)
         _set_clip_status(app, clip_id, 'ready', f'Watermark skipped: {str(e)[:200]}')
 
 
@@ -2183,8 +2194,25 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                     f"Downloaded file only {written} bytes — NVR may have returned an error page")
                 return
 
-            # Apply Coda Agency footer watermark (sets status to 'ready' when done)
-            _apply_watermark(app, clip_id, raw_path, output_path)
+            # Calculate how many seconds into the NVR segment the user's window starts.
+            # The NVR often returns a full recording block (e.g. 1 h) even when a shorter
+            # window was requested — we trim to the exact window during the ffmpeg step.
+            import re as _re, urllib.parse as _urlparse
+            ss_offset = 0
+            try:
+                decoded_uri = _urlparse.unquote(playback_uri)
+                m = _re.search(r'starttime=(\d{8}T\d{6}Z)', decoded_uri, _re.IGNORECASE)
+                if m:
+                    seg_start_utc   = datetime.strptime(m.group(1), '%Y%m%dT%H%M%SZ')
+                    seg_start_local = seg_start_utc + timedelta(hours=3)  # Duhok UTC+3
+                    ss_offset = max(0, int((start_dt - seg_start_local).total_seconds()))
+            except Exception:
+                ss_offset = 0
+            duration_sec = int((end_dt - start_dt).total_seconds())
+
+            # Trim to exact window + overlay Z PADEL / Coda Agency watermark
+            _apply_watermark(app, clip_id, raw_path, output_path,
+                             ss_offset=ss_offset, duration_sec=duration_sec)
 
         except Exception as e:
             _set_clip_status(app, clip_id, 'failed', str(e)[:500])
