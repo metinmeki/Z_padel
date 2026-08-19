@@ -2202,7 +2202,17 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
             # 4 ── Concatenate segments if more than one, producing a single raw file.
             raw_path = output_path.replace('.mp4', '_raw.mp4')
             if len(seg_files) == 1:
-                os.replace(seg_files[0], raw_path)
+                # Re-mux single segment to convert pcm_mulaw audio → AAC for MP4
+                remux_ok = _sp.run(
+                    [_ffmpeg(), '-y', '-i', seg_files[0],
+                     '-c:v', 'copy', '-c:a', 'aac', '-ar', '44100', raw_path],
+                    capture_output=True, timeout=600
+                ).returncode == 0
+                if remux_ok and os.path.isfile(raw_path) and os.path.getsize(raw_path) > 10_000:
+                    try: os.remove(seg_files[0])
+                    except OSError: pass
+                else:
+                    os.replace(seg_files[0], raw_path)
             else:
                 _set_clip_status(app, clip_id, 'processing',
                     f'Joining {len(seg_files)} segments…')
@@ -2212,7 +2222,7 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                         fh.write(f"file '{sf}'\n")
                 concat_result = _sp.run(
                     [_ffmpeg(), '-y', '-f', 'concat', '-safe', '0',
-                     '-i', concat_txt, '-c', 'copy', raw_path],
+                     '-i', concat_txt, '-c:v', 'copy', '-c:a', 'aac', '-ar', '44100', raw_path],
                     capture_output=True, timeout=1200
                 )
                 try: os.remove(concat_txt)
