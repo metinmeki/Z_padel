@@ -2141,67 +2141,91 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                     f"NVR search HTTP {r.status_code}: {r.text[:600]}")
                 return
 
-            # 2 ── Extract any playbackURI from the XML (namespace-agnostic)
+            # 2 ── Collect ALL playbackURIs from the XML.
+            # The NVR splits recordings into segments (e.g. 30-60 min each).
+            # A 2-hour request may span several segments — we must download them all.
+            import urllib.parse as _urlparse, re as _re, subprocess as _sp
             root = ET.fromstring(r.text)
-            playback_uri = None
+            all_uris = []
             for el in root.iter():
-                tag = el.tag.split('}')[-1]   # strip namespace
-                if tag == 'playbackURI' and el.text:
-                    playback_uri = el.text.strip()
-                    break
+                if el.tag.split('}')[-1] == 'playbackURI' and el.text and el.text.strip():
+                    all_uris.append(el.text.strip())
 
-            if not playback_uri:
+            if not all_uris:
                 _set_clip_status(app, clip_id, 'failed',
                     f"No recordings found for this time range. "
                     f"Track {track_id} · {start_iso} → {end_iso}. "
                     f"NVR raw: {r.text[:400]}")
                 return
 
-            # 3 ── Use the playbackURI as-is from the search result.
-            # The search was already scoped to our exact time window, so the URI
-            # already points to the right segment. Modifying starttime/endtime
-            # parameters in the URI can cause 400 on some firmware versions.
-            uri = playback_uri
+            # 3 ── Download every segment into a numbered temp file.
+            _set_clip_status(app, clip_id, 'processing',
+                f'Downloading {len(all_uris)} segment(s) from NVR…')
+            seg_files = []
+            for idx, uri in enumerate(all_uris):
+                seg_path = output_path.replace('.mp4', f'_seg{idx}.mp4')
+                dl_url = (
+                    f"{nvr_url}/ISAPI/ContentMgmt/download"
+                    f"?playbackURI={_urlparse.quote(uri, safe=':/@?=&+')}"
+                )
+                r2 = req.get(dl_url, auth=auth, timeout=3600, stream=True)
+                if r2.status_code != 200:
+                    _set_clip_status(app, clip_id, 'failed',
+                        f"NVR download HTTP {r2.status_code} for segment {idx+1}/{len(all_uris)} "
+                        f"· URI={uri[:200]} · resp={r2.text[:200]}")
+                    for f in seg_files:
+                        try: os.remove(f)
+                        except OSError: pass
+                    return
+                written = 0
+                with open(seg_path, 'wb') as fh:
+                    for chunk in r2.iter_content(chunk_size=65536):
+                        if chunk:
+                            fh.write(chunk)
+                            written += len(chunk)
+                if written < 10_000:
+                    try: os.remove(seg_path)
+                    except OSError: pass
+                else:
+                    seg_files.append(seg_path)
 
-            # 4 ── Download — pass URI raw in the URL string (don't let requests
-            # percent-encode it a second time, which confuses the NVR HTTP parser).
-            import urllib.parse as _urlparse
-            download_url = (
-                f"{nvr_url}/ISAPI/ContentMgmt/download"
-                f"?playbackURI={_urlparse.quote(uri, safe=':/@?=&+')}"
-            )
-            r2 = req.get(download_url, auth=auth, timeout=3600, stream=True)
-            if r2.status_code != 200:
-                _set_clip_status(app, clip_id, 'failed',
-                    f"NVR download HTTP {r2.status_code} "
-                    f"· URI={uri[:200]} "
-                    f"· resp={r2.text[:300]}")
+            if not seg_files:
+                _set_clip_status(app, clip_id, 'failed', 'All downloaded segments were empty')
                 return
 
-            # Stream to a _raw temp file; watermark step renames it to final path
+            # 4 ── Concatenate segments if more than one, producing a single raw file.
             raw_path = output_path.replace('.mp4', '_raw.mp4')
-            written = 0
-            with open(raw_path, 'wb') as f:
-                for chunk in r2.iter_content(chunk_size=65536):
-                    if chunk:
-                        f.write(chunk)
-                        written += len(chunk)
+            if len(seg_files) == 1:
+                os.replace(seg_files[0], raw_path)
+            else:
+                _set_clip_status(app, clip_id, 'processing',
+                    f'Joining {len(seg_files)} segments…')
+                concat_txt = output_path.replace('.mp4', '_concat.txt')
+                with open(concat_txt, 'w') as fh:
+                    for sf in seg_files:
+                        fh.write(f"file '{sf}'\n")
+                concat_result = _sp.run(
+                    ['ffmpeg', '-y', '-f', 'concat', '-safe', '0',
+                     '-i', concat_txt, '-c', 'copy', raw_path],
+                    capture_output=True, timeout=1200
+                )
+                try: os.remove(concat_txt)
+                except OSError: pass
+                for sf in seg_files:
+                    try: os.remove(sf)
+                    except OSError: pass
+                if concat_result.returncode != 0 or not os.path.isfile(raw_path):
+                    _set_clip_status(app, clip_id, 'failed',
+                        'ffmpeg concat failed: ' +
+                        (concat_result.stderr or b'').decode('utf-8', errors='replace')[-300:])
+                    return
 
-            if written < 10_000:
-                if os.path.exists(raw_path):
-                    os.remove(raw_path)
-                _set_clip_status(app, clip_id, 'failed',
-                    f"Downloaded file only {written} bytes — NVR may have returned an error page")
-                return
-
-            # Calculate how many seconds into the NVR segment the user's window starts.
-            # The NVR often returns a full recording block (e.g. 1 h) even when a shorter
-            # window was requested — we trim to the exact window during the ffmpeg step.
-            import re as _re, urllib.parse as _urlparse
+            # 5 ── Calculate exact trim window.
+            # First URI's starttime tells us where the concatenated file begins.
             ss_offset = 0
             try:
-                decoded_uri = _urlparse.unquote(playback_uri)
-                m = _re.search(r'starttime=(\d{8}T\d{6}Z)', decoded_uri, _re.IGNORECASE)
+                decoded_first = _urlparse.unquote(all_uris[0])
+                m = _re.search(r'starttime=(\d{8}T\d{6}Z)', decoded_first, _re.IGNORECASE)
                 if m:
                     seg_start_utc   = datetime.strptime(m.group(1), '%Y%m%dT%H%M%SZ')
                     seg_start_local = seg_start_utc + timedelta(hours=3)  # Duhok UTC+3
@@ -2210,7 +2234,7 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                 ss_offset = 0
             duration_sec = int((end_dt - start_dt).total_seconds())
 
-            # Trim to exact window + overlay Z PADEL / Coda Agency watermark
+            # 6 ── Trim to exact window + overlay Z PADEL / Coda Agency watermark.
             _apply_watermark(app, clip_id, raw_path, output_path,
                              ss_offset=ss_offset, duration_sec=duration_sec)
 
