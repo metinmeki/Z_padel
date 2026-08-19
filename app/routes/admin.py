@@ -2193,6 +2193,20 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
 @admin_bp.route('/clips')
 @login_required
 def clips():
+    clips_dir = current_app.config.get('CLIPS_FOLDER', '')
+
+    # Delete expired clips (file + DB record)
+    expired = GameClip.query.filter(GameClip.expires_at < datetime.utcnow()).all()
+    for c in expired:
+        if c.filename:
+            try:
+                os.remove(os.path.join(clips_dir, c.filename))
+            except OSError:
+                pass
+        db.session.delete(c)
+    if expired:
+        db.session.commit()
+
     # Auto-fail clips stuck in "processing" for more than 45 minutes
     # (daemon threads die on server restart, leaving clips stuck forever)
     stuck = GameClip.query.filter_by(status='processing').filter(
