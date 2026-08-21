@@ -425,9 +425,7 @@ def finish_session(session_id):
             session_row.end_time = datetime.utcnow()
             session_row.total_price = session_row.calc_price()
 
-        if was_active:
-            session_row.discount = discount
-
+        session_row.discount = max(discount, session_row.discount or 0)
         session_row.payment_method = payment_method
         session_row.status = 'completed'
         _log('Complete Court Session', f'{session_row.court.name} — {int(session_row.grand_total):,} IQD ({payment_method})')
@@ -459,8 +457,7 @@ def finish_session_debt(session_id):
             session_row.end_time = datetime.utcnow()
             session_row.total_price = session_row.calc_price()
 
-        if was_active:
-            session_row.discount = discount
+        session_row.discount = max(discount, session_row.discount or 0)
         session_row.customer_name = name
         session_row.payment_method = 'debt'
         session_row.status = 'completed'
@@ -718,8 +715,7 @@ def finish_activity_session(session_id):
         if not sess.end_time:
             sess.end_time = datetime.utcnow()
             sess.total_price = sess.calc_price()
-        if was_active:
-            sess.discount = discount
+        sess.discount = max(discount, sess.discount or 0)
         sess.payment_method = payment_method
         sess.status = 'completed'
         _log('Complete Activity Session', f'{sess.table.name} — {int(sess.grand_total):,} IQD ({payment_method})')
@@ -837,8 +833,7 @@ def finish_activity_session_debt(session_id):
         if not sess.end_time:
             sess.end_time    = datetime.utcnow()
             sess.total_price = sess.calc_price()
-        if was_active:
-            sess.discount = discount
+        sess.discount = max(discount, sess.discount or 0)
         sess.customer_name  = name
         sess.payment_method = 'debt'
         sess.status         = 'completed'
