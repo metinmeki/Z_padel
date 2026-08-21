@@ -2062,7 +2062,8 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
                 '-i', logo_path,
                 '-filter_complex', vf,
                 '-map', '[out]', '-map', '0:a?',
-                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+                '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26',
+                '-threads', '2',
                 '-c:a', 'aac', '-movflags', '+faststart', final_path,
             ]
         else:
@@ -2076,11 +2077,14 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
             cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + [
                 '-filter_complex', vf,
                 '-map', '[out]', '-map', '0:a?',
-                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+                '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26',
+                '-threads', '2',
                 '-c:a', 'aac', '-movflags', '+faststart', final_path,
             ]
 
-        result = subprocess.run(cmd, capture_output=True, timeout=7200)
+        import os as _os
+        result = subprocess.run(cmd, capture_output=True, timeout=7200,
+                                preexec_fn=lambda: _os.nice(10))
         if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
             os.remove(raw_path)
             _set_clip_status(app, clip_id, 'ready')
