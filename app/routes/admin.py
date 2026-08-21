@@ -2216,7 +2216,14 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
                     try: os.remove(seg_files[0])
                     except OSError: pass
                 else:
-                    os.replace(seg_files[0], raw_path)
+                    if not os.path.isfile(seg_files[0]):
+                        _set_clip_status(app, clip_id, 'failed', 'Segment file missing (deleted externally?)')
+                        return
+                    try:
+                        os.replace(seg_files[0], raw_path)
+                    except OSError as e:
+                        _set_clip_status(app, clip_id, 'failed', f'Could not use segment file: {e}')
+                        return
             else:
                 _set_clip_status(app, clip_id, 'processing',
                     f'Joining {len(seg_files)} segments…')
