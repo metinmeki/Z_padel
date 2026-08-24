@@ -318,7 +318,9 @@
             <div class="cc-name">{{ court.name }}</div>
             <div class="cc-price-wrap">
               <div class="cc-price">
-                {% if price_min and price_max and price_min != price_max %}
+                {% if court.use_time_pricing == false or court.use_time_pricing == 0 %}
+                  {{ "{:,.0f}".format(court.price_per_hour or 20000) }}
+                {% elif price_min and price_max and price_min != price_max %}
                   {{ "{:,.0f}".format(price_min) }}–{{ "{:,.0f}".format(price_max) }}
                 {% else %}
                   {{ "{:,.0f}".format(price_min or court.price_per_hour or 25000) }}
@@ -347,7 +349,9 @@
           <div class="cc-footer">
             <div class="cc-pricing">
               <div class="cc-price-full">
-                {% if price_min and price_max and price_min != price_max %}
+                {% if court.use_time_pricing == false or court.use_time_pricing == 0 %}
+                  {{ "{:,.0f}".format(court.price_per_hour or 20000) }}
+                {% elif price_min and price_max and price_min != price_max %}
                   {{ "{:,.0f}".format(price_min) }}–{{ "{:,.0f}".format(price_max) }}
                 {% else %}
                   {{ "{:,.0f}".format(price_min or court.price_per_hour or 25000) }}
