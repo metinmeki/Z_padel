@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, request, send_file, jsonify, current_app, send_from_directory, abort
 from flask_login import login_required
-from app.models.main import Court, Booking, Coach, GameClip, Sponsor
+from app.models.main import Court, Booking, Coach, GameClip, Sponsor, PricingRule
 from app.models.store import Product
 
 import os
@@ -38,12 +38,22 @@ def index():
     products = Product.query.filter_by(is_active=True, show_on_website=True).limit(4).all()
     sponsors = Sponsor.query.filter_by(is_active=True).order_by(Sponsor.sort_order, Sponsor.created_at).all()
 
+    rules = PricingRule.query.filter_by(is_active=True).all()
+    if rules:
+        prices = [r.price_per_hour for r in rules]
+        price_min = min(prices)
+        price_max = max(prices)
+    else:
+        price_min = price_max = None
+
     return render_template('index.html',
                            coaches=coaches,
                            courts=courts,
                            total_bookings=total_bookings,
                            products=products,
-                           sponsors=sponsors)
+                           sponsors=sponsors,
+                           price_min=price_min,
+                           price_max=price_max)
 
 
 @main_bp.route('/coaches/<int:coach_id>')

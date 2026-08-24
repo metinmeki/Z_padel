@@ -508,8 +508,20 @@ const MONTH_NAMES = ['يناير','فبراير','مارس','أبريل','ماي
 const MONTH_SHORT = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 {% endif %}
 
+const PRICING_RULES = {{ pricing_rules | tojson }};
+function getPriceForHour(hour) {
+  for (const r of PRICING_RULES) {
+    if (r.start < r.end) {
+      if (hour >= r.start && hour < r.end) return r.price;
+    } else {
+      if (hour >= r.start || hour < r.end) return r.price;
+    }
+  }
+  return selCourtBasePrice;
+}
+
 const today = new Date(); today.setHours(0,0,0,0);
-let selDate = null, selCourt = null, selPrice = 25000, selStart = null, selStartRealMin = -1, dur = 1;
+let selDate = null, selCourt = null, selCourtBasePrice = 25000, selPrice = 25000, selStart = null, selStartRealMin = -1, dur = 1;
 function localDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
@@ -549,7 +561,8 @@ function selectCourt(btn) {
   document.querySelectorAll('.court-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   selCourt = btn.dataset.courtId;
-  selPrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 1);
+  selCourtBasePrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 1);
+  selPrice = selCourtBasePrice;
   // Always keep the hidden form field in sync — prevents wrong court on submission
   document.getElementById('f_court_id').value = selCourt;
   // Update the court banner so user always knows which court they're viewing
@@ -622,7 +635,8 @@ function showDurPanel(startTs, startRealMin) {
   [1, 1.5, 2].forEach(d => {
     const endRealMin = startRealMin + Math.round(d * 60);
     const endTs      = minsToTs(endRealMin);  // wraps mod 24
-    const price      = Math.round(selPrice * d);
+    const startHour  = Math.floor(startRealMin / 60) % 24;
+    const price      = Math.round(getPriceForHour(startHour) * d);
     const dLabel     = d === 1 ? (IS_EN ? '1 hour' : 'ساعة') : d === 1.5 ? (IS_EN ? '1.5 hours' : 'ساعة ونص') : (IS_EN ? '2 hours' : 'ساعتان');
 
     // Verify all intermediate 30-min intervals are free
@@ -688,7 +702,7 @@ function updateSummary() {
   const cName  = tab ? tab.dataset.courtName : '—';
   const em     = selStartRealMin + Math.round(dur * 60);
   const et     = minsToTs(em);
-  const total = Math.round(selPrice * dur);
+  const total = Math.round(getPriceForHour(Math.floor(selStartRealMin / 60) % 24) * dur);
   let bookingDateStr = selDate;
   if (selStartRealMin >= 24 * 60) {
     const dtNext = new Date(selDate + 'T00:00:00');
@@ -721,7 +735,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const firstCourt = document.querySelector('.court-tab');
   if (firstCourt) {
     selCourt = firstCourt.dataset.courtId;
-    selPrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 1);
+    selCourtBasePrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 1);
+    selPrice = selCourtBasePrice;
     document.getElementById('f_court_id').value = selCourt;
     document.getElementById('courtBannerText').textContent = firstCourt.dataset.courtName;
     renderSlots();

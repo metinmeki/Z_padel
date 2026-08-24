@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from datetime import datetime, date, time as dtime, timedelta
 from app import db
-from app.models.main import Court, Booking
+from app.models.main import Court, Booking, PricingRule
 
 def _parse_time(t):
     """Parse HH:MM, treating 24:00 as 23:59."""
@@ -84,11 +84,17 @@ def index():
             m += 30
 
 
+    pricing_rules = [
+        {'start': r.start_hour, 'end': r.end_hour, 'price': r.price_per_hour}
+        for r in PricingRule.query.filter_by(is_active=True).order_by(PricingRule.sort_order).all()
+    ]
+
     return render_template('booking.html',
         courts=courts,
         courts_data=courts_data,
         today=today,
         booked_slots=booked_slots,
+        pricing_rules=pricing_rules,
     )
 
 
@@ -117,8 +123,9 @@ def create():
                 return redirect(url_for('booking.index'))
             bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=b_date,   start_time=s_time,      end_time=midnight,  status='pending', notes=notes)
             bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,    status='pending', notes=notes, is_continuation=True)
-            bk1.total_price = bk1.calc_price(court.price_per_hour)
-            bk2.total_price = bk2.calc_price(court.price_per_hour)
+            rate = PricingRule.rate_for_hour(s_time.hour) or court.price_per_hour
+            bk1.total_price = bk1.calc_price(rate)
+            bk2.total_price = bk2.calc_price(rate)
             db.session.add_all([bk1, bk2])
             db.session.commit()
             try:
@@ -144,7 +151,8 @@ def create():
         bk = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
                      booking_date=b_date, start_time=s_time, end_time=e_time,
                      status='pending', notes=notes)
-        bk.total_price = bk.calc_price(court.price_per_hour)
+        rate = PricingRule.rate_for_hour(s_time.hour) or court.price_per_hour
+        bk.total_price = bk.calc_price(rate)
         db.session.add(bk)
         db.session.commit()
         try:

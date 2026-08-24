@@ -318,7 +318,11 @@
             <div class="cc-name">{{ court.name }}</div>
             <div class="cc-price-wrap">
               <div class="cc-price">
-                {{ "{:,.0f}".format(court.price_per_hour or 25000) }}
+                {% if price_min and price_max and price_min != price_max %}
+                  {{ "{:,.0f}".format(price_min) }}–{{ "{:,.0f}".format(price_max) }}
+                {% else %}
+                  {{ "{:,.0f}".format(price_min or court.price_per_hour or 25000) }}
+                {% endif %}
                 <small>{% if lang == 'en' %}IQD/hr{% else %}د.ع/ساعة{% endif %}</small>
               </div>
             </div>
@@ -343,7 +347,12 @@
           <div class="cc-footer">
             <div class="cc-pricing">
               <div class="cc-price-full">
-                {{ "{:,.0f}".format(court.price_per_hour or 25000) }}<small> {% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small>
+                {% if price_min and price_max and price_min != price_max %}
+                  {{ "{:,.0f}".format(price_min) }}–{{ "{:,.0f}".format(price_max) }}
+                {% else %}
+                  {{ "{:,.0f}".format(price_min or court.price_per_hour or 25000) }}
+                {% endif %}
+                <small> {% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small>
               </div>
             </div>
             <a href="{{ url_for('booking.index') }}" class="cc-book">
