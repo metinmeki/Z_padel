@@ -2064,18 +2064,39 @@ def _ffmpeg():
     return shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
 
 
+def _needs_transcode(path):
+    """Return True if video is NOT already H.264/yuv420p (i.e. needs re-encoding for mobile)."""
+    import shutil, subprocess
+    ffprobe = shutil.which('ffprobe') or '/usr/bin/ffprobe'
+    try:
+        r = subprocess.run(
+            [ffprobe, '-v', 'quiet', '-select_streams', 'v:0',
+             '-show_entries', 'stream=codec_name,pix_fmt', '-of', 'csv=p=0', path],
+            capture_output=True, timeout=10,
+        )
+        out = r.stdout.decode(errors='replace').strip().lower()
+        return not ('h264' in out and 'yuv420p' in out)
+    except Exception:
+        return True  # assume transcode needed if ffprobe fails
+
+
 def _remux_faststart(raw_path, final_path, ss_offset=0, duration_sec=None):
-    """Trim + re-encode to H.264/AAC with +faststart for universal mobile compatibility."""
+    """Trim + remux with +faststart. Stream-copies H.264/yuv420p; re-encodes others for mobile."""
     import subprocess
     seek = ['-ss', str(int(ss_offset))] if ss_offset > 1 else []
     dur  = ['-t',  str(int(duration_sec))] if duration_sec else []
-    try:
-        cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + [
+    transcode = _needs_transcode(raw_path)
+    if transcode:
+        video_args = [
             '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28',
             '-pix_fmt', 'yuv420p', '-profile:v', 'baseline', '-level', '3.1',
             '-threads', '2',
-            '-c:a', 'aac', '-ar', '44100',
-            '-movflags', '+faststart', final_path,
+        ]
+    else:
+        video_args = ['-c:v', 'copy']
+    try:
+        cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + video_args + [
+            '-c:a', 'aac', '-ar', '44100', '-movflags', '+faststart', final_path,
         ]
         result = subprocess.run(cmd, capture_output=True, timeout=600)
         if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
