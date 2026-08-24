@@ -736,14 +736,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const dp = document.getElementById('datePicker');
   dp.min = todayStr;
   quickDate(0, document.getElementById('qToday'));
-  const firstCourt = document.querySelector('.court-tab');
-  if (firstCourt) {
-    selCourt = firstCourt.dataset.courtId;
-    selCourtBasePrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 1);
-    selCourtUseTimePricing = firstCourt.dataset.useTimePricing !== '0';
+  const preselect = new URLSearchParams(location.search).get('court_id');
+  const initialTab = (preselect
+    ? document.querySelector(`.court-tab[data-court-id="${preselect}"]`)
+    : null) || document.querySelector('.court-tab');
+  if (initialTab) {
+    document.querySelectorAll('.court-tab').forEach(b => b.classList.remove('active'));
+    initialTab.classList.add('active');
+    selCourt = initialTab.dataset.courtId;
+    selCourtBasePrice = Math.round((parseFloat(initialTab.dataset.courtPrice) || 25000) * 1);
+    selCourtUseTimePricing = initialTab.dataset.useTimePricing !== '0';
     selPrice = selCourtBasePrice;
     document.getElementById('f_court_id').value = selCourt;
-    document.getElementById('courtBannerText').textContent = firstCourt.dataset.courtName;
+    document.getElementById('courtBannerText').textContent = initialTab.dataset.courtName;
     renderSlots();
   }
 

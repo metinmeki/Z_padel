@@ -330,7 +330,7 @@
             </div>
           </div>
           <div class="cc-hover-btn">
-            <a href="{{ url_for('booking.index') }}" class="cc-hover-link">
+            <a href="{{ url_for('booking.index') }}?court_id={{ court.id }}" class="cc-hover-link">
               <i class="fas fa-calendar-plus"></i>
               {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
             </a>
@@ -359,7 +359,7 @@
                 <small> {% if lang == 'en' %}IQD / hr{% else %}د.ع / ساعة{% endif %}</small>
               </div>
             </div>
-            <a href="{{ url_for('booking.index') }}" class="cc-book">
+            <a href="{{ url_for('booking.index') }}?court_id={{ court.id }}" class="cc-book">
               <i class="fas fa-calendar-plus"></i><span>{% if lang == 'en' %}Book{% else %}احجز{% endif %}</span>
             </a>
           </div>
