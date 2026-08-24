@@ -2088,6 +2088,7 @@ def _remux_faststart(raw_path, final_path, ss_offset=0, duration_sec=None):
     transcode = _needs_transcode(raw_path)
     if transcode:
         video_args = [
+            '-vf', 'scale=-2:720',
             '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28',
             '-pix_fmt', 'yuv420p', '-profile:v', 'baseline', '-level', '3.1',
             '-threads', '2',
@@ -2128,8 +2129,9 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
     try:
         if has_logo:
             vf = (
+                '[0:v]scale=-2:720[scaled];'
                 '[1:v]scale=110:-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.90[logo];'
-                '[0:v]drawbox=x=0:y=ih-56:w=iw:h=56:color=black@0.65:t=fill[bg];'
+                '[scaled]drawbox=x=0:y=ih-56:w=iw:h=56:color=black@0.65:t=fill[bg];'
                 '[bg][logo]overlay=W-w-12:H-h-10[vid];'
                 "[vid]drawtext=text='Z PADEL':fontsize=23:fontcolor=white:"
                 "x=14:y=H-50:shadowcolor=black@0.9:shadowx=1:shadowy=1[v2];"
@@ -2147,7 +2149,8 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
             ]
         else:
             vf = (
-                "[0:v]drawbox=x=0:y=ih-56:w=iw:h=56:color=black@0.65:t=fill[bg];"
+                "[0:v]scale=-2:720[scaled];"
+                "[scaled]drawbox=x=0:y=ih-56:w=iw:h=56:color=black@0.65:t=fill[bg];"
                 "[bg]drawtext=text='Z PADEL':fontsize=23:fontcolor=white:"
                 "x=14:y=H-50:shadowcolor=black@0.9:shadowx=1:shadowy=1[v2];"
                 "[v2]drawtext=text='Coda Agency':fontsize=15:fontcolor=white@0.80:"
