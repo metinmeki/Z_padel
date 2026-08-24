@@ -2065,19 +2065,26 @@ def _ffmpeg():
 
 
 def _remux_faststart(raw_path, final_path, ss_offset=0, duration_sec=None):
-    """Trim + remux raw NVR file with +faststart. ss_offset/duration_sec trim to exact window."""
+    """Trim + re-encode to H.264/AAC with +faststart for universal mobile compatibility."""
     import subprocess
     seek = ['-ss', str(int(ss_offset))] if ss_offset > 1 else []
     dur  = ['-t',  str(int(duration_sec))] if duration_sec else []
     try:
-        cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + ['-c', 'copy', '-movflags', '+faststart', final_path]
+        cmd = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + [
+            '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28',
+            '-pix_fmt', 'yuv420p', '-profile:v', 'baseline', '-level', '3.1',
+            '-threads', '2',
+            '-c:a', 'aac', '-ar', '44100',
+            '-movflags', '+faststart', final_path,
+        ]
         result = subprocess.run(cmd, capture_output=True, timeout=600)
         if result.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
             os.remove(raw_path)
             return True
     except Exception:
         pass
-    os.replace(raw_path, final_path)
+    if os.path.exists(raw_path):
+        os.replace(raw_path, final_path)
     return False
 
 
@@ -2113,8 +2120,9 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
                 '-filter_complex', vf,
                 '-map', '[out]', '-map', '0:a?',
                 '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26',
+                '-pix_fmt', 'yuv420p', '-profile:v', 'baseline', '-level', '3.1',
                 '-threads', '2',
-                '-c:a', 'aac', '-movflags', '+faststart', final_path,
+                '-c:a', 'aac', '-ar', '44100', '-movflags', '+faststart', final_path,
             ]
         else:
             vf = (
@@ -2128,8 +2136,9 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
                 '-filter_complex', vf,
                 '-map', '[out]', '-map', '0:a?',
                 '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26',
+                '-pix_fmt', 'yuv420p', '-profile:v', 'baseline', '-level', '3.1',
                 '-threads', '2',
-                '-c:a', 'aac', '-movflags', '+faststart', final_path,
+                '-c:a', 'aac', '-ar', '44100', '-movflags', '+faststart', final_path,
             ]
 
         import os as _os
