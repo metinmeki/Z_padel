@@ -16,7 +16,7 @@ from app.models.main  import (Admin, Court, Booking, CancelRequest,
                                Coach, TrainingRequest, SystemSetting, GameClip,
                                ActivityTable, ActivitySession, ActivitySessionItem, ACTIVITY_META,
                                Sponsor, CourtSession, CourtSessionItem, ActivityLog, StaffSlot, StaffSlotItem,
-                               PushSubscription)
+                               PushSubscription, PricingRule)
 from app.models.store import (Category, Product, Order, OrderItem,
                                Expense, ExpenseCategory, StaffConsumption)
 from sqlalchemy import func, case
@@ -1675,6 +1675,53 @@ def danger_reset_settings():
 def export_backup():
     flash('ميزة النسخ الاحتياطي قيد التطوير.', 'info')
     return redirect(url_for('admin.settings'))
+
+
+# ════════════════════════════════════════════
+# PRICING RULES
+# ════════════════════════════════════════════
+@admin_bp.route('/pricing')
+@login_required
+def pricing():
+    rules = PricingRule.query.order_by(PricingRule.sort_order, PricingRule.start_hour).all()
+    return render_template('admin/pricing.html', rules=rules)
+
+
+@admin_bp.route('/pricing/save', methods=['POST'])
+@login_required
+def pricing_save():
+    rule_id = request.form.get('rule_id')
+    label          = request.form.get('label', '').strip()
+    start_hour     = int(request.form.get('start_hour', 0))
+    end_hour       = int(request.form.get('end_hour', 0))
+    price_per_hour = float(request.form.get('price_per_hour', 0))
+    sort_order     = int(request.form.get('sort_order', 0))
+
+    if rule_id:
+        rule = PricingRule.query.get_or_404(int(rule_id))
+    else:
+        rule = PricingRule()
+        db.session.add(rule)
+
+    rule.label          = label
+    rule.start_hour     = start_hour
+    rule.end_hour       = end_hour
+    rule.price_per_hour = price_per_hour
+    rule.sort_order     = sort_order
+    rule.is_active      = True
+    db.session.commit()
+    flash('تم حفظ قاعدة التسعير.', 'success')
+    return redirect(url_for('admin.pricing'))
+
+
+@admin_bp.route('/pricing/delete/<int:rule_id>', methods=['POST'])
+@login_required
+def pricing_delete(rule_id):
+    rule = PricingRule.query.get_or_404(rule_id)
+    db.session.delete(rule)
+    db.session.commit()
+    flash('تم حذف قاعدة التسعير.', 'success')
+    return redirect(url_for('admin.pricing'))
 
 
 # ════════════════════════════════════════════

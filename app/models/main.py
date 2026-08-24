@@ -425,8 +425,16 @@ class CourtSession(db.Model):
 
     def calc_price(self):
         import math
+        from datetime import timedelta
         minutes = self.elapsed_minutes
-        rate = self.court.price_per_hour if self.court else 40000
+        # Determine rate: check time-based pricing rules first (Duhok = UTC+3)
+        try:
+            local_hour = (self.start_time + timedelta(hours=3)).hour
+            rate = PricingRule.rate_for_hour(local_hour)
+        except Exception:
+            rate = None
+        if rate is None:
+            rate = self.court.price_per_hour if self.court else 40000
         # Each 30-min block has a 15-min grace period before stepping up:
         # ≤75 min → 1h, ≤105 → 1.5h, ≤135 → 2h, ≤165 → 2.5h, ≤195 → 3h …
         if minutes <= 75:
@@ -474,6 +482,38 @@ class CourtSessionItem(db.Model):
 
     def __repr__(self):
         return f'<CourtSessionItem session#{self.session_id} {self.product_name}>'
+
+
+# ═══════════════════════════════════════════
+# PRICING RULES (time-based court pricing)
+# ═══════════════════════════════════════════
+class PricingRule(db.Model):
+    __tablename__ = 'pricing_rules'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    label          = db.Column(db.String(100), default='')
+    start_hour     = db.Column(db.Integer, nullable=False)   # local hour 0-23
+    end_hour       = db.Column(db.Integer, nullable=False)   # local hour 0-23
+    price_per_hour = db.Column(db.Float,   nullable=False)
+    is_active      = db.Column(db.Boolean, default=True)
+    sort_order     = db.Column(db.Integer, default=0)
+
+    @staticmethod
+    def rate_for_hour(local_hour):
+        """Return price/hour for the given local hour, or None if no rule matches."""
+        rules = PricingRule.query.filter_by(is_active=True).order_by(PricingRule.sort_order).all()
+        for r in rules:
+            if r.start_hour < r.end_hour:
+                if r.start_hour <= local_hour < r.end_hour:
+                    return r.price_per_hour
+            else:
+                # Cross-midnight: e.g. 18 → 3
+                if local_hour >= r.start_hour or local_hour < r.end_hour:
+                    return r.price_per_hour
+        return None
+
+    def __repr__(self):
+        return f'<PricingRule {self.label} {self.start_hour}-{self.end_hour} {self.price_per_hour}>'
 
 
 # ═══════════════════════════════════════════

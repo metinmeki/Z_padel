@@ -1197,6 +1197,13 @@
         <span class="nav-label">{% if lang == 'en' %}Staff Tabs Names{% elif lang == 'ku' %}ناوی تابەکانی ستاف{% else %}أسماء تبويبات الموظفين{% endif %}</span>
       </a>
     </div>
+    <div class="nav-item-wrapper">
+      <a href="{{ url_for('admin.pricing') }}"
+         class="nav-link-custom {% if request.endpoint in ('admin.pricing','admin.pricing_save','admin.pricing_delete') %}active{% endif %}">
+        <i class="fas fa-tag nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Court Pricing{% elif lang == 'ku' %}نرخی زەوی{% else %}أسعار الملاعب{% endif %}</span>
+      </a>
+    </div>
     {% endif %}
 
     {# STORE — perm_products and/or perm_orders #}

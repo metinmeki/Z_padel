@@ -1,0 +1,193 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if lang == 'en' %}Pricing Rules{% else %}أسعار الملاعب{% endif %} — Z Padel{% endblock %}
+{% block page_icon %}fas fa-tag{% endblock %}
+{% block page_title %}{% if lang == 'en' %}Court Pricing Rules{% else %}أسعار الملاعب حسب الوقت{% endif %}{% endblock %}
+
+{% block extra_styles %}
+.pricing-card { background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.5rem; }
+.pricing-card-header { padding: 14px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+.pricing-card-header h3 { font-size: 15px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+.pricing-table { width: 100%; border-collapse: collapse; }
+.pricing-table th { background: #f8fafd; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; padding: 10px 16px; border-bottom: 1px solid var(--border-color); }
+.pricing-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; }
+.pricing-table tr:last-child td { border-bottom: none; }
+.pricing-table tr:hover td { background: #f8fafd; }
+.time-badge { display: inline-flex; align-items: center; gap: 5px; background: #eff6ff; color: #1d4ed8; border-radius: 20px; padding: 3px 10px; font-weight: 700; font-size: 13px; }
+.price-badge { display: inline-flex; align-items: center; gap: 5px; background: #f0fdf4; color: #15803d; border-radius: 20px; padding: 3px 10px; font-weight: 800; font-size: 14px; }
+.empty-hint { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+.empty-hint i { font-size: 2.5rem; display: block; margin-bottom: .8rem; opacity: .15; }
+{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show mb-3" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Info banner -->
+<div class="alert alert-info mb-3" style="font-size:14px;">
+  <i class="fas fa-info-circle me-1"></i>
+  {% if lang == 'en' %}
+    Pricing rules determine the court rate based on the session start time (Duhok local time). If no rule matches, the court's default price is used.
+  {% else %}
+    قواعد التسعير تحدد سعر الملعب حسب وقت بدء الجلسة (بتوقيت دهوك). إذا لم تتطابق أي قاعدة يُستخدم سعر الملعب الافتراضي.
+  {% endif %}
+</div>
+
+<!-- Current Rules -->
+<div class="pricing-card">
+  <div class="pricing-card-header">
+    <h3><i class="fas fa-list" style="color:var(--brand-blue);"></i>
+      {% if lang == 'en' %}Active Pricing Rules{% else %}قواعد التسعير الحالية{% endif %}
+    </h3>
+  </div>
+
+  {% if rules %}
+  <table class="pricing-table">
+    <thead>
+      <tr>
+        <th>{% if lang == 'en' %}Label{% else %}الاسم{% endif %}</th>
+        <th>{% if lang == 'en' %}Time Range{% else %}نطاق الوقت{% endif %}</th>
+        <th>{% if lang == 'en' %}Price / Hour{% else %}السعر / ساعة{% endif %}</th>
+        <th>{% if lang == 'en' %}Order{% else %}الترتيب{% endif %}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rules %}
+      <tr>
+        <td><strong>{{ r.label or '—' }}</strong></td>
+        <td>
+          <span class="time-badge">
+            <i class="fas fa-clock"></i>
+            {{ '%02d:00' % r.start_hour }} → {{ '%02d:00' % r.end_hour }}
+            {% if r.start_hour > r.end_hour %}<small style="opacity:.6;">(crosses midnight)</small>{% endif %}
+          </span>
+        </td>
+        <td>
+          <span class="price-badge">
+            <i class="fas fa-coins"></i>
+            {{ '{:,.0f}'.format(r.price_per_hour) }} IQD
+          </span>
+        </td>
+        <td style="color:var(--text-muted);">{{ r.sort_order }}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="editRule({{ r.id }}, '{{ r.label }}', {{ r.start_hour }}, {{ r.end_hour }}, {{ r.price_per_hour|int }}, {{ r.sort_order }})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <form method="POST" action="{{ url_for('admin.pricing_delete', rule_id=r.id) }}" style="display:inline;" onsubmit="return confirm('{% if lang == 'en' %}Delete this rule?{% else %}حذف هذه القاعدة؟{% endif %}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-hint">
+    <i class="fas fa-tag"></i>
+    <p>{% if lang == 'en' %}No pricing rules yet. Add one below.{% else %}لا توجد قواعد تسعير. أضف واحدة أدناه.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Add / Edit Form -->
+<div class="pricing-card">
+  <div class="pricing-card-header">
+    <h3><i class="fas fa-plus-circle" style="color:var(--brand-blue);"></i>
+      <span id="formTitle">{% if lang == 'en' %}Add Pricing Rule{% else %}إضافة قاعدة تسعير{% endif %}</span>
+    </h3>
+    <button class="btn btn-sm btn-outline-secondary" id="resetFormBtn" onclick="resetForm()" style="display:none;">
+      <i class="fas fa-times me-1"></i>{% if lang == 'en' %}Cancel Edit{% else %}إلغاء التعديل{% endif %}
+    </button>
+  </div>
+  <div style="padding: 1.2rem 1.4rem;">
+    <form method="POST" action="{{ url_for('admin.pricing_save') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="rule_id" id="ruleId" value="">
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">{% if lang == 'en' %}Label{% else %}الاسم{% endif %}</label>
+          <input type="text" name="label" id="fLabel" class="form-control"
+                 placeholder="{% if lang == 'en' %}e.g. Morning{% else %}مثال: صباحي{% endif %}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">{% if lang == 'en' %}From (hour){% else %}من (ساعة){% endif %}</label>
+          <select name="start_hour" id="fStart" class="form-select">
+            {% for h in range(24) %}
+            <option value="{{ h }}" {% if h == 8 %}selected{% endif %}>{{ '%02d:00' % h }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">{% if lang == 'en' %}To (hour){% else %}إلى (ساعة){% endif %}</label>
+          <select name="end_hour" id="fEnd" class="form-select">
+            {% for h in range(24) %}
+            <option value="{{ h }}" {% if h == 18 %}selected{% endif %}>{{ '%02d:00' % h }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">{% if lang == 'en' %}Price / Hour (IQD){% else %}السعر / ساعة (د.ع){% endif %}</label>
+          <input type="number" name="price_per_hour" id="fPrice" class="form-control"
+                 min="0" step="500" value="25000" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">{% if lang == 'en' %}Order{% else %}الترتيب{% endif %}</label>
+          <input type="number" name="sort_order" id="fOrder" class="form-control" value="0" min="0">
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <small class="text-muted">
+          <i class="fas fa-lightbulb me-1"></i>
+          {% if lang == 'en' %}
+            For cross-midnight rules (e.g. 18:00 → 03:00), set From=18 and To=3.
+          {% else %}
+            للقواعد التي تتجاوز منتصف الليل (مثل 18:00 → 03:00)، اضبط من=18 وإلى=3.
+          {% endif %}
+        </small>
+      </div>
+
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save me-1"></i>
+          <span id="submitLabel">{% if lang == 'en' %}Add Rule{% else %}إضافة القاعدة{% endif %}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function editRule(id, label, start, end, price, order) {
+  document.getElementById('ruleId').value = id;
+  document.getElementById('fLabel').value = label;
+  document.getElementById('fStart').value = start;
+  document.getElementById('fEnd').value = end;
+  document.getElementById('fPrice').value = price;
+  document.getElementById('fOrder').value = order;
+  document.getElementById('formTitle').textContent = '{{ 'Edit Pricing Rule' if lang == 'en' else 'تعديل قاعدة التسعير' }}';
+  document.getElementById('submitLabel').textContent = '{{ 'Save Changes' if lang == 'en' else 'حفظ التعديلات' }}';
+  document.getElementById('resetFormBtn').style.display = '';
+  document.getElementById('fLabel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetForm() {
+  document.getElementById('ruleId').value = '';
+  document.getElementById('fLabel').value = '';
+  document.getElementById('fStart').value = 8;
+  document.getElementById('fEnd').value = 18;
+  document.getElementById('fPrice').value = 25000;
+  document.getElementById('fOrder').value = 0;
+  document.getElementById('formTitle').textContent = '{{ 'Add Pricing Rule' if lang == 'en' else 'إضافة قاعدة تسعير' }}';
+  document.getElementById('submitLabel').textContent = '{{ 'Add Rule' if lang == 'en' else 'إضافة القاعدة' }}';
+  document.getElementById('resetFormBtn').style.display = 'none';
+}
+</script>
+{% endblock %}
