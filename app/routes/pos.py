@@ -903,8 +903,7 @@ def combined_checkout():
             if not s.end_time:
                 s.end_time = datetime.utcnow()
                 s.total_price = s.calc_price()
-            # Only apply discount to active sessions (pending_payment already discounted)
-            if was_active and discount > 0:
+            if discount > 0:
                 d = remaining_discount if i == len(sessions_to_pay) - 1 else per_session
                 remaining_discount -= d
                 s.discount = d
