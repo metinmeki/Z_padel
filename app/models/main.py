@@ -63,9 +63,10 @@ class Court(db.Model):
     color          = db.Column(db.String(10),  default='#1565C0')
     capacity       = db.Column(db.Integer,     nullable=True)
     surface_type   = db.Column(db.String(50),  nullable=True)
-    is_active      = db.Column(db.Boolean,     default=True)
-    created_at     = db.Column(db.DateTime,    default=datetime.utcnow)
-    image          = db.Column(db.String(200), nullable=True)
+    is_active        = db.Column(db.Boolean,     default=True)
+    use_time_pricing = db.Column(db.Boolean,     default=True)
+    created_at       = db.Column(db.DateTime,    default=datetime.utcnow)
+    image            = db.Column(db.String(200), nullable=True)
 
     # lazy='select' prevents loading ALL bookings when court is accessed
     bookings = db.relationship('Booking', backref='court',
@@ -427,10 +428,12 @@ class CourtSession(db.Model):
         import math
         from datetime import timedelta
         minutes = self.elapsed_minutes
-        # Determine rate: check time-based pricing rules first (Duhok = UTC+3)
+        # Determine rate: check time-based pricing rules unless court is exempt
+        rate = None
         try:
-            local_hour = (self.start_time + timedelta(hours=3)).hour
-            rate = PricingRule.rate_for_hour(local_hour)
+            if self.court and self.court.use_time_pricing is not False:
+                local_hour = (self.start_time + timedelta(hours=3)).hour
+                rate = PricingRule.rate_for_hour(local_hour)
         except Exception:
             rate = None
         if rate is None:

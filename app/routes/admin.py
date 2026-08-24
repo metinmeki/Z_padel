@@ -722,7 +722,8 @@ def edit_court(court_id):
         court.description    = request.form.get('description', court.description)
         court.capacity       = request.form.get('capacity') or None
         court.surface_type   = request.form.get('surface_type', court.surface_type)
-        court.is_active      = request.form.get('is_active', '1') == '1'
+        court.is_active        = request.form.get('is_active', '1') == '1'
+        court.use_time_pricing = request.form.get('use_time_pricing', '1') == '1'
         if request.form.get('remove_image'):
             court.image = None
         new_img = save_upload(request.files.get('image'))

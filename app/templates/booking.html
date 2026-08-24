@@ -380,10 +380,12 @@
       <!-- Court tabs -->
       <div class="court-tabs" id="courtTabs">
         {% for court in courts %}
+        {% set _cd = courts_data | selectattr('id', 'equalto', court.id) | list | first %}
         <button class="court-tab {% if loop.first %}active{% endif %}"
                 data-court-id="{{ court.id }}"
                 data-court-name="{{ court.name }}"
                 data-court-price="{{ court.price_per_hour|default(25000) }}"
+                data-use-time-pricing="{{ '1' if (_cd and _cd.use_time_pricing) else '0' }}"
                 onclick="selectCourt(this)">
           <span class="court-dot" style="background:{{ court.color|default('#596770') }};"></span>
           {{ court.name }}
@@ -510,6 +512,7 @@ const MONTH_SHORT = ['يناير','فبراير','مارس','أبريل','ماي
 
 const PRICING_RULES = {{ pricing_rules | tojson }};
 function getPriceForHour(hour) {
+  if (!selCourtUseTimePricing) return selCourtBasePrice;
   for (const r of PRICING_RULES) {
     if (r.start < r.end) {
       if (hour >= r.start && hour < r.end) return r.price;
@@ -521,7 +524,7 @@ function getPriceForHour(hour) {
 }
 
 const today = new Date(); today.setHours(0,0,0,0);
-let selDate = null, selCourt = null, selCourtBasePrice = 25000, selPrice = 25000, selStart = null, selStartRealMin = -1, dur = 1;
+let selDate = null, selCourt = null, selCourtBasePrice = 25000, selCourtUseTimePricing = true, selPrice = 25000, selStart = null, selStartRealMin = -1, dur = 1;
 function localDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
@@ -562,6 +565,7 @@ function selectCourt(btn) {
   btn.classList.add('active');
   selCourt = btn.dataset.courtId;
   selCourtBasePrice = Math.round((parseFloat(btn.dataset.courtPrice) || 25000) * 1);
+  selCourtUseTimePricing = btn.dataset.useTimePricing !== '0';
   selPrice = selCourtBasePrice;
   // Always keep the hidden form field in sync — prevents wrong court on submission
   document.getElementById('f_court_id').value = selCourt;
@@ -736,6 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (firstCourt) {
     selCourt = firstCourt.dataset.courtId;
     selCourtBasePrice = Math.round((parseFloat(firstCourt.dataset.courtPrice) || 25000) * 1);
+    selCourtUseTimePricing = firstCourt.dataset.useTimePricing !== '0';
     selPrice = selCourtBasePrice;
     document.getElementById('f_court_id').value = selCourt;
     document.getElementById('courtBannerText').textContent = firstCourt.dataset.courtName;

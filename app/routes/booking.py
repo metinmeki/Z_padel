@@ -21,10 +21,11 @@ def index():
     courts_data = []
     for c in courts:
         courts_data.append({
-            'id':             c.id,
-            'name':           c.name,
-            'price_per_hour': c.price_per_hour or 25000,
-            'color':          c.color or '#1565C0',
+            'id':               c.id,
+            'name':             c.name,
+            'price_per_hour':   c.price_per_hour or 25000,
+            'color':            c.color or '#1565C0',
+            'use_time_pricing': bool(c.use_time_pricing is not False and c.use_time_pricing != 0),
         })
 
     # Build booked slots dict: {"court_id:date": ["HH:MM", ...]} covering every 30-min interval
@@ -123,7 +124,8 @@ def create():
                 return redirect(url_for('booking.index'))
             bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=b_date,   start_time=s_time,      end_time=midnight,  status='pending', notes=notes)
             bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,    status='pending', notes=notes, is_continuation=True)
-            rate = PricingRule.rate_for_hour(s_time.hour) or court.price_per_hour
+            _utp = court.use_time_pricing is not False and court.use_time_pricing != 0
+            rate = (PricingRule.rate_for_hour(s_time.hour) if _utp else None) or court.price_per_hour
             bk1.total_price = bk1.calc_price(rate)
             bk2.total_price = bk2.calc_price(rate)
             db.session.add_all([bk1, bk2])

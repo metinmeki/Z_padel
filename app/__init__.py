@@ -115,6 +115,7 @@ def _add_missing_columns(app):
         "ALTER TABLE products ADD COLUMN barcode VARCHAR(50)",
         "ALTER TABLE game_clips ADD COLUMN status VARCHAR(20) DEFAULT 'ready'",
         "ALTER TABLE game_clips ADD COLUMN status_msg TEXT",
+        "ALTER TABLE courts ADD COLUMN use_time_pricing BOOLEAN DEFAULT 1",
     ]
     with app.app_context():
         with db.engine.connect() as conn:

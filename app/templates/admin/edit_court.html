@@ -137,6 +137,21 @@
             </div>
           </div>
 
+          <!-- TIME-BASED PRICING -->
+          <div class="col-12">
+            <label class="form-label-z">{% if lang == 'en' %}Time-Based Pricing{% else %}التسعير حسب الوقت{% endif %}</label>
+            <div style="display:flex;gap:12px;margin-top:6px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;font-weight:600;">
+                <input type="radio" name="use_time_pricing" value="1" {% if court.use_time_pricing is not false and court.use_time_pricing != 0 %}checked{% endif %} style="cursor:pointer;">
+                <span style="color:#1565C0;"><i class="fas fa-clock"></i> {% if lang == 'en' %}Use time rules (peak/off-peak rates){% else %}استخدم قواعد الوقت (أسعار الذروة){% endif %}</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;font-weight:600;">
+                <input type="radio" name="use_time_pricing" value="0" {% if court.use_time_pricing == false or court.use_time_pricing == 0 %}checked{% endif %} style="cursor:pointer;">
+                <span style="color:#FB8C00;"><i class="fas fa-tag"></i> {% if lang == 'en' %}Fixed price always (ignore time rules){% else %}سعر ثابت دائماً (تجاهل قواعد الوقت){% endif %}</span>
+              </label>
+            </div>
+          </div>
+
         </div>
 
         <div style="display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-color);">
