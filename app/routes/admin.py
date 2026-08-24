@@ -298,8 +298,8 @@ def dashboard():
 
     now   = datetime.now()
     now_h = now.hour
-    # Business day starts at 06:00 — before that, "today" is still yesterday
-    BUSINESS_START = 6
+    # Business closes at 03:00 local — before that, "today" is still yesterday
+    BUSINESS_START = 3
     today = date.today() if now_h >= BUSINESS_START else date.today() - timedelta(days=1)
     biz_tomorrow = today + timedelta(days=1)
 
@@ -1216,7 +1216,9 @@ def export_expenses():
 @admin_bp.route('/reports')
 @login_required
 def reports():
-    today  = date.today()
+    # Use UTC date so "today" resets at midnight UTC = 03:00 local (Duhok UTC+3),
+    # which matches the business closing time.
+    today  = datetime.utcnow().date()
     period = request.args.get('period', 'today')
     date_from_str = request.args.get('date_from', '')
     date_to_str   = request.args.get('date_to', '')
