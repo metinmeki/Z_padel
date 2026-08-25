@@ -2191,43 +2191,6 @@ def _apply_watermark(app, clip_id, raw_path, final_path, ss_offset=0, duration_s
         _set_clip_status(app, clip_id, 'ready', f'Watermark skipped: {str(e)[:200]}')
 
 
-def _try_rtsp_download(nvr_url, nvr_user, nvr_pass, track_id,
-                        start_utc, end_utc, duration_sec, out_path):
-    """Try RTSP playback — downloads only exact window needed (much faster than HTTP full-segment).
-    Uses a short connection timeout so it fails fast when RTSP is unavailable."""
-    import re as _re, subprocess as _sp, shutil
-    m = _re.search(r'https?://([^:/]+)', nvr_url)
-    if not m:
-        return False
-    nvr_host = m.group(1)
-    ffmpeg = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
-    for rtsp_port in (554, 65020):
-        rtsp_uri = (
-            f"rtsp://{nvr_user}:{nvr_pass}@{nvr_host}:{rtsp_port}"
-            f"/Streaming/tracks/{track_id}"
-            f"?starttime={start_utc}&endtime={end_utc}"
-        )
-        try:
-            r = _sp.run([
-                ffmpeg, '-y',
-                '-rtsp_transport', 'tcp',
-                '-timeout', '10000000',   # 10 s connection timeout (microseconds)
-                '-i', rtsp_uri,
-                '-t', str(int(duration_sec) + 10),
-                '-c:v', 'copy', '-c:a', 'aac', '-ar', '44100',
-                out_path,
-            ], capture_output=True, timeout=min(int(duration_sec) + 60, 300))
-            if r.returncode == 0 and os.path.isfile(out_path) and os.path.getsize(out_path) > 10_000:
-                return True
-            if os.path.exists(out_path):
-                try: os.remove(out_path)
-                except OSError: pass
-        except Exception:
-            if os.path.exists(out_path):
-                try: os.remove(out_path)
-                except OSError: pass
-    return False
-
 
 def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
     """Background thread: search NVR recordings and stream to output_path."""
@@ -2301,16 +2264,7 @@ def _download_nvr_clip(app, clip_id, channel, start_dt, end_dt, output_path):
 
             duration_sec = int((end_dt - start_dt).total_seconds())
 
-            # 3a ── Fast path: try RTSP direct download (only exact window, no full segment).
-            rtsp_seg = output_path.replace('.mp4', '_seg0.mp4')
-            _set_clip_status(app, clip_id, 'processing', 'Connecting to NVR via RTSP…')
-            if _try_rtsp_download(nvr_url, nvr_user, nvr_pass, track_id,
-                                   start_utc, end_utc, duration_sec, rtsp_seg):
-                _apply_watermark(app, clip_id, rtsp_seg, output_path,
-                                 ss_offset=0, duration_sec=duration_sec)
-                return
-
-            # 3b ── Fallback: HTTP full-segment download then trim.
+            # 3 ── Download every segment into a numbered temp file.
             _set_clip_status(app, clip_id, 'processing',
                 f'Downloading {len(all_uris)} segment(s) from NVR…')
             seg_files = []
