@@ -1364,6 +1364,10 @@ def reports():
         CourtSession.status == 'completed',
         CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
 
+    court_discounts = db.session.query(func.sum(CourtSession.discount)).filter(
+        CourtSession.status == 'completed',
+        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
+
     activity_sessions_rev = db.session.query(func.sum(ActivitySession.total_price)).filter(
         ActivitySession.status == 'completed',
         ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
@@ -1373,12 +1377,18 @@ def reports():
         ActivitySession.status == 'completed',
         ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
 
+    activity_discounts = db.session.query(func.sum(ActivitySession.discount)).filter(
+        ActivitySession.status == 'completed',
+        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
+
     quick_sale_rev = db.session.query(func.sum(Order.total_price)).filter(
         Order.status == 'completed',
         Order.customer_name == 'زبون POS',
         Order.created_at >= dt_start, Order.created_at <= dt_end).scalar() or 0
 
-    pos_rev = int(court_sessions_rev + court_items_rev + activity_sessions_rev + activity_items_rev + quick_sale_rev)
+    pos_rev = int(court_sessions_rev + court_items_rev - court_discounts
+                  + activity_sessions_rev + activity_items_rev - activity_discounts
+                  + quick_sale_rev)
     pos_sessions_count = CourtSession.query.filter(
         CourtSession.status == 'completed',
         CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).count() + \
