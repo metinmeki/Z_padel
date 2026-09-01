@@ -186,16 +186,41 @@ def start_court_session(court_id):
     customer_name = (data.get('customer_name') or '').strip() or None
 
     if not customer_name:
-        from datetime import date as date_type
-        now_local = datetime.now()
+        from datetime import timedelta as _td
+        now_local = datetime.utcnow() + _td(hours=3)  # Duhok UTC+3
+        now_time  = now_local.time()
+        now_date  = now_local.date()
+        # Look for a confirmed booking covering right now (within ±30 min window)
         booking = Booking.query.filter_by(
             court_id=court_id,
-            booking_date=now_local.date(),
             status='confirmed'
         ).filter(
-            Booking.start_time <= now_local.time(),
-            Booking.end_time > now_local.time()
+            Booking.booking_date == now_date,
+            Booking.start_time <= now_time,
+            Booking.end_time   >  now_time,
         ).first()
+        # Cross-midnight bk2: booking_date = today but start=00:00 and end covers now
+        if not booking:
+            booking = Booking.query.filter_by(
+                court_id=court_id,
+                status='confirmed',
+                is_continuation=True,
+            ).filter(
+                Booking.booking_date == now_date,
+                Booking.end_time > now_time,
+            ).first()
+        # Also match if session starts within 30 min of booking start
+        if not booking:
+            from datetime import datetime as _dt
+            window_start = (_dt.combine(now_date, now_time) - _td(minutes=30)).time()
+            booking = Booking.query.filter_by(
+                court_id=court_id,
+                booking_date=now_date,
+                status='confirmed'
+            ).filter(
+                Booking.start_time >= window_start,
+                Booking.start_time <= now_time,
+            ).first()
         if booking:
             customer_name = booking.customer_name
 
