@@ -2830,9 +2830,53 @@ def staff_slot_edit(slot_id):
 def staff_slots_report():
     if current_user.username.lower() not in FINANCE_USERS:
         return redirect(url_for('admin.dashboard'))
+    from app.models.main import StaffDebt
     slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
     grand_total = sum(s.total for s in slots)
+    debts = StaffDebt.query.order_by(StaffDebt.created_at.desc()).all()
     return render_template('admin/staff_slots_report.html',
                            slots=slots,
                            grand_total=grand_total,
+                           debts=debts,
                            lang=g.lang)
+
+
+@admin_bp.route('/staff-slots/close-month', methods=['POST'])
+@login_required
+def staff_slots_close_month():
+    if current_user.username.lower() not in FINANCE_USERS:
+        return redirect(url_for('admin.dashboard'))
+    from app.models.main import StaffDebt
+    from datetime import datetime as _dt
+    now_local = _dt.utcnow()
+    period_label = now_local.strftime('%Y-%m')
+    slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
+    for slot in slots:
+        total = slot.total
+        if total > 0:
+            debt = StaffDebt(
+                slot_id=slot.id,
+                staff_name=slot.staff_name,
+                amount=total,
+                period_label=period_label,
+            )
+            db.session.add(debt)
+        StaffSlotItem.query.filter_by(slot_id=slot.id).delete()
+    db.session.commit()
+    flash('تم إغلاق الشهر — كل الأرصدة نُقلت إلى الديون وتمت إعادة ضبط التبويبات.', 'success')
+    return redirect(url_for('admin.staff_slots_report'))
+
+
+@admin_bp.route('/staff-debts/<int:debt_id>/pay', methods=['POST'])
+@login_required
+def staff_debt_pay(debt_id):
+    if current_user.username.lower() not in FINANCE_USERS:
+        return redirect(url_for('admin.dashboard'))
+    from app.models.main import StaffDebt
+    from datetime import datetime as _dt
+    debt = StaffDebt.query.get_or_404(debt_id)
+    debt.is_paid = True
+    debt.paid_at = _dt.utcnow()
+    db.session.commit()
+    flash(f'تم تسجيل سداد {debt.staff_name} — {int(debt.amount):,} IQD.', 'success')
+    return redirect(url_for('admin.staff_slots_report'))

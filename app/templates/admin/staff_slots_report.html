@@ -1,4 +1,4 @@
-﻿{% extends 'admin/base_admin.html' %}
+{% extends 'admin/base_admin.html' %}
 {% block title %}Staff Tabs Report — Admin{% endblock %}
 
 {% block extra_styles %}
@@ -26,18 +26,47 @@
 .sr-table tfoot td { padding:.65rem 1rem; font-weight:800; background:var(--brand-blue-soft); border-top:2px solid var(--border-color); }
 .sr-empty { text-align:center; padding:3rem; color:var(--text-muted); }
 .sr-empty i { font-size:2.5rem; opacity:.15; display:block; margin-bottom:.8rem; }
+
+/* Debts section */
+.debt-section { background:#fff; border:1px solid var(--border-color); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:1.5rem; }
+.debt-section-head { padding:.8rem 1.2rem; background:linear-gradient(135deg,#7c3aed,#a855f7); display:flex; align-items:center; justify-content:space-between; }
+.debt-section-title { color:#fff; font-weight:900; font-size:1rem; }
+.debt-table { width:100%; border-collapse:collapse; }
+.debt-table thead th { padding:.55rem 1rem; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); background:var(--brand-blue-soft); border-bottom:1px solid var(--border-color); }
+.debt-table tbody tr { border-bottom:1px solid var(--border-color); }
+.debt-table tbody tr:last-child { border-bottom:none; }
+.debt-table tbody td { padding:.65rem 1rem; font-size:.84rem; color:var(--text-dark); }
+.debt-paid { opacity:.55; }
+.badge-paid { background:#dcfce7; color:#16a34a; padding:.2rem .55rem; border-radius:20px; font-size:.72rem; font-weight:800; }
+.badge-unpaid { background:#fee2e2; color:#b91c1c; padding:.2rem .55rem; border-radius:20px; font-size:.72rem; font-weight:800; }
+.btn-pay { background:#16a34a; color:#fff; border:none; padding:.3rem .85rem; border-radius:8px; font-size:.78rem; font-weight:700; cursor:pointer; }
+.btn-pay:hover { background:#15803d; }
+
+/* Close-month button */
+.btn-close-month { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:none; padding:.55rem 1.3rem; border-radius:10px; font-size:.85rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem; }
+.btn-close-month:hover { background:linear-gradient(135deg,#b91c1c,#dc2626); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="margin-bottom:1.4rem;">
-  <h2 style="margin:0 0 .2rem;font-size:1.4rem;font-weight:900;color:var(--text-dark);">
-    <i class="fas fa-bowl-food me-2" style="color:var(--brand-blue);"></i>
-    {% if lang == 'en' %}Staff Tabs Report{% else %}تقرير تبويبات الموظفين{% endif %}
-  </h2>
-  <p style="margin:0;font-size:.82rem;color:var(--text-muted);">
-    {% if lang == 'en' %}All accumulated consumption per staff member — deduct from salary{% else %}إجمالي استهلاك كل موظف — يُخصم من الراتب{% endif %}
-  </p>
+<div style="margin-bottom:1.4rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.8rem;">
+  <div>
+    <h2 style="margin:0 0 .2rem;font-size:1.4rem;font-weight:900;color:var(--text-dark);">
+      <i class="fas fa-bowl-food me-2" style="color:var(--brand-blue);"></i>
+      {% if lang == 'en' %}Staff Tabs Report{% else %}تقرير تبويبات الموظفين{% endif %}
+    </h2>
+    <p style="margin:0;font-size:.82rem;color:var(--text-muted);">
+      {% if lang == 'en' %}All accumulated consumption per staff member — deduct from salary{% else %}إجمالي استهلاك كل موظف — يُخصم من الراتب{% endif %}
+    </p>
+  </div>
+  <!-- Close month button -->
+  <form method="POST" action="{{ url_for('admin.staff_slots_close_month') }}"
+        onsubmit="return confirm('{% if lang == 'en' %}Close this month? All balances will be moved to Debts and tabs reset to zero.{% else %}إغلاق الشهر؟ سيتم نقل جميع الأرصدة إلى الديون وإعادة ضبط التبويبات إلى الصفر.{% endif %}');">
+    <button type="submit" class="btn-close-month">
+      <i class="fas fa-calendar-xmark"></i>
+      {% if lang == 'en' %}Close Month{% else %}إغلاق الشهر{% endif %}
+    </button>
+  </form>
 </div>
 
 <!-- Summary cards -->
@@ -115,4 +144,76 @@
   <p>{% if lang == 'en' %}No consumption recorded yet{% else %}لا يوجد استهلاك مسجّل بعد{% endif %}</p>
 </div>
 {% endif %}
+
+<!-- ═══════════════════ DEBTS SECTION ═══════════════════ -->
+{% if debts %}
+<div style="margin:2rem 0 .6rem;">
+  <h3 style="font-size:1.1rem;font-weight:900;color:#7c3aed;margin:0;">
+    <i class="fas fa-clock-rotate-left me-2"></i>
+    {% if lang == 'en' %}Staff Debts (Previous Months){% else %}ديون الموظفين (الأشهر السابقة){% endif %}
+  </h3>
+</div>
+
+{% set unpaid_total = debts | selectattr('is_paid', 'equalto', false) | map(attribute='amount') | sum %}
+{% if unpaid_total > 0 %}
+<div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:.7rem 1rem;margin-bottom:1rem;font-size:.85rem;font-weight:700;color:#92400e;">
+  <i class="fas fa-triangle-exclamation me-1"></i>
+  {% if lang == 'en' %}Total unpaid debts: {{ '{:,.0f}'.format(unpaid_total) }} IQD{% else %}إجمالي الديون غير المسددة: {{ '{:,.0f}'.format(unpaid_total) }} IQD{% endif %}
+</div>
+{% endif %}
+
+<div class="debt-section">
+  <div class="debt-section-head">
+    <span class="debt-section-title">
+      <i class="fas fa-file-invoice-dollar me-2"></i>
+      {% if lang == 'en' %}Debt Records{% else %}سجلات الديون{% endif %}
+    </span>
+  </div>
+  <table class="debt-table">
+    <thead>
+      <tr>
+        <th>{% if lang == 'en' %}Staff{% else %}الموظف{% endif %}</th>
+        <th>{% if lang == 'en' %}Period{% else %}الفترة{% endif %}</th>
+        <th style="text-align:right;">{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+        <th style="text-align:center;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+        <th>{% if lang == 'en' %}Paid On{% else %}تاريخ السداد{% endif %}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for debt in debts %}
+      <tr class="{{ 'debt-paid' if debt.is_paid else '' }}">
+        <td style="font-weight:700;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:{{ '#dcfce7' if debt.is_paid else '#fee2e2' }};color:{{ '#16a34a' if debt.is_paid else '#b91c1c' }};font-weight:900;font-size:.75rem;margin-right:.5rem;">{{ debt.staff_name[0]|upper }}</span>
+          {{ debt.staff_name }}
+        </td>
+        <td style="color:var(--text-muted);font-size:.82rem;">{{ debt.period_label }}</td>
+        <td style="text-align:right;font-weight:800;color:{{ '#16a34a' if debt.is_paid else '#b91c1c' }};">{{ '{:,.0f}'.format(debt.amount) }} IQD</td>
+        <td style="text-align:center;">
+          {% if debt.is_paid %}
+            <span class="badge-paid"><i class="fas fa-check me-1"></i>{% if lang == 'en' %}Paid{% else %}مسدد{% endif %}</span>
+          {% else %}
+            <span class="badge-unpaid"><i class="fas fa-clock me-1"></i>{% if lang == 'en' %}Unpaid{% else %}غير مسدد{% endif %}</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--text-muted);font-size:.78rem;">
+          {% if debt.paid_at %}{{ debt.paid_at.strftime('%Y-%m-%d') }}{% else %}—{% endif %}
+        </td>
+        <td>
+          {% if not debt.is_paid %}
+          <form method="POST" action="{{ url_for('admin.staff_debt_pay', debt_id=debt.id) }}"
+                onsubmit="return confirm('{% if lang == 'en' %}Mark {{ debt.staff_name }} debt as paid?{% else %}تأكيد سداد {{ debt.staff_name }}؟{% endif %}');">
+            <button type="submit" class="btn-pay">
+              <i class="fas fa-check me-1"></i>{% if lang == 'en' %}Mark Paid{% else %}تسجيل السداد{% endif %}
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 {% endblock %}

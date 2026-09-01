@@ -623,6 +623,24 @@ class StaffSlotItem(db.Model):
         return f'<StaffSlotItem slot#{self.slot_id} {self.product_name}>'
 
 
+class StaffDebt(db.Model):
+    __tablename__ = 'staff_debts'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    slot_id      = db.Column(db.Integer, db.ForeignKey('staff_slots.id'), nullable=False)
+    staff_name   = db.Column(db.String(100), nullable=False)
+    amount       = db.Column(db.Float, default=0)
+    period_label = db.Column(db.String(20))   # e.g. "2026-08"
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    paid_at      = db.Column(db.DateTime, nullable=True)
+    is_paid      = db.Column(db.Boolean, default=False)
+
+    slot = db.relationship('StaffSlot', backref='debts')
+
+    def __repr__(self):
+        return f'<StaffDebt {self.staff_name} {self.period_label} {self.amount}>'
+
+
 # ═══════════════════════════════════════════
 # ACTIVITY LOG (user audit trail)
 # ═══════════════════════════════════════════
