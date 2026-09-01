@@ -62,6 +62,7 @@
   <!-- Close month button -->
   <form method="POST" action="{{ url_for('admin.staff_slots_close_month') }}"
         onsubmit="return confirm('{% if lang == 'en' %}Close this month? All balances will be moved to Debts and tabs reset to zero.{% else %}إغلاق الشهر؟ سيتم نقل جميع الأرصدة إلى الديون وإعادة ضبط التبويبات إلى الصفر.{% endif %}');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn-close-month">
       <i class="fas fa-calendar-xmark"></i>
       {% if lang == 'en' %}Close Month{% else %}إغلاق الشهر{% endif %}
@@ -203,6 +204,7 @@
           {% if not debt.is_paid %}
           <form method="POST" action="{{ url_for('admin.staff_debt_pay', debt_id=debt.id) }}"
                 onsubmit="return confirm('{% if lang == 'en' %}Mark {{ debt.staff_name }} debt as paid?{% else %}تأكيد سداد {{ debt.staff_name }}؟{% endif %}');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-pay">
               <i class="fas fa-check me-1"></i>{% if lang == 'en' %}Mark Paid{% else %}تسجيل السداد{% endif %}
             </button>
