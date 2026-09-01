@@ -2875,8 +2875,15 @@ def staff_debt_pay(debt_id):
     from app.models.main import StaffDebt
     from datetime import datetime as _dt
     debt = StaffDebt.query.get_or_404(debt_id)
-    debt.is_paid = True
-    debt.paid_at = _dt.utcnow()
+    try:
+        discount = float(request.form.get('discount') or 0)
+    except ValueError:
+        discount = 0
+    discount = max(0, min(discount, debt.amount))
+    debt.discount    = discount
+    debt.paid_amount = debt.amount - discount
+    debt.is_paid     = True
+    debt.paid_at     = _dt.utcnow()
     db.session.commit()
-    flash(f'تم تسجيل سداد {debt.staff_name} — {int(debt.amount):,} IQD.', 'success')
+    flash(f'تم تسجيل سداد {debt.staff_name} — دفع {int(debt.paid_amount):,} IQD (خصم {int(discount):,} IQD).', 'success')
     return redirect(url_for('admin.staff_slots_report'))

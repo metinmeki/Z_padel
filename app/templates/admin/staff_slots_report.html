@@ -45,6 +45,15 @@
 /* Close-month button */
 .btn-close-month { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:none; padding:.55rem 1.3rem; border-radius:10px; font-size:.85rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem; }
 .btn-close-month:hover { background:linear-gradient(135deg,#b91c1c,#dc2626); }
+
+/* Pay inline form */
+.pay-form-wrap { display:none; margin-top:.4rem; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:.6rem .8rem; }
+.pay-form-wrap.open { display:block; }
+.pay-input { border:1px solid #86efac; border-radius:6px; padding:.3rem .6rem; font-size:.82rem; width:130px; }
+.btn-pay-confirm { background:#16a34a; color:#fff; border:none; padding:.3rem .75rem; border-radius:6px; font-size:.78rem; font-weight:700; cursor:pointer; }
+.btn-pay-confirm:hover { background:#15803d; }
+.btn-pay-cancel { background:transparent; color:#6b7280; border:1px solid #d1d5db; padding:.3rem .6rem; border-radius:6px; font-size:.78rem; cursor:pointer; }
+.pay-net { font-size:.8rem; color:#15803d; font-weight:700; margin-top:.3rem; }
 </style>
 {% endblock %}
 
@@ -175,7 +184,9 @@
       <tr>
         <th>{% if lang == 'en' %}Staff{% else %}الموظف{% endif %}</th>
         <th>{% if lang == 'en' %}Period{% else %}الفترة{% endif %}</th>
-        <th style="text-align:right;">{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+        <th style="text-align:right;">{% if lang == 'en' %}Original{% else %}الأصلي{% endif %}</th>
+        <th style="text-align:right;">{% if lang == 'en' %}Discount{% else %}الخصم{% endif %}</th>
+        <th style="text-align:right;">{% if lang == 'en' %}Paid{% else %}المدفوع{% endif %}</th>
         <th style="text-align:center;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
         <th>{% if lang == 'en' %}Paid On{% else %}تاريخ السداد{% endif %}</th>
         <th></th>
@@ -189,7 +200,13 @@
           {{ debt.staff_name }}
         </td>
         <td style="color:var(--text-muted);font-size:.82rem;">{{ debt.period_label }}</td>
-        <td style="text-align:right;font-weight:800;color:{{ '#16a34a' if debt.is_paid else '#b91c1c' }};">{{ '{:,.0f}'.format(debt.amount) }} IQD</td>
+        <td style="text-align:right;font-weight:800;color:#b91c1c;">{{ '{:,.0f}'.format(debt.amount) }} IQD</td>
+        <td style="text-align:right;color:#d97706;">
+          {% if debt.discount %}{{ '{:,.0f}'.format(debt.discount) }} IQD{% else %}—{% endif %}
+        </td>
+        <td style="text-align:right;font-weight:800;color:#16a34a;">
+          {% if debt.is_paid %}{{ '{:,.0f}'.format(debt.paid_amount) }} IQD{% else %}—{% endif %}
+        </td>
         <td style="text-align:center;">
           {% if debt.is_paid %}
             <span class="badge-paid"><i class="fas fa-check me-1"></i>{% if lang == 'en' %}Paid{% else %}مسدد{% endif %}</span>
@@ -202,13 +219,22 @@
         </td>
         <td>
           {% if not debt.is_paid %}
-          <form method="POST" action="{{ url_for('admin.staff_debt_pay', debt_id=debt.id) }}"
-                onsubmit="return confirm('{% if lang == 'en' %}Mark {{ debt.staff_name }} debt as paid?{% else %}تأكيد سداد {{ debt.staff_name }}؟{% endif %}');">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn-pay">
-              <i class="fas fa-check me-1"></i>{% if lang == 'en' %}Mark Paid{% else %}تسجيل السداد{% endif %}
-            </button>
-          </form>
+          <button class="btn-pay" type="button" onclick="togglePay({{ debt.id }}, {{ debt.amount }})">
+            <i class="fas fa-hand-holding-dollar me-1"></i>{% if lang == 'en' %}Pay{% else %}سداد{% endif %}
+          </button>
+          <div class="pay-form-wrap" id="pay-form-{{ debt.id }}">
+            <form method="POST" action="{{ url_for('admin.staff_debt_pay', debt_id=debt.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                <label style="font-size:.78rem;font-weight:700;color:#374151;">{% if lang == 'en' %}Discount:{% else %}خصم:{% endif %}</label>
+                <input type="number" name="discount" class="pay-input" min="0" max="{{ debt.amount|int }}" value="0"
+                       oninput="updateNet({{ debt.id }}, {{ debt.amount }}, this.value)" placeholder="0">
+                <button type="submit" class="btn-pay-confirm"><i class="fas fa-check me-1"></i>{% if lang == 'en' %}Confirm{% else %}تأكيد{% endif %}</button>
+                <button type="button" class="btn-pay-cancel" onclick="togglePay({{ debt.id }}, {{ debt.amount }})">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+              </div>
+              <div class="pay-net" id="net-{{ debt.id }}">{% if lang == 'en' %}Net to pay: {{ '{:,.0f}'.format(debt.amount) }} IQD{% else %}المبلغ المطلوب: {{ '{:,.0f}'.format(debt.amount) }} IQD{% endif %}</div>
+            </form>
+          </div>
           {% endif %}
         </td>
       </tr>
@@ -218,4 +244,24 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function togglePay(id, amount) {
+  const wrap = document.getElementById('pay-form-' + id);
+  wrap.classList.toggle('open');
+  if (wrap.classList.contains('open')) {
+    wrap.querySelector('input[name="discount"]').value = 0;
+    updateNet(id, amount, 0);
+  }
+}
+function updateNet(id, amount, discount) {
+  const d = Math.max(0, Math.min(parseFloat(discount) || 0, amount));
+  const net = amount - d;
+  const el = document.getElementById('net-' + id);
+  el.textContent = (document.documentElement.lang === 'ar'
+    ? 'المبلغ المطلوب: ' : 'Net to pay: ') + net.toLocaleString() + ' IQD';
+}
+</script>
 {% endblock %}

@@ -116,6 +116,8 @@ def _add_missing_columns(app):
         "ALTER TABLE game_clips ADD COLUMN status VARCHAR(20) DEFAULT 'ready'",
         "ALTER TABLE game_clips ADD COLUMN status_msg TEXT",
         "ALTER TABLE courts ADD COLUMN use_time_pricing BOOLEAN DEFAULT 1",
+        "ALTER TABLE staff_debts ADD COLUMN discount REAL DEFAULT 0",
+        "ALTER TABLE staff_debts ADD COLUMN paid_amount REAL DEFAULT 0",
     ]
     with app.app_context():
         with db.engine.connect() as conn:

@@ -630,6 +630,8 @@ class StaffDebt(db.Model):
     slot_id      = db.Column(db.Integer, db.ForeignKey('staff_slots.id'), nullable=False)
     staff_name   = db.Column(db.String(100), nullable=False)
     amount       = db.Column(db.Float, default=0)
+    discount     = db.Column(db.Float, default=0)
+    paid_amount  = db.Column(db.Float, default=0)
     period_label = db.Column(db.String(20))   # e.g. "2026-08"
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
     paid_at      = db.Column(db.DateTime, nullable=True)
