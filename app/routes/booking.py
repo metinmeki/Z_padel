@@ -9,6 +9,33 @@ def _parse_time(t):
         return dtime(23, 59)
     return datetime.strptime(t, '%H:%M').time()
 
+
+def _tiered_price(court, s_time, e_time, use_time_pricing=True):
+    """Price a booking per 30-min slot so cross-boundary bookings charge correctly.
+
+    Example: 17:30-19:00 with off-peak(8-18)=25k, peak(18-22)=40k
+      → 17:30-18:00 = 0.5h × 25k = 12,500
+      → 18:00-19:00 = 1.0h × 40k = 40,000
+      → total = 52,500  (not 37,500 from flat start-hour rate)
+    """
+    start_m = s_time.hour * 60 + s_time.minute
+    end_m   = e_time.hour * 60 + e_time.minute
+    if e_time == dtime(23, 59):
+        end_m = 24 * 60
+    if end_m < start_m:
+        end_m += 24 * 60
+    total = 0.0
+    m = start_m
+    while m < end_m:
+        slot_end   = min(m + 30, end_m)
+        slot_hours = (slot_end - m) / 60
+        h = (m // 60) % 24
+        rate = (PricingRule.rate_for_hour(h) if use_time_pricing else None) \
+               or court.price_per_hour
+        total += slot_hours * rate
+        m += 30
+    return round(total)
+
 booking_bp = Blueprint('booking', __name__)
 
 
@@ -125,9 +152,8 @@ def create():
             bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=b_date,   start_time=s_time,      end_time=midnight,  status='pending', notes=notes)
             bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,    status='pending', notes=notes, is_continuation=True)
             _utp = court.use_time_pricing is not False and court.use_time_pricing != 0
-            rate = (PricingRule.rate_for_hour(s_time.hour) if _utp else None) or court.price_per_hour
-            bk1.total_price = bk1.calc_price(rate)
-            bk2.total_price = bk2.calc_price(rate)
+            bk1.total_price = _tiered_price(court, s_time,      midnight,  _utp)
+            bk2.total_price = _tiered_price(court, dtime(0, 0), e_time,    _utp)
             db.session.add_all([bk1, bk2])
             db.session.commit()
             try:
@@ -153,8 +179,8 @@ def create():
         bk = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
                      booking_date=b_date, start_time=s_time, end_time=e_time,
                      status='pending', notes=notes)
-        rate = PricingRule.rate_for_hour(s_time.hour) or court.price_per_hour
-        bk.total_price = bk.calc_price(rate)
+        _utp = court.use_time_pricing is not False and court.use_time_pricing != 0
+        bk.total_price = _tiered_price(court, s_time, e_time, _utp)
         db.session.add(bk)
         db.session.commit()
         try:
