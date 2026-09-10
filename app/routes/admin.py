@@ -1030,8 +1030,16 @@ def expenses():
     if request.args.get('month'):
         y, m = map(int, request.args['month'].split('-'))
         last_day = monthrange(y, m)[1]
-        q = q.filter(Expense.date >= date(y, m, 1),
-                     Expense.date <= date(y, m, last_day))
+        d_start, d_end = date(y, m, 1), date(y, m, last_day)
+        # If salary_month is set, filter by it; otherwise filter by actual date
+        q = q.filter(
+            db.or_(
+                db.and_(Expense.salary_month.is_(None),
+                        Expense.date >= d_start, Expense.date <= d_end),
+                db.and_(Expense.salary_month.isnot(None),
+                        Expense.salary_month >= d_start, Expense.salary_month <= d_end),
+            )
+        )
 
     page = request.args.get('page', 1, type=int)
     pag = q.order_by(Expense.date.desc()).paginate(page=page, per_page=20)
@@ -1096,10 +1104,14 @@ def add_expense():
         if file and file.filename:
             receipt = save_upload(file, 'RECEIPTS_FOLDER')
 
+        sm_str = (request.form.get('salary_month') or '').strip()
+        salary_month = (datetime.strptime(sm_str + '-01', '%Y-%m-%d').date()
+                        if sm_str else None)
         e = Expense(
             description=request.form['description'],
             amount=float(request.form['amount']),
             date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
+            salary_month=salary_month,
             category_id=request.form.get('category_id') or None,
             notes=request.form.get('notes', ''),
             receipt=receipt,
@@ -1125,8 +1137,11 @@ def edit_expense(exp_id):
         e.description = request.form.get('description', e.description)
         e.amount      = float(request.form.get('amount', e.amount))
         e.date        = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
-        e.category_id = request.form.get('category_id') or e.category_id
+        e.category_id = request.form.get('category_id') or None
         e.notes       = request.form.get('notes', e.notes)
+        sm_str = (request.form.get('salary_month') or '').strip()
+        e.salary_month = (datetime.strptime(sm_str + '-01', '%Y-%m-%d').date()
+                          if sm_str else None)
         db.session.commit()
         flash('تم تحديث المصروف.', 'success')
     except Exception as ex:

@@ -96,15 +96,16 @@ class ExpenseCategory(db.Model):
 class Expense(db.Model):
     __tablename__ = 'expenses'
 
-    id          = db.Column(db.Integer, primary_key=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'), nullable=True)
-    description = db.Column(db.String(200), nullable=False)
-    amount      = db.Column(db.Float,       nullable=False, default=0)
-    date        = db.Column(db.Date,        nullable=False, default=datetime.utcnow)
-    notes       = db.Column(db.Text,        nullable=True)
-    receipt     = db.Column(db.String(200), nullable=True)
-    added_by    = db.Column(db.String(80),  nullable=True)
-    created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
+    id           = db.Column(db.Integer, primary_key=True)
+    category_id  = db.Column(db.Integer, db.ForeignKey('expense_categories.id'), nullable=True)
+    description  = db.Column(db.String(200), nullable=False)
+    amount       = db.Column(db.Float,       nullable=False, default=0)
+    date         = db.Column(db.Date,        nullable=False, default=datetime.utcnow)
+    salary_month = db.Column(db.Date,        nullable=True)   # e.g. 2026-08-01 = "for August"
+    notes        = db.Column(db.Text,        nullable=True)
+    receipt      = db.Column(db.String(200), nullable=True)
+    added_by     = db.Column(db.String(80),  nullable=True)
+    created_at   = db.Column(db.DateTime,    default=datetime.utcnow)
 
     def __repr__(self):
         return f'<Expense {self.description} {self.amount}>'

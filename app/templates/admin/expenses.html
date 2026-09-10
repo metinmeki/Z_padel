@@ -436,8 +436,15 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="add-grid">
         <div>
-          <label class="form-label-z">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %} <span style="color:#e53935;">*</span></label>
+          <label class="form-label-z">{% if lang == 'en' %}Date (paid){% else %}تاريخ الدفع{% endif %} <span style="color:#e53935;">*</span></label>
           <input type="date" name="date" class="form-control-z" value="{{ today }}" required>
+        </div>
+        <div>
+          <label class="form-label-z">{% if lang == 'en' %}Salary Month{% else %}يخص شهر (للرواتب){% endif %}</label>
+          <input type="month" name="salary_month" class="form-control-z"
+                 placeholder="{% if lang == 'en' %}e.g. 2026-08{% else %}مثال: 2026-08{% endif %}"
+                 title="{% if lang == 'en' %}Leave empty for non-salary expenses. Salary paid in Sep for Aug → set to Aug.{% else %}اتركه فارغاً للمصروفات العادية. راتب شهر أغسطس يُدفع في سبتمبر → اختر أغسطس.{% endif %}">
+          <small style="color:var(--text-muted);font-size:.7rem;">{% if lang == 'en' %}Leave empty unless this is a salary{% else %}فارغ للمصروفات العادية — للرواتب فقط{% endif %}</small>
         </div>
         <div>
           <label class="form-label-z">{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</label>
@@ -503,7 +510,16 @@
           {% for e in expenses %}
           <tr>
             <td style="color:var(--text-muted);font-size:12px;">{{ e.id }}</td>
-            <td style="font-size:13px;white-space:nowrap;">{{ e.date.strftime('%Y-%m-%d') }}</td>
+            <td style="font-size:13px;white-space:nowrap;">
+              {{ e.date.strftime('%Y-%m-%d') }}
+              {% if e.salary_month %}
+              <div style="margin-top:2px;">
+                <span style="background:#ede9fe;color:#6d28d9;padding:.1rem .45rem;border-radius:8px;font-size:.68rem;font-weight:700;">
+                  <i class="fas fa-tag"></i> {{ e.salary_month.strftime('%b %Y') }}
+                </span>
+              </div>
+              {% endif %}
+            </td>
             <td>
               {% if e.category %}
                 <span class="cat-badge" style="background:{{ e.category.color or '#6c757d' }};">{{ e.category.name }}</span>
@@ -521,7 +537,7 @@
             <td>
               <div class="action-btns">
                 <button type="button" class="action-btn edit"
-                  onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }})">
+                  onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }},{{ e.salary_month.strftime('%Y-%m')|tojson if e.salary_month else "''" }})">
                   <i class="fas fa-pen"></i>
                 </button>
                 <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=e.id) }}" style="display:inline;"
@@ -578,6 +594,11 @@
       </div>
       <div class="exp-card-meta">
         <span class="exp-card-date"><i class="fas fa-calendar-day"></i> {{ e.date.strftime('%Y-%m-%d') }}</span>
+        {% if e.salary_month %}
+          <span style="background:#ede9fe;color:#6d28d9;padding:.1rem .45rem;border-radius:8px;font-size:.68rem;font-weight:700;">
+            <i class="fas fa-tag"></i> {{ e.salary_month.strftime('%b %Y') }}
+          </span>
+        {% endif %}
         {% if e.category %}
           <span class="cat-badge" style="background:{{ e.category.color or '#6c757d' }};">{{ e.category.name }}</span>
         {% endif %}
@@ -585,7 +606,7 @@
       </div>
       <div class="exp-card-actions">
         <button type="button" class="action-btn edit"
-          onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }})">
+          onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }},{{ e.salary_month.strftime('%Y-%m')|tojson if e.salary_month else "''" }})">
           <i class="fas fa-pen"></i>
         </button>
         <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=e.id) }}" style="display:inline;"
@@ -612,8 +633,13 @@
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label-z">{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</label>
+          <label class="form-label-z">{% if lang == 'en' %}Date (paid){% else %}تاريخ الدفع{% endif %}</label>
           <input type="date" name="date" id="editDate" class="form-control-z" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label-z">{% if lang == 'en' %}Salary Month{% else %}يخص شهر (للرواتب){% endif %}</label>
+          <input type="month" name="salary_month" id="editSalaryMonth" class="form-control-z">
+          <small style="color:var(--text-muted);font-size:.7rem;">{% if lang == 'en' %}Leave empty for non-salary. Salary for Aug paid in Sep → set Aug.{% else %}فارغ للمصروفات العادية — راتب أغسطس يُدفع في سبتمبر → اختر أغسطس{% endif %}</small>
         </div>
         <div class="mb-3">
           <label class="form-label-z">{% if lang == 'en' %}Category{% else %}الفئة{% endif %}</label>
@@ -676,13 +702,14 @@ function hideCatEdit(id) {
   document.getElementById('cat-row-'  + id).style.display = 'table-row';
 }
 
-function editExpense(id, date, categoryId, amount, description, notes) {
-  document.getElementById('editForm').action = `/admin/expenses/${id}/edit`;
-  document.getElementById('editDate').value       = date;
-  document.getElementById('editAmount').value     = amount;
+function editExpense(id, date, categoryId, amount, description, notes, salaryMonth) {
+  document.getElementById('editForm').action       = `/admin/expenses/${id}/edit`;
+  document.getElementById('editDate').value        = date;
+  document.getElementById('editAmount').value      = amount;
   document.getElementById('editDescription').value = description;
-  document.getElementById('editNotes').value      = notes;
-  document.getElementById('editCategory').value   = categoryId !== null ? categoryId : '';
+  document.getElementById('editNotes').value       = notes;
+  document.getElementById('editCategory').value    = categoryId !== null ? categoryId : '';
+  document.getElementById('editSalaryMonth').value = salaryMonth || '';
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 </script>
