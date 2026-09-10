@@ -371,7 +371,7 @@ def bookings():
         return redirect(url_for('pos.courts'))
     if request.method == 'POST':
         return redirect(url_for('admin.bookings'))
-    q = Booking.query
+    q = Booking.query.filter_by(is_continuation=False)
     if request.args.get('date'):
         q = q.filter_by(booking_date=datetime.strptime(request.args['date'], '%Y-%m-%d').date())
     if request.args.get('court_id'):
