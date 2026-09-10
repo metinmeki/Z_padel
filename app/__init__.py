@@ -118,6 +118,7 @@ def _add_missing_columns(app):
         "ALTER TABLE courts ADD COLUMN use_time_pricing BOOLEAN DEFAULT 1",
         "ALTER TABLE staff_debts ADD COLUMN discount REAL DEFAULT 0",
         "ALTER TABLE staff_debts ADD COLUMN paid_amount REAL DEFAULT 0",
+        "ALTER TABLE staff_debts ADD COLUMN items_json TEXT",
         "ALTER TABLE expenses ADD COLUMN salary_month DATE",
     ]
     with app.app_context():

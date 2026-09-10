@@ -70,6 +70,16 @@
 .btn-close-month { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:none; padding:.5rem 1.1rem; border-radius:10px; font-size:.83rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; white-space:nowrap; }
 .btn-close-month:hover { background:linear-gradient(135deg,#b91c1c,#dc2626); }
 
+/* Receipt toggle */
+.btn-receipt { background:transparent; color:#6d28d9; border:1px solid #c4b5fd; padding:.28rem .7rem; border-radius:8px; font-size:.75rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+.btn-receipt:hover { background:#f5f3ff; }
+.receipt-wrap { display:none; background:#f9fafb; border-top:1px solid var(--border-color); padding:.75rem 1rem; }
+.receipt-wrap.open { display:block; }
+.receipt-mini-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+.receipt-mini-table th { padding:.35rem .6rem; text-align:left; color:var(--text-muted); font-weight:700; border-bottom:1px solid var(--border-color); background:var(--brand-blue-soft); }
+.receipt-mini-table td { padding:.35rem .6rem; border-bottom:1px solid var(--border-color); }
+.receipt-mini-table tr:last-child td { border-bottom:none; }
+
 /* Pay inline form */
 .pay-form-wrap { display:none; margin-top:.45rem; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:.65rem .85rem; }
 .pay-form-wrap.open { display:block; }
@@ -234,6 +244,7 @@
           <th style="text-align:right;">{% if lang == 'en' %}Paid{% else %}المدفوع{% endif %}</th>
           <th style="text-align:center;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
           <th>{% if lang == 'en' %}Paid On{% else %}تاريخ السداد{% endif %}</th>
+          <th>{% if lang == 'en' %}Receipt{% else %}الفاتورة{% endif %}</th>
           <th></th>
         </tr>
       </thead>
@@ -253,6 +264,13 @@
             {% else %}<span class="badge-unpaid"><i class="fas fa-clock me-1"></i>{% if lang == 'en' %}Unpaid{% else %}غير مسدد{% endif %}</span>{% endif %}
           </td>
           <td style="color:var(--text-muted);font-size:.77rem;">{% if debt.paid_at %}{{ debt.paid_at.strftime('%Y-%m-%d') }}{% else %}—{% endif %}</td>
+          <td>
+            {% if debt._items %}
+            <button class="btn-receipt" type="button" onclick="toggleReceipt('dr{{ debt.id }}')">
+              <i class="fas fa-receipt me-1"></i>{{ debt._items|length }}
+            </button>
+            {% else %}—{% endif %}
+          </td>
           <td>
             {% if not debt.is_paid %}
             <button class="btn-pay" type="button" onclick="togglePay({{ debt.id }}, {{ debt.amount }})">
@@ -274,6 +292,36 @@
             {% endif %}
           </td>
         </tr>
+        {% if debt._items %}
+        <tr id="dr{{ debt.id }}" style="display:none;">
+          <td colspan="9" style="padding:0;">
+            <div style="background:#f5f3ff;padding:.65rem 1.1rem;">
+              <table class="receipt-mini-table">
+                <thead>
+                  <tr>
+                    <th>{% if lang == 'en' %}Product{% else %}المنتج{% endif %}</th>
+                    <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+                    <th style="text-align:center;">{% if lang == 'en' %}Qty{% else %}الكمية{% endif %}</th>
+                    <th style="text-align:right;">{% if lang == 'en' %}Unit{% else %}سعر الوحدة{% endif %}</th>
+                    <th style="text-align:right;">{% if lang == 'en' %}Total{% else %}المجموع{% endif %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in debt._items %}
+                  <tr>
+                    <td style="font-weight:600;">{{ item.product_name }}</td>
+                    <td style="color:var(--text-muted);">{{ item.added_at }}</td>
+                    <td style="text-align:center;font-weight:700;">{{ item.quantity }}</td>
+                    <td style="text-align:right;color:var(--text-muted);">{{ '{:,.0f}'.format(item.unit_price) }} IQD</td>
+                    <td style="text-align:right;font-weight:800;color:#6d28d9;">{{ '{:,.0f}'.format(item.subtotal) }} IQD</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
@@ -314,12 +362,33 @@
         <span style="font-size:.75rem;color:var(--text-muted);">
           {% if debt.paid_at %}<i class="fas fa-calendar-check me-1"></i>{{ debt.paid_at.strftime('%Y-%m-%d') }}{% endif %}
         </span>
-        {% if not debt.is_paid %}
-        <button class="btn-pay" type="button" onclick="togglePay('m{{ debt.id }}', {{ debt.amount }})">
-          <i class="fas fa-hand-holding-dollar me-1"></i>{% if lang == 'en' %}Pay{% else %}سداد{% endif %}
-        </button>
-        {% endif %}
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+          {% if debt._items %}
+          <button class="btn-receipt" type="button" onclick="toggleReceipt('mdr{{ debt.id }}')">
+            <i class="fas fa-receipt me-1"></i>{{ debt._items|length }} {% if lang == 'en' %}items{% else %}صنف{% endif %}
+          </button>
+          {% endif %}
+          {% if not debt.is_paid %}
+          <button class="btn-pay" type="button" onclick="togglePay('m{{ debt.id }}', {{ debt.amount }})">
+            <i class="fas fa-hand-holding-dollar me-1"></i>{% if lang == 'en' %}Pay{% else %}سداد{% endif %}
+          </button>
+          {% endif %}
+        </div>
       </div>
+      {% if debt._items %}
+      <div id="mdr{{ debt.id }}" style="display:none;margin-top:.5rem;background:#f5f3ff;border-radius:8px;padding:.6rem .8rem;">
+        {% for item in debt._items %}
+        <div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.2rem 0;border-bottom:1px solid #e9d5ff;">
+          <span style="font-weight:600;">{{ item.product_name }} ×{{ item.quantity }}</span>
+          <span style="color:#6d28d9;font-weight:800;">{{ '{:,.0f}'.format(item.subtotal) }} IQD</span>
+        </div>
+        {% endfor %}
+        <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:900;padding:.35rem 0 0;color:#6d28d9;">
+          <span>{% if lang == 'en' %}Total{% else %}المجموع{% endif %}</span>
+          <span>{{ '{:,.0f}'.format(debt.amount) }} IQD</span>
+        </div>
+      </div>
+      {% endif %}
       {% if not debt.is_paid %}
       <div class="pay-form-wrap" id="pay-form-m{{ debt.id }}" style="margin-top:.5rem;">
         <form method="POST" action="{{ url_for('admin.staff_debt_pay', debt_id=debt.id) }}">
@@ -345,6 +414,10 @@
 
 {% block extra_scripts %}
 <script>
+function toggleReceipt(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+}
 function togglePay(id, amount) {
   const wrap = document.getElementById('pay-form-' + id);
   wrap.classList.toggle('open');

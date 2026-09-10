@@ -2845,10 +2845,13 @@ def staff_slot_edit(slot_id):
 def staff_slots_report():
     if current_user.username.lower() not in FINANCE_USERS:
         return redirect(url_for('admin.dashboard'))
+    import json as _json
     from app.models.main import StaffDebt
     slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
     grand_total = sum(s.total for s in slots)
     debts = StaffDebt.query.order_by(StaffDebt.created_at.desc()).all()
+    for d in debts:
+        d._items = _json.loads(d.items_json) if d.items_json else []
     return render_template('admin/staff_slots_report.html',
                            slots=slots,
                            grand_total=grand_total,
@@ -2865,15 +2868,27 @@ def staff_slots_close_month():
     from datetime import datetime as _dt
     now_local = _dt.utcnow()
     period_label = now_local.strftime('%Y-%m')
+    import json as _json
     slots = StaffSlot.query.order_by(StaffSlot.slot_number).all()
     for slot in slots:
         total = slot.total
         if total > 0:
+            snapshot = [
+                {
+                    'product_name': i.product_name,
+                    'quantity':     i.quantity,
+                    'unit_price':   i.unit_price,
+                    'subtotal':     i.subtotal,
+                    'added_at':     i.added_at.strftime('%Y-%m-%d %H:%M') if i.added_at else '',
+                }
+                for i in slot.items
+            ]
             debt = StaffDebt(
                 slot_id=slot.id,
                 staff_name=slot.staff_name,
                 amount=total,
                 period_label=period_label,
+                items_json=_json.dumps(snapshot, ensure_ascii=False),
             )
             db.session.add(debt)
         StaffSlotItem.query.filter_by(slot_id=slot.id).delete()

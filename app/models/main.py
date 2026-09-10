@@ -633,6 +633,7 @@ class StaffDebt(db.Model):
     discount     = db.Column(db.Float, default=0)
     paid_amount  = db.Column(db.Float, default=0)
     period_label = db.Column(db.String(20))   # e.g. "2026-08"
+    items_json   = db.Column(db.Text, nullable=True)  # JSON snapshot of consumed items
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
     paid_at      = db.Column(db.DateTime, nullable=True)
     is_paid      = db.Column(db.Boolean, default=False)
