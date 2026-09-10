@@ -536,8 +536,14 @@
             <td><span style="font-size:12px;color:var(--text-muted);">{{ e.added_by or '—' }}</span></td>
             <td>
               <div class="action-btns">
-                <button type="button" class="action-btn edit"
-                  onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }},{{ e.salary_month.strftime('%Y-%m')|tojson if e.salary_month else "''" }})">
+                <button type="button" class="action-btn edit edit-exp-btn"
+                  data-id="{{ e.id }}"
+                  data-date="{{ e.date.strftime('%Y-%m-%d') }}"
+                  data-cat="{{ e.category_id or '' }}"
+                  data-amount="{{ e.amount }}"
+                  data-desc="{{ e.description or '' }}"
+                  data-notes="{{ e.notes or '' }}"
+                  data-salary="{{ e.salary_month.strftime('%Y-%m') if e.salary_month else '' }}">
                   <i class="fas fa-pen"></i>
                 </button>
                 <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=e.id) }}" style="display:inline;"
@@ -605,8 +611,14 @@
         {% if e.notes %}<span class="exp-card-notes">{{ e.notes }}</span>{% endif %}
       </div>
       <div class="exp-card-actions">
-        <button type="button" class="action-btn edit"
-          onclick="editExpense({{ e.id }},{{ e.date.strftime('%Y-%m-%d')|tojson }},{{ e.category_id|tojson if e.category_id else 'null' }},{{ e.amount }},{{ (e.description or '')|tojson }},{{ (e.notes or '')|tojson }},{{ e.salary_month.strftime('%Y-%m')|tojson if e.salary_month else "''" }})">
+        <button type="button" class="action-btn edit edit-exp-btn"
+          data-id="{{ e.id }}"
+          data-date="{{ e.date.strftime('%Y-%m-%d') }}"
+          data-cat="{{ e.category_id or '' }}"
+          data-amount="{{ e.amount }}"
+          data-desc="{{ e.description or '' }}"
+          data-notes="{{ e.notes or '' }}"
+          data-salary="{{ e.salary_month.strftime('%Y-%m') if e.salary_month else '' }}">
           <i class="fas fa-pen"></i>
         </button>
         <form method="POST" action="{{ url_for('admin.delete_expense', exp_id=e.id) }}" style="display:inline;"
@@ -702,15 +714,18 @@ function hideCatEdit(id) {
   document.getElementById('cat-row-'  + id).style.display = 'table-row';
 }
 
-function editExpense(id, date, categoryId, amount, description, notes, salaryMonth) {
-  document.getElementById('editForm').action       = `/admin/expenses/${id}/edit`;
-  document.getElementById('editDate').value        = date;
-  document.getElementById('editAmount').value      = amount;
-  document.getElementById('editDescription').value = description;
-  document.getElementById('editNotes').value       = notes;
-  document.getElementById('editCategory').value    = categoryId !== null ? categoryId : '';
-  document.getElementById('editSalaryMonth').value = salaryMonth || '';
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.edit-exp-btn');
+  if (!btn) return;
+  const d = btn.dataset;
+  document.getElementById('editForm').action       = `/admin/expenses/${d.id}/edit`;
+  document.getElementById('editDate').value        = d.date;
+  document.getElementById('editAmount').value      = d.amount;
+  document.getElementById('editDescription').value = d.desc;
+  document.getElementById('editNotes').value       = d.notes;
+  document.getElementById('editCategory').value    = d.cat || '';
+  document.getElementById('editSalaryMonth').value = d.salary || '';
   new bootstrap.Modal(document.getElementById('editModal')).show();
-}
+});
 </script>
 {% endblock %}
