@@ -701,17 +701,39 @@ function filterTable() {
   });
 }
 
-// ── Price calculator ──
-// Court price map: court_id → price_per_hour
+// ── Price calculator (tiered pricing) ──
 const COURT_PRICES = {
   {% for court in courts %}
-  {{ court.id }}: {{ court.price_per_hour|default(25000) }}{% if not loop.last %},{% endif %}
+  {{ court.id }}: { flat: {{ court.price_per_hour|default(25000) }}, timed: {{ 'true' if court.use_time_pricing else 'false' }} }{% if not loop.last %},{% endif %}
   {% endfor %}
 };
 
-function getHourlyRate() {
-  const cid = document.getElementById('courtSelect').value;
-  return COURT_PRICES[cid] || 25000;
+// Pricing rules: array of {start_hour, end_hour, price_per_hour}
+const PRICING_RULES = [
+  {% for r in pricing_rules %}
+  { s: {{ r.start_hour }}, e: {{ r.end_hour }}, p: {{ r.price_per_hour }} }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+
+function _rateForHour(h) {
+  for (const r of PRICING_RULES) {
+    if (r.s < r.e) { if (h >= r.s && h < r.e) return r.p; }
+    else           { if (h >= r.s || h < r.e) return r.p; }  // cross-midnight rule
+  }
+  return null;
+}
+
+function _tieredPrice(flatRate, useTimed, startMins, endMins) {
+  let total = 0, m = startMins;
+  while (m < endMins) {
+    const slotEnd   = Math.min(m + 30, endMins);
+    const slotHours = (slotEnd - m) / 60;
+    const h         = Math.floor(m / 60) % 24;
+    const rate      = (useTimed ? _rateForHour(h) : null) ?? flatRate;
+    total += slotHours * rate;
+    m += 30;
+  }
+  return Math.round(total);
 }
 
 function calcPrice() {
@@ -719,15 +741,17 @@ function calcPrice() {
   const end   = document.getElementById('endTime').value;
   if (!start || !end) { document.getElementById('pricePreview').style.display = 'none'; return; }
 
+  const cid  = document.getElementById('courtSelect').value;
+  const info = COURT_PRICES[cid] || { flat: 25000, timed: false };
+
   const [sh, sm] = start.split(':').map(Number);
   const [eh, em] = end.split(':').map(Number);
   let startMins = sh * 60 + sm;
   let endMins   = eh * 60 + em;
   if (endMins <= startMins) endMins += 24 * 60;  // cross-midnight
 
-  const hours = (endMins - startMins) / 60;
-  const total  = Math.round(hours * getHourlyRate());
-  const label  = `${total.toLocaleString()} {% if lang == "en" %}IQD{% else %}د.ع{% endif %}`;
+  const total = _tieredPrice(info.flat, info.timed, startMins, endMins);
+  const label = `${total.toLocaleString()} {% if lang == "en" %}IQD{% else %}د.ع{% endif %}`;
 
   document.getElementById('priceValue').innerHTML = label;
   document.getElementById('pricePreview').style.display = '';

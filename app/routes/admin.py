@@ -397,10 +397,13 @@ def bookings():
     from datetime import timedelta
     tomorrow = (today_date + timedelta(days=1)).isoformat()
 
+    pricing_rules = PricingRule.query.filter_by(is_active=True).order_by(PricingRule.sort_order).all()
+
     return render_template('admin/bookings.html',
         bookings=all_bk, pagination=None,
         courts=courts, today=today_date.isoformat(),
-        tomorrow=tomorrow, court_price=25000)
+        tomorrow=tomorrow, court_price=25000,
+        pricing_rules=pricing_rules)
 
 
 @admin_bp.route('/bookings/booked-slots')
