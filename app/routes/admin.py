@@ -371,7 +371,13 @@ def bookings():
         return redirect(url_for('pos.courts'))
     if request.method == 'POST':
         return redirect(url_for('admin.bookings'))
-    q = Booking.query.filter_by(is_continuation=False)
+    from sqlalchemy.orm import joinedload as _jl
+    courts     = Court.query.filter_by(is_active=True).all()
+    today_date = date.today()
+
+    q = (Booking.query
+         .options(_jl(Booking.court))
+         .filter_by(is_continuation=False))
     if request.args.get('date'):
         q = q.filter_by(booking_date=datetime.strptime(request.args['date'], '%Y-%m-%d').date())
     if request.args.get('court_id'):
@@ -379,20 +385,28 @@ def bookings():
     if request.args.get('status'):
         q = q.filter_by(status=request.args['status'])
 
-    courts     = Court.query.filter_by(is_active=True).all()
-    today_date = date.today()
+    # Always include today + future; cap past at 300 most-recent to avoid slow pages
+    if (request.args.get('date') or request.args.get('court_id') or request.args.get('status')):
+        # Filtered view: fetch all matching (filters already narrow the set)
+        all_bk_raw = q.all()
+    else:
+        future_q = q.filter(Booking.booking_date >= today_date).all()
+        past_q   = (q.filter(Booking.booking_date < today_date)
+                    .order_by(Booking.booking_date.desc())
+                    .limit(300).all())
+        all_bk_raw = future_q + past_q
 
     def _bk_sort_key(b):
         d = b.booking_date or date.min
         t = (b.start_time.hour * 60 + b.start_time.minute) if b.start_time else 0
         if d == today_date:
-            return (0, 0, t)          # Today: priority 0, sorted by time
+            return (0, 0, t)
         elif d > today_date:
-            return (1, (d - today_date).days, t)   # Future: soonest first
+            return (1, (d - today_date).days, t)
         else:
-            return (2, (today_date - d).days, t)   # Past: most recent first
+            return (2, (today_date - d).days, t)
 
-    all_bk = sorted(q.limit(500).all(), key=_bk_sort_key)
+    all_bk = sorted(all_bk_raw, key=_bk_sort_key)
 
     from datetime import timedelta
     tomorrow = (today_date + timedelta(days=1)).isoformat()
