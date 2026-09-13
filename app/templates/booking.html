@@ -523,6 +523,18 @@ function getPriceForHour(hour) {
   return selCourtBasePrice;
 }
 
+function tieredPrice(startRealMin, endRealMin) {
+  let total = 0, m = startRealMin;
+  while (m < endRealMin) {
+    const slotEnd   = Math.min(m + 30, endRealMin);
+    const slotHours = (slotEnd - m) / 60;
+    const h         = Math.floor(m / 60) % 24;
+    total += slotHours * getPriceForHour(h);
+    m += 30;
+  }
+  return Math.round(total);
+}
+
 const today = new Date(); today.setHours(0,0,0,0);
 let selDate = null, selCourt = null, selCourtBasePrice = 25000, selCourtUseTimePricing = true, selPrice = 25000, selStart = null, selStartRealMin = -1, dur = 1;
 function localDate(d) {
@@ -639,8 +651,7 @@ function showDurPanel(startTs, startRealMin) {
   [1, 1.5, 2].forEach(d => {
     const endRealMin = startRealMin + Math.round(d * 60);
     const endTs      = minsToTs(endRealMin);  // wraps mod 24
-    const startHour  = Math.floor(startRealMin / 60) % 24;
-    const price      = Math.round(getPriceForHour(startHour) * d);
+    const price      = tieredPrice(startRealMin, endRealMin);
     const dLabel     = d === 1 ? (IS_EN ? '1 hour' : 'ساعة') : d === 1.5 ? (IS_EN ? '1.5 hours' : 'ساعة ونص') : (IS_EN ? '2 hours' : 'ساعتان');
 
     // Verify all intermediate 30-min intervals are free
@@ -706,7 +717,7 @@ function updateSummary() {
   const cName  = tab ? tab.dataset.courtName : '—';
   const em     = selStartRealMin + Math.round(dur * 60);
   const et     = minsToTs(em);
-  const total = Math.round(getPriceForHour(Math.floor(selStartRealMin / 60) % 24) * dur);
+  const total = tieredPrice(selStartRealMin, selStartRealMin + Math.round(dur * 60));
   let bookingDateStr = selDate;
   if (selStartRealMin >= 24 * 60) {
     const dtNext = new Date(selDate + 'T00:00:00');
