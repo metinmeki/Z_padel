@@ -473,25 +473,46 @@ def add_booking():
         status = request.form.get('status', 'confirmed')
         notes  = request.form.get('notes', '')
 
+        from app.routes.booking import _tiered_price as _tp
+        _utp = court.use_time_pricing is not False and court.use_time_pricing != 0
         crosses_midnight = e_time < s_time and e_time != dtime(0, 0)
 
         if crosses_midnight:
             tomorrow = b_date + timedelta(days=1)
             midnight = dtime(23, 59)
+            # Overlap check for both halves
+            c1 = Booking.query.filter(
+                Booking.court_id == court.id, Booking.booking_date == b_date,
+                Booking.status != 'cancelled',
+                Booking.start_time < midnight, Booking.end_time > s_time).first()
+            c2 = Booking.query.filter(
+                Booking.court_id == court.id, Booking.booking_date == tomorrow,
+                Booking.status != 'cancelled',
+                Booking.start_time < e_time, Booking.end_time > dtime(0, 0)).first()
+            if c1 or c2:
+                flash('هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
+                return redirect(url_for('admin.bookings'))
             bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
                           booking_date=b_date,   start_time=s_time,      end_time=midnight,
                           status=status, notes=notes)
             bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
                           booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,
                           status=status, notes=notes, is_continuation=True)
-            bk1.total_price = bk1.calc_price(court.price_per_hour)
-            bk2.total_price = bk2.calc_price(court.price_per_hour)
+            bk1.total_price = _tp(court, s_time,      midnight,  _utp)
+            bk2.total_price = _tp(court, dtime(0, 0), e_time,    _utp)
             db.session.add_all([bk1, bk2])
         else:
+            conflict = Booking.query.filter(
+                Booking.court_id == court.id, Booking.booking_date == b_date,
+                Booking.status != 'cancelled',
+                Booking.start_time < e_time, Booking.end_time > s_time).first()
+            if conflict:
+                flash('هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
+                return redirect(url_for('admin.bookings'))
             bk = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
                          booking_date=b_date, start_time=s_time, end_time=e_time,
                          status=status, notes=notes)
-            bk.total_price = bk.calc_price(court.price_per_hour)
+            bk.total_price = _tp(court, s_time, e_time, _utp)
             db.session.add(bk)
 
         db.session.commit()
