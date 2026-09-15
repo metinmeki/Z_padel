@@ -395,26 +395,8 @@ def bookings():
                     .limit(300).all())
         all_bk_raw = future_q + past_q
 
-    # Also include orphaned continuations (bk2 whose parent was cancelled)
-    # so admin can see and cancel them
-    primary_ids = {b.id for b in all_bk_raw}
-    orphans = (Booking.query
-               .options(_jl(Booking.court))
-               .filter_by(is_continuation=True, status='confirmed')
-               .filter(Booking.booking_date >= today_date).all())
-    for orp in orphans:
-        # Find parent: same court, prev day, ends at 23:59, same phone
-        prev_date = orp.booking_date - timedelta(days=1)
-        parent = Booking.query.filter_by(
-            court_id=orp.court_id,
-            booking_date=prev_date,
-            customer_phone=orp.customer_phone,
-            status='cancelled'
-        ).filter(Booking.end_time == dtime(23, 59)).first()
-        if parent:
-            all_bk_raw.append(orp)
 
-    def _bk_sort_key(b):
+def _bk_sort_key(b):
         d = b.booking_date or date.min
         t = (b.start_time.hour * 60 + b.start_time.minute) if b.start_time else 0
         if d == today_date:
@@ -650,6 +632,28 @@ def delete_booking(booking_id):
     db.session.delete(b)
     db.session.commit()
     flash('تم حذف الحجز نهائياً.', 'success')
+    return redirect(url_for('admin.bookings'))
+
+
+@admin_bp.route('/bookings/fix-orphans', methods=['POST'])
+@login_required
+def fix_orphan_continuations():
+    """Cancel any is_continuation=True bookings whose parent was cancelled."""
+    orphans = Booking.query.filter_by(is_continuation=True, status='confirmed').all()
+    fixed = 0
+    for orp in orphans:
+        prev_date = orp.booking_date - timedelta(days=1)
+        parent = Booking.query.filter_by(
+            court_id=orp.court_id,
+            booking_date=prev_date,
+            customer_phone=orp.customer_phone,
+            status='cancelled',
+        ).filter(Booking.end_time == dtime(23, 59)).first()
+        if parent:
+            orp.status = 'cancelled'
+            fixed += 1
+    db.session.commit()
+    flash(f'تم إصلاح {fixed} حجز معلق. / Fixed {fixed} orphaned slot(s).', 'success')
     return redirect(url_for('admin.bookings'))
 
 

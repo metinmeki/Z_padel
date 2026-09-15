@@ -341,6 +341,12 @@
       <a href="{{ url_for('admin.bookings', export='csv') }}" class="btn-z-outline">
         <i class="fas fa-file-export"></i> {% if lang == 'en' %}Export{% else %}تصدير{% endif %}
       </a>
+      <form method="POST" action="{{ url_for('admin.fix_orphan_continuations') }}" style="display:inline;" onsubmit="return confirm('Fix orphaned slots?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn-z-outline" style="color:#e53935;border-color:#e53935;" title="Cancel stuck slots from cancelled cross-midnight bookings">
+          <i class="fas fa-wrench"></i> {% if lang == 'en' %}Fix Slots{% else %}إصلاح{% endif %}
+        </button>
+      </form>
     </div>
   </div>
 
