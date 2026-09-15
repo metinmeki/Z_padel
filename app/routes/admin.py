@@ -387,7 +387,6 @@ def bookings():
 
     # Always include today + future; cap past at 300 most-recent to avoid slow pages
     if (request.args.get('date') or request.args.get('court_id') or request.args.get('status')):
-        # Filtered view: fetch all matching (filters already narrow the set)
         all_bk_raw = q.all()
     else:
         future_q = q.filter(Booking.booking_date >= today_date).all()
@@ -395,6 +394,25 @@ def bookings():
                     .order_by(Booking.booking_date.desc())
                     .limit(300).all())
         all_bk_raw = future_q + past_q
+
+    # Also include orphaned continuations (bk2 whose parent was cancelled)
+    # so admin can see and cancel them
+    primary_ids = {b.id for b in all_bk_raw}
+    orphans = (Booking.query
+               .options(_jl(Booking.court))
+               .filter_by(is_continuation=True, status='confirmed')
+               .filter(Booking.booking_date >= today_date).all())
+    for orp in orphans:
+        # Find parent: same court, prev day, ends at 23:59, same phone
+        prev_date = orp.booking_date - timedelta(days=1)
+        parent = Booking.query.filter_by(
+            court_id=orp.court_id,
+            booking_date=prev_date,
+            customer_phone=orp.customer_phone,
+            status='cancelled'
+        ).filter(Booking.end_time == dtime(23, 59)).first()
+        if parent:
+            all_bk_raw.append(orp)
 
     def _bk_sort_key(b):
         d = b.booking_date or date.min
@@ -611,6 +629,9 @@ def cancel_booking(booking_id):
         abort(403)
     b = Booking.query.get_or_404(booking_id)
     b.status = 'cancelled'
+    linked = _find_midnight_continuation(b)
+    if linked:
+        linked.status = 'cancelled'
     db.session.commit()
     flash('تم إلغاء الحجز.', 'success')
     return redirect(url_for('admin.bookings'))
