@@ -580,23 +580,90 @@ def booking_detail(booking_id):
 def edit_booking(booking_id):
     b = Booking.query.get_or_404(booking_id)
     try:
-        b.customer_name  = request.form.get('customer_name', b.customer_name)
-        b.customer_phone = request.form.get('customer_phone', b.customer_phone)
-        b.status         = request.form.get('status', b.status)
-        b.notes          = request.form.get('notes', b.notes)
+        new_name  = request.form.get('customer_name',  b.customer_name)
+        new_phone = request.form.get('customer_phone', b.customer_phone)
+        new_status = request.form.get('status', b.status)
+        new_notes  = request.form.get('notes',  b.notes)
         s_str = request.form.get('start_time', '')
         e_str = request.form.get('end_time', '')
-        if s_str and e_str:
-            new_s = _parse_time(s_str)
-            new_e = _parse_time(e_str)
-            if new_s == new_e:
-                flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
-                return redirect(url_for('admin.bookings'))
-            b.start_time = new_s
-            b.end_time   = new_e
-            court = b.court
+
+        if not s_str or not e_str:
+            flash('يرجى تحديد وقت البداية والنهاية.', 'danger')
+            return redirect(url_for('admin.bookings'))
+
+        new_s = _parse_time(s_str)
+        new_e = _parse_time(e_str)
+        if new_s == new_e:
+            flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
+            return redirect(url_for('admin.bookings'))
+
+        court = b.court
+        _utp  = court and (court.use_time_pricing is not False and court.use_time_pricing != 0)
+        midnight = dtime(23, 59)
+
+        # Find existing bk2 continuation (if this was already a cross-midnight booking)
+        from app.routes.booking import _tiered_price as _tp
+        bk2 = None
+        if b.end_time == midnight:
+            next_date = b.booking_date + timedelta(days=1)
+            bk2 = Booking.query.filter(
+                Booking.court_id        == b.court_id,
+                Booking.booking_date    == next_date,
+                Booking.is_continuation == True,
+                Booking.status          != 'cancelled',
+            ).first()
+
+        crosses_midnight = new_e < new_s and new_e != dtime(0, 0)
+
+        if crosses_midnight:
+            next_date = b.booking_date + timedelta(days=1)
+            b.customer_name  = new_name
+            b.customer_phone = new_phone
+            b.status         = new_status
+            b.notes          = new_notes
+            b.start_time     = new_s
+            b.end_time       = midnight
             if court:
-                b.total_price = b.calc_price(court.price_per_hour)
+                b.total_price = _tp(court, new_s, midnight, _utp)
+
+            if bk2:
+                bk2.customer_name  = new_name
+                bk2.customer_phone = new_phone
+                bk2.status         = new_status
+                bk2.notes          = new_notes
+                bk2.end_time       = new_e
+                if court:
+                    bk2.total_price = _tp(court, dtime(0, 0), new_e, _utp)
+            else:
+                # Booking was same-day before; create bk2 now
+                new_bk2 = Booking(
+                    court_id=b.court_id,
+                    customer_name=new_name,
+                    customer_phone=new_phone,
+                    booking_date=next_date,
+                    start_time=dtime(0, 0),
+                    end_time=new_e,
+                    status=new_status,
+                    notes=new_notes,
+                    is_continuation=True,
+                )
+                if court:
+                    new_bk2.total_price = _tp(court, dtime(0, 0), new_e, _utp)
+                db.session.add(new_bk2)
+        else:
+            # Same-day booking
+            b.customer_name  = new_name
+            b.customer_phone = new_phone
+            b.status         = new_status
+            b.notes          = new_notes
+            b.start_time     = new_s
+            b.end_time       = new_e
+            if court:
+                b.total_price = _tp(court, new_s, new_e, _utp)
+            # If it was cross-midnight before, cancel the old bk2
+            if bk2:
+                bk2.status = 'cancelled'
+
         db.session.commit()
         flash('تم تحديث الحجز.', 'success')
     except Exception as e:
@@ -708,7 +775,8 @@ def pending_bookings():
     today   = date.today()
     now     = datetime.utcnow()
 
-    # Group cross-midnight split bookings: hide continuation, augment parent
+    # Group cross-midnight split bookings: hide bk2 continuation, augment parent row.
+    # Match on court+date+00:00 start — not phone, which can differ after edits.
     continuation_ids = set()
     linked_map = {}  # parent booking id → continuation booking
     for b in pending:
@@ -718,8 +786,8 @@ def pending_bookings():
                 x for x in pending
                 if x.court_id == b.court_id
                 and x.booking_date == tomorrow
+                and x.is_continuation
                 and x.start_time and x.start_time.hour == 0 and x.start_time.minute == 0
-                and x.customer_phone == b.customer_phone
             ), None)
             if cont:
                 continuation_ids.add(cont.id)

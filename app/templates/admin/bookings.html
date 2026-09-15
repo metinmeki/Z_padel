@@ -536,16 +536,19 @@
                       </div>
                       <div class="col-6">
                         <label class="form-label-z">{% if lang == 'en' %}End Time{% else %}وقت النهاية{% endif %}</label>
+                        {# For cross-midnight bookings bk1 ends at 23:59 (not in dropdown).
+                           Use the real end time from bk2 so the admin sees the correct value. #}
+                        {% set display_end = continuation_ends[b.id] if b.id in continuation_ends else (b.end_time.strftime('%H:%M') if b.end_time else '') %}
                         <select name="end_time" class="form-control-z" required>
                           {% for h in range(8, 24) %}
-                            <option value="{{ '%02d'|format(h) }}:00" {% if b.end_time and b.end_time.strftime('%H:%M') == '%02d'|format(h) ~ ':00' %}selected{% endif %}>{{ '%02d'|format(h) }}:00</option>
-                            <option value="{{ '%02d'|format(h) }}:30" {% if b.end_time and b.end_time.strftime('%H:%M') == '%02d'|format(h) ~ ':30' %}selected{% endif %}>{{ '%02d'|format(h) }}:30</option>
+                            <option value="{{ '%02d'|format(h) }}:00" {% if display_end == '%02d'|format(h) ~ ':00' %}selected{% endif %}>{{ '%02d'|format(h) }}:00</option>
+                            <option value="{{ '%02d'|format(h) }}:30" {% if display_end == '%02d'|format(h) ~ ':30' %}selected{% endif %}>{{ '%02d'|format(h) }}:30</option>
                           {% endfor %}
                           {% for h in range(0, 3) %}
-                            <option value="{{ '%02d'|format(h) }}:00" {% if b.end_time and b.end_time.strftime('%H:%M') == '%02d'|format(h) ~ ':00' %}selected{% endif %}>{{ '%02d'|format(h) }}:00</option>
-                            <option value="{{ '%02d'|format(h) }}:30" {% if b.end_time and b.end_time.strftime('%H:%M') == '%02d'|format(h) ~ ':30' %}selected{% endif %}>{{ '%02d'|format(h) }}:30</option>
+                            <option value="{{ '%02d'|format(h) }}:00" {% if display_end == '%02d'|format(h) ~ ':00' %}selected{% endif %}>{{ '%02d'|format(h) }}:00</option>
+                            <option value="{{ '%02d'|format(h) }}:30" {% if display_end == '%02d'|format(h) ~ ':30' %}selected{% endif %}>{{ '%02d'|format(h) }}:30</option>
                           {% endfor %}
-                          <option value="03:00" {% if b.end_time and b.end_time.hour == 3 and b.end_time.minute == 0 %}selected{% endif %}>03:00</option>
+                          <option value="03:00" {% if display_end == '03:00' %}selected{% endif %}>03:00</option>
                         </select>
                       </div>
                       <div class="col-12">
