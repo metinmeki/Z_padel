@@ -637,18 +637,22 @@ def delete_booking(booking_id):
 @admin_bp.route('/bookings/fix-orphans', methods=['POST'])
 @login_required
 def fix_orphan_continuations():
-    """Cancel any is_continuation=True bookings whose parent was cancelled."""
-    orphans = Booking.query.filter_by(is_continuation=True, status='confirmed').all()
+    """Cancel continuation (bk2) records that have no active parent (bk1)."""
+    orphans = Booking.query.filter(
+        Booking.is_continuation == True,
+        Booking.status != 'cancelled',
+    ).all()
     fixed = 0
     for orp in orphans:
         prev_date = orp.booking_date - timedelta(days=1)
-        parent = Booking.query.filter_by(
-            court_id=orp.court_id,
-            booking_date=prev_date,
-            customer_phone=orp.customer_phone,
-            status='cancelled',
-        ).filter(Booking.end_time == dtime(23, 59)).first()
-        if parent:
+        parent = Booking.query.filter(
+            Booking.court_id        == orp.court_id,
+            Booking.booking_date    == prev_date,
+            Booking.is_continuation == False,
+            Booking.status          != 'cancelled',
+            Booking.end_time        == dtime(23, 59),
+        ).first()
+        if not parent:
             orp.status = 'cancelled'
             fixed += 1
     db.session.commit()
