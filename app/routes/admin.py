@@ -395,8 +395,7 @@ def bookings():
                     .limit(300).all())
         all_bk_raw = future_q + past_q
 
-
-def _bk_sort_key(b):
+    def _bk_sort_key(b):
         d = b.booking_date or date.min
         t = (b.start_time.hour * 60 + b.start_time.minute) if b.start_time else 0
         if d == today_date:
