@@ -411,8 +411,9 @@ def bookings():
     tomorrow = (today_date + timedelta(days=1)).isoformat()
 
     # For cross-midnight bookings (bk1 ends at 23:59), find the paired bk2 so
-    # the template can display the real end time (e.g. 23:30 → 01:30 next day).
-    continuation_ends = {}
+    # the template can display the real end time and combined price.
+    continuation_ends  = {}   # bk1.id → end time string  (e.g. "01:30")
+    continuation_extra = {}   # bk1.id → bk2 total_price  (to sum with bk1)
     for b in all_bk:
         if b.end_time and b.end_time == dtime(23, 59):
             next_date = b.booking_date + timedelta(days=1)
@@ -422,8 +423,10 @@ def bookings():
                 Booking.is_continuation == True,
                 Booking.status          != 'cancelled',
             ).first()
-            if bk2 and bk2.end_time:
-                continuation_ends[b.id] = bk2.end_time.strftime('%H:%M')
+            if bk2:
+                if bk2.end_time:
+                    continuation_ends[b.id] = bk2.end_time.strftime('%H:%M')
+                continuation_extra[b.id] = bk2.total_price or 0
 
     pricing_rules = PricingRule.query.filter_by(is_active=True).order_by(PricingRule.sort_order).all()
 
@@ -458,7 +461,8 @@ def bookings():
         tomorrow=tomorrow, court_price=25000,
         pricing_rules=pricing_rules,
         ghost_slots=ghost_slots,
-        continuation_ends=continuation_ends)
+        continuation_ends=continuation_ends,
+        continuation_extra=continuation_extra)
 
 
 @admin_bp.route('/bookings/booked-slots')
