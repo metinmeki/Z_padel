@@ -412,11 +412,37 @@ def bookings():
 
     pricing_rules = PricingRule.query.filter_by(is_active=True).order_by(PricingRule.sort_order).all()
 
+    # Find non-cancelled continuation (bk2) records that have no active parent —
+    # these are "ghost" bookings invisible to the admin list but showing as red on
+    # the public page.  Display them as a warning so the admin knows who booked.
+    ghost_slots = []
+    all_cont = (Booking.query
+                .options(_jl(Booking.court))
+                .filter(
+                    Booking.is_continuation == True,
+                    Booking.status          != 'cancelled',
+                ).all())
+    for c in all_cont:
+        prev_date = c.booking_date - timedelta(days=1)
+        parent = Booking.query.filter(
+            Booking.court_id        == c.court_id,
+            Booking.booking_date    == prev_date,
+            Booking.is_continuation == False,
+            Booking.status          != 'cancelled',
+            Booking.end_time        == dtime(23, 59),
+        ).first()
+        if not parent:
+            ghost_slots.append({
+                'booking':      c,
+                'display_date': prev_date,
+            })
+
     return render_template('admin/bookings.html',
         bookings=all_bk, pagination=None,
         courts=courts, today=today_date.isoformat(),
         tomorrow=tomorrow, court_price=25000,
-        pricing_rules=pricing_rules)
+        pricing_rules=pricing_rules,
+        ghost_slots=ghost_slots)
 
 
 @admin_bp.route('/bookings/booked-slots')

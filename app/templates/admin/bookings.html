@@ -350,6 +350,45 @@
     </div>
   </div>
 
+  {% if ghost_slots %}
+  <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:14px 18px;margin-bottom:14px;">
+    <strong style="color:#856404;"><i class="fas fa-exclamation-triangle"></i>
+      {% if lang == 'en' %}Hidden bookings causing red slots on the public page:{% else %}حجوزات مخفية تسبب ظهور الأوقات محجوزة في الصفحة العامة:{% endif %}
+    </strong>
+    <table style="width:100%;margin-top:10px;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:#ffeaa0;">
+          <th style="padding:6px 10px;text-align:left;">{% if lang == 'en' %}Customer{% else %}العميل{% endif %}</th>
+          <th style="padding:6px 10px;text-align:left;">{% if lang == 'en' %}Phone{% else %}الهاتف{% endif %}</th>
+          <th style="padding:6px 10px;text-align:left;">{% if lang == 'en' %}Court{% else %}الملعب{% endif %}</th>
+          <th style="padding:6px 10px;text-align:left;">{% if lang == 'en' %}Visible as date{% else %}يظهر في تاريخ{% endif %}</th>
+          <th style="padding:6px 10px;text-align:left;">{% if lang == 'en' %}Time{% else %}الوقت{% endif %}</th>
+          <th style="padding:6px 10px;text-align:left;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in ghost_slots %}
+        {% set g = item.booking %}
+        <tr style="border-top:1px solid #ffd56b;">
+          <td style="padding:6px 10px;">{{ g.customer_name or '—' }}</td>
+          <td style="padding:6px 10px;">{{ g.customer_phone or '—' }}</td>
+          <td style="padding:6px 10px;">{{ g.court.name if g.court else g.court_id }}</td>
+          <td style="padding:6px 10px;">{{ item.display_date.isoformat() }}</td>
+          <td style="padding:6px 10px;">
+            {{ g.start_time.strftime('%H:%M') if g.start_time else '?' }} –
+            {{ g.end_time.strftime('%H:%M') if g.end_time else '?' }}
+          </td>
+          <td style="padding:6px 10px;">{{ g.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0;color:#856404;font-size:12px;">
+      {% if lang == 'en' %}Click "Fix Slots" to remove these.{% else %}اضغط "إصلاح" لإزالة هذه الحجوزات المعلقة.{% endif %}
+    </p>
+  </div>
+  {% endif %}
+
   <div style="overflow-x:auto;">
     <table class="table-z" id="bookingsTable">
       <thead>
