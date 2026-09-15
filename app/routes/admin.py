@@ -410,6 +410,21 @@ def bookings():
     from datetime import timedelta
     tomorrow = (today_date + timedelta(days=1)).isoformat()
 
+    # For cross-midnight bookings (bk1 ends at 23:59), find the paired bk2 so
+    # the template can display the real end time (e.g. 23:30 → 01:30 next day).
+    continuation_ends = {}
+    for b in all_bk:
+        if b.end_time and b.end_time == dtime(23, 59):
+            next_date = b.booking_date + timedelta(days=1)
+            bk2 = Booking.query.filter(
+                Booking.court_id        == b.court_id,
+                Booking.booking_date    == next_date,
+                Booking.is_continuation == True,
+                Booking.status          != 'cancelled',
+            ).first()
+            if bk2 and bk2.end_time:
+                continuation_ends[b.id] = bk2.end_time.strftime('%H:%M')
+
     pricing_rules = PricingRule.query.filter_by(is_active=True).order_by(PricingRule.sort_order).all()
 
     # Find non-cancelled continuation (bk2) records that have no active parent —
@@ -442,7 +457,8 @@ def bookings():
         courts=courts, today=today_date.isoformat(),
         tomorrow=tomorrow, court_price=25000,
         pricing_rules=pricing_rules,
-        ghost_slots=ghost_slots)
+        ghost_slots=ghost_slots,
+        continuation_ends=continuation_ends)
 
 
 @admin_bp.route('/bookings/booked-slots')
