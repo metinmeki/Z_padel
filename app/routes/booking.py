@@ -39,8 +39,35 @@ def _tiered_price(court, s_time, e_time, use_time_pricing=True):
 booking_bp = Blueprint('booking', __name__)
 
 
+def _auto_fix_orphans():
+    """Cancel continuation (bk2) records that have no active parent (bk1).
+    Called automatically on every public page load so orphaned slots never
+    stay red for users."""
+    orphans = Booking.query.filter(
+        Booking.is_continuation == True,
+        Booking.status          != 'cancelled',
+    ).all()
+    fixed = 0
+    for orp in orphans:
+        prev_date = orp.booking_date - timedelta(days=1)
+        parent = Booking.query.filter(
+            Booking.court_id        == orp.court_id,
+            Booking.booking_date    == prev_date,
+            Booking.is_continuation == False,
+            Booking.status          != 'cancelled',
+            Booking.end_time        == dtime(23, 59),
+        ).first()
+        if not parent:
+            orp.status = 'cancelled'
+            fixed += 1
+    if fixed:
+        db.session.commit()
+
+
 @booking_bp.route('/')
 def index():
+    _auto_fix_orphans()  # clean up ghost slots before building the booked-slots map
+
     courts = Court.query.filter_by(is_active=True).all()
     today  = date.today().isoformat()
 

@@ -683,26 +683,10 @@ def delete_booking(booking_id):
 @admin_bp.route('/bookings/fix-orphans', methods=['POST'])
 @login_required
 def fix_orphan_continuations():
-    """Cancel continuation (bk2) records that have no active parent (bk1)."""
-    orphans = Booking.query.filter(
-        Booking.is_continuation == True,
-        Booking.status != 'cancelled',
-    ).all()
-    fixed = 0
-    for orp in orphans:
-        prev_date = orp.booking_date - timedelta(days=1)
-        parent = Booking.query.filter(
-            Booking.court_id        == orp.court_id,
-            Booking.booking_date    == prev_date,
-            Booking.is_continuation == False,
-            Booking.status          != 'cancelled',
-            Booking.end_time        == dtime(23, 59),
-        ).first()
-        if not parent:
-            orp.status = 'cancelled'
-            fixed += 1
-    db.session.commit()
-    flash(f'تم إصلاح {fixed} حجز معلق. / Fixed {fixed} orphaned slot(s).', 'success')
+    """Manual trigger — same logic runs automatically on every public page load."""
+    from app.routes.booking import _auto_fix_orphans
+    _auto_fix_orphans()
+    flash('تم إصلاح الحجوزات المعلقة. / Orphaned slots fixed.', 'success')
     return redirect(url_for('admin.bookings'))
 
 
