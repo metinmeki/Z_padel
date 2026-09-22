@@ -497,69 +497,39 @@ def booked_slots():
 @login_required
 def add_booking():
     try:
+        from app.routes.booking import _tiered_price as _tp, _times_overlap
+
         court  = Court.query.get_or_404(request.form['court_id'])
         b_date = datetime.strptime(request.form['booking_date'], '%Y-%m-%d').date()
         s_time = _parse_time(request.form['start_time'])
         e_time = _parse_time(request.form['end_time'])
 
-        # Reject zero-duration bookings (start == end)
         if s_time == e_time:
             flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
             return redirect(url_for('admin.bookings'))
-
-        # Midnight slots (00:00–02:59) are the late-night extension of the chosen
-        # business date. Store under the NEXT calendar day so the display logic
-        # correctly shows them in the chosen date's bottom-row grid.
-        if s_time.hour < 3:
-            b_date = b_date + timedelta(days=1)
 
         name   = request.form['customer_name']
         phone  = request.form['customer_phone']
         status = request.form.get('status', 'confirmed')
         notes  = request.form.get('notes', '')
 
-        from app.routes.booking import _tiered_price as _tp
         _utp = court.use_time_pricing is not False and court.use_time_pricing != 0
-        crosses_midnight = e_time < s_time and e_time != dtime(0, 0)
 
-        if crosses_midnight:
-            tomorrow = b_date + timedelta(days=1)
-            midnight = dtime(23, 59)
-            # Overlap check for both halves
-            c1 = Booking.query.filter(
-                Booking.court_id == court.id, Booking.booking_date == b_date,
-                Booking.status != 'cancelled',
-                Booking.start_time < midnight, Booking.end_time > s_time).first()
-            c2 = Booking.query.filter(
-                Booking.court_id == court.id, Booking.booking_date == tomorrow,
-                Booking.status != 'cancelled',
-                Booking.start_time < e_time, Booking.end_time > dtime(0, 0)).first()
-            if c1 or c2:
-                flash('هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
-                return redirect(url_for('admin.bookings'))
-            bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
-                          booking_date=b_date,   start_time=s_time,      end_time=midnight,
-                          status=status, notes=notes)
-            bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
-                          booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,
-                          status=status, notes=notes, is_continuation=True)
-            bk1.total_price = _tp(court, s_time,      midnight,  _utp)
-            bk2.total_price = _tp(court, dtime(0, 0), e_time,    _utp)
-            db.session.add_all([bk1, bk2])
-        else:
-            conflict = Booking.query.filter(
-                Booking.court_id == court.id, Booking.booking_date == b_date,
-                Booking.status != 'cancelled',
-                Booking.start_time < e_time, Booking.end_time > s_time).first()
-            if conflict:
-                flash('هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
-                return redirect(url_for('admin.bookings'))
-            bk = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
-                         booking_date=b_date, start_time=s_time, end_time=e_time,
-                         status=status, notes=notes)
-            bk.total_price = _tp(court, s_time, e_time, _utp)
-            db.session.add(bk)
+        existing = Booking.query.filter(
+            Booking.court_id        == court.id,
+            Booking.booking_date    == b_date,
+            Booking.status          != 'cancelled',
+            Booking.is_continuation == False,
+        ).all()
+        if any(_times_overlap(s_time, e_time, b.start_time, b.end_time) for b in existing):
+            flash('هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
+            return redirect(url_for('admin.bookings'))
 
+        bk = Booking(court_id=court.id, customer_name=name, customer_phone=phone,
+                     booking_date=b_date, start_time=s_time, end_time=e_time,
+                     status=status, notes=notes)
+        bk.total_price = _tp(court, s_time, e_time, _utp)
+        db.session.add(bk)
         db.session.commit()
         flash('تم إضافة الحجز بنجاح.', 'success')
     except Exception as e:
@@ -580,6 +550,8 @@ def booking_detail(booking_id):
 def edit_booking(booking_id):
     b = Booking.query.get_or_404(booking_id)
     try:
+        from app.routes.booking import _tiered_price as _tp, _times_overlap
+
         new_name  = request.form.get('customer_name',  b.customer_name)
         new_phone = request.form.get('customer_phone', b.customer_phone)
         new_status = request.form.get('status', b.status)
@@ -599,70 +571,39 @@ def edit_booking(booking_id):
 
         court = b.court
         _utp  = court and (court.use_time_pricing is not False and court.use_time_pricing != 0)
-        midnight = dtime(23, 59)
 
-        # Find existing bk2 continuation (if this was already a cross-midnight booking)
-        from app.routes.booking import _tiered_price as _tp
-        bk2 = None
-        if b.end_time == midnight:
+        # Conflict check: exclude this booking from the search
+        existing = Booking.query.filter(
+            Booking.court_id        == b.court_id,
+            Booking.booking_date    == b.booking_date,
+            Booking.status          != 'cancelled',
+            Booking.is_continuation == False,
+            Booking.id              != b.id,
+        ).all()
+        if any(_times_overlap(new_s, new_e, ex.start_time, ex.end_time) for ex in existing):
+            flash('هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
+            return redirect(url_for('admin.bookings'))
+
+        # Cancel any old-format bk2 continuation record that may exist
+        if b.end_time == dtime(23, 59):
             next_date = b.booking_date + timedelta(days=1)
-            bk2 = Booking.query.filter(
+            old_bk2 = Booking.query.filter(
                 Booking.court_id        == b.court_id,
                 Booking.booking_date    == next_date,
                 Booking.is_continuation == True,
                 Booking.status          != 'cancelled',
             ).first()
+            if old_bk2:
+                old_bk2.status = 'cancelled'
 
-        crosses_midnight = new_e < new_s and new_e != dtime(0, 0)
-
-        if crosses_midnight:
-            next_date = b.booking_date + timedelta(days=1)
-            b.customer_name  = new_name
-            b.customer_phone = new_phone
-            b.status         = new_status
-            b.notes          = new_notes
-            b.start_time     = new_s
-            b.end_time       = midnight
-            if court:
-                b.total_price = _tp(court, new_s, midnight, _utp)
-
-            if bk2:
-                bk2.customer_name  = new_name
-                bk2.customer_phone = new_phone
-                bk2.status         = new_status
-                bk2.notes          = new_notes
-                bk2.end_time       = new_e
-                if court:
-                    bk2.total_price = _tp(court, dtime(0, 0), new_e, _utp)
-            else:
-                # Booking was same-day before; create bk2 now
-                new_bk2 = Booking(
-                    court_id=b.court_id,
-                    customer_name=new_name,
-                    customer_phone=new_phone,
-                    booking_date=next_date,
-                    start_time=dtime(0, 0),
-                    end_time=new_e,
-                    status=new_status,
-                    notes=new_notes,
-                    is_continuation=True,
-                )
-                if court:
-                    new_bk2.total_price = _tp(court, dtime(0, 0), new_e, _utp)
-                db.session.add(new_bk2)
-        else:
-            # Same-day booking
-            b.customer_name  = new_name
-            b.customer_phone = new_phone
-            b.status         = new_status
-            b.notes          = new_notes
-            b.start_time     = new_s
-            b.end_time       = new_e
-            if court:
-                b.total_price = _tp(court, new_s, new_e, _utp)
-            # If it was cross-midnight before, cancel the old bk2
-            if bk2:
-                bk2.status = 'cancelled'
+        b.customer_name  = new_name
+        b.customer_phone = new_phone
+        b.status         = new_status
+        b.notes          = new_notes
+        b.start_time     = new_s
+        b.end_time       = new_e
+        if court:
+            b.total_price = _tp(court, new_s, new_e, _utp)
 
         db.session.commit()
         flash('تم تحديث الحجز.', 'success')

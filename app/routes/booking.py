@@ -39,39 +39,68 @@ def _tiered_price(court, s_time, e_time, use_time_pricing=True):
 booking_bp = Blueprint('booking', __name__)
 
 
-def _auto_fix_orphans():
-    """Cancel continuation (bk2) records that have no active parent (bk1).
-    Called automatically on every public page load so orphaned slots never
-    stay red for users."""
+def _migrate_to_business_dates():
+    """One-time + ongoing migration to store all bookings under their business date.
+
+    Business day: 08:00 on date D  →  03:00 on date D+1 (calendar).
+
+    Steps (idempotent except step 3, which is guarded by a SystemSetting flag):
+      1. Merge bk1+bk2 cross-midnight pairs into one record on the business date.
+      2. Cancel any remaining orphaned bk2 records.
+      3. (One-time) Remap old bottom-row bookings from calendar date to business date.
+    """
+    from app.models.main import SystemSetting
+    changed = False
+
+    # ── Step 1: merge bk1 (end=23:59) + bk2 (is_continuation, start=00:00) ──
+    bk1_list = Booking.query.filter(
+        Booking.is_continuation == False,
+        Booking.end_time        == dtime(23, 59),
+    ).all()
+    for bk1 in bk1_list:
+        next_date = bk1.booking_date + timedelta(days=1)
+        bk2 = Booking.query.filter(
+            Booking.court_id        == bk1.court_id,
+            Booking.booking_date    == next_date,
+            Booking.is_continuation == True,
+            Booking.start_time      == dtime(0, 0),
+        ).first()
+        if bk2:
+            bk1.end_time    = bk2.end_time
+            bk1.total_price = (bk1.total_price or 0) + (bk2.total_price or 0)
+            db.session.delete(bk2)
+            changed = True
+
+    # ── Step 2: cancel orphaned bk2 records (no active parent) ──
     orphans = Booking.query.filter(
         Booking.is_continuation == True,
         Booking.status          != 'cancelled',
     ).all()
-    fixed = 0
     for orp in orphans:
-        prev_date = orp.booking_date - timedelta(days=1)
-        parent = Booking.query.filter(
-            Booking.court_id        == orp.court_id,
-            Booking.booking_date    == prev_date,
-            Booking.is_continuation == False,
-            Booking.status          != 'cancelled',
-            Booking.end_time        == dtime(23, 59),
-        ).first()
-        if not parent:
-            orp.status = 'cancelled'
-            fixed += 1
-    if fixed:
+        orp.status = 'cancelled'
+        changed = True
+
+    # ── Step 3: remap old-format bottom-row bookings to business date (one-time) ──
+    if not SystemSetting.get('bookings_biz_date_v1'):
+        for b in Booking.query.filter(Booking.is_continuation == False).all():
+            if b.start_time and b.start_time.hour < 3:
+                b.booking_date = b.booking_date - timedelta(days=1)
+                changed = True
+        SystemSetting.set('bookings_biz_date_v1', 'done')
+        changed = True
+
+    if changed:
         db.session.commit()
 
 
 @booking_bp.route('/')
 def index():
-    _auto_fix_orphans()  # clean up ghost slots before building the booked-slots map
+    # Migrate existing data to business-date format (idempotent)
+    _migrate_to_business_dates()
 
     courts = Court.query.filter_by(is_active=True).all()
     today  = date.today().isoformat()
 
-    # Convert courts to JSON-serializable list
     courts_data = []
     for c in courts:
         courts_data.append({
@@ -82,60 +111,31 @@ def index():
             'use_time_pricing': bool(c.use_time_pricing is not False and c.use_time_pricing != 0),
         })
 
-    # Build booked slots dict: {"court_id:date": ["HH:MM", ...]} covering every 30-min interval
+    # Build booked-slots dict: {"court_id:business_date": ["HH:MM", ...]}
+    # After migration every booking.booking_date IS the business date.
+    # Cross-midnight bookings (end_time < start_time) add post-midnight slots
+    # to the SAME business-date key using modulo arithmetic.
     booked_slots = {}
-    bookings = Booking.query.filter(Booking.status != 'cancelled').all()
-
-    # Pre-collect (court_id, date) pairs that have a bk2 continuation — including
-    # cancelled ones. This prevents bk1 from overflowing to the next day even when
-    # its paired bk2 was cancelled or has a wrong end_time due to admin editing.
-    continuation_keys = {
-        (b.court_id, b.booking_date)
-        for b in Booking.query.filter_by(is_continuation=True).all()
-    }
-    # Also treat non-continuation bookings in 00:00–02:59 as "next-day" slots that
-    # belong to the previous business day.  This prevents bk1 from spilling into a
-    # date that already has such a booking.
-    continuation_keys |= {
-        (b.court_id, b.booking_date)
-        for b in bookings
-        if not b.is_continuation and b.start_time and b.start_time.hour < 3
-    }
-
-    for b in bookings:
+    for b in Booking.query.filter(
+        Booking.status          != 'cancelled',
+        Booking.is_continuation == False,
+    ).all():
         if not b.start_time or not b.end_time:
             continue
-        # Display rule: both is_continuation bk2 records AND non-continuation bookings
-        # that start between 00:00–02:59 (bottom-row slots) belong to the PREVIOUS
-        # business day's grid.
-        is_bottom_row = (not b.is_continuation and b.start_time.hour < 3)
-        display_date = (b.booking_date - timedelta(days=1)) if (b.is_continuation or is_bottom_row) else b.booking_date
-        key = f"{b.court_id}:{display_date.isoformat()}"
+        key = f"{b.court_id}:{b.booking_date.isoformat()}"
         if key not in booked_slots:
             booked_slots[key] = []
         start_m = b.start_time.hour * 60 + b.start_time.minute
         end_m   = b.end_time.hour   * 60 + b.end_time.minute
-        if end_m < start_m:  # cross-midnight: extend end past 24h boundary
-            end_m += 24 * 60
-        next_key = None
+        if end_m <= start_m and b.end_time != dtime(0, 0):
+            end_m += 24 * 60          # cross-midnight: extend past 24h boundary
+        elif b.end_time == dtime(0, 0):
+            end_m = 24 * 60           # ends exactly at midnight
         m = start_m
         while m < end_m:
-            if m >= 24 * 60 and not b.is_continuation:
-                # Single cross-midnight record (not split into bk1+bk2).
-                # If a paired bk2 continuation exists, it handles the overflow
-                # display itself — skip. Otherwise add the overflow slot to the
-                # SAME date key so the bottom row of THIS date's grid shows it
-                # as booked (the frontend checks "court:date" for bottom-row slots).
-                next_day = b.booking_date + timedelta(days=1)
-                if (b.court_id, next_day) not in continuation_keys:
-                    actual_m = m - 24 * 60
-                    ts = f"{actual_m//60:02d}:{actual_m%60:02d}"
-                    if ts not in booked_slots[key]:
-                        booked_slots[key].append(ts)
-            else:
-                ts = f"{m//60:02d}:{m%60:02d}"
-                if ts not in booked_slots[key]:
-                    booked_slots[key].append(ts)
+            ts = f"{(m % 1440) // 60:02d}:{(m % 1440) % 60:02d}"
+            if ts not in booked_slots[key]:
+                booked_slots[key].append(ts)
             m += 30
 
 
@@ -153,6 +153,22 @@ def index():
     )
 
 
+def _biz_min(t):
+    """Business-day minutes for time t. 00:00–02:59 treated as 24:00–26:59."""
+    m = t.hour * 60 + t.minute
+    return m + 1440 if t.hour < 3 else m
+
+
+def _times_overlap(s1, e1, s2, e2):
+    """True if [s1,e1] and [s2,e2] overlap within the same business day."""
+    ms1, ms2 = _biz_min(s1), _biz_min(s2)
+    me1 = 1440 if e1 == dtime(0, 0) else _biz_min(e1)
+    me2 = 1440 if e2 == dtime(0, 0) else _biz_min(e2)
+    if me1 <= ms1: me1 += 1440
+    if me2 <= ms2: me2 += 1440
+    return ms1 < me2 and ms2 < me1
+
+
 @booking_bp.route('/create', methods=['POST'])
 def create():
     try:
@@ -164,42 +180,15 @@ def create():
         name  = request.form['customer_name']
         phone = request.form['customer_phone']
         notes = request.form.get('notes', '')
-        # end=00:00 means "ends exactly at midnight" — no next-day portion needed
-        crosses_midnight = e_time < s_time and e_time != dtime(0, 0)
 
-        if crosses_midnight:
-            # Split into two bookings: tonight → 23:59, tomorrow 00:00 → end
-            tomorrow = b_date + timedelta(days=1)
-            midnight = dtime(23, 59)
-            c1 = Booking.query.filter(Booking.court_id == court.id, Booking.booking_date == b_date,    Booking.status != 'cancelled', Booking.start_time < midnight,    Booking.end_time > s_time).first()
-            c2 = Booking.query.filter(Booking.court_id == court.id, Booking.booking_date == tomorrow,  Booking.status != 'cancelled', Booking.start_time < e_time,       Booking.end_time > dtime(0, 0)).first()
-            if c1 or c2:
-                flash('عذراً، هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
-                return redirect(url_for('booking.index'))
-            bk1 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=b_date,   start_time=s_time,      end_time=midnight,  status='pending', notes=notes)
-            bk2 = Booking(court_id=court.id, customer_name=name, customer_phone=phone, booking_date=tomorrow, start_time=dtime(0, 0), end_time=e_time,    status='pending', notes=notes, is_continuation=True)
-            _utp = court.use_time_pricing is not False and court.use_time_pricing != 0
-            bk1.total_price = _tiered_price(court, s_time,      midnight,  _utp)
-            bk2.total_price = _tiered_price(court, dtime(0, 0), e_time,    _utp)
-            db.session.add_all([bk1, bk2])
-            db.session.commit()
-            try:
-                from app.routes.admin import _send_push_all
-                _send_push_all('حجز جديد', f'{name} — {court.name}', '/admin/bookings')
-            except Exception:
-                pass
-            flash('تم استلام طلب حجزك بنجاح! سيتم التأكيد قريباً.', 'success')
-            return redirect(url_for('booking.success', booking_id=bk1.id))
-
-        # Normal (same-day) booking — overlap detection
-        conflict = Booking.query.filter(
-            Booking.court_id     == court.id,
-            Booking.booking_date == b_date,
-            Booking.status       != 'cancelled',
-            Booking.start_time   < e_time,
-            Booking.end_time     > s_time,
-        ).first()
-        if conflict:
+        # Conflict check using business-day overlap (handles cross-midnight)
+        existing = Booking.query.filter(
+            Booking.court_id        == court.id,
+            Booking.booking_date    == b_date,
+            Booking.status          != 'cancelled',
+            Booking.is_continuation == False,
+        ).all()
+        if any(_times_overlap(s_time, e_time, b.start_time, b.end_time) for b in existing):
             flash('عذراً، هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر.', 'danger')
             return redirect(url_for('booking.index'))
 
@@ -227,14 +216,4 @@ def create():
 @booking_bp.route('/success/<int:booking_id>')
 def success(booking_id):
     bk = Booking.query.get_or_404(booking_id)
-    # Detect cross-midnight split: part 1 ends at 23:59, look for continuation tomorrow
-    linked = None
-    if bk.end_time and bk.end_time.hour == 23 and bk.end_time.minute == 59:
-        tomorrow = bk.booking_date + timedelta(days=1)
-        linked = Booking.query.filter_by(
-            court_id=bk.court_id,
-            booking_date=tomorrow,
-            start_time=dtime(0, 0),
-            customer_phone=bk.customer_phone,
-        ).filter(Booking.status != 'cancelled').first()
-    return render_template('booking_success.html', booking=bk, linked=linked)
+    return render_template('booking_success.html', booking=bk, linked=None)
