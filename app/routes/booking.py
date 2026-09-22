@@ -81,12 +81,13 @@ def _migrate_to_business_dates():
         changed = True
 
     # ── Step 3: remap old-format bottom-row bookings to business date (one-time) ──
-    if not SystemSetting.get('bookings_biz_date_v1'):
+    # v2: re-run to catch bookings created by old admin code after v1 ran
+    if not SystemSetting.get('bookings_biz_date_v2'):
         for b in Booking.query.filter(Booking.is_continuation == False).all():
             if b.start_time and b.start_time.hour < 3:
                 b.booking_date = b.booking_date - timedelta(days=1)
                 changed = True
-        SystemSetting.set('bookings_biz_date_v1', 'done')
+        SystemSetting.set('bookings_biz_date_v2', 'done')
         changed = True
 
     if changed:
