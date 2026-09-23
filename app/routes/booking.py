@@ -205,16 +205,20 @@ def create():
             _send_push_all('حجز جديد', f'{name} — {court.name}', '/admin/bookings')
         except Exception:
             pass
+        from flask import session as flask_session
+        flask_session['last_booking_id'] = bk.id
         flash('تم استلام طلب حجزك بنجاح! سيتم التأكيد قريباً.', 'success')
         return redirect(url_for('booking.success', booking_id=bk.id))
     except Exception as e:
         db.session.rollback()
-        flash(f'حدث خطأ: {e}', 'danger')
+        flash(f'حدث خطأ أثناء معالجة الحجز.', 'danger')
         return redirect(url_for('booking.index'))
-
 
 
 @booking_bp.route('/success/<int:booking_id>')
 def success(booking_id):
+    from flask import session as flask_session
+    if flask_session.get('last_booking_id') != booking_id:
+        return redirect(url_for('booking.index'))
     bk = Booking.query.get_or_404(booking_id)
     return render_template('booking_success.html', booking=bk, linked=None)
