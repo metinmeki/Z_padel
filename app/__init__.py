@@ -51,6 +51,24 @@ def create_app(config_name: str = None):
             response.cache_control.public = True
         return response
 
+    # ── Security headers ──
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['X-Frame-Options']           = 'SAMEORIGIN'
+        response.headers['X-Content-Type-Options']    = 'nosniff'
+        response.headers['Referrer-Policy']           = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy']        = 'camera=(), microphone=(), geolocation=()'
+        response.headers['Content-Security-Policy']   = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; "
+            "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self';"
+        )
+        return response
+
     # ── Language middleware ──
     @app.before_request
     def set_lang():
