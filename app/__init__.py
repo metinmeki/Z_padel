@@ -59,14 +59,6 @@ def create_app(config_name: str = None):
         response.headers['X-Content-Type-Options']    = 'nosniff'
         response.headers['Referrer-Policy']           = 'strict-origin-when-cross-origin'
         response.headers['Permissions-Policy']        = 'camera=(), microphone=(), geolocation=()'
-        response.headers['Content-Security-Policy']   = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com; "
-            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; "
-            "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; "
-            "img-src 'self' data:; "
-            "connect-src 'self';"
-        )
         return response
 
     # ── Language middleware ──
