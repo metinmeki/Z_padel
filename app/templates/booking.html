@@ -687,17 +687,11 @@ function selectDuration(d, endRealMin) {
   dur = d;
   const endTs = minsToTs(endRealMin);
 
-  // Bottom-row slots (00:00–02:30, realMin≥1440) are the late-night continuation
-  // of tonight's business day. The actual calendar date is the NEXT day.
-  let bookingDate = selDate;
-  if (selStartRealMin >= 24 * 60) {
-    const dt = new Date(selDate + 'T00:00:00');
-    dt.setDate(dt.getDate() + 1);
-    bookingDate = localDate(dt);
-  }
-
+  // Always send the business date (selDate) so booked-slot keys stay consistent.
+  // 00:00–02:30 slots belong to tonight's business day even though they fall on
+  // the next calendar day — the server stores them under the business date.
   document.getElementById('f_court_id').value = selCourt;
-  document.getElementById('f_date').value     = bookingDate;
+  document.getElementById('f_date').value     = selDate;
   document.getElementById('f_start').value    = selStart;
   document.getElementById('f_end').value      = endTs;
   renderSlots();
