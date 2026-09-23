@@ -508,6 +508,12 @@ def add_booking():
             flash('وقت البداية ووقت النهاية لا يمكن أن يكونا متساويين.', 'danger')
             return redirect(url_for('admin.bookings'))
 
+        # 00:00–02:59 is the late-night extension of the PREVIOUS business date.
+        # Admin enters the calendar date (e.g. Sep 24 for 00:30 AM); convert to
+        # the business date (Sep 23) so slots appear on the correct night's grid.
+        if s_time.hour < 3:
+            b_date = b_date - timedelta(days=1)
+
         name   = request.form['customer_name']
         phone  = request.form['customer_phone']
         status = request.form.get('status', 'confirmed')
