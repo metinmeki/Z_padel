@@ -178,6 +178,10 @@ def create():
         s_time = _parse_time(request.form['start_time'])
         e_time = _parse_time(request.form['end_time'])
 
+        if b_date < date.today():
+            flash('لا يمكن الحجز في تاريخ سابق.', 'danger')
+            return redirect(url_for('booking.index'))
+
         name  = request.form['customer_name']
         phone = request.form['customer_phone']
         notes = request.form.get('notes', '')
