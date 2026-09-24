@@ -490,7 +490,7 @@ body {
 
 .courts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 28px;
 }
 
@@ -949,7 +949,7 @@ body {
   .hero-sub { max-width: 100%; }
 
   /* Courts */
-  .courts-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .courts-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 
   /* Coaches */
   .coaches-cs-wrap { grid-template-columns: 1fr; padding: 48px 32px; gap: 36px; }
