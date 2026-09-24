@@ -328,6 +328,22 @@
       {{ "{:,.0f}".format(total) }}
       <span style="font-size:1rem;color:var(--muted);font-weight:400;"> {% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</span>
     </div>
+    {% if breakdown and breakdown|length > 1 %}
+    <div style="margin-top:10px;border-top:1px solid rgba(214,195,161,.15);padding-top:8px;">
+      {% for from_ts, to_ts, rate, hours, subtotal in breakdown %}
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);font-family:'Montserrat',sans-serif;padding:2px 0;">
+        <span style="direction:ltr;">{{ from_ts }} – {{ to_ts }}</span>
+        <span>{{ "{:,.0f}".format(rate) }} × {{ hours }}h = <strong style="color:var(--gold);">{{ "{:,.0f}".format(subtotal) }}</strong></span>
+      </div>
+      {% endfor %}
+    </div>
+    {% elif breakdown %}
+    <div style="margin-top:8px;font-size:.78rem;color:var(--muted);font-family:'Montserrat',sans-serif;text-align:center;">
+      {% set seg = breakdown[0] %}
+      {{ "{:,.0f}".format(seg[2]) }} {% if lang == 'en' %}IQD/hr{% else %}د.ع/س{% endif %}
+      × {{ seg[3] }}{% if lang == 'en' %}h{% else %}س{% endif %}
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 

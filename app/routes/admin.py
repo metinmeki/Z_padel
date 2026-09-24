@@ -397,7 +397,11 @@ def bookings():
 
     def _bk_sort_key(b):
         d = b.booking_date or date.min
-        t = (b.start_time.hour * 60 + b.start_time.minute) if b.start_time else 0
+        if b.start_time:
+            raw = b.start_time.hour * 60 + b.start_time.minute
+            t   = raw + 1440 if b.start_time.hour < 3 else raw
+        else:
+            t = 0
         if d == today_date:
             return (0, 0, t)
         elif d > today_date:

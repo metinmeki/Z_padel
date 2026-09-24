@@ -36,6 +36,44 @@ def _tiered_price(court, s_time, e_time, use_time_pricing=True):
         m += 30
     return round(total)
 
+
+def _price_breakdown(court, s_time, e_time, use_time_pricing=True):
+    """Return list of (from_ts, to_ts, rate, hours, subtotal) segments for display."""
+    start_m = s_time.hour * 60 + s_time.minute
+    end_m   = e_time.hour * 60 + e_time.minute
+    if e_time == dtime(23, 59):
+        end_m = 24 * 60
+    if end_m < start_m:
+        end_m += 24 * 60
+
+    segments = []
+    m = start_m
+    seg_start = m
+    seg_rate  = None
+
+    def _ts(mins):
+        return f"{(mins % 1440) // 60:02d}:{(mins % 1440) % 60:02d}"
+
+    while m <= end_m:
+        at_end = (m == end_m)
+        if not at_end:
+            h    = (m // 60) % 24
+            rate = (PricingRule.rate_for_hour(h) if use_time_pricing else None) \
+                   or court.price_per_hour
+        # flush segment when rate changes or we've reached the end
+        if (not at_end and seg_rate is not None and rate != seg_rate) or at_end:
+            hours      = (m - seg_start) / 60
+            hours_str  = f"{hours:g}"          # "1" not "1.0", "1.5" stays "1.5"
+            subtotal   = round(hours * seg_rate)
+            segments.append((_ts(seg_start), _ts(m), seg_rate, hours_str, subtotal))
+            seg_start = m
+            seg_rate  = rate if not at_end else seg_rate
+        elif not at_end:
+            seg_rate = rate
+        m += 30
+
+    return segments
+
 booking_bp = Blueprint('booking', __name__)
 
 
@@ -225,4 +263,15 @@ def success(booking_id):
     if flask_session.get('last_booking_id') != booking_id:
         return redirect(url_for('booking.index'))
     bk = Booking.query.get_or_404(booking_id)
-    return render_template('booking_success.html', booking=bk, linked=None)
+
+    breakdown = []
+    if bk.start_time and bk.end_time and bk.court:
+        _utp = bk.court.use_time_pricing is not False and bk.court.use_time_pricing != 0
+        correct_price = _tiered_price(bk.court, bk.start_time, bk.end_time, _utp)
+        if bk.total_price != correct_price:
+            bk.total_price = correct_price
+            db.session.commit()
+        breakdown = _price_breakdown(bk.court, bk.start_time, bk.end_time, _utp)
+
+    return render_template('booking_success.html', booking=bk, linked=None,
+                           breakdown=breakdown)
