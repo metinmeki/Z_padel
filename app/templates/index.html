@@ -108,20 +108,198 @@
 </nav>
 
 <!-- ═══════════ HERO ═══════════ -->
+<style>
+/* ── Hero enhancements ── */
+.hero-overlay {
+  background: linear-gradient(
+    125deg,
+    rgba(18,22,26,.82) 0%,
+    rgba(30,38,44,.65) 40%,
+    rgba(44,53,57,.50) 70%,
+    rgba(89,103,112,.30) 100%
+  ) !important;
+}
+.hero-fade-bottom {
+  background: linear-gradient(to top, #ffffff 0%, rgba(255,255,255,.6) 40%, transparent 100%) !important;
+  height: 220px !important;
+}
+
+/* Radial glow that sits behind the left-side content */
+.hero-glow-bg {
+  position: absolute; z-index: 2; pointer-events: none;
+  top: -10%; left: -5%;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(214,195,161,.09) 0%, transparent 65%);
+  animation: heroGlowPulse 5s ease-in-out infinite;
+}
+@keyframes heroGlowPulse {
+  0%,100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(1.12); opacity: .6; }
+}
+
+/* Sparkle particles */
+.hero-particles { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.sp {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--ac);
+  animation: spFloat linear infinite;
+  opacity: 0;
+}
+@keyframes spFloat {
+  0%   { transform: translateY(0)   rotate(0deg); opacity: 0; }
+  10%  { opacity: .7; }
+  90%  { opacity: .3; }
+  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Open-now status badge */
+.hero-status {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(109,191,130,.12);
+  border: 1px solid rgba(109,191,130,.3);
+  color: #6DBF82;
+  border-radius: 50px; padding: .3rem .85rem;
+  font-size: .72rem; font-weight: 800;
+  font-family: 'Montserrat', sans-serif; letter-spacing: .5px;
+  margin-bottom: .6rem;
+  animation: fadeUp .4s var(--ease) both;
+}
+.hero-status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #6DBF82;
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+/* Book Now button pulse ring */
+.btn-main-wrap { position: relative; display: inline-block; }
+.btn-main-pulse {
+  position: absolute; inset: -6px; border-radius: 50px;
+  border: 2px solid rgba(214,195,161,.45);
+  animation: btnPulse 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes btnPulse {
+  0%,100% { transform: scale(1);    opacity: .6; }
+  50%      { transform: scale(1.05); opacity: 0; }
+}
+
+/* Scroll indicator */
+.hero-scroll-hint {
+  position: absolute; bottom: 36px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  color: rgba(255,255,255,.45);
+  font-size: .68rem; font-weight: 700;
+  font-family: 'Montserrat', sans-serif; letter-spacing: 1.5px;
+  text-transform: uppercase;
+  animation: fadeIn 1s 1.5s ease both;
+  cursor: pointer; text-decoration: none;
+}
+.hero-scroll-mouse {
+  width: 22px; height: 34px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-radius: 11px;
+  display: flex; justify-content: center; padding-top: 5px;
+}
+.hero-scroll-wheel {
+  width: 3px; height: 7px; border-radius: 2px;
+  background: rgba(255,255,255,.55);
+  animation: scrollWheel 1.6s ease-in-out infinite;
+}
+@keyframes scrollWheel {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(10px); opacity: 0; }
+}
+
+/* Quick-book card (desktop only) */
+.hero-qbook {
+  position: absolute;
+  bottom: 120px;
+  right: 3%;
+  z-index: 5;
+  width: 230px;
+  background: rgba(26,31,35,.75);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(214,195,161,.22);
+  border-radius: 18px;
+  padding: 18px 16px;
+  animation: fadeUp .6s .8s var(--ease) both;
+  box-shadow: 0 20px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(214,195,161,.08);
+}
+@media (max-width: 991px) { .hero-qbook { display: none !important; } }
+.qbook-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .65rem; font-weight: 800;
+  color: var(--ac); letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 5px;
+}
+.qbook-courts { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.qbook-court-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 9px; padding: 8px 10px;
+}
+.qbook-court-name {
+  font-size: .76rem; font-weight: 700; color: rgba(255,255,255,.85);
+  font-family: 'Montserrat', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+}
+.qbook-court-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.qbook-avail {
+  font-size: .65rem; font-weight: 800;
+  color: #6DBF82; background: rgba(109,191,130,.12);
+  border-radius: 50px; padding: 2px 8px;
+  font-family: 'Montserrat', sans-serif;
+}
+.qbook-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(135deg, var(--ac2), var(--bdk));
+  color: #fff; border: none; border-radius: 10px;
+  padding: 10px; width: 100%;
+  font-size: .8rem; font-weight: 800;
+  font-family: 'Montserrat', sans-serif;
+  text-decoration: none; cursor: pointer;
+  transition: opacity .2s, transform .15s;
+  box-shadow: 0 4px 16px rgba(214,195,161,.25);
+}
+.qbook-btn:hover { color: #fff; opacity: .9; transform: translateY(-1px); }
+.qbook-divider {
+  height: 1px;
+  background: rgba(214,195,161,.12);
+  margin: 10px 0;
+}
+.qbook-time {
+  text-align: center; font-size: .65rem; color: rgba(255,255,255,.35);
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+}
+</style>
+
 <section class="hero" id="home">
   <div class="hero-video-wrap">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ url_for('static', filename='Video/webs_compressed.mp4') }}" type="video/mp4"/>
     </video>
   </div>
+  <div class="hero-glow-bg"></div>
   <div class="hero-overlay"></div>
+  <div class="hero-particles" id="heroParticles"></div>
   <div class="hero-fade-bottom"></div>
 
   <div class="container-z hero-content">
     <div class="row">
       <div class="col-lg-7">
 
-        <div class="hero-eyebrow">
+        <!-- Open-now status badge -->
+        <div class="hero-status">
+          <span class="hero-status-dot"></span>
+          {% if lang == 'en' %}Open Now · 24/7{% else %}مفتوح الآن · ٢٤/٧{% endif %}
+        </div>
+
+        <div class="hero-eyebrow" style="animation-delay:.05s;">
           <i class="fas fa-location-dot"></i>
           {% if lang == 'en' %}Duhok · Kurdistan, Iraq{% else %}دهوك · كردستان العراق{% endif %}
         </div>
@@ -140,10 +318,13 @@
         </p>
 
         <div class="hero-btns">
-          <a href="{{ url_for('booking.index') }}" class="btn-main">
-            <i class="fas fa-calendar-plus"></i>
-            {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
-          </a>
+          <span class="btn-main-wrap">
+            <div class="btn-main-pulse"></div>
+            <a href="{{ url_for('booking.index') }}" class="btn-main">
+              <i class="fas fa-calendar-plus"></i>
+              {% if lang == 'en' %}Book Your Court Now{% else %}احجز ملعبك الآن{% endif %}
+            </a>
+          </span>
           <a href="#courts" class="btn-ghost">
             <i class="fas fa-arrow-down"></i>
             {% if lang == 'en' %}View Courts{% else %}شاهد الملاعب{% endif %}
@@ -164,7 +345,72 @@
       </div>
     </div>
   </div>
+
+  <!-- Quick-book floating card (desktop) -->
+  <div class="hero-qbook">
+    <div class="qbook-label">
+      <i class="fas fa-bolt" style="font-size:.6rem;"></i>
+      {% if lang == 'en' %}Quick Book{% else %}احجز سريع{% endif %}
+    </div>
+    <div class="qbook-courts">
+      {% for court in courts[:3] %}
+      <div class="qbook-court-row">
+        <span class="qbook-court-name">
+          <span class="qbook-court-dot" style="background:{{ court.color or '#6DBF82' }};"></span>
+          {{ court.name }}
+        </span>
+        {% if court.is_active %}
+        <span class="qbook-avail">{% if lang == 'en' %}Free{% else %}متاح{% endif %}</span>
+        {% else %}
+        <span style="font-size:.65rem;color:#f87171;font-weight:700;font-family:'Montserrat',sans-serif;">{% if lang == 'en' %}Closed{% else %}مغلق{% endif %}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <a href="{{ url_for('booking.index') }}" class="qbook-btn">
+      <i class="fas fa-calendar-plus" style="font-size:.75rem;"></i>
+      {% if lang == 'en' %}Book Now{% else %}احجز الآن{% endif %}
+    </a>
+    <div class="qbook-divider"></div>
+    <div class="qbook-time">
+      <i class="fas fa-clock" style="margin-inline-end:4px;"></i>
+      {% if lang == 'en' %}No upfront payment{% else %}بدون دفع مسبق{% endif %}
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <a href="#clips" class="hero-scroll-hint">
+    <div class="hero-scroll-mouse">
+      <div class="hero-scroll-wheel"></div>
+    </div>
+    <span>{% if lang == 'en' %}Scroll{% else %}مرر{% endif %}</span>
+  </a>
 </section>
+
+<script>
+/* ── Sparkle particles ── */
+(function() {
+  var container = document.getElementById('heroParticles');
+  if (!container) return;
+  var colors = ['rgba(214,195,161,', 'rgba(201,180,142,', 'rgba(255,235,190,'];
+  for (var i = 0; i < 22; i++) {
+    var el = document.createElement('div');
+    el.className = 'sp';
+    var size = 2 + Math.random() * 4;
+    var left = 5 + Math.random() * 60;   // keep left half mostly
+    var dur  = 8 + Math.random() * 14;
+    var delay= Math.random() * -dur;
+    var col  = colors[Math.floor(Math.random() * colors.length)];
+    el.style.cssText =
+      'width:' + size + 'px;height:' + size + 'px;' +
+      'left:' + left + '%;bottom:' + (Math.random() * 30) + '%;' +
+      'background:' + col + (0.5 + Math.random() * 0.5) + ');' +
+      'animation-duration:' + dur + 's;animation-delay:' + delay + 's;' +
+      'box-shadow:0 0 ' + (size * 2) + 'px ' + col + '0.6);';
+    container.appendChild(el);
+  }
+})();
+</script>
 
 <!-- ═══════════ CLIPS DOWNLOAD ═══════════ -->
 <section class="section" id="clips">
