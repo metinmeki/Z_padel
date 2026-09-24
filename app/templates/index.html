@@ -195,18 +195,6 @@
   100% { transform: translateY(10px); opacity: 0; }
 }
 
-/* 3D padel ball canvas */
-#hero3d {
-  position: absolute;
-  top: 0; right: 0;
-  width: 50%; height: 100%;
-  z-index: 3;
-  pointer-events: none;
-}
-@media (max-width: 991px) {
-  #hero3d { width: 100%; opacity: 0.28; }
-}
-
 </style>
 
 <section class="hero" id="home">
@@ -271,8 +259,6 @@
     </div>
   </div>
 
-  <canvas id="hero3d" aria-hidden="true"></canvas>
-
   <!-- Scroll indicator -->
   <a href="#clips" class="hero-scroll-hint">
     <div class="hero-scroll-mouse">
@@ -282,97 +268,7 @@
   </a>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" defer></script>
 <script>
-/* ── 3D Padel Ball ── */
-window.addEventListener('load', function() {
-  var cvs = document.getElementById('hero3d');
-  if (!cvs || typeof THREE === 'undefined') return;
-
-  var W = cvs.offsetWidth, H = cvs.offsetHeight;
-  var renderer = new THREE.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(W, H);
-
-  var scene  = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-  camera.position.z = 5;
-
-  /* Lights */
-  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-  var sun = new THREE.DirectionalLight(0xffffff, 1.4);
-  sun.position.set(3, 4, 2);
-  scene.add(sun);
-  var goldL = new THREE.PointLight(0xD6C3A1, 1.4, 14);
-  goldL.position.set(-2, 2, 3);
-  scene.add(goldL);
-  var fillL = new THREE.PointLight(0x88aaff, 0.28, 10);
-  fillL.position.set(2, -2, 2);
-  scene.add(fillL);
-
-  /* Ball group */
-  var group = new THREE.Group();
-  scene.add(group);
-
-  /* Main sphere — yellow-green felt */
-  var ballMat = new THREE.MeshStandardMaterial({ color: 0xC5E33A, roughness: 0.88, metalness: 0 });
-  group.add(new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), ballMat));
-
-  /* Inner glow halo */
-  group.add(new THREE.Mesh(
-    new THREE.SphereGeometry(1.22, 32, 32),
-    new THREE.MeshBasicMaterial({ color: 0xBBDD30, transparent: true, opacity: 0.09, side: THREE.BackSide, depthWrite: false })
-  ));
-
-  /* Outer soft glow */
-  group.add(new THREE.Mesh(
-    new THREE.SphereGeometry(1.6, 32, 32),
-    new THREE.MeshBasicMaterial({ color: 0xAACC20, transparent: true, opacity: 0.035, side: THREE.BackSide, depthWrite: false })
-  ));
-
-  /* Seam helper — classic tennis/padel S-curve × 2 */
-  function makeSeam(rotY) {
-    var pts = [];
-    for (var i = 0; i <= 300; i++) {
-      var t = (i / 300) * Math.PI * 2;
-      var v = new THREE.Vector3(
-        Math.sin(t + Math.PI / 4),
-        Math.sin(2 * t) * 0.707,
-        Math.cos(t + Math.PI / 4)
-      ).normalize().multiplyScalar(1.012);
-      pts.push(v);
-    }
-    var geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 300, 0.022, 8, true);
-    var mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0, emissive: 0xffffff, emissiveIntensity: 0.1 });
-    var m = new THREE.Mesh(geo, mat);
-    m.rotation.y = rotY;
-    return m;
-  }
-  group.add(makeSeam(0));
-  group.add(makeSeam(Math.PI));
-
-  /* Animate */
-  var clk = 0;
-  (function tick() {
-    requestAnimationFrame(tick);
-    clk += 0.008;
-    group.position.y  = Math.sin(clk * 0.85) * 0.22;
-    group.rotation.x += 0.004;
-    group.rotation.y += 0.009;
-    goldL.position.x  = Math.sin(clk * 0.38) * 2.5 - 1;
-    goldL.position.y  = Math.cos(clk * 0.28) * 1.5 + 1;
-    renderer.render(scene, camera);
-  })();
-
-  /* Resize */
-  window.addEventListener('resize', function() {
-    W = cvs.offsetWidth; H = cvs.offsetHeight;
-    camera.aspect = W / H;
-    camera.updateProjectionMatrix();
-    renderer.setSize(W, H);
-  });
-});
-
 /* ── Sparkle particles ── */
 (function() {
   var container = document.getElementById('heroParticles');
