@@ -2941,6 +2941,16 @@ def staff_slots_admin():
     return render_template('admin/staff_slots_admin.html', slots=slots, lang=g.lang)
 
 
+@admin_bp.route('/staff-slots/add', methods=['POST'])
+@login_required
+def staff_slot_add():
+    name = (request.form.get('staff_name') or '').strip() or 'Staff'
+    max_num = db.session.query(db.func.max(StaffSlot.slot_number)).scalar() or 0
+    db.session.add(StaffSlot(slot_number=max_num + 1, staff_name=name))
+    db.session.commit()
+    return redirect(url_for('admin.staff_slots_admin'))
+
+
 @admin_bp.route('/staff-slots/<int:slot_id>/edit', methods=['POST'])
 @login_required
 def staff_slot_edit(slot_id):
@@ -2949,6 +2959,19 @@ def staff_slot_edit(slot_id):
     if name:
         slot.staff_name = name
         db.session.commit()
+    return redirect(url_for('admin.staff_slots_admin'))
+
+
+@admin_bp.route('/staff-slots/<int:slot_id>/delete', methods=['POST'])
+@login_required
+def staff_slot_delete(slot_id):
+    slot = StaffSlot.query.get_or_404(slot_id)
+    for item in slot.items:
+        prod = Product.query.get(item.product_id)
+        if prod:
+            prod.stock += item.quantity
+    db.session.delete(slot)
+    db.session.commit()
     return redirect(url_for('admin.staff_slots_admin'))
 
 
