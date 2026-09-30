@@ -412,7 +412,6 @@ def bookings():
 
     all_bk = sorted(all_bk_raw, key=_bk_sort_key)
 
-    from datetime import timedelta
     tomorrow = (today_date + timedelta(days=1)).isoformat()
 
     # For cross-midnight bookings (bk1 ends at 23:59), find the paired bk2 so
