@@ -373,7 +373,8 @@ def bookings():
         return redirect(url_for('admin.bookings'))
     from sqlalchemy.orm import joinedload as _jl
     courts     = Court.query.filter_by(is_active=True).all()
-    today_date = date.today()
+    _now       = datetime.now()
+    today_date = date.today() if _now.hour >= 3 else date.today() - timedelta(days=1)
 
     q = (Booking.query
          .options(_jl(Booking.court))
