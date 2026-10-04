@@ -186,38 +186,40 @@ def start_court_session(court_id):
     customer_name = (data.get('customer_name') or '').strip() or None
 
     if not customer_name:
-        from datetime import timedelta as _td
+        from datetime import timedelta as _td, datetime as _dt
         now_local = datetime.utcnow() + _td(hours=3)  # Duhok UTC+3
         now_time  = now_local.time()
         now_date  = now_local.date()
-        # Look for a confirmed booking covering right now (within ±30 min window)
+        # Before 03:00 local the business day is still the previous calendar day
+        biz_date  = now_date if now_local.hour >= 3 else now_date - _td(days=1)
+        date_opts = list({now_date, biz_date})  # check both (same list before midnight)
+        # Look for a confirmed booking covering right now
         booking = Booking.query.filter_by(
             court_id=court_id,
             status='confirmed'
         ).filter(
-            Booking.booking_date == now_date,
+            Booking.booking_date.in_(date_opts),
             Booking.start_time <= now_time,
             Booking.end_time   >  now_time,
         ).first()
-        # Cross-midnight bk2: booking_date = today but start=00:00 and end covers now
+        # Cross-midnight continuation: start=00:00, end covers now
         if not booking:
             booking = Booking.query.filter_by(
                 court_id=court_id,
                 status='confirmed',
                 is_continuation=True,
             ).filter(
-                Booking.booking_date == now_date,
+                Booking.booking_date.in_(date_opts),
                 Booking.end_time > now_time,
             ).first()
         # Also match if session starts within 30 min of booking start
         if not booking:
-            from datetime import datetime as _dt
             window_start = (_dt.combine(now_date, now_time) - _td(minutes=30)).time()
             booking = Booking.query.filter_by(
                 court_id=court_id,
-                booking_date=now_date,
                 status='confirmed'
             ).filter(
+                Booking.booking_date.in_(date_opts),
                 Booking.start_time >= window_start,
                 Booking.start_time <= now_time,
             ).first()
