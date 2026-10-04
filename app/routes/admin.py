@@ -333,6 +333,37 @@ def dashboard():
     store_revenue = (db.session.query(func.sum(Order.total_price))
                      .filter_by(status='completed').scalar() or 0)
 
+    # POS revenue — today (business day maps to UTC calendar day at UTC+3)
+    today_start = datetime.combine(today, dtime.min)
+    today_end   = datetime.combine(today + timedelta(days=1), dtime.min)
+
+    pos_court_today = (db.session.query(func.sum(CourtSession.total_price))
+                       .filter(CourtSession.status == 'completed',
+                               CourtSession.created_at >= today_start,
+                               CourtSession.created_at < today_end).scalar() or 0)
+    pos_act_today   = (db.session.query(func.sum(ActivitySession.total_price))
+                       .filter(ActivitySession.status == 'completed',
+                               ActivitySession.created_at >= today_start,
+                               ActivitySession.created_at < today_end).scalar() or 0)
+    pos_store_today = (db.session.query(func.sum(Order.total_price))
+                       .filter(Order.status == 'completed',
+                               Order.created_at >= today_start,
+                               Order.created_at < today_end).scalar() or 0)
+    pos_today_revenue = pos_court_today + pos_act_today + pos_store_today
+
+    # POS revenue — this month (resets naturally on month start)
+    month_start_dt   = datetime(today.year, today.month, 1, 0, 0, 0)
+    pos_court_month  = (db.session.query(func.sum(CourtSession.total_price))
+                        .filter(CourtSession.status == 'completed',
+                                CourtSession.created_at >= month_start_dt).scalar() or 0)
+    pos_act_month    = (db.session.query(func.sum(ActivitySession.total_price))
+                        .filter(ActivitySession.status == 'completed',
+                                ActivitySession.created_at >= month_start_dt).scalar() or 0)
+    pos_store_month  = (db.session.query(func.sum(Order.total_price))
+                        .filter(Order.status == 'completed',
+                                Order.created_at >= month_start_dt).scalar() or 0)
+    pos_month_revenue = pos_court_month + pos_act_month + pos_store_month
+
     courts          = Court.query.filter_by(is_active=True).all()
     recent_bookings = (Booking.query.order_by(Booking.created_at.desc())
                        .limit(8).all())
@@ -354,6 +385,7 @@ def dashboard():
         cancelled_count=cancelled_count, total_orders=total_orders,
         today_revenue=today_revenue, month_revenue=month_revenue,
         week_revenue=week_revenue, store_revenue=store_revenue,
+        pos_today_revenue=pos_today_revenue, pos_month_revenue=pos_month_revenue,
         courts=courts, recent_bookings=recent_bookings,
         current_hour=now_h,
         week_labels=week_labels, week_data=week_data,
