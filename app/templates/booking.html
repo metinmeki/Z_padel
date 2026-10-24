@@ -774,6 +774,81 @@ document.addEventListener('DOMContentLoaded', () => {
   }, {passive: false});
 });
 </script>
+
+<script>
+/* ── Real-time availability check before form submit ── */
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form[action*="create"]');
+  if (!form) return;
+
+  const msgId = '_avail_err';
+
+  function showErr(msg) {
+    let el = document.getElementById(msgId);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = msgId;
+      el.style.cssText = 'background:#fef2f2;border:1.5px solid #fca5a5;color:#b91c1c;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;';
+      form.prepend(el);
+    }
+    el.innerHTML = '<i class="fas fa-circle-exclamation"></i> ' + msg;
+    el.style.display = 'flex';
+  }
+
+  function hideErr() {
+    const el = document.getElementById(msgId);
+    if (el) el.style.display = 'none';
+  }
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideErr();
+
+    const btn = document.getElementById('btnBook');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+      const data = new FormData();
+      data.append('court_id',     document.getElementById('f_court_id').value);
+      data.append('booking_date', document.getElementById('f_date').value);
+      data.append('start_time',   document.getElementById('f_start').value);
+      data.append('end_time',     document.getElementById('f_end').value);
+      data.append('csrf_token',   form.querySelector('[name=csrf_token]').value);
+
+      const res  = await fetch('{{ url_for("booking.check_slot") }}', { method:'POST', body:data });
+      const json = await res.json();
+
+      if (json.available) {
+        form.submit();
+        return;
+      }
+
+      // Slot just got taken — refresh display and show error
+      showErr(IS_EN
+        ? 'Sorry, this slot was just booked by someone else. Please choose another time.'
+        : 'عذراً، تم حجز هذا الوقت للتو من شخص آخر. يرجى اختيار وقت آخر.');
+
+      // Mark that slot as booked in local data and re-render
+      const courtKey = document.getElementById('f_court_id').value + ':' + document.getElementById('f_date').value;
+      if (!BOOKED_SLOTS[courtKey]) BOOKED_SLOTS[courtKey] = [];
+      if (selStart && !BOOKED_SLOTS[courtKey].includes(selStart))
+        BOOKED_SLOTS[courtKey].push(selStart);
+      selStart = null; selStartRealMin = -1; dur = 1;
+      renderSlots();
+      document.getElementById('formCard').style.display = 'none';
+
+    } catch(_) {
+      form.submit(); // network error → fall through to server
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  });
+});
+</script>
+
 <style>@keyframes _rpl { to { transform: scale(4); opacity: 0; } }</style>
 <script>
 /* Ripple on Book button */

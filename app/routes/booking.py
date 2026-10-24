@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from datetime import datetime, date, time as dtime, timedelta
 from app import db
 from app.models.main import Court, Booking, PricingRule
@@ -206,6 +206,26 @@ def _times_overlap(s1, e1, s2, e2):
     if me1 <= ms1: me1 += 1440
     if me2 <= ms2: me2 += 1440
     return ms1 < me2 and ms2 < me1
+
+
+
+@booking_bp.route('/check-slot', methods=['POST'])
+def check_slot():
+    try:
+        court_id = int(request.form['court_id'])
+        b_date   = datetime.strptime(request.form['booking_date'], '%Y-%m-%d').date()
+        s_time   = _parse_time(request.form['start_time'])
+        e_time   = _parse_time(request.form['end_time'])
+        existing = Booking.query.filter(
+            Booking.court_id        == court_id,
+            Booking.booking_date    == b_date,
+            Booking.status          != 'cancelled',
+            Booking.is_continuation == False,
+        ).all()
+        conflict = any(_times_overlap(s_time, e_time, b.start_time, b.end_time) for b in existing)
+        return jsonify(available=not conflict)
+    except Exception:
+        return jsonify(available=False)
 
 
 @booking_bp.route('/create', methods=['POST'])
