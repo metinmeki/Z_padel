@@ -2280,6 +2280,17 @@ def _remux_faststart(raw_path, final_path, ss_offset=0, duration_sec=None):
             return True
     except Exception:
         pass
+    # Stream-copy fallback: trim without re-encoding (works with H.265)
+    try:
+        cmd2 = [_ffmpeg(), '-y'] + seek + ['-i', raw_path] + dur + [
+            '-c', 'copy', '-movflags', '+faststart', final_path
+        ]
+        result2 = subprocess.run(cmd2, capture_output=True, timeout=300)
+        if result2.returncode == 0 and os.path.isfile(final_path) and os.path.getsize(final_path) > 10_000:
+            os.remove(raw_path)
+            return True
+    except Exception:
+        pass
     if os.path.exists(raw_path):
         os.replace(raw_path, final_path)
     return False
