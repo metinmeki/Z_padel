@@ -157,31 +157,75 @@ def download_clip():
 
 _PUBLIC_COURT_CHANNELS = {'court1': 15, 'court2': 12}
 
-@main_bp.route('/live-snapshot/<court>')
-def live_snapshot(court):
-    """Public blurred snapshot proxy — only court1 / court2 allowed."""
-    from flask import Response
+# Server-side snapshot cache — refreshes every 800ms per court
+import time as _time, threading as _threading
+_snap_cache = {}
+_snap_lock  = _threading.Lock()
+
+def _fetch_snapshot(court, channel, nvr_url, nvr_user, nvr_pass):
     import requests as req
     from requests.auth import HTTPDigestAuth
+    try:
+        r = req.get(
+            f"{nvr_url}/ISAPI/Streaming/channels/{channel}01/picture",
+            auth=HTTPDigestAuth(nvr_user, nvr_pass),
+            timeout=6,
+        )
+        if r.status_code == 200:
+            with _snap_lock:
+                _snap_cache[court] = (r.content, _time.time())
+    except Exception:
+        pass
+
+def _ensure_poller(court, channel, nvr_url, nvr_user, nvr_pass):
+    key = f'_poller_{court}'
+    with _snap_lock:
+        if _snap_cache.get(key):
+            return
+        _snap_cache[key] = True
+
+    def poll():
+        while True:
+            _fetch_snapshot(court, channel, nvr_url, nvr_user, nvr_pass)
+            _time.sleep(0.8)
+
+    t = _threading.Thread(target=poll, daemon=True)
+    t.start()
+
+@main_bp.route('/live-snapshot/<court>')
+def live_snapshot(court):
+    from flask import Response
     channel = _PUBLIC_COURT_CHANNELS.get(court)
     if not channel:
         return Response(status=404)
     nvr_url  = current_app.config.get('NVR_URL',  'http://45.81.147.210:65021')
     nvr_user = current_app.config.get('NVR_USER', 'admin')
     nvr_pass = current_app.config.get('NVR_PASS', 'caMera12')
+    _ensure_poller(court, channel, nvr_url, nvr_user, nvr_pass)
+    with _snap_lock:
+        cached = _snap_cache.get(court)
+    if cached:
+        resp = Response(cached[0], mimetype='image/jpeg')
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
+    # First request — fetch directly
     try:
+        import requests as req
+        from requests.auth import HTTPDigestAuth
         r = req.get(
             f"{nvr_url}/ISAPI/Streaming/channels/{channel}01/picture",
             auth=HTTPDigestAuth(nvr_user, nvr_pass),
             timeout=8,
         )
         if r.status_code == 200:
+            with _snap_lock:
+                _snap_cache[court] = (r.content, _time.time())
             resp = Response(r.content, mimetype='image/jpeg')
             resp.headers['Cache-Control'] = 'no-store'
             return resp
-        return Response(status=503)
     except Exception:
-        return Response(status=503)
+        pass
+    return Response(status=503)
 
 
 @main_bp.route('/clip/<token>')

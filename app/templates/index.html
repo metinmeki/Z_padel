@@ -321,8 +321,8 @@
         </button>
       </div>
 
-      <!-- Live player — blurred snapshot proxy -->
-      <div style="position:relative;background:#111;border-radius:var(--r);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);aspect-ratio:16/9;">
+      <!-- Live player -->
+      <div id="liveWrap" style="position:relative;background:#111;border-radius:var(--r);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);aspect-ratio:16/9;cursor:pointer;" ondblclick="toggleFullscreen()">
         <img id="liveSnap"
              src="/live-snapshot/court1"
              alt="Live court view"
@@ -332,6 +332,10 @@
           <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:pulseLive 1.4s infinite;"></span>
           LIVE
         </div>
+        <!-- Fullscreen button -->
+        <button onclick="toggleFullscreen()" style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.55);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+          <i class="fas fa-expand" id="fsIcon"></i>
+        </button>
       </div>
 
       <!-- Info note -->
@@ -1029,6 +1033,23 @@
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
   // ── Blurred live snapshot refresh ──
+  // Fullscreen
+  window.toggleFullscreen = function(){
+    var el = document.getElementById('liveWrap');
+    var icon = document.getElementById('fsIcon');
+    if (!document.fullscreenElement) {
+      el.requestFullscreen && el.requestFullscreen();
+      icon.className = 'fas fa-compress';
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+      icon.className = 'fas fa-expand';
+    }
+  };
+  document.addEventListener('fullscreenchange', function(){
+    if (!document.fullscreenElement)
+      document.getElementById('fsIcon').className = 'fas fa-expand';
+  });
+
   var liveSnap   = document.getElementById('liveSnap');
   var activeCourt = 'court1';
   var snapTimer   = null;
