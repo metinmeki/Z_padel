@@ -111,6 +111,18 @@
   font-size:.8rem;
 }
 .rh-receipt-btn:hover { border-color:var(--brand-blue); color:var(--brand-blue); background:var(--brand-blue-soft); }
+.rh-edit-btn { cursor:pointer; margin-left:4px; }
+.rh-dialog { border:none; border-radius:var(--radius); box-shadow:0 20px 50px rgba(0,0,0,.25); padding:0; width:min(380px, calc(100vw - 32px)); }
+.rh-dialog::backdrop { background:rgba(15,23,42,.45); }
+.rh-dialog form { padding:1.3rem 1.4rem; }
+.rh-dialog h3 { margin:0 0 .9rem; font-size:1.05rem; font-weight:900; color:var(--text-dark); }
+.rh-dialog label { display:block; font-size:.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin:.7rem 0 .25rem; }
+.rh-dialog .rh-line { display:flex; justify-content:space-between; font-size:.84rem; padding:.35rem 0; color:var(--text-muted); }
+.rh-dialog .rh-line strong { color:var(--text-dark); }
+.rh-dialog .rh-new { border-top:2px solid var(--border-color); margin-top:.6rem; padding-top:.6rem; font-size:.95rem; }
+.rh-dialog .rh-new strong { color:var(--brand-blue); font-weight:900; }
+.rh-dialog .rh-actions { display:flex; gap:.5rem; justify-content:flex-end; margin-top:1.1rem; }
+.rh-dialog .rh-actions button { height:36px; padding:0 1.1rem; border-radius:var(--radius-sm); font-size:.84rem; font-weight:700; cursor:pointer; }
 .rh-empty { text-align:center; padding:4rem 2rem; color:var(--text-muted); }
 .rh-empty i { font-size:3rem; opacity:.18; margin-bottom:1rem; display:block; }
 .rh-empty p { font-weight:600; margin:0; font-size:.95rem; }
@@ -194,7 +206,7 @@
           <th>{% if lang == 'en' %}Customer{% else %}الزبون{% endif %}</th>
           <th>{% if lang == 'en' %}Payment{% else %}الدفع{% endif %}</th>
           <th style="text-align:right;">{% if lang == 'en' %}Total{% else %}المبلغ{% endif %}</th>
-          <th style="width:44px;"></th>
+          <th style="width:84px;"></th>
         </tr>
       </thead>
       <tbody>
@@ -223,7 +235,10 @@
             {% endif %}
           </td>
           <td style="text-align:right;"><span class="rh-amount">{{ '{:,.0f}'.format(r.total) }} IQD</span></td>
-          <td><a href="{{ r.receipt_url }}" target="_blank" class="rh-receipt-btn" title="{% if lang == 'en' %}View Receipt{% else %}عرض الفاتورة{% endif %}"><i class="fas fa-receipt"></i></a></td>
+          <td><a href="{{ r.receipt_url }}" target="_blank" class="rh-receipt-btn" title="{% if lang == 'en' %}View Receipt{% else %}عرض الفاتورة{% endif %}"><i class="fas fa-receipt"></i></a><button type="button" class="rh-receipt-btn rh-edit-btn"
+              data-type="{{ r.type }}" data-id="{{ r.id }}" data-label="{{ r.type_label }} #{{ r.id }}"
+              data-price="{{ r.time_price|round|int }}" data-items="{{ r.items_total|round|int }}" data-discount="{{ r.discount|round|int }}"
+              title="{% if lang == 'en' %}Edit amount{% else %}تعديل المبلغ{% endif %}"><i class="fas fa-pen"></i></button></td>
         </tr>
         {% endfor %}
       </tbody>
@@ -244,4 +259,75 @@
   {% endif %}
 </div>
 
+<dialog id="rhEdit" class="rh-dialog">
+  <form method="POST" action="{{ url_for('admin.receipt_history_edit') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="rtype" id="rhType">
+    <input type="hidden" name="rid" id="rhId">
+    <input type="hidden" name="date_from" value="{{ date_from }}">
+    <input type="hidden" name="date_to" value="{{ date_to }}">
+    <input type="hidden" name="type_filter" value="{{ type_filter }}">
+    <h3><i class="fas fa-pen me-2" style="color:var(--brand-blue);"></i>{% if lang == 'en' %}Edit receipt{% else %}تعديل الفاتورة{% endif %} <span id="rhLabel" style="color:var(--text-muted);font-weight:700;"></span></h3>
+
+    <label for="rhPrice" id="rhPriceLabel"></label>
+    <input type="number" name="time_price" id="rhPrice" class="form-control" min="0" step="any" required>
+
+    <div id="rhSessionFields">
+      <div class="rh-line"><span>{% if lang == 'en' %}Items (drinks etc.){% else %}المنتجات (مشروبات وغيرها){% endif %}</span><strong id="rhItems"></strong></div>
+      <label for="rhDiscount">{% if lang == 'en' %}Discount (IQD){% else %}الخصم (د.ع){% endif %}</label>
+      <input type="number" name="discount" id="rhDiscount" class="form-control" min="0" step="any">
+    </div>
+
+    <div class="rh-line"><span>{% if lang == 'en' %}Old total{% else %}المبلغ السابق{% endif %}</span><strong id="rhOld"></strong></div>
+    <div class="rh-line rh-new"><span>{% if lang == 'en' %}New total{% else %}المبلغ الجديد{% endif %}</span><strong id="rhNewTotal"></strong></div>
+
+    <div class="rh-actions">
+      <button type="button" id="rhCancel" style="border:1.5px solid var(--border-color);background:#fff;color:var(--text-muted);">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+      <button type="submit" style="border:none;background:var(--brand-blue);color:#fff;">{% if lang == 'en' %}Save{% else %}حفظ{% endif %}</button>
+    </div>
+  </form>
+</dialog>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  var dlg = document.getElementById('rhEdit');
+  if (!dlg) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Math.round(n).toLocaleString('en-US') + ' IQD'; };
+  var items = 0;
+  var labels = {
+    session: {{ ('Time price (IQD)' if lang == 'en' else 'سعر الوقت (د.ع)')|tojson }},
+    quick:   {{ ('Total (IQD)' if lang == 'en' else 'المبلغ (د.ع)')|tojson }}
+  };
+  function recalc() {
+    var price = parseFloat($('rhPrice').value) || 0;
+    var disc  = $('rhSessionFields').hidden ? 0 : (parseFloat($('rhDiscount').value) || 0);
+    $('rhNewTotal').textContent = fmt(price + items - disc);
+  }
+  document.querySelectorAll('.rh-edit-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var d = btn.dataset, isQuick = d.type === 'quick';
+      items = isQuick ? 0 : (+d.items || 0);
+      $('rhType').value = d.type;
+      $('rhId').value = d.id;
+      $('rhLabel').textContent = d.label;
+      $('rhPriceLabel').textContent = isQuick ? labels.quick : labels.session;
+      $('rhPrice').value = d.price;
+      $('rhDiscount').value = d.discount;
+      $('rhSessionFields').hidden = isQuick;
+      $('rhItems').textContent = fmt(items);
+      $('rhOld').textContent = fmt((+d.price) + items - (isQuick ? 0 : (+d.discount)));
+      recalc();
+      dlg.showModal();
+      $('rhPrice').focus();
+    });
+  });
+  $('rhPrice').addEventListener('input', recalc);
+  $('rhDiscount').addEventListener('input', recalc);
+  $('rhCancel').addEventListener('click', function () { dlg.close(); });
+})();
+</script>
 {% endblock %}

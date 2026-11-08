@@ -1109,6 +1109,9 @@ def receipt_history():
                 'description': ', '.join(f"{i.product_name}Ã—{i.quantity}" for i in o.items) or 'â€”',
                 'customer':    o.customer_name or 'â€”',
                 'total':       o.total_price,
+                'time_price':  o.total_price or 0,
+                'items_total': 0,
+                'discount':    0,
                 'payment':     (o.notes or 'cash').split()[0],
                 'receipt_url': url_for('pos.receipt', order_id=o.id),
             })
@@ -1129,6 +1132,9 @@ def receipt_history():
                 'description': s.court.name if s.court else f'Court #{s.court_id}',
                 'customer':    s.customer_name or 'â€”',
                 'total':       s.grand_total,
+                'time_price':  s.total_price or 0,
+                'items_total': s.items_total,
+                'discount':    s.discount or 0,
                 'payment':     s.payment_method or 'cash',
                 'receipt_url': url_for('pos.session_receipt', session_id=s.id),
             })
@@ -1149,6 +1155,9 @@ def receipt_history():
                 'description': (s.table.name if s.table else f'Table #{s.table_id}'),
                 'customer':    s.customer_name or 'â€”',
                 'total':       s.grand_total,
+                'time_price':  s.total_price or 0,
+                'items_total': s.items_total,
+                'discount':    s.discount or 0,
                 'payment':     s.payment_method or 'cash',
                 'receipt_url': url_for('pos.activity_receipt', session_id=s.id),
             })
@@ -1170,6 +1179,68 @@ def receipt_history():
                            date_from=date_from_str,
                            date_to=date_to_str,
                            type_filter=type_filter)
+
+
+@admin_bp.route('/receipt-history/edit', methods=['POST'])
+@login_required
+def receipt_history_edit():
+    """Finance users only: change the amount / discount of a completed receipt."""
+    if current_user.username.lower() not in FINANCE_USERS:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    back = redirect(url_for('admin.receipt_history',
+                            date_from=request.form.get('date_from', ''),
+                            date_to=request.form.get('date_to', ''),
+                            type=request.form.get('type_filter', 'all')))
+    rtype = request.form.get('rtype')
+    rid   = request.form.get('rid', type=int)
+    try:
+        new_price    = float(request.form.get('time_price', ''))
+        new_discount = float(request.form.get('discount', 0) or 0)
+    except ValueError:
+        flash('المبلغ غير صحيح. / Invalid amount.', 'danger')
+        return back
+    if new_price < 0 or new_discount < 0:
+        flash('المبلغ لا يمكن أن يكون سالباً. / Amounts cannot be negative.', 'danger')
+        return back
+
+    if rtype == 'quick':
+        rec = Order.query.get_or_404(rid)
+        label, items, old_price, old_discount = 'Quick Sale', 0, rec.total_price or 0, 0
+        new_discount = 0
+    elif rtype in ('court', 'activity'):
+        model = CourtSession if rtype == 'court' else ActivitySession
+        rec = model.query.get_or_404(rid)
+        label = 'Court' if rtype == 'court' else 'Activity'
+        items, old_price, old_discount = rec.items_total, rec.total_price or 0, rec.discount or 0
+    else:
+        return back
+    if rec.status != 'completed':
+        flash('يمكن تعديل الفواتير المكتملة فقط. / Only completed receipts can be edited.', 'danger')
+        return back
+    if new_discount > new_price + items:
+        flash('الخصم أكبر من المبلغ. / Discount is larger than the total.', 'danger')
+        return back
+    if new_price == old_price and new_discount == old_discount:
+        return back
+
+    old_total = round(old_price + items - old_discount)
+    new_total = round(new_price + items - new_discount)
+    rec.total_price = new_price
+    if rtype != 'quick':
+        rec.discount = new_discount
+        details = (f'{label} #{rid}: time {old_price:,.0f} → {new_price:,.0f}, '
+                   f'discount {old_discount:,.0f} → {new_discount:,.0f}, '
+                   f'total {old_total:,} → {new_total:,} IQD')
+    else:
+        details = f'{label} #{rid}: total {old_total:,} → {new_total:,} IQD'
+    db.session.add(ActivityLog(user_id=current_user.id, username=current_user.username,
+                               action='Edit Receipt', details=details[:300],
+                               ip_address=request.remote_addr or ''))
+    db.session.commit()
+    flash(f'تم تعديل الفاتورة. / Receipt updated: {details}', 'success')
+    return back
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
