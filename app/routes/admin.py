@@ -303,11 +303,17 @@ def dashboard():
     today = date.today() if now_h >= BUSINESS_START else date.today() - timedelta(days=1)
     biz_tomorrow = today + timedelta(days=1)
 
-    total_bookings  = Booking.query.filter_by(is_continuation=False).count()
-    pending_count   = Booking.query.filter_by(status='pending',   is_continuation=False).count()
-    confirmed_count = Booking.query.filter_by(status='confirmed', is_continuation=False).count()
-    cancelled_count = Booking.query.filter_by(status='cancelled', is_continuation=False).count()
-    total_orders    = Order.query.count()
+    # All dashboard totals are for the current month — they reset to 0 on the 1st
+    month_start    = today.replace(day=1)
+    month_start_dt = datetime(today.year, today.month, 1, 0, 0, 0)
+
+    month_bookings  = Booking.query.filter(Booking.booking_date >= month_start,
+                                           Booking.is_continuation == False)
+    total_bookings  = month_bookings.count()
+    pending_count   = month_bookings.filter(Booking.status == 'pending').count()
+    confirmed_count = month_bookings.filter(Booking.status == 'confirmed').count()
+    cancelled_count = month_bookings.filter(Booking.status == 'cancelled').count()
+    total_orders    = Order.query.filter(Order.created_at >= month_start_dt).count()
 
     today_bookings = Booking.query.filter(
         Booking.booking_date.in_([today, biz_tomorrow]),
@@ -320,18 +326,19 @@ def dashboard():
                      .filter(Booking.booking_date.in_([today, biz_tomorrow]),
                              Booking.status == 'confirmed').scalar() or 0)
 
-    month_start   = today.replace(day=1)
     month_revenue = (db.session.query(func.sum(Booking.total_price))
                      .filter(Booking.booking_date >= month_start,
                              Booking.status == 'confirmed').scalar() or 0)
 
-    week_start    = today - timedelta(days=6)
+    # Last 7 days, but never reaching back into the previous month
+    week_start    = max(today - timedelta(days=6), month_start)
     week_revenue  = (db.session.query(func.sum(Booking.total_price))
                      .filter(Booking.booking_date >= week_start,
                              Booking.status == 'confirmed').scalar() or 0)
 
     store_revenue = (db.session.query(func.sum(Order.total_price))
-                     .filter_by(status='completed').scalar() or 0)
+                     .filter(Order.status == 'completed',
+                             Order.created_at >= month_start_dt).scalar() or 0)
 
     # POS revenue â€” today (business day maps to UTC calendar day at UTC+3)
     today_start = datetime.combine(today, dtime.min)
@@ -352,7 +359,6 @@ def dashboard():
     pos_today_revenue = pos_court_today + pos_act_today + pos_store_today
 
     # POS revenue â€” this month (resets naturally on month start)
-    month_start_dt   = datetime(today.year, today.month, 1, 0, 0, 0)
     pos_court_month  = (db.session.query(func.sum(CourtSession.total_price))
                         .filter(CourtSession.status == 'completed',
                                 CourtSession.created_at >= month_start_dt).scalar() or 0)
