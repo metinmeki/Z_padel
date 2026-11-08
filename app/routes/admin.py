@@ -340,37 +340,36 @@ def dashboard():
                      .filter(Order.status == 'completed',
                              Order.created_at >= month_start_dt).scalar() or 0)
 
-    # POS revenue â€” today (business day maps to UTC calendar day at UTC+3)
+    # POS revenue = money actually paid: session time + items added - discount
+    # (same as grand_total in Receipt History)
+    def _paid(session_cls, item_cls, start, end=None):
+        def _in_range(q):
+            q = q.filter(session_cls.status == 'completed', session_cls.created_at >= start)
+            return q.filter(session_cls.created_at < end) if end else q
+        time_disc = _in_range(db.session.query(
+            func.sum(session_cls.total_price), func.sum(session_cls.discount))).one()
+        items = (_in_range(db.session.query(func.sum(item_cls.subtotal))
+                           .join(session_cls, session_cls.id == item_cls.session_id))
+                 .scalar() or 0)
+        return (time_disc[0] or 0) + items - (time_disc[1] or 0)
+
+    # POS revenue — today (business day maps to UTC calendar day at UTC+3)
     today_start = datetime.combine(today, dtime.min)
     today_end   = datetime.combine(today + timedelta(days=1), dtime.min)
 
-    pos_court_today = (db.session.query(func.sum(CourtSession.total_price))
-                       .filter(CourtSession.status == 'completed',
-                               CourtSession.created_at >= today_start,
-                               CourtSession.created_at < today_end).scalar() or 0)
-    pos_act_today   = (db.session.query(func.sum(ActivitySession.total_price))
-                       .filter(ActivitySession.status == 'completed',
-                               ActivitySession.created_at >= today_start,
-                               ActivitySession.created_at < today_end).scalar() or 0)
+    pos_court_today = _paid(CourtSession, CourtSessionItem, today_start, today_end)
+    pos_act_today   = _paid(ActivitySession, ActivitySessionItem, today_start, today_end)
     pos_store_today = (db.session.query(func.sum(Order.total_price))
                        .filter(Order.status == 'completed',
                                Order.created_at >= today_start,
                                Order.created_at < today_end).scalar() or 0)
     pos_today_revenue = pos_court_today + pos_act_today + pos_store_today
 
-    # POS revenue â€” this month (resets naturally on month start)
-    pos_court_month  = (db.session.query(func.sum(CourtSession.total_price))
-                        .filter(CourtSession.status == 'completed',
-                                CourtSession.created_at >= month_start_dt).scalar() or 0)
-    pos_act_month    = (db.session.query(func.sum(ActivitySession.total_price))
-                        .filter(ActivitySession.status == 'completed',
-                                ActivitySession.created_at >= month_start_dt).scalar() or 0)
-    pos_store_month  = (db.session.query(func.sum(Order.total_price))
-                        .filter(Order.status == 'completed',
-                                Order.created_at >= month_start_dt).scalar() or 0)
+    # POS revenue — this month (resets naturally on month start)
+    pos_court_month = _paid(CourtSession, CourtSessionItem, month_start_dt)
+    pos_act_month   = _paid(ActivitySession, ActivitySessionItem, month_start_dt)
     # pos_month_revenue = courts + activities only; store shown as its own monthly row
-    pos_month_revenue   = pos_court_month + pos_act_month
-    store_month_revenue = pos_store_month
+    pos_month_revenue = pos_court_month + pos_act_month
 
     courts          = Court.query.filter_by(is_active=True).all()
     recent_bookings = (Booking.query.order_by(Booking.created_at.desc())
@@ -394,7 +393,7 @@ def dashboard():
         today_revenue=today_revenue, month_revenue=month_revenue,
         week_revenue=week_revenue, store_revenue=store_revenue,
         pos_today_revenue=pos_today_revenue, pos_month_revenue=pos_month_revenue,
-        store_month_revenue=store_month_revenue,
+        store_month_revenue=store_revenue,
         courts=courts, recent_bookings=recent_bookings,
         current_hour=now_h,
         week_labels=week_labels, week_data=week_data,
