@@ -3,11 +3,14 @@
 {% block title %}{{ session.table.name }} — Z Padel POS{% endblock %}
 
 {% block extra_css %}
-  .session-layout { display:grid; grid-template-columns: 340px 1fr; gap: 1.2rem; align-items:start; }
-  @media (max-width: 991px) { .session-layout { grid-template-columns: 1fr; } }
+  /* minmax(0,1fr) + min-width:0 let the product column shrink to the screen instead of growing to fit its widest row */
+  .session-layout { display:grid; grid-template-columns: clamp(280px, 28vw, 360px) minmax(0, 1fr); gap: 1.2rem; align-items:start; }
+  .session-layout > * { min-width: 0; }
+  @media (max-width: 991px) { .session-layout { grid-template-columns: minmax(0, 1fr); } }
 
   .invoice-panel { position: static; }
-  @media (min-width: 992px) { .invoice-panel { position: sticky; top: 76px; } }
+  /* keep the whole invoice (incl. Finish / Cancel buttons) reachable on short screens */
+  @media (min-width: 992px) { .invoice-panel { position: sticky; top: 76px; max-height: calc(100vh - 110px); overflow-y: auto; } }
   .invoice-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.9rem; }
   .invoice-title { font-weight:800; font-size:1rem; display:flex; align-items:center; gap:.5rem; }
   .invoice-time { font-size:.8rem; color:var(--text-muted); font-weight:700; }
@@ -53,6 +56,12 @@
   .category-tabs { display:flex; gap:.5rem; overflow-x:auto; padding:.2rem 0 .8rem; scrollbar-width:none; }
   .category-tabs::-webkit-scrollbar { display:none; }
   .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.85rem; }
+  @media (max-width: 575px) {
+    .search-row { grid-template-columns: 1fr; }
+    .session-header { padding: .8rem 1rem; gap: .6rem; flex-wrap: wrap; }
+    .session-timer { font-size: 1.6rem; }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: .6rem; }
+  }
   .product-img-wrap { width:56px;height:56px;margin:0 auto .5rem;border-radius:10px;overflow:hidden;background:var(--bg-base);display:flex;align-items:center;justify-content:center; }
   .product-img-wrap img { width:100%;height:100%;object-fit:cover; }
 

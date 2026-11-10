@@ -48,6 +48,8 @@
     }
 
     * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+    /* clip (not hidden) so a stray wide element can never shift the page sideways, without breaking position:sticky */
+    html, body { max-width: 100%; overflow-x: clip; }
     body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg-base); }
@@ -213,6 +215,8 @@
     }
     .category-tab:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-subtle); }
     .category-tab.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border-color: var(--primary); box-shadow: 0 2px 8px var(--primary-glow); }
+    /* wrap category chips onto extra lines so every category stays visible and tappable on touch screens */
+    .category-tabs { flex-wrap: wrap; }
 
     /* ── Alerts ── */
     .alert { border-radius: 12px; border: 1.5px solid; padding: .82rem 1.2rem; font-weight: 600; font-size: .9rem; }
@@ -228,6 +232,13 @@
     /* ── Responsive ── */
     @media (max-width: 991px) {
       .cart-sticky { position: static; }
+    }
+    @media (min-width: 992px) and (max-width: 1280px) {
+      .pos-nav .nav-link { padding: .4rem .55rem !important; font-size: .84rem; }
+    }
+    @media (max-width: 575px) {
+      .pos-nav .container-fluid, .container-fluid.px-4 { padding-left: .75rem !important; padding-right: .75rem !important; }
+      .pos-card { padding: 1rem; }
     }
 
     {% block extra_css %}{% endblock %}
