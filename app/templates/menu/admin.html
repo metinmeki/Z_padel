@@ -1,0 +1,120 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{{ t('Café Menu', 'مینیوی کافێ', 'منيو الكافيه') }}{% endblock %}
+{% block page_title %}{{ t('Café Menu', 'مینیوی کافێ', 'منيو الكافيه') }}{% endblock %}
+
+{% block content %}
+<style>
+  .mn-cat { border:1px solid var(--border-color); border-radius:12px; margin-bottom:14px; overflow:hidden; background:#fff; }
+  .mn-cat-head { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 14px; background:var(--brand-blue-soft); }
+  .mn-cat-head.off { background:#f9fafb; }
+  .mn-switch { display:flex; gap:7px; align-items:center; font-weight:800; cursor:pointer; }
+  .mn-switch input { width:18px; height:18px; }
+  .mn-in { border:1.5px solid var(--border-color); border-radius:8px; padding:5px 8px; font-size:.82rem; min-width:0; }
+  .mn-rows { display:none; }
+  .mn-cat.open .mn-rows { display:block; }
+  .mn-row { display:grid; grid-template-columns: 28px 1fr 1fr 1fr 90px; gap:8px; align-items:center; padding:8px 14px; border-top:1px solid var(--border-color); font-size:.84rem; }
+  .mn-row.head { font-size:.7rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); background:#fafafa; }
+  @media (max-width: 700px) { .mn-row { grid-template-columns: 28px 1fr 90px; } .mn-row .mn-tr { grid-column: 2 / -1; } }
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="page-header-title">{{ t('Café Menu', 'مینیوی کافێ', 'منيو الكافيه') }}</div>
+    <div class="page-header-sub">{{ t('Choose what appears on', 'هەڵبژێرە چی پیشان بدرێت لە', 'اختر ما يظهر في') }} <a href="{{ menu_url }}" target="_blank" dir="ltr">{{ menu_url | replace('https://', '') }}</a>.
+      {{ t('Prices, photos and stock come from Products.', 'نرخ و وێنە و کۆگا لە بەرهەمەکانەوە دێن.', 'الأسعار والصور والمخزون من صفحة المنتجات.') }}</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ url_for('menu.public_menu') }}" target="_blank" class="btn-z-outline"><i class="fas fa-eye"></i> {{ t('Preview', 'پێشبینین', 'معاينة') }}</a>
+    <a href="{{ url_for('admin.products') }}" class="btn-z-outline"><i class="fas fa-box-open"></i> {{ t('Edit prices & photos', 'دەستکاری نرخ و وێنە', 'تعديل الأسعار والصور') }}</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% for c in categories %}
+      {% set items = by_cat.get(c.id, []) %}
+      <div class="mn-cat {{ 'open' if c.show_on_menu }}" id="cat{{ c.id }}">
+        <div class="mn-cat-head {{ '' if c.show_on_menu else 'off' }}">
+          <label class="mn-switch">
+            <input type="checkbox" name="cat-{{ c.id }}-show" value="1" {{ 'checked' if c.show_on_menu }}
+                   onchange="this.closest('.mn-cat').classList.toggle('open', this.checked); this.closest('.mn-cat-head').classList.toggle('off', !this.checked);">
+            <span style="width:10px;height:10px;border-radius:50%;background:{{ c.color }};display:inline-block;"></span>
+            {{ c.name }} <span style="font-weight:600;color:var(--text-muted);font-size:.8rem;">({{ items|length }})</span>
+          </label>
+          <input type="text" name="cat-{{ c.id }}-ar" class="mn-in" placeholder="العربية" dir="rtl" value="{{ c.name_ar or '' }}" maxlength="80" style="width:140px;">
+          <input type="text" name="cat-{{ c.id }}-ku" class="mn-in" placeholder="کوردی" dir="rtl" value="{{ c.name_ku or '' }}" maxlength="80" style="width:140px;">
+          <button type="button" class="btn-z-outline" style="padding:3px 10px;font-size:.75rem;margin-inline-start:auto;"
+                  onclick="this.closest('.mn-cat').classList.toggle('open')">{{ t('Items', 'بەرهەم', 'العناصر') }} <i class="fas fa-chevron-down"></i></button>
+        </div>
+        <div class="mn-rows">
+          {% if items %}
+          <div class="mn-row head"><span></span><span>{{ t('Product', 'بەرهەم', 'المنتج') }}</span><span class="mn-tr">العربية</span><span class="mn-tr">کوردی</span><span style="text-align:end;">{{ t('Price', 'نرخ', 'السعر') }}</span></div>
+          {% for p in items %}
+          <div class="mn-row">
+            <input type="hidden" name="product_ids" value="{{ p.id }}">
+            <input type="checkbox" name="prod-{{ p.id }}-show" value="1" {{ 'checked' if p.show_on_menu }} title="{{ t('Show on menu', 'پیشاندان لە مینیو', 'إظهار في المنيو') }}" style="width:17px;height:17px;">
+            <span style="font-weight:700;">{{ p.name }}{% if (p.stock or 0) <= 0 %} <span style="color:#b91c1c;font-size:.7rem;font-weight:800;">· {{ t('sold out', 'نەماوە', 'نفد') }}</span>{% endif %}</span>
+            <input type="text" name="prod-{{ p.id }}-ar" class="mn-in mn-tr" dir="rtl" value="{{ p.name_ar or '' }}" maxlength="120" placeholder="—">
+            <input type="text" name="prod-{{ p.id }}-ku" class="mn-in mn-tr" dir="rtl" value="{{ p.name_ku or '' }}" maxlength="120" placeholder="—">
+            <span style="text-align:end;font-weight:800;white-space:nowrap;">{{ '{:,.0f}'.format(p.price) }}</span>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div style="padding:10px 14px;color:var(--text-muted);font-size:.84rem;border-top:1px solid var(--border-color);">{{ t('No active products in this category.', 'هیچ بەرهەمێکی چالاک نییە.', 'لا توجد منتجات نشطة في هذه الفئة.') }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="card-z" style="text-align:center;padding:40px;color:var(--text-muted);">{{ t('No categories yet. Create categories and products first.', 'هێشتا هیچ جۆرێک نییە.', 'لا توجد فئات بعد. أنشئ الفئات والمنتجات أولاً.') }}</div>
+      {% endfor %}
+      {% if categories %}
+      <div style="position:sticky;bottom:0;background:linear-gradient(transparent,#fff 30%);padding:14px 0 6px;">
+        <button type="submit" class="btn-z-primary" style="width:100%;"><i class="fas fa-save"></i> {{ t('Save menu', 'پاشەکەوتکردنی مینیو', 'حفظ المنيو') }}</button>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-z" style="padding:1.2rem;text-align:center;position:sticky;top:80px;">
+      <div style="font-weight:800;color:var(--brand-blue-dark);margin-bottom:.6rem;"><i class="fas fa-qrcode"></i> {{ t('Table QR code', 'QR کۆدی مێز', 'رمز QR للطاولات') }}</div>
+      <div id="menuQr" style="display:inline-block;padding:10px;background:#fff;border:1px solid var(--border-color);border-radius:10px;"></div>
+      <div dir="ltr" style="font-weight:800;margin-top:.6rem;">{{ menu_url | replace('https://', '') }}</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:.8rem;flex-wrap:wrap;">
+        <button type="button" class="btn-z-outline" id="qrDownload" style="font-size:.8rem;"><i class="fas fa-download"></i> {{ t('Download', 'داگرتن', 'تنزيل') }}</button>
+        <button type="button" class="btn-z-outline" id="qrPrint" style="font-size:.8rem;"><i class="fas fa-print"></i> {{ t('Print', 'چاپ', 'طباعة') }}</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.7rem;">{{ t('Put it on the tables so customers can open the menu with their phone camera.', 'لەسەر مێزەکان دایبنێ.', 'ضعه على الطاولات ليفتح الزبائن المنيو بكاميرا الهاتف.') }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  var url = {{ menu_url | tojson }};
+  var box = document.getElementById('menuQr');
+  if (window.QRCode) new QRCode(box, { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+  function qrDataUrl() {
+    var c = box.querySelector('canvas'), i = box.querySelector('img');
+    return c ? c.toDataURL('image/png') : (i ? i.src : '');
+  }
+  document.getElementById('qrDownload').addEventListener('click', function () {
+    var a = document.createElement('a'); a.href = qrDataUrl(); a.download = 'z-padel-menu-qr.png'; a.click();
+  });
+  document.getElementById('qrPrint').addEventListener('click', function () {
+    var w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write('<html><head><title>Z Padel Menu</title></head><body style="font-family:sans-serif;text-align:center;padding:40px;">' +
+      '<h1 style="margin:0 0 6px;">Z Padel</h1><div style="font-size:20px;margin-bottom:18px;">Menu · المنيو · مینیو</div>' +
+      '<img src="' + qrDataUrl() + '" style="width:320px;height:320px;"><div style="font-size:18px;margin-top:14px;">' + url.replace('https://', '') + '</div>' +
+      '<script>window.onload=function(){window.print();}<\/script></body></html>');
+    w.document.close();
+  });
+})();
+</script>
+{% endblock %}

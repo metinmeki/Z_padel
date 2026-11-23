@@ -95,6 +95,7 @@ def create_app(config_name: str = None):
     from app.routes.pos     import pos_bp
     from app.routes.tabs    import tabs_bp
     from app.routes.tournaments import tournaments_bp
+    from app.routes.menu    import menu_bp, is_menu_host, public_menu, MAIN_URL
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -104,6 +105,19 @@ def create_app(config_name: str = None):
     app.register_blueprint(pos_bp,     url_prefix='/pos')
     app.register_blueprint(tabs_bp,    url_prefix='/tabs')
     app.register_blueprint(tournaments_bp, url_prefix='/tournaments')
+    app.register_blueprint(menu_bp)
+
+    # ── menu.z-padel.com shows only the café menu; anything else goes to the main site ──
+    @app.before_request
+    def menu_subdomain():
+        if not is_menu_host():
+            return None
+        if flask_request.path == '/':
+            return public_menu()
+        if flask_request.path.startswith('/static/') or flask_request.endpoint in ('main.set_lang', 'menu.public_menu'):
+            return None
+        qs = flask_request.query_string.decode()
+        return redirect(MAIN_URL + flask_request.path + (f'?{qs}' if qs else ''))
 
     # ── Create DB tables ──
     with app.app_context():
@@ -132,6 +146,12 @@ def _add_missing_columns(app):
         "ALTER TABLE staff_debts ADD COLUMN paid_amount REAL DEFAULT 0",
         "ALTER TABLE staff_debts ADD COLUMN items_json TEXT",
         "ALTER TABLE expenses ADD COLUMN salary_month DATE",
+        "ALTER TABLE categories ADD COLUMN show_on_menu BOOLEAN DEFAULT 0",
+        "ALTER TABLE categories ADD COLUMN name_ar VARCHAR(80)",
+        "ALTER TABLE categories ADD COLUMN name_ku VARCHAR(80)",
+        "ALTER TABLE products ADD COLUMN show_on_menu BOOLEAN DEFAULT 1",
+        "ALTER TABLE products ADD COLUMN name_ar VARCHAR(120)",
+        "ALTER TABLE products ADD COLUMN name_ku VARCHAR(120)",
     ]
     with app.app_context():
         with db.engine.connect() as conn:

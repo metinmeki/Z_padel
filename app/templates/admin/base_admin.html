@@ -1236,6 +1236,14 @@
     </div>
 
     <div class="nav-item-wrapper">
+      <a href="{{ url_for('menu.admin_menu') }}"
+         class="nav-link-custom {% if request.endpoint == 'menu.admin_menu' %}active{% endif %}">
+        <i class="fas fa-mug-hot nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Café Menu{% elif lang == 'ku' %}مینیوی کافێ{% else %}منيو الكافيه{% endif %}</span>
+      </a>
+    </div>
+
+    <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.sponsors') }}"
          class="nav-link-custom {% if request.endpoint == 'admin.sponsors' %}active{% endif %}">
         <i class="fas fa-handshake nav-icon"></i>

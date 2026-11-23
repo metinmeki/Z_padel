@@ -9,6 +9,9 @@ class Category(db.Model):
     name           = db.Column(db.String(80), unique=True, nullable=False)
     color          = db.Column(db.String(10), default='#1565C0')
     show_in_store  = db.Column(db.Boolean, default=True)
+    show_on_menu   = db.Column(db.Boolean, default=False)   # café menu at menu.z-padel.com
+    name_ar        = db.Column(db.String(80), nullable=True)
+    name_ku        = db.Column(db.String(80), nullable=True)
     created_at     = db.Column(db.DateTime,  default=datetime.utcnow)
 
     products = db.relationship('Product', backref='category', lazy=True)
@@ -33,6 +36,9 @@ class Product(db.Model):
     image           = db.Column(db.String(200), nullable=True)
     is_active       = db.Column(db.Boolean,     default=True)
     show_on_website = db.Column(db.Boolean,     default=False)
+    show_on_menu    = db.Column(db.Boolean,     default=True)    # shown when its category is on the menu
+    name_ar         = db.Column(db.String(120), nullable=True)
+    name_ku         = db.Column(db.String(120), nullable=True)
     created_at      = db.Column(db.DateTime,    default=datetime.utcnow)
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
