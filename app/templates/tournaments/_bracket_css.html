@@ -1,0 +1,27 @@
+<style>
+  .bk-wrap { overflow-x:auto; padding-bottom:.5rem; -webkit-overflow-scrolling:touch; }
+  .bk-rounds { display:flex; gap:22px; min-width:max-content; align-items:stretch; }
+  .bk-col { display:flex; flex-direction:column; width:210px; }
+  .bk-col-head { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#6b7280; text-align:center; padding:.35rem 0 .6rem; }
+  .bk-col-body { display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:14px; }
+  .bk-match { background:#fff; border:1.5px solid #e5e7eb; border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .bk-match.bk-bye { opacity:.6; }
+  .bk-team { display:flex; align-items:center; justify-content:space-between; gap:6px; padding:.5rem .7rem; font-size:.84rem; font-weight:700; color:#1f2937; }
+  .bk-team + .bk-team { border-top:1px solid #f0f0f0; }
+  .bk-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bk-team.bk-win { background:#ecfdf5; color:#065f46; }
+  .bk-team.bk-lose { color:#9ca3af; font-weight:600; }
+  .bk-check { color:#059669; font-size:.75rem; flex-shrink:0; }
+  .bk-tbd { color:#9ca3af; font-weight:500; }
+  .bk-score { font-size:.75rem; font-weight:700; color:#6b7280; text-align:center; padding:.25rem; border-top:1px dashed #e5e7eb; background:#fafafa; }
+  .bk-champion { display:flex; align-items:center; gap:.9rem; background:linear-gradient(135deg,#fef3c7,#fde68a); border:1px solid #fcd34d; border-radius:12px; padding:.8rem 1.1rem; margin-bottom:1rem; color:#92400e; }
+  .bk-champion i { font-size:1.6rem; }
+  .bk-champion-k { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+  .bk-champion-v { font-size:1.1rem; font-weight:900; color:#78350f; }
+  .bk-form { border-top:1px solid #f0f0f0; padding:.4rem; background:#f9fafb; }
+  .bk-score-in { width:100%; border:1px solid #e5e7eb; border-radius:6px; padding:3px 6px; font-size:.75rem; margin-bottom:4px; }
+  .bk-btns { display:flex; gap:4px; }
+  .bk-btn { flex:1; border:1px solid #d1d5db; background:#fff; border-radius:6px; font-size:.72rem; font-weight:800; padding:3px 4px; cursor:pointer; color:#374151; }
+  .bk-btn.on { background:#059669; border-color:#059669; color:#fff; }
+  .bk-btn.bk-clear { flex:0 0 auto; color:#b91c1c; }
+</style>

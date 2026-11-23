@@ -684,6 +684,9 @@ class Tournament(db.Model):
     registrations = db.relationship('TournamentRegistration', backref='tournament', lazy=True,
                                     cascade='all, delete-orphan',
                                     order_by='TournamentRegistration.created_at')
+    matches       = db.relationship('TournamentMatch', backref='tournament', lazy=True,
+                                    cascade='all, delete-orphan',
+                                    order_by=lambda: (TournamentMatch.round, TournamentMatch.position))
 
     @property
     def category_list(self):
@@ -734,5 +737,33 @@ class TournamentRegistration(db.Model):
     added_by      = db.Column(db.String(80), nullable=True)       # admin username if added manually
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
+    @property
+    def display_name(self):
+        return self.team_name or f'{self.player1_name} & {self.player2_name}'
+
     def __repr__(self):
         return f'<TournamentRegistration {self.player1_name} & {self.player2_name}>'
+
+
+class TournamentMatch(db.Model):
+    """One match of a knockout bracket. Round 1 is the first round; the last round is the final."""
+    __tablename__ = 'tournament_matches'
+
+    id            = db.Column(db.Integer, primary_key=True)
+    tournament_id = db.Column(db.Integer, db.ForeignKey('tournaments.id'), nullable=False, index=True)
+    category      = db.Column(db.String(80), default='')
+    round         = db.Column(db.Integer, nullable=False)
+    position      = db.Column(db.Integer, nullable=False)          # 0-based index within the round
+    team1_id      = db.Column(db.Integer, db.ForeignKey('tournament_registrations.id'), nullable=True)
+    team2_id      = db.Column(db.Integer, db.ForeignKey('tournament_registrations.id'), nullable=True)
+    winner_id     = db.Column(db.Integer, db.ForeignKey('tournament_registrations.id'), nullable=True)
+    is_bye        = db.Column(db.Boolean, default=False)           # round-1 match with only one team
+    score         = db.Column(db.String(60), nullable=True)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    team1  = db.relationship('TournamentRegistration', foreign_keys=[team1_id])
+    team2  = db.relationship('TournamentRegistration', foreign_keys=[team2_id])
+    winner = db.relationship('TournamentRegistration', foreign_keys=[winner_id])
+
+    def __repr__(self):
+        return f'<TournamentMatch R{self.round} #{self.position}>'

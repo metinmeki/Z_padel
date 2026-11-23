@@ -74,6 +74,22 @@
     </div>
   </div>
 
+  <!-- Bracket -->
+  {% if tour.matches %}
+  {% include 'tournaments/_bracket_css.html' %}
+  <div class="tr-card" id="bracket">
+    <div class="tr-body">
+      <h2 class="tr-section-title"><i class="fas fa-sitemap" style="color:var(--ac);"></i> {{ t('Tournament bracket', 'خشتەی پاڵەوانێتی', 'جدول البطولة') }}</h2>
+      {% for cat in (tour.category_list or ['']) %}
+        {% if bracket_for(tour, cat) %}
+          {% if cat %}<h3 style="font-size:.95rem;font-weight:900;margin:1.25rem 0 .6rem;color:var(--bdk);">{{ cat }}</h3>{% endif %}
+          {% with category=cat, admin=False %}{% include 'tournaments/_bracket.html' %}{% endwith %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Registration -->
   <div class="tr-card" id="register">
     <div class="tr-body">

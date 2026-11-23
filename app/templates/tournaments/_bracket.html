@@ -1,0 +1,58 @@
+{# Knockout bracket for one category. Needs: tour, category, admin (bool). #}
+{% set rounds = bracket_for(tour, category) %}
+{% set round_names = {
+  'final':   t('Final', 'یاری کۆتایی', 'النهائي'),
+  'semi':    t('Semi-finals', 'نیوە کۆتایی', 'نصف النهائي'),
+  'quarter': t('Quarter-finals', 'چارەکی کۆتایی', 'ربع النهائي'),
+} %}
+{% if rounds %}
+{% set final = rounds[-1][1][0] %}
+{% if final.winner %}
+<div class="bk-champion">
+  <i class="fas fa-trophy"></i>
+  <div>
+    <div class="bk-champion-k">{{ t('Champion', 'پاڵەوان', 'البطل') }}{% if category %} · {{ category }}{% endif %}</div>
+    <div class="bk-champion-v">{{ final.winner.display_name }}</div>
+  </div>
+</div>
+{% endif %}
+<div class="bk-wrap">
+  <div class="bk-rounds">
+    {% for key, matches in rounds %}
+    <div class="bk-col">
+      <div class="bk-col-head">{{ round_names.get(key) or (t('Round of', 'خولی', 'دور الـ') ~ ' ' ~ key) }}</div>
+      <div class="bk-col-body">
+        {% for m in matches %}
+        <div class="bk-match {{ 'bk-bye' if m.is_bye }}" id="match-{{ m.id }}">
+          {% for team, tid in ((m.team1, m.team1_id), (m.team2, m.team2_id)) %}
+          <div class="bk-team {{ 'bk-win' if m.winner_id and m.winner_id == tid }} {{ 'bk-lose' if m.winner_id and tid and m.winner_id != tid }}">
+            <span class="bk-name">
+              {% if team %}{{ team.display_name }}
+              {% elif m.is_bye and loop.index == 2 %}<em>{{ t('Bye', 'تێپەڕاندن', 'تأهل مباشر') }}</em>
+              {% else %}<em class="bk-tbd">{{ t('TBD', 'دیار نییە', 'لم يحدد') }}</em>{% endif %}
+            </span>
+            {% if m.winner_id and m.winner_id == tid %}<i class="fas fa-check bk-check"></i>{% endif %}
+          </div>
+          {% endfor %}
+          {% if m.score %}<div class="bk-score">{{ m.score }}</div>{% endif %}
+
+          {% if admin and not m.is_bye and m.team1_id and m.team2_id %}
+          <form method="POST" action="{{ url_for('tournaments.admin_match_result', match_id=m.id) }}" class="bk-form no-print">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="score" class="bk-score-in" maxlength="60" value="{{ m.score or '' }}"
+                   placeholder="{{ t('Score e.g. 6-4 6-3', 'ئەنجام', 'النتيجة مثلاً 6-4 6-3') }}">
+            <div class="bk-btns">
+              <button type="submit" name="winner" value="{{ m.team1_id }}" class="bk-btn {{ 'on' if m.winner_id == m.team1_id }}">▲ {{ t('Won', 'بردییەوە', 'فاز') }}</button>
+              <button type="submit" name="winner" value="{{ m.team2_id }}" class="bk-btn {{ 'on' if m.winner_id == m.team2_id }}">▼ {{ t('Won', 'بردییەوە', 'فاز') }}</button>
+              {% if m.winner_id %}<button type="submit" name="winner" value="0" class="bk-btn bk-clear" title="{{ t('Clear result', 'سڕینەوەی ئەنجام', 'مسح النتيجة') }}"><i class="fas fa-rotate-left"></i></button>{% endif %}
+            </div>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

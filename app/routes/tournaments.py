@@ -1,6 +1,7 @@
 import csv
 import io
 import re
+import secrets
 import threading
 from datetime import datetime, date, timedelta
 from functools import wraps
@@ -10,7 +11,7 @@ from flask import (Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from app import db
-from app.models.main import Tournament, TournamentRegistration
+from app.models.main import Tournament, TournamentRegistration, TournamentMatch
 
 tournaments_bp = Blueprint('tournaments', __name__)
 
@@ -105,6 +106,14 @@ def public_list():
                       key=lambda t: t.start_date)
     past = [t for t in tournaments if (t.end_date or t.start_date) < today]
     return render_template('tournaments/list.html', upcoming=upcoming, past=past, today=today)
+
+
+def featured_bracket_tournament():
+    """The soonest upcoming/ongoing public tournament that has a bracket, for the home page."""
+    today = date.today()
+    drawn = (Tournament.query.filter(Tournament.status != 'hidden')
+             .join(TournamentMatch).distinct().order_by(Tournament.start_date).all())
+    return next((t for t in drawn if (t.end_date or t.start_date) >= today), None)
 
 
 @tournaments_bp.route('/<int:tournament_id>', methods=['GET', 'POST'])
@@ -275,6 +284,17 @@ def admin_update_registration(reg_id):
 def admin_delete_registration(reg_id):
     r = TournamentRegistration.query.get_or_404(reg_id)
     tid = r.tournament_id
+    # Take the team out of any bracket first, so no match points at a deleted team
+    for m in TournamentMatch.query.filter(
+            (TournamentMatch.team1_id == r.id) | (TournamentMatch.team2_id == r.id)).all():
+        b = _Bracket(r.tournament, m.category)
+        m = b.get(m.round, m.position)
+        if m.team1_id == r.id:
+            m.team1_id = None
+        if m.team2_id == r.id:
+            m.team2_id = None
+        if m.winner_id == r.id:
+            b.set_result(m, None, force=True)
     db.session.delete(r)
     db.session.commit()
     flash('تم حذف التسجيل. / Registration deleted.', 'success')
@@ -297,6 +317,148 @@ def admin_export(tournament_id):
     filename = re.sub(r'[^A-Za-z0-9_-]+', '_', t.name).strip('_') or f'tournament_{t.id}'
     return Response(out.getvalue(), mimetype='text/csv',
                     headers={'Content-Disposition': f'attachment; filename="{filename}_teams.csv"'})
+
+
+# ═══════════════════════════════════════════
+# BRACKET (single elimination, one per category)
+# ═══════════════════════════════════════════
+class _Bracket:
+    """The matches of one tournament category, keyed by (round, position)."""
+
+    def __init__(self, tournament, category):
+        self.t, self.category = tournament, category
+        self.matches = {(m.round, m.position): m for m in tournament.matches if m.category == category}
+        self.rounds = max((r for r, _ in self.matches), default=0)
+
+    def get(self, rnd, pos):
+        return self.matches[(rnd, pos)]
+
+    def _feed_next(self, match, team_id):
+        """Put a match's winner (or None) into its slot in the next round, undoing later results it invalidates."""
+        if match.round >= self.rounds:
+            return
+        nxt = self.get(match.round + 1, match.position // 2)
+        slot = 'team1_id' if match.position % 2 == 0 else 'team2_id'
+        if getattr(nxt, slot) == team_id:
+            return
+        setattr(nxt, slot, team_id)
+        if nxt.winner_id is not None:
+            nxt.winner_id, nxt.score = None, None
+            self._feed_next(nxt, None)
+
+    def set_result(self, match, winner_id, score=None, force=False):
+        """winner_id None clears the result. Returns an error code or None."""
+        if match.is_bye and not force:
+            return 'bye'
+        if winner_id is not None:
+            if not (match.team1_id and match.team2_id):
+                return 'waiting'
+            if winner_id not in (match.team1_id, match.team2_id):
+                return 'winner'
+        match.winner_id = winner_id
+        match.score = ((score or '').strip()[:60] or None) if winner_id else None
+        self._feed_next(match, winner_id)
+        return None
+
+    @classmethod
+    def draw(cls, tournament, category, team_ids):
+        """Shuffle the teams into a fresh bracket, replacing any existing one for this category."""
+        TournamentMatch.query.filter_by(tournament_id=tournament.id, category=category).delete()
+        db.session.flush()
+        db.session.expire(tournament, ['matches'])
+
+        teams = list(team_ids)
+        secrets.SystemRandom().shuffle(teams)
+        size = 2
+        while size < len(teams):
+            size *= 2
+        first_round = size // 2
+        byes = size - len(teams)
+        # spread the byes evenly so they don't all land in one half of the bracket
+        bye_positions = {k * first_round // byes for k in range(byes)} if byes else set()
+
+        it = iter(teams)
+        rnd, count = 1, first_round
+        while count >= 1:
+            for pos in range(count):
+                m = TournamentMatch(tournament_id=tournament.id, category=category, round=rnd, position=pos)
+                if rnd == 1:
+                    m.team1_id = next(it)
+                    if pos in bye_positions:
+                        m.is_bye = True
+                    else:
+                        m.team2_id = next(it)
+                db.session.add(m)
+            rnd, count = rnd + 1, count // 2
+        db.session.flush()
+        db.session.expire(tournament, ['matches'])
+
+        b = cls(tournament, category)
+        for pos in sorted(bye_positions):
+            m = b.get(1, pos)
+            m.winner_id = m.team1_id
+            b._feed_next(m, m.team1_id)
+        return b
+
+
+def round_key(rnd, total):
+    """'final', 'semi', 'quarter' or the number of teams in that round (16, 32…)."""
+    left = total - rnd
+    return {0: 'final', 1: 'semi', 2: 'quarter'}.get(left, 2 ** (left + 1))
+
+
+@tournaments_bp.app_template_global()
+def bracket_for(tournament, category):
+    """Rounds of a category's bracket for templates: [(round_key, [matches])], or [] if not drawn."""
+    ms = [m for m in tournament.matches if m.category == category]
+    total = max((m.round for m in ms), default=0)
+    return [(round_key(r, total), [m for m in ms if m.round == r]) for r in range(1, total + 1)]
+
+
+@tournaments_bp.route('/admin/<int:tournament_id>/draw', methods=['POST'])
+@_admin_required
+def admin_draw(tournament_id):
+    t = Tournament.query.get_or_404(tournament_id)
+    category = request.form.get('category', '')
+    if t.category_list and category not in t.category_list:
+        abort(400)
+    allowed = ('confirmed', 'pending') if request.form.get('include_pending') == '1' else ('confirmed',)
+    team_ids = [r.id for r in t.registrations if r.category == category and r.status in allowed]
+    if len(team_ids) < 2:
+        flash('تحتاج إلى فريقين مؤكدين على الأقل للقرعة. / You need at least 2 confirmed teams to make the draw.', 'danger')
+    else:
+        _Bracket.draw(t, category, team_ids)
+        db.session.commit()
+        flash(f'تمت القرعة. / Draw done: {len(team_ids)} teams' + (f' ({category})' if category else '') + '.', 'success')
+    return redirect(url_for('tournaments.admin_detail', tournament_id=t.id) + '#bracket')
+
+
+@tournaments_bp.route('/admin/<int:tournament_id>/bracket/delete', methods=['POST'])
+@_admin_required
+def admin_delete_bracket(tournament_id):
+    t = Tournament.query.get_or_404(tournament_id)
+    TournamentMatch.query.filter_by(tournament_id=t.id, category=request.form.get('category', '')).delete()
+    db.session.commit()
+    flash('تم حذف الجدول. / Bracket deleted.', 'success')
+    return redirect(url_for('tournaments.admin_detail', tournament_id=t.id) + '#bracket')
+
+
+@tournaments_bp.route('/admin/match/<int:match_id>/result', methods=['POST'])
+@_admin_required
+def admin_match_result(match_id):
+    m = TournamentMatch.query.get_or_404(match_id)
+    b = _Bracket(m.tournament, m.category)
+    m = b.get(m.round, m.position)
+    winner = request.form.get('winner', type=int)       # a team id, or missing/0 to clear
+    err = b.set_result(m, winner or None, request.form.get('score'))
+    if err:
+        flash({'bye': 'هذه المباراة تأهل مباشر. / This is a bye.',
+               'waiting': 'المباراة بانتظار الفريقين. / Both teams are not known yet.',
+               'winner': 'الفائز غير صحيح. / Invalid winner.'}[err], 'danger')
+        db.session.rollback()
+    else:
+        db.session.commit()
+    return redirect(url_for('tournaments.admin_detail', tournament_id=m.tournament_id) + f'#match-{m.id}')
 
 
 def _local(dt):

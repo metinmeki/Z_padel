@@ -46,7 +46,11 @@ def index():
     else:
         price_min = price_max = None
 
+    from app.routes.tournaments import featured_bracket_tournament
+    featured_tournament = featured_bracket_tournament()
+
     return render_template('index.html',
+                           featured_tournament=featured_tournament,
                            coaches=coaches,
                            courts=courts,
                            total_bookings=total_bookings,

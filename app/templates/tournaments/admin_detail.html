@@ -153,6 +153,62 @@
   {% endif %}
 </div>
 
+<!-- Bracket -->
+{% include 'tournaments/_bracket_css.html' %}
+<div class="card-z" id="bracket" style="padding:1.2rem 1.4rem;margin-bottom:24px;">
+  <div style="font-weight:800;color:var(--brand-blue-dark);font-size:1.05rem;margin-bottom:.2rem;"><i class="fas fa-sitemap"></i> {{ t('Bracket & draw', 'خشتەی یارییەکان و تیروپشک', 'جدول المباريات والقرعة') }}</div>
+  <div class="no-print" style="font-size:.8rem;color:var(--text-muted);margin-bottom:1rem;">
+    {{ t('Shuffle randomly puts the confirmed teams into a knockout bracket. Click "Won" under a match to move the winner forward. The bracket is shown on the public tournament page.',
+         'تیروپشک تیمە پشتڕاستکراوەکان بە هەڕەمەکی دادەنێت. لە ژێر هەر یارییەک "بردییەوە" دابگرە.',
+         'القرعة تضع الفرق المؤكدة عشوائياً في جدول خروج المغلوب. اضغط "فاز" تحت المباراة لتأهيل الفائز. يظهر الجدول في صفحة البطولة العامة.') }}
+  </div>
+  {% for cat in (tour.category_list or ['']) %}
+    {% set has_bracket = bracket_for(tour, cat) %}
+    {% set confirmed = tour.registrations | selectattr('category', 'equalto', cat) | selectattr('status', 'equalto', 'confirmed') | list %}
+    {% set pending = tour.registrations | selectattr('category', 'equalto', cat) | selectattr('status', 'equalto', 'pending') | list %}
+    <div style="{{ 'border-top:1px dashed var(--border-color);padding-top:1rem;margin-top:1rem;' if not loop.first }}">
+      {% if cat %}<div style="font-weight:900;margin-bottom:.6rem;">{{ cat }}</div>{% endif %}
+      <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.8rem;">
+        <form method="POST" action="{{ url_for('tournaments.admin_draw', tournament_id=tour.id) }}" class="draw-form" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0;"
+              data-names="{{ ((confirmed + pending) | map(attribute='display_name') | list) | tojson | forceescape }}"
+              data-confirm="{{ (t('Make a new draw? The current bracket and its results will be replaced.', 'تیروپشکی نوێ؟ خشتە و ئەنجامەکانی ئێستا دەگۆڕدرێن.', 'قرعة جديدة؟ سيتم استبدال الجدول الحالي ونتائجه.') if has_bracket else '') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="category" value="{{ cat }}">
+          <button type="submit" class="btn-z-primary"><i class="fas fa-shuffle"></i>
+            {% if has_bracket %}{{ t('Re-draw', 'تیروپشکی نوێ', 'إعادة القرعة') }}{% else %}{{ t('Shuffle & draw', 'تیروپشک بکە', 'إجراء القرعة') }}{% endif %}
+            ({{ confirmed|length }} {{ t('confirmed', 'پشتڕاستکراوە', 'مؤكد') }})</button>
+          {% if pending %}
+          <label style="font-size:.8rem;display:flex;gap:5px;align-items:center;cursor:pointer;">
+            <input type="checkbox" name="include_pending" value="1"> {{ t('also include', 'هەروەها', 'تضمين') }} {{ pending|length }} {{ t('pending', 'چاوەڕوان', 'قيد المراجعة') }}
+          </label>
+          {% endif %}
+        </form>
+        {% if has_bracket %}
+        <form method="POST" action="{{ url_for('tournaments.admin_delete_bracket', tournament_id=tour.id) }}" style="margin:0;"
+              onsubmit="return confirm({{ t('Delete this bracket and its results?', 'ئەم خشتەیە بسڕیتەوە؟', 'حذف هذا الجدول ونتائجه؟') | tojson | forceescape }})">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="category" value="{{ cat }}">
+          <button type="submit" class="btn-z-outline" style="color:#b91c1c;"><i class="fas fa-trash"></i> {{ t('Delete bracket', 'سڕینەوەی خشتە', 'حذف الجدول') }}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if has_bracket %}
+        {% with category=cat, admin=True %}{% include 'tournaments/_bracket.html' %}{% endwith %}
+      {% else %}
+        <div style="color:var(--text-muted);font-size:.85rem;">{{ t('No bracket yet.', 'هێشتا خشتە نییە.', 'لا يوجد جدول بعد.') }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Shuffle animation -->
+<div id="shuffleOverlay" class="no-print" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(10,47,107,.82);align-items:center;justify-content:center;flex-direction:column;gap:18px;color:#fff;">
+  <i class="fas fa-shuffle" style="font-size:2.4rem;animation:spinShuffle 0.6s linear infinite;"></i>
+  <div id="shuffleName" style="font-size:1.5rem;font-weight:900;min-height:2rem;text-align:center;padding:0 16px;"></div>
+  <div style="font-size:.85rem;opacity:.75;">{{ t('Drawing…', 'تیروپشک دەکرێت…', 'جارٍ إجراء القرعة…') }}</div>
+</div>
+<style>@keyframes spinShuffle { to { transform: rotate(360deg); } }</style>
+
 <!-- Settings -->
 <details class="card-z no-print" style="padding:1.2rem 1.4rem;">
   <summary style="font-weight:800;cursor:pointer;color:var(--brand-blue-dark);"><i class="fas fa-gear"></i> {{ t('Tournament settings', 'ڕێکخستنەکانی پاڵەوانێتی', 'إعدادات البطولة') }}</summary>
@@ -209,6 +265,22 @@
     var done = function () { btn.querySelector('span').textContent = {{ t('Copied!', 'کۆپی کرا!', 'تم النسخ!') | tojson }}; };
     if (navigator.clipboard) { navigator.clipboard.writeText(link).then(done, function () { prompt('', link); }); }
     else { prompt('', link); }
+  });
+
+  // Shuffle animation: flick through the team names, then submit the draw
+  document.querySelectorAll('.draw-form').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      if (form.dataset.sending) return;
+      e.preventDefault();
+      if (form.dataset.confirm && !confirm(form.dataset.confirm)) return;
+      var names = JSON.parse(form.dataset.names || '[]');
+      var overlay = document.getElementById('shuffleOverlay'), label = document.getElementById('shuffleName');
+      overlay.style.display = 'flex';
+      var tick = setInterval(function () {
+        label.textContent = names.length ? names[Math.floor(Math.random() * names.length)] : '';
+      }, 90);
+      setTimeout(function () { clearInterval(tick); form.dataset.sending = '1'; form.submit(); }, 1600);
+    });
   });
 })();
 </script>
