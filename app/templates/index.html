@@ -41,6 +41,7 @@
   <a href="#courts"   onclick="closeMobileMenu()">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
   <a href="#features" onclick="closeMobileMenu()">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
   <a href="#clips"    onclick="closeMobileMenu()">{% if lang == 'en' %}Match Moments{% else %}لحظات المباراة{% endif %}</a>
+  <a href="{{ url_for('tournaments.public_list') }}" onclick="closeMobileMenu()">{% if lang == 'en' %}Tournaments{% elif lang == 'ku' %}پاڵەوانێتییەکان{% else %}البطولات{% endif %}</a>
   <a href="#store"    onclick="closeMobileMenu()">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
   <a href="#contact"  onclick="closeMobileMenu()">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
   <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()"
@@ -78,6 +79,7 @@
       <a href="#courts"  class="nav-link-item">{% if lang == 'en' %}Courts{% else %}الملاعب{% endif %}</a>
       <a href="#features" class="nav-link-item">{% if lang == 'en' %}Features{% else %}مميزاتنا{% endif %}</a>
       <a href="#clips" class="nav-link-item">{% if lang == 'en' %}Match Moments{% else %}لحظات المباراة{% endif %}</a>
+      <a href="{{ url_for('tournaments.public_list') }}" class="nav-link-item">{% if lang == 'en' %}Tournaments{% elif lang == 'ku' %}پاڵەوانێتییەکان{% else %}البطولات{% endif %}</a>
       <a href="#store"   class="nav-link-item">{% if lang == 'en' %}Store{% else %}المتجر{% endif %}</a>
       <a href="#contact" class="nav-link-item">{% if lang == 'en' %}Contact Us{% else %}تواصل معنا{% endif %}</a>
     </div>

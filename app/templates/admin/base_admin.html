@@ -1176,6 +1176,14 @@
     </div>
 
     <div class="nav-item-wrapper">
+      <a href="{{ url_for('tournaments.admin_list') }}"
+         class="nav-link-custom {% if request.endpoint and request.endpoint.startswith('tournaments.admin') %}active{% endif %}">
+        <i class="fas fa-trophy nav-icon"></i>
+        <span class="nav-label">{% if lang == 'en' %}Tournaments{% elif lang == 'ku' %}پاڵەوانێتییەکان{% else %}البطولات{% endif %}</span>
+      </a>
+    </div>
+
+    <div class="nav-item-wrapper">
       <a href="{{ url_for('admin.clips') }}"
          class="nav-link-custom {% if request.endpoint in ('admin.clips','admin.save_clip','admin.download_admin_clip','admin.delete_clip') %}active{% endif %}">
         <i class="fas fa-video nav-icon"></i>

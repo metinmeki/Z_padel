@@ -94,6 +94,7 @@ def create_app(config_name: str = None):
     from app.routes.store   import store_bp
     from app.routes.pos     import pos_bp
     from app.routes.tabs    import tabs_bp
+    from app.routes.tournaments import tournaments_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -102,6 +103,7 @@ def create_app(config_name: str = None):
     app.register_blueprint(store_bp,   url_prefix='/store')
     app.register_blueprint(pos_bp,     url_prefix='/pos')
     app.register_blueprint(tabs_bp,    url_prefix='/tabs')
+    app.register_blueprint(tournaments_bp, url_prefix='/tournaments')
 
     # ── Create DB tables ──
     with app.app_context():

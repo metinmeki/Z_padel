@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
+<head>
+  {% include 'tournaments/_public_head.html' %}
+  <title>{{ tour.name }} — Z Padel</title>
+  <meta property="og:title" content="{{ tour.name }} — Z Padel"/>
+  <meta property="og:description" content="{{ tour.start_date.strftime('%Y-%m-%d') }} · Z Padel, Duhok"/>
+</head>
+<body>
+{% include 'tournaments/_public_nav.html' %}
+
+{% set level_names = {
+  'beginner':     t('Beginner', 'سەرەتایی', 'مبتدئ'),
+  'intermediate': t('Intermediate', 'ناوەند', 'متوسط'),
+  'advanced':     t('Advanced', 'پێشکەوتوو', 'متقدم'),
+  'professional': t('Professional', 'پرۆفیشناڵ', 'محترف'),
+} %}
+{% set my_reg = (tour.registrations | selectattr('id', 'equalto', registered) | first) if registered else None %}
+
+<div class="tr-wrap">
+  <div style="font-size:.85rem;margin-bottom:1rem;">
+    <a href="{{ url_for('tournaments.public_list') }}" style="color:var(--tm);text-decoration:none;font-weight:700;">
+      <i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i> {{ t('All tournaments', 'هەموو پاڵەوانێتییەکان', 'كل البطولات') }}
+    </a>
+  </div>
+
+  <!-- Tournament info -->
+  <div class="tr-card">
+    <div class="tr-head">
+      <h1><i class="fas fa-trophy" style="color:var(--ac);"></i> {{ tour.name }}</h1>
+      <div class="sub">Z Padel · {{ t('Duhok', 'دهۆک', 'دهوك') }}</div>
+    </div>
+    <div class="tr-body">
+      <div class="tr-facts">
+        <div class="tr-fact">
+          <div class="k">{{ t('Date', 'بەروار', 'التاريخ') }}</div>
+          <div class="v">{{ tour.start_date.strftime('%Y-%m-%d') }}{% if tour.end_date and tour.end_date != tour.start_date %} → {{ tour.end_date.strftime('%Y-%m-%d') }}{% endif %}{% if tour.start_time %} · {{ tour.start_time.strftime('%H:%M') }}{% endif %}</div>
+        </div>
+        <div class="tr-fact">
+          <div class="k">{{ t('Entry fee (per team)', 'کرێی بەشداری (بۆ هەر تیمێک)', 'رسوم الاشتراك (للفريق)') }}</div>
+          <div class="v">{% if tour.entry_fee %}{{ '{:,.0f}'.format(tour.entry_fee) }} IQD{% else %}{{ t('Free', 'بەخۆڕایی', 'مجاناً') }}{% endif %}</div>
+        </div>
+        {% if tour.registration_deadline %}
+        <div class="tr-fact">
+          <div class="k">{{ t('Register by', 'دوا وادەی تۆمارکردن', 'آخر موعد للتسجيل') }}</div>
+          <div class="v">{{ tour.registration_deadline.strftime('%Y-%m-%d') }}</div>
+        </div>
+        {% endif %}
+        <div class="tr-fact">
+          <div class="k">{{ t('Teams', 'تیمەکان', 'الفرق') }}</div>
+          <div class="v">{{ tour.active_registrations|length }}{% if tour.max_teams %} / {{ tour.max_teams }}
+            <span style="font-weight:600;color:var(--tm);font-size:.82rem;">({{ tour.spots_left }} {{ t('left', 'ماوە', 'متبقي') }})</span>{% endif %}</div>
+        </div>
+      </div>
+
+      {% if tour.category_list %}
+      <div style="margin-top:1rem;">
+        <span style="font-size:.78rem;font-weight:800;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;">{{ t('Categories', 'پۆلەکان', 'الفئات') }}:</span>
+        {% for c in tour.category_list %}<span class="tr-chip">{{ c }}</span>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if tour.description %}
+      <div style="margin-top:1rem;white-space:pre-line;color:var(--td);line-height:1.7;">{{ tour.description }}</div>
+      {% endif %}
+
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.25rem;">
+        {% if not closed_reason %}
+        <a href="#register" class="tr-btn main"><i class="fas fa-user-plus"></i> {{ t('Register your team', 'تیمەکەت تۆمار بکە', 'سجّل فريقك') }}</a>
+        {% endif %}
+        <a href="#" id="waShare" class="tr-btn wa" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> {{ t('Share', 'هاوبەشی پێبکە', 'مشاركة') }}</a>
+        <button type="button" id="copyLink" class="tr-btn ghost"><i class="fas fa-link"></i> <span>{{ t('Copy link', 'لینک کۆپی بکە', 'نسخ الرابط') }}</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registration -->
+  <div class="tr-card" id="register">
+    <div class="tr-body">
+      <h2 class="tr-section-title"><i class="fas fa-user-plus" style="color:var(--ac);"></i> {{ t('Team registration', 'تۆمارکردنی تیم', 'تسجيل الفريق') }}</h2>
+
+      {% if my_reg %}
+      <div class="tr-alert ok">
+        <i class="fas fa-circle-check" style="margin-top:3px;"></i>
+        <div>
+          <strong>{{ t('You are registered!', 'تۆمار کرایت!', 'تم تسجيلكم!') }}</strong>
+          {{ my_reg.player1_name }} &amp; {{ my_reg.player2_name }}{% if my_reg.category %} — {{ my_reg.category }}{% endif %}.
+          {{ t('Our team will contact you to confirm.', 'تیمەکەمان پەیوەندیت پێوە دەکات بۆ پشتڕاستکردنەوە.', 'سيتواصل معكم فريقنا للتأكيد.') }}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if errors %}
+      {% set msgs = {
+        'names':      t('Please enter both players\' names.', 'تکایە ناوی هەردوو یاریزان بنووسە.', 'يرجى إدخال اسمي اللاعبين.'),
+        'phones':     t('Please enter a valid phone number for both players.', 'تکایە ژمارەی مۆبایلی دروست بۆ هەردوو یاریزان بنووسە.', 'يرجى إدخال رقم هاتف صحيح لكلا اللاعبين.'),
+        'same_phone': t('The two players need different phone numbers.', 'دەبێت ژمارەی دوو یاریزانەکە جیاواز بێت.', 'يجب أن يكون رقم هاتف كل لاعب مختلفاً.'),
+        'category':   t('Please choose a category.', 'تکایە پۆلێک هەڵبژێرە.', 'يرجى اختيار الفئة.'),
+        'level':      t('Please choose your level.', 'تکایە ئاستەکەت هەڵبژێرە.', 'يرجى اختيار المستوى.'),
+        'duplicate':  t('One of these phone numbers is already registered in this category.', 'یەکێک لەم ژمارانە پێشتر لەم پۆلەدا تۆمار کراوە.', 'أحد أرقام الهاتف مسجّل مسبقاً في هذه الفئة.'),
+        'closed':     t('Registration is closed.', 'تۆمارکردن داخراوە.', 'التسجيل مغلق.'),
+        'deadline':   t('The registration deadline has passed.', 'دوا وادەی تۆمارکردن تەواو بووە.', 'انتهى موعد التسجيل.'),
+        'finished':   t('This tournament has already taken place.', 'ئەم پاڵەوانێتییە کۆتایی هاتووە.', 'هذه البطولة انتهت.'),
+        'full':       t('Sorry, the tournament is full.', 'ببورە، پاڵەوانێتییەکە پڕ بووە.', 'عذراً، البطولة مكتملة.'),
+      } %}
+      <div class="tr-alert err">
+        <i class="fas fa-circle-exclamation" style="margin-top:3px;"></i>
+        <div>{% for e in errors %}<div>{{ msgs.get(e, e) }}</div>{% endfor %}</div>
+      </div>
+      {% endif %}
+
+      {% if closed_reason %}
+      <div class="tr-alert info">
+        <i class="fas fa-lock" style="margin-top:3px;"></i>
+        <div>
+          {% if closed_reason == 'full' %}{{ t('Sorry, the tournament is full.', 'ببورە، پاڵەوانێتییەکە پڕ بووە.', 'عذراً، البطولة مكتملة.') }}
+          {% elif closed_reason == 'deadline' %}{{ t('The registration deadline has passed.', 'دوا وادەی تۆمارکردن تەواو بووە.', 'انتهى موعد التسجيل.') }}
+          {% elif closed_reason == 'finished' %}{{ t('This tournament has already taken place.', 'ئەم پاڵەوانێتییە کۆتایی هاتووە.', 'هذه البطولة انتهت.') }}
+          {% else %}{{ t('Registration is closed.', 'تۆمارکردن داخراوە.', 'التسجيل مغلق.') }}{% endif %}
+          {{ t('For questions, contact Z Padel.', 'بۆ پرسیار پەیوەندی بە Z Padel بکە.', 'للاستفسار تواصل مع Z Padel.') }}
+        </div>
+      </div>
+      {% else %}
+      <form method="POST" action="{{ url_for('tournaments.public_detail', tournament_id=tour.id) }}#register" autocomplete="on">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+        <div class="tr-grid">
+          {% if tour.category_list %}
+          <div class="tr-field">
+            <label class="cb-label" for="category">{{ t('Category', 'پۆل', 'الفئة') }} *</label>
+            <select name="category" id="category" class="cb-select" required>
+              <option value="">{{ t('Choose category', 'پۆل هەڵبژێرە', 'اختر الفئة') }}</option>
+              {% for c in tour.category_list %}<option value="{{ c }}" {{ 'selected' if form.get('category') == c }}>{{ c }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          <div class="tr-field">
+            <label class="cb-label" for="level">{{ t('Team level', 'ئاستی تیم', 'مستوى الفريق') }} *</label>
+            <select name="level" id="level" class="cb-select" required>
+              <option value="">{{ t('Select level', 'ئاست هەڵبژێرە', 'اختر المستوى') }}</option>
+              {% for lv in levels %}<option value="{{ lv }}" {{ 'selected' if form.get('level') == lv }}>{{ level_names[lv] }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="tr-field {{ '' if tour.category_list else 'full' }}">
+            <label class="cb-label" for="team_name">{{ t('Team name', 'ناوی تیم', 'اسم الفريق') }} <span style="font-weight:400;opacity:.6;text-transform:none;">({{ t('optional', 'ئارەزوومەندانە', 'اختياري') }})</span></label>
+            <input type="text" name="team_name" id="team_name" class="cb-input" maxlength="100" value="{{ form.get('team_name', '') }}">
+          </div>
+
+          {% for n in (1, 2) %}
+          <div class="tr-player"><i class="fas fa-user" style="color:var(--ac);"></i> {{ t('Player', 'یاریزان', 'اللاعب') }} {{ n }}</div>
+          <div class="tr-field">
+            <label class="cb-label" for="p{{ n }}n">{{ t('Full name', 'ناوی تەواو', 'الاسم الكامل') }} *</label>
+            <input type="text" name="player{{ n }}_name" id="p{{ n }}n" class="cb-input" maxlength="100" required value="{{ form.get('player%d_name' % n, '') }}">
+          </div>
+          <div class="tr-field">
+            <label class="cb-label" for="p{{ n }}p">{{ t('Phone number', 'ژمارەی مۆبایل', 'رقم الهاتف') }} *</label>
+            <input type="tel" name="player{{ n }}_phone" id="p{{ n }}p" class="cb-input" placeholder="07xx xxx xxxx" required value="{{ form.get('player%d_phone' % n, '') }}" dir="ltr">
+          </div>
+          {% endfor %}
+
+          <div class="tr-field full">
+            <label class="cb-label" for="notes">{{ t('Note', 'تێبینی', 'ملاحظة') }} <span style="font-weight:400;opacity:.6;text-transform:none;">({{ t('optional', 'ئارەزوومەندانە', 'اختياري') }})</span></label>
+            <textarea name="notes" id="notes" class="cb-textarea" rows="2" maxlength="500">{{ form.get('notes', '') }}</textarea>
+          </div>
+        </div>
+
+        <p style="font-size:.8rem;color:var(--tm);margin:1rem 0;">
+          <i class="fas fa-circle-info"></i>
+          {{ t('Phone numbers are only seen by Z Padel staff. The team list below shows names only.',
+               'ژمارەی مۆبایل تەنها لەلایەن ستافی Z Padel دەبینرێت. لیستی تیمەکان تەنها ناو پیشان دەدات.',
+               'أرقام الهاتف يراها فريق Z Padel فقط. قائمة الفرق أدناه تعرض الأسماء فقط.') }}
+          {% if tour.entry_fee %}{{ t('The entry fee is paid at Z Padel.', 'کرێی بەشداری لە Z Padel دەدرێت.', 'تُدفع رسوم الاشتراك في Z Padel.') }}{% endif %}
+        </p>
+        <button type="submit" class="tr-btn main" style="width:100%;justify-content:center;padding:.9rem;">
+          <i class="fas fa-paper-plane"></i> {{ t('Register team', 'تیم تۆمار بکە', 'تسجيل الفريق') }}
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Registered teams -->
+  {% if tour.show_teams %}
+  <div class="tr-card" id="teams">
+    <div class="tr-body">
+      <h2 class="tr-section-title"><i class="fas fa-users" style="color:var(--ac);"></i>
+        {{ t('Registered teams', 'تیمە تۆمارکراوەکان', 'الفرق المسجّلة') }} ({{ tour.active_registrations|length }})</h2>
+      {% set groups = tour.category_list if tour.category_list else [''] %}
+      {% for cat in groups %}
+        {% set rows = tour.active_registrations | selectattr('category', 'equalto', cat) | list %}
+        {% if tour.category_list %}<h3 style="font-size:.95rem;font-weight:900;margin:1.25rem 0 .5rem;color:var(--bdk);">{{ cat }} <span style="color:var(--tm);font-weight:600;">({{ rows|length }})</span></h3>{% endif %}
+        {% if rows %}
+        <div class="tr-scroll">
+          <table class="tr-table">
+            <thead><tr>
+              <th>#</th>
+              <th>{{ t('Team', 'تیم', 'الفريق') }}</th>
+              <th>{{ t('Level', 'ئاست', 'المستوى') }}</th>
+              <th>{{ t('Registered', 'تۆمارکراوە لە', 'تاريخ التسجيل') }}</th>
+              <th>{{ t('Status', 'دۆخ', 'الحالة') }}</th>
+            </tr></thead>
+            <tbody>
+              {% for r in rows %}
+              <tr {% if my_reg and r.id == my_reg.id %}style="background:#fffbeb;"{% endif %}>
+                <td style="color:var(--tm);font-weight:700;">{{ loop.index }}</td>
+                <td>
+                  <div style="font-weight:800;">{{ r.player1_name }} &amp; {{ r.player2_name }}</div>
+                  {% if r.team_name %}<div style="font-size:.8rem;color:var(--tm);">{{ r.team_name }}</div>{% endif %}
+                </td>
+                <td>{{ level_names.get(r.level, r.level) }}</td>
+                <td style="white-space:nowrap;">{{ r.created_at | local_dt }}</td>
+                <td>{% if r.status == 'confirmed' %}<span class="tr-badge confirmed"><i class="fas fa-check"></i> {{ t('Confirmed', 'پشتڕاستکراوە', 'مؤكد') }}</span>{% else %}<span class="tr-badge pending">{{ t('Pending', 'چاوەڕوان', 'قيد المراجعة') }}</span>{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p style="color:var(--tm);font-size:.88rem;">{{ t('No teams yet — be the first!', 'هێشتا هیچ تیمێک نییە — یەکەم بە!', 'لا توجد فرق بعد — كن الأول!') }}</p>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  (function () {
+    var link = location.origin + location.pathname;
+    var text = {{ (tour.name ~ ' — Z Padel') | tojson }} + '\n' + link;
+    document.getElementById('waShare').href = 'https://wa.me/?text=' + encodeURIComponent(text);
+    var btn = document.getElementById('copyLink');
+    btn.addEventListener('click', function () {
+      var done = function () { btn.querySelector('span').textContent = {{ t('Copied!', 'کۆپی کرا!', 'تم النسخ!') | tojson }}; };
+      if (navigator.clipboard) { navigator.clipboard.writeText(link).then(done, function () { prompt('', link); }); }
+      else { prompt('', link); }
+    });
+  })();
+  window.addEventListener('scroll', function () {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+  });
+  function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open'); }
+  function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
+</script>
+</body>
+</html>

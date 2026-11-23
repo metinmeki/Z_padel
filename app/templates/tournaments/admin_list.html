@@ -1,0 +1,83 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }}{% endblock %}
+{% block page_title %}{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-header-title">{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }}</div>
+    <div class="page-header-sub">{{ t('Create tournaments, share the link, and manage team registrations',
+                                      'پاڵەوانێتی دروست بکە، لینکەکەی هاوبەش بکە و تۆمارکردنەکان بەڕێوە ببە',
+                                      'أنشئ البطولات وشارك الرابط وأدر تسجيلات الفرق') }}</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ url_for('tournaments.public_list') }}" target="_blank" class="btn-z-outline"><i class="fas fa-up-right-from-square"></i> {{ t('Public page', 'پەڕەی گشتی', 'الصفحة العامة') }}</a>
+    <button class="btn-z-primary" onclick="document.getElementById('tourModal').style.display='flex'">
+      <i class="fas fa-plus"></i> {{ t('New tournament', 'پاڵەوانێتی نوێ', 'بطولة جديدة') }}
+    </button>
+  </div>
+</div>
+
+{% if tournaments %}
+<div class="card-z" style="padding:0;overflow:hidden;">
+  <div style="overflow-x:auto;">
+    <table class="table-z">
+      <thead><tr>
+        <th>{{ t('Tournament', 'پاڵەوانێتی', 'البطولة') }}</th>
+        <th>{{ t('Date', 'بەروار', 'التاريخ') }}</th>
+        <th>{{ t('Teams', 'تیمەکان', 'الفرق') }}</th>
+        <th>{{ t('Status', 'دۆخ', 'الحالة') }}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+      {% for tr in tournaments %}
+        {% set reason = tr.registration_closed_reason(today) %}
+        <tr>
+          <td><a href="{{ url_for('tournaments.admin_detail', tournament_id=tr.id) }}" style="font-weight:800;color:var(--brand-blue-dark);text-decoration:none;">{{ tr.name }}</a>
+            {% if tr.category_list %}<div style="font-size:.75rem;color:var(--text-muted);">{{ tr.categories }}</div>{% endif %}</td>
+          <td style="white-space:nowrap;">{{ tr.start_date.strftime('%Y-%m-%d') }}</td>
+          <td><strong>{{ tr.active_registrations|length }}</strong>{% if tr.max_teams %} / {{ tr.max_teams }}{% endif %}</td>
+          <td>
+            {% if tr.status == 'hidden' %}<span class="badge-z" style="background:#f3f4f6;color:#6b7280;">{{ t('Hidden', 'شاراوە', 'مخفية') }}</span>
+            {% elif reason %}<span class="badge-z" style="background:#fee2e2;color:#991b1b;">{{ t('Registration closed', 'تۆمارکردن داخراوە', 'التسجيل مغلق') }}</span>
+            {% else %}<span class="badge-z" style="background:#d1fae5;color:#065f46;">{{ t('Registration open', 'تۆمارکردن کراوەیە', 'التسجيل مفتوح') }}</span>{% endif %}
+          </td>
+          <td style="text-align:end;"><a href="{{ url_for('tournaments.admin_detail', tournament_id=tr.id) }}" class="btn-z-outline" style="padding:5px 12px;font-size:.8rem;">{{ t('Manage', 'بەڕێوەبردن', 'إدارة') }} <i class="fas fa-chevron-{{ 'right' if lang == 'en' else 'left' }}"></i></a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card-z">
+  <div style="text-align:center;padding:64px 24px;color:var(--text-muted);">
+    <i class="fas fa-trophy" style="font-size:40px;display:block;margin-bottom:14px;opacity:.25;"></i>
+    <div style="font-size:1rem;font-weight:600;margin-bottom:20px;">{{ t('No tournaments yet', 'هێشتا هیچ پاڵەوانێتییەک نییە', 'لا توجد بطولات بعد') }}</div>
+    <button class="btn-z-primary" onclick="document.getElementById('tourModal').style.display='flex'">
+      <i class="fas fa-plus"></i> {{ t('Create the first tournament', 'یەکەم پاڵەوانێتی دروست بکە', 'أنشئ أول بطولة') }}
+    </button>
+  </div>
+</div>
+{% endif %}
+
+<!-- NEW TOURNAMENT MODAL -->
+<div id="tourModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
+  <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);"
+       onclick="document.getElementById('tourModal').style.display='none'"></div>
+  <div style="position:relative;background:white;border-radius:16px;padding:1.6rem;width:min(620px,94vw);max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);margin:0;">
+        <i class="fas fa-trophy me-2" style="color:var(--brand-blue);"></i>{{ t('New tournament', 'پاڵەوانێتی نوێ', 'بطولة جديدة') }}
+      </h3>
+      <button onclick="document.getElementById('tourModal').style.display='none'" style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('tournaments.admin_create') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% set tour = None %}
+      {% include 'tournaments/_admin_form_fields.html' %}
+      <button type="submit" class="btn-z-primary" style="width:100%;margin-top:.5rem;"><i class="fas fa-save"></i> {{ t('Create', 'دروستکردن', 'إنشاء') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

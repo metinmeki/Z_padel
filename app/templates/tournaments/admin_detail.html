@@ -1,0 +1,215 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{{ tour.name }}{% endblock %}
+{% block page_title %}{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }}{% endblock %}
+
+{% block content %}
+{% set level_names = {
+  'beginner':     t('Beginner', 'سەرەتایی', 'مبتدئ'),
+  'intermediate': t('Intermediate', 'ناوەند', 'متوسط'),
+  'advanced':     t('Advanced', 'پێشکەوتوو', 'متقدم'),
+  'professional': t('Professional', 'پرۆفیشناڵ', 'محترف'),
+} %}
+{% set status_names = {
+  'pending':   t('Pending', 'چاوەڕوان', 'قيد المراجعة'),
+  'confirmed': t('Confirmed', 'پشتڕاستکراوە', 'مؤكد'),
+  'cancelled': t('Cancelled', 'هەڵوەشێنراوە', 'ملغى'),
+} %}
+{% set public_url = url_for('tournaments.public_detail', tournament_id=tour.id) %}
+<style>
+  .td-stat { background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:.8rem 1rem; min-width:120px; }
+  .td-stat .v { font-size:1.35rem; font-weight:900; color:var(--brand-blue-dark); }
+  .td-stat .k { font-size:.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+  .td-sel { border:1.5px solid var(--border-color); border-radius:8px; padding:3px 6px; font-size:.8rem; font-weight:700; background:#fff; }
+  .td-sel.pending { color:#b45309; } .td-sel.confirmed { color:#15803d; } .td-sel.cancelled { color:#991b1b; }
+  .print-only { display:none; }
+  @media print {
+    .sidebar, .sidebar-overlay, .topbar, .no-print, .alert-z { display:none !important; }
+    .main-wrapper { margin:0 !important; padding:0 !important; }
+    .print-only { display:block; }
+    .table-z td, .table-z th { padding:6px 8px !important; font-size:11px !important; }
+    .card-z { box-shadow:none !important; border:none !important; }
+  }
+</style>
+
+<div class="page-header no-print">
+  <div>
+    <div style="font-size:.8rem;"><a href="{{ url_for('tournaments.admin_list') }}" style="color:var(--text-muted);text-decoration:none;"><i class="fas fa-arrow-{{ 'left' if lang == 'en' else 'right' }}"></i> {{ t('All tournaments', 'هەموو پاڵەوانێتییەکان', 'كل البطولات') }}</a></div>
+    <div class="page-header-title">{{ tour.name }}</div>
+    <div class="page-header-sub">
+      {{ tour.start_date.strftime('%Y-%m-%d') }}{% if tour.end_date and tour.end_date != tour.start_date %} → {{ tour.end_date.strftime('%Y-%m-%d') }}{% endif %}{% if tour.start_time %} · {{ tour.start_time.strftime('%H:%M') }}{% endif %}
+      {% if tour.registration_deadline %} · {{ t('register by', 'دوا وادە', 'آخر موعد') }} {{ tour.registration_deadline.strftime('%Y-%m-%d') }}{% endif %}
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ public_url }}" target="_blank" class="btn-z-outline"><i class="fas fa-up-right-from-square"></i> {{ t('Public page', 'پەڕەی گشتی', 'الصفحة العامة') }}</a>
+    <a href="#" id="waShare" target="_blank" rel="noopener" class="btn-z-outline" style="color:#15803d;"><i class="fab fa-whatsapp"></i> {{ t('Share', 'هاوبەش', 'مشاركة') }}</a>
+    <button type="button" id="copyLink" class="btn-z-outline"><i class="fas fa-link"></i> <span>{{ t('Copy link', 'کۆپی لینک', 'نسخ الرابط') }}</span></button>
+    <a href="{{ url_for('tournaments.admin_export', tournament_id=tour.id) }}" class="btn-z-outline"><i class="fas fa-file-excel"></i> Excel</a>
+    <button type="button" class="btn-z-outline" onclick="window.print()"><i class="fas fa-print"></i> {{ t('Print', 'چاپ', 'طباعة') }}</button>
+    <button type="button" class="btn-z-primary" onclick="document.getElementById('teamModal').style.display='flex'"><i class="fas fa-user-plus"></i> {{ t('Add team', 'زیادکردنی تیم', 'إضافة فريق') }}</button>
+  </div>
+</div>
+
+<div class="print-only" style="margin-bottom:12px;">
+  <h2 style="margin:0;font-weight:900;">{{ tour.name }} — Z Padel</h2>
+  <div>{{ tour.start_date.strftime('%Y-%m-%d') }}{% if tour.category_list %} · {{ tour.categories }}{% endif %}</div>
+</div>
+
+<!-- Stats -->
+{% set active = tour.active_registrations %}
+<div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+  <div class="td-stat"><div class="v">{{ active|length }}{% if tour.max_teams %}<span style="font-size:.9rem;color:var(--text-muted);"> / {{ tour.max_teams }}</span>{% endif %}</div><div class="k">{{ t('Teams', 'تیمەکان', 'الفرق') }}</div></div>
+  <div class="td-stat"><div class="v">{{ active | selectattr('status', 'equalto', 'confirmed') | list | length }}</div><div class="k">{{ t('Confirmed', 'پشتڕاستکراوە', 'مؤكد') }}</div></div>
+  <div class="td-stat"><div class="v">{{ active | selectattr('status', 'equalto', 'pending') | list | length }}</div><div class="k">{{ t('Pending', 'چاوەڕوان', 'قيد المراجعة') }}</div></div>
+  <div class="td-stat"><div class="v">{{ active | selectattr('paid') | list | length }}</div><div class="k">{{ t('Paid', 'پارەدراو', 'مدفوع') }}</div></div>
+  {% for c, n in counts.items() %}
+  <div class="td-stat"><div class="v">{{ n }}</div><div class="k">{{ c }}</div></div>
+  {% endfor %}
+</div>
+
+<!-- Filters -->
+<form method="GET" class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+  <select name="status" class="form-control-z" style="width:auto;" onchange="this.form.submit()">
+    <option value="active" {{ 'selected' if status_filter == 'active' }}>{{ t('All except cancelled', 'هەموو جگە لە هەڵوەشێنراو', 'الكل عدا الملغاة') }}</option>
+    {% for s in reg_statuses %}<option value="{{ s }}" {{ 'selected' if status_filter == s }}>{{ status_names[s] }}</option>{% endfor %}
+    <option value="all" {{ 'selected' if status_filter == 'all' }}>{{ t('Everything', 'هەموو', 'الكل') }}</option>
+  </select>
+  {% if tour.category_list %}
+  <select name="category" class="form-control-z" style="width:auto;" onchange="this.form.submit()">
+    <option value="">{{ t('All categories', 'هەموو پۆلەکان', 'كل الفئات') }}</option>
+    {% for c in tour.category_list %}<option value="{{ c }}" {{ 'selected' if category_filter == c }}>{{ c }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <span style="color:var(--text-muted);font-size:.85rem;">{{ regs|length }} {{ t('shown', 'پیشاندراو', 'معروض') }}</span>
+</form>
+
+<!-- Registrations -->
+<div class="card-z" style="padding:0;overflow:hidden;margin-bottom:24px;">
+  {% if regs %}
+  <div style="overflow-x:auto;">
+    <table class="table-z">
+      <thead><tr>
+        <th>#</th>
+        <th>{{ t('Registered', 'تۆمارکراوە', 'تاريخ التسجيل') }}</th>
+        {% if tour.category_list %}<th>{{ t('Category', 'پۆل', 'الفئة') }}</th>{% endif %}
+        <th>{{ t('Player 1', 'یاریزانی ١', 'اللاعب 1') }}</th>
+        <th>{{ t('Player 2', 'یاریزانی ٢', 'اللاعب 2') }}</th>
+        <th>{{ t('Level', 'ئاست', 'المستوى') }}</th>
+        <th>{{ t('Status', 'دۆخ', 'الحالة') }}</th>
+        <th>{{ t('Paid', 'پارەدراو', 'مدفوع') }}</th>
+        <th class="no-print"></th>
+      </tr></thead>
+      <tbody>
+      {% for r in regs %}
+        <tr {% if r.status == 'cancelled' %}style="opacity:.55;"{% endif %}>
+          <td style="font-weight:700;color:var(--text-muted);">{{ loop.index }}</td>
+          <td style="white-space:nowrap;font-size:.82rem;">{{ r.created_at | local_dt }}
+            {% if r.added_by %}<div style="font-size:.7rem;color:var(--text-muted);">{{ t('by', 'لەلایەن', 'بواسطة') }} {{ r.added_by }}</div>{% endif %}</td>
+          {% if tour.category_list %}<td>{{ r.category }}</td>{% endif %}
+          <td><div style="font-weight:700;">{{ r.player1_name }}</div><a href="tel:{{ r.player1_phone }}" dir="ltr" style="font-size:.8rem;color:var(--text-muted);">{{ r.player1_phone }}</a></td>
+          <td><div style="font-weight:700;">{{ r.player2_name }}</div><a href="tel:{{ r.player2_phone }}" dir="ltr" style="font-size:.8rem;color:var(--text-muted);">{{ r.player2_phone }}</a>
+            {% if r.team_name %}<div style="font-size:.75rem;color:var(--brand-blue);">{{ r.team_name }}</div>{% endif %}
+            {% if r.notes %}<div style="font-size:.75rem;color:#92400e;" title="{{ r.notes }}"><i class="fas fa-note-sticky"></i> {{ r.notes|truncate(40) }}</div>{% endif %}</td>
+          <td style="font-size:.82rem;">{{ level_names.get(r.level, r.level) }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('tournaments.admin_update_registration', reg_id=r.id) }}" class="no-print" style="margin:0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <select name="status" class="td-sel {{ r.status }}" onchange="this.form.submit()">
+                {% for s in reg_statuses %}<option value="{{ s }}" {{ 'selected' if r.status == s }}>{{ status_names[s] }}</option>{% endfor %}
+              </select>
+            </form>
+            <span class="print-only">{{ status_names[r.status] }}</span>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('tournaments.admin_update_registration', reg_id=r.id) }}" class="no-print" style="margin:0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <input type="hidden" name="paid" value="{{ '0' if r.paid else '1' }}">
+              <button type="submit" class="btn-z-outline" style="padding:3px 10px;font-size:.78rem;{{ 'background:#d1fae5;color:#065f46;border-color:#a7f3d0;' if r.paid }}"
+                      title="{{ t('Click to change', 'کلیک بکە بۆ گۆڕین', 'اضغط للتغيير') }}">
+                {% if r.paid %}<i class="fas fa-check"></i> {{ t('Paid', 'پارەدراو', 'مدفوع') }}{% else %}{{ t('Not paid', 'نەدراو', 'غير مدفوع') }}{% endif %}
+              </button>
+            </form>
+            <span class="print-only">{{ '✓' if r.paid else '' }}</span>
+          </td>
+          <td class="no-print">
+            <form method="POST" action="{{ url_for('tournaments.admin_delete_registration', reg_id=r.id) }}" style="margin:0;"
+                  onsubmit="return confirm({{ (t('Delete this team?', 'ئەم تیمە بسڕیتەوە؟', 'حذف هذا الفريق؟') ~ ' ' ~ r.player1_name ~ ' & ' ~ r.player2_name) | tojson | forceescape }})">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-z-danger" style="padding:4px 9px;font-size:.78rem;"><i class="fas fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:48px 24px;color:var(--text-muted);">
+    <i class="fas fa-users" style="font-size:36px;display:block;margin-bottom:12px;opacity:.25;"></i>
+    {{ t('No registrations yet. Share the link so teams can sign up.', 'هێشتا هیچ تۆمارکردنێک نییە. لینکەکە هاوبەش بکە.', 'لا توجد تسجيلات بعد. شارك الرابط ليسجّل اللاعبون.') }}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Settings -->
+<details class="card-z no-print" style="padding:1.2rem 1.4rem;">
+  <summary style="font-weight:800;cursor:pointer;color:var(--brand-blue-dark);"><i class="fas fa-gear"></i> {{ t('Tournament settings', 'ڕێکخستنەکانی پاڵەوانێتی', 'إعدادات البطولة') }}</summary>
+  <form method="POST" action="{{ url_for('tournaments.admin_edit', tournament_id=tour.id) }}" style="margin-top:1rem;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% include 'tournaments/_admin_form_fields.html' %}
+    <button type="submit" class="btn-z-primary" style="margin-top:1rem;"><i class="fas fa-save"></i> {{ t('Save', 'پاشەکەوت', 'حفظ') }}</button>
+  </form>
+  <form method="POST" action="{{ url_for('tournaments.admin_delete', tournament_id=tour.id) }}" style="margin-top:1.5rem;border-top:1px dashed var(--border-color);padding-top:1rem;"
+        onsubmit="return confirm({{ t('Delete this tournament and ALL its registrations? This cannot be undone.', 'ئەم پاڵەوانێتییە و هەموو تۆمارکردنەکانی بسڕیتەوە؟', 'حذف هذه البطولة وجميع تسجيلاتها؟ لا يمكن التراجع.') | tojson | forceescape }})">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn-z-danger"><i class="fas fa-trash"></i> {{ t('Delete tournament', 'سڕینەوەی پاڵەوانێتی', 'حذف البطولة') }}</button>
+  </form>
+</details>
+
+<!-- ADD TEAM MODAL -->
+<div id="teamModal" class="no-print" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;">
+  <div style="position:absolute;inset:0;background:rgba(10,47,107,0.5);backdrop-filter:blur(4px);" onclick="document.getElementById('teamModal').style.display='none'"></div>
+  <div style="position:relative;background:white;border-radius:16px;padding:1.6rem;width:min(560px,94vw);max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--brand-blue-dark);margin:0;"><i class="fas fa-user-plus me-2" style="color:var(--brand-blue);"></i>{{ t('Add team', 'زیادکردنی تیم', 'إضافة فريق') }}</h3>
+      <button onclick="document.getElementById('teamModal').style.display='none'" style="background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('tournaments.admin_add_team', tournament_id=tour.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+        {% if tour.category_list %}
+        <div class="col-6"><label class="form-label-z">{{ t('Category', 'پۆل', 'الفئة') }} *</label>
+          <select name="category" class="form-control-z" required>{% for c in tour.category_list %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></div>
+        {% endif %}
+        <div class="col-6"><label class="form-label-z">{{ t('Level', 'ئاست', 'المستوى') }} *</label>
+          <select name="level" class="form-control-z" required>{% for lv in levels %}<option value="{{ lv }}">{{ level_names[lv] }}</option>{% endfor %}</select></div>
+        {% for n in (1, 2) %}
+        <div class="col-6"><label class="form-label-z">{{ t('Player', 'یاریزان', 'اللاعب') }} {{ n }} *</label><input type="text" name="player{{ n }}_name" class="form-control-z" required maxlength="100"></div>
+        <div class="col-6"><label class="form-label-z">{{ t('Phone', 'مۆبایل', 'الهاتف') }} {{ n }} *</label><input type="tel" name="player{{ n }}_phone" class="form-control-z" required dir="ltr" placeholder="07xx xxx xxxx"></div>
+        {% endfor %}
+        <div class="col-12"><label class="form-label-z">{{ t('Team name', 'ناوی تیم', 'اسم الفريق') }}</label><input type="text" name="team_name" class="form-control-z" maxlength="100"></div>
+        <div class="col-12"><label class="form-label-z">{{ t('Note', 'تێبینی', 'ملاحظة') }}</label><input type="text" name="notes" class="form-control-z" maxlength="500"></div>
+      </div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-top:.6rem;">{{ t('Teams added here are marked Confirmed.', 'تیمی زیادکراو لێرە پشتڕاستکراوە دەبێت.', 'الفرق المضافة هنا تُسجّل كمؤكدة.') }}</div>
+      <button type="submit" class="btn-z-primary" style="width:100%;margin-top:1rem;"><i class="fas fa-save"></i> {{ t('Add team', 'زیادکردنی تیم', 'إضافة فريق') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  var link = location.origin + {{ url_for('tournaments.public_detail', tournament_id=tour.id) | tojson }};
+  document.getElementById('waShare').href = 'https://wa.me/?text=' + encodeURIComponent({{ (tour.name ~ ' — Z Padel') | tojson }} + '\n' + link);
+  var btn = document.getElementById('copyLink');
+  btn.addEventListener('click', function () {
+    var done = function () { btn.querySelector('span').textContent = {{ t('Copied!', 'کۆپی کرا!', 'تم النسخ!') | tojson }}; };
+    if (navigator.clipboard) { navigator.clipboard.writeText(link).then(done, function () { prompt('', link); }); }
+    else { prompt('', link); }
+  });
+})();
+</script>
+{% endblock %}

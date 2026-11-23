@@ -1,0 +1,55 @@
+{# Shared create/edit fields. `tour` is the tournament being edited, or None when creating. #}
+<div class="row g-3">
+  <div class="col-12">
+    <label class="form-label-z">{{ t('Name', 'ناو', 'الاسم') }} *</label>
+    <input type="text" name="name" class="form-control-z" required maxlength="150" value="{{ tour.name if tour else '' }}"
+           placeholder="{{ t('e.g. Nawroz Padel Cup', 'بۆ نموونە: جامی پادڵی نەورۆز', 'مثلاً: كأس نوروز للبادل') }}">
+  </div>
+  <div class="col-6 col-md-4">
+    <label class="form-label-z">{{ t('Start date', 'بەرواری دەستپێک', 'تاريخ البدء') }} *</label>
+    <input type="date" name="start_date" class="form-control-z" required value="{{ tour.start_date.isoformat() if tour else '' }}">
+  </div>
+  <div class="col-6 col-md-4">
+    <label class="form-label-z">{{ t('End date', 'بەرواری کۆتایی', 'تاريخ الانتهاء') }}</label>
+    <input type="date" name="end_date" class="form-control-z" value="{{ tour.end_date.isoformat() if tour and tour.end_date else '' }}">
+  </div>
+  <div class="col-6 col-md-4">
+    <label class="form-label-z">{{ t('Start time', 'کاتی دەستپێک', 'وقت البدء') }}</label>
+    <input type="time" name="start_time" class="form-control-z" value="{{ tour.start_time.strftime('%H:%M') if tour and tour.start_time else '' }}">
+  </div>
+  <div class="col-6 col-md-4">
+    <label class="form-label-z">{{ t('Register by', 'دوا وادەی تۆمارکردن', 'آخر موعد للتسجيل') }}</label>
+    <input type="date" name="registration_deadline" class="form-control-z" value="{{ tour.registration_deadline.isoformat() if tour and tour.registration_deadline else '' }}">
+  </div>
+  <div class="col-6 col-md-4">
+    <label class="form-label-z">{{ t('Entry fee per team (IQD)', 'کرێ بۆ هەر تیمێک (د.ع)', 'الرسوم للفريق (د.ع)') }}</label>
+    <input type="number" name="entry_fee" class="form-control-z" min="0" step="any" value="{{ (tour.entry_fee|round|int) if tour else 0 }}">
+  </div>
+  <div class="col-6 col-md-4">
+    <label class="form-label-z">{{ t('Max teams (0 = no limit)', 'زۆرترین تیم (0 = بێ سنوور)', 'أقصى عدد فرق (0 = بلا حد)') }}</label>
+    <input type="number" name="max_teams" class="form-control-z" min="0" step="1" value="{{ tour.max_teams if tour else 0 }}">
+  </div>
+  <div class="col-12">
+    <label class="form-label-z">{{ t('Categories (comma separated)', 'پۆلەکان (بە فاریزە جیا بکەرەوە)', 'الفئات (مفصولة بفاصلة)') }}</label>
+    <input type="text" name="categories" class="form-control-z" value="{{ tour.categories if tour else '' }}"
+           placeholder="{{ t('e.g. Men A, Men B, Women, Mixed — leave empty for one open category', 'بۆ نموونە: پیاوان A، پیاوان B، ئافرەتان، تێکەڵ', 'مثلاً: رجال A، رجال B، سيدات، مختلط — اتركه فارغاً لفئة واحدة') }}">
+  </div>
+  <div class="col-12">
+    <label class="form-label-z">{{ t('Description / rules', 'وەسف / یاساکان', 'الوصف / القوانين') }}</label>
+    <textarea name="description" class="form-control-z" rows="4" placeholder="{{ t('Format, prizes, rules, what to bring…', 'شێواز، خەڵات، یاساکان…', 'نظام البطولة، الجوائز، القوانين…') }}">{{ tour.description if tour and tour.description else '' }}</textarea>
+  </div>
+  <div class="col-6">
+    <label class="form-label-z">{{ t('Registration', 'تۆمارکردن', 'التسجيل') }}</label>
+    <select name="status" class="form-control-z">
+      <option value="open"   {{ 'selected' if not tour or tour.status == 'open' }}>{{ t('Open', 'کراوە', 'مفتوح') }}</option>
+      <option value="closed" {{ 'selected' if tour and tour.status == 'closed' }}>{{ t('Closed (page stays visible)', 'داخراو (پەڕەکە دیار دەبێت)', 'مغلق (الصفحة تبقى ظاهرة)') }}</option>
+      <option value="hidden" {{ 'selected' if tour and tour.status == 'hidden' }}>{{ t('Hidden (not public)', 'شاراوە', 'مخفية (غير عامة)') }}</option>
+    </select>
+  </div>
+  <div class="col-6" style="display:flex;align-items:flex-end;">
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600;font-size:.88rem;cursor:pointer;">
+      <input type="checkbox" name="show_teams" value="1" {{ 'checked' if not tour or tour.show_teams }}>
+      {{ t('Show registered teams publicly', 'تیمە تۆمارکراوەکان بە گشتی پیشان بدە', 'عرض الفرق المسجّلة للعامة') }}
+    </label>
+  </div>
+</div>

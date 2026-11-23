@@ -659,3 +659,80 @@ class ActivityLog(db.Model):
     ip_address = db.Column(db.String(50),  default='')
 
     user = db.relationship('Admin', backref=db.backref('activity_logs', lazy='dynamic'), foreign_keys=[user_id])
+
+
+# ═══════════════════════════════════════════
+# TOURNAMENTS (public registration, teams of 2)
+# ═══════════════════════════════════════════
+class Tournament(db.Model):
+    __tablename__ = 'tournaments'
+
+    id                    = db.Column(db.Integer, primary_key=True)
+    name                  = db.Column(db.String(150), nullable=False)
+    description           = db.Column(db.Text, nullable=True)
+    start_date            = db.Column(db.Date, nullable=False)
+    end_date              = db.Column(db.Date, nullable=True)
+    start_time            = db.Column(db.Time, nullable=True)
+    categories            = db.Column(db.Text, default='')       # comma-separated, e.g. "Men A, Men B, Mixed"
+    entry_fee             = db.Column(db.Float, default=0)        # per team, IQD
+    max_teams             = db.Column(db.Integer, default=0)      # 0 = unlimited
+    registration_deadline = db.Column(db.Date, nullable=True)     # last day to register (inclusive)
+    status                = db.Column(db.String(20), default='open')  # open / closed / hidden
+    show_teams            = db.Column(db.Boolean, default=True)   # show registered teams on the public page
+    created_at            = db.Column(db.DateTime, default=datetime.utcnow)
+
+    registrations = db.relationship('TournamentRegistration', backref='tournament', lazy=True,
+                                    cascade='all, delete-orphan',
+                                    order_by='TournamentRegistration.created_at')
+
+    @property
+    def category_list(self):
+        return [c.strip() for c in (self.categories or '').split(',') if c.strip()]
+
+    @property
+    def active_registrations(self):
+        return [r for r in self.registrations if r.status != 'cancelled']
+
+    @property
+    def spots_left(self):
+        if not self.max_teams:
+            return None
+        return max(0, self.max_teams - len(self.active_registrations))
+
+    def registration_closed_reason(self, today=None):
+        """None if people can register now, otherwise a short reason code."""
+        today = today or date.today()
+        if self.status != 'open':
+            return 'closed'
+        if self.registration_deadline and today > self.registration_deadline:
+            return 'deadline'
+        if today > (self.end_date or self.start_date):
+            return 'finished'
+        if self.spots_left == 0:
+            return 'full'
+        return None
+
+    def __repr__(self):
+        return f'<Tournament {self.name}>'
+
+
+class TournamentRegistration(db.Model):
+    __tablename__ = 'tournament_registrations'
+
+    id            = db.Column(db.Integer, primary_key=True)
+    tournament_id = db.Column(db.Integer, db.ForeignKey('tournaments.id'), nullable=False, index=True)
+    category      = db.Column(db.String(80), default='')
+    team_name     = db.Column(db.String(100), nullable=True)
+    player1_name  = db.Column(db.String(100), nullable=False)
+    player1_phone = db.Column(db.String(20), nullable=False)
+    player2_name  = db.Column(db.String(100), nullable=False)
+    player2_phone = db.Column(db.String(20), nullable=False)
+    level         = db.Column(db.String(30), default='')
+    notes         = db.Column(db.Text, nullable=True)
+    status        = db.Column(db.String(20), default='pending')   # pending / confirmed / cancelled
+    paid          = db.Column(db.Boolean, default=False)
+    added_by      = db.Column(db.String(80), nullable=True)       # admin username if added manually
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<TournamentRegistration {self.player1_name} & {self.player2_name}>'

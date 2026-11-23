@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'ltr' if lang == 'en' else 'rtl' }}">
+<head>
+  {% include 'tournaments/_public_head.html' %}
+  <title>{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }} — Z Padel</title>
+</head>
+<body>
+{% include 'tournaments/_public_nav.html' %}
+
+<div class="tr-wrap">
+  <h1 class="tr-section-title" style="font-size:1.6rem;margin-bottom:.4rem;">
+    <i class="fas fa-trophy" style="color:var(--ac);"></i>
+    {{ t('Padel Tournaments', 'پاڵەوانێتییەکانی پادڵ', 'بطولات البادل') }}
+  </h1>
+  <p style="color:var(--tm);margin-bottom:1.75rem;">
+    {{ t('Register your team of two and see who else is playing.',
+         'تیمە دوو کەسییەکەت تۆمار بکە و ببینە کێی تر یاری دەکات.',
+         'سجّل فريقك المكوّن من لاعبين وشاهد الفرق المشاركة.') }}
+  </p>
+
+  {% macro card(tr, faded=False) %}
+  {% set reason = tr.registration_closed_reason(today) %}
+  <a href="{{ url_for('tournaments.public_detail', tournament_id=tr.id) }}" class="tr-card"
+     style="display:block;text-decoration:none;{{ 'opacity:.7;' if faded }}">
+    <div class="tr-body" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(214,195,161,.25);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--bdk);flex-shrink:0;">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-weight:900;font-size:1.1rem;color:var(--td);">{{ tr.name }}</div>
+        <div style="color:var(--tm);font-size:.88rem;margin-top:.15rem;">
+          <i class="fas fa-calendar"></i> {{ tr.start_date.strftime('%Y-%m-%d') }}{% if tr.end_date and tr.end_date != tr.start_date %} → {{ tr.end_date.strftime('%Y-%m-%d') }}{% endif %}
+          &nbsp;·&nbsp; <i class="fas fa-users"></i> {{ tr.active_registrations|length }}{% if tr.max_teams %}/{{ tr.max_teams }}{% endif %} {{ t('teams', 'تیم', 'فريق') }}
+        </div>
+      </div>
+      {% if not faded %}
+        {% if reason %}
+        <span class="tr-badge closed">{{ t('Registration closed', 'تۆمارکردن داخراوە', 'التسجيل مغلق') }}</span>
+        {% else %}
+        <span class="tr-badge open"><i class="fas fa-circle" style="font-size:.5rem;"></i> {{ t('Registration open', 'تۆمارکردن کراوەیە', 'التسجيل مفتوح') }}</span>
+        {% endif %}
+      {% endif %}
+    </div>
+  </a>
+  {% endmacro %}
+
+  {% if upcoming %}
+    {% for tr in upcoming %}{{ card(tr) }}{% endfor %}
+  {% else %}
+    <div class="tr-card"><div class="tr-body" style="text-align:center;color:var(--tm);padding:3rem 1rem;">
+      <i class="fas fa-trophy" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:.75rem;"></i>
+      {{ t('No upcoming tournaments right now. Check back soon!',
+           'لە ئێستادا هیچ پاڵەوانێتییەکی داهاتوو نییە. دواتر سەردان بکەرەوە!',
+           'لا توجد بطولات قادمة حالياً. تابعنا قريباً!') }}
+    </div></div>
+  {% endif %}
+
+  {% if past %}
+  <h2 class="tr-section-title" style="margin-top:2.25rem;">{{ t('Past tournaments', 'پاڵەوانێتییە ڕابردووەکان', 'البطولات السابقة') }}</h2>
+  {% for tr in past %}{{ card(tr, True) }}{% endfor %}
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  window.addEventListener('scroll', function () {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+  });
+  function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open'); }
+  function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
+</script>
+</body>
+</html>

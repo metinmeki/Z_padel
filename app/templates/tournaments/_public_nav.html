@@ -1,0 +1,40 @@
+<nav class="navbar-z" id="navbar">
+  <div class="nav-inner">
+    <a href="{{ url_for('main.index') }}" class="nav-brand">
+      <div class="nav-brand-icon">
+        <img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel"/>
+      </div>
+      <span class="nav-brand-name">Z Padel</span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('main.index') }}#courts" class="nav-link-item">{{ t('Courts', 'یاریگاکان', 'الملاعب') }}</a>
+      <a href="{{ url_for('tournaments.public_list') }}" class="nav-link-item">{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }}</a>
+      <a href="{{ url_for('main.index') }}#store" class="nav-link-item">{{ t('Store', 'فرۆشگا', 'المتجر') }}</a>
+    </div>
+    <div class="nav-actions">
+      <a href="{{ url_for('booking.index') }}" class="nav-cta">
+        <i class="fas fa-calendar-plus"></i>
+        <span>{{ t('Book Court', 'یاریگا بگرە', 'احجز ملعب') }}</span>
+      </a>
+      <div class="dropdown">
+        <button class="lang-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border:none;cursor:pointer;">
+          <i class="fas fa-globe"></i>
+          <span>{% if lang == 'en' %}EN{% elif lang == 'ku' %}کو{% else %}عر{% endif %}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item {% if lang=='en' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='en') }}">🇬🇧 English</a></li>
+          <li><a class="dropdown-item {% if lang=='ar' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ar') }}">🇮🇶 العربية</a></li>
+          <li><a class="dropdown-item {% if lang=='ku' %}fw-bold{% endif %}" href="{{ url_for('main.set_lang', lang='ku') }}">🏔️ کوردی</a></li>
+        </ul>
+      </div>
+      <button class="nav-toggle" id="navToggle" onclick="openMobileMenu()"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
+  <a href="{{ url_for('main.index') }}#courts" onclick="closeMobileMenu()">{{ t('Courts', 'یاریگاکان', 'الملاعب') }}</a>
+  <a href="{{ url_for('tournaments.public_list') }}" onclick="closeMobileMenu()">{{ t('Tournaments', 'پاڵەوانێتییەکان', 'البطولات') }}</a>
+  <a href="{{ url_for('booking.index') }}" onclick="closeMobileMenu()">{{ t('Book Court', 'یاریگا بگرە', 'احجز ملعب') }}</a>
+</div>
