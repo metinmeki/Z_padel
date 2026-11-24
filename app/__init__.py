@@ -95,7 +95,7 @@ def create_app(config_name: str = None):
     from app.routes.pos     import pos_bp
     from app.routes.tabs    import tabs_bp
     from app.routes.tournaments import tournaments_bp
-    from app.routes.menu    import menu_bp, is_menu_host, public_menu, MAIN_URL
+    from app.routes.menu    import menu_bp, is_menu_host, public_menu, MAIN_URL, MENU_HOST_ENDPOINTS
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -114,7 +114,7 @@ def create_app(config_name: str = None):
             return None
         if flask_request.path == '/':
             return public_menu()
-        if flask_request.path.startswith('/static/') or flask_request.endpoint in ('main.set_lang', 'menu.public_menu'):
+        if flask_request.path.startswith('/static/') or flask_request.endpoint in MENU_HOST_ENDPOINTS:
             return None
         qs = flask_request.query_string.decode()
         return redirect(MAIN_URL + flask_request.path + (f'?{qs}' if qs else ''))

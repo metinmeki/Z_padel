@@ -266,6 +266,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('menu.barista_orders') }}" style="position:relative;">
+            <i class="fas fa-bell"></i>{% if lang == 'en' %}Orders{% elif lang == 'ku' %}داواکارییەکان{% else %}الطلبات{% endif %}
+            <span id="navOrdersBadge" style="display:none;background:#dc2626;color:#fff;font-size:.68rem;font-weight:800;padding:0 5px;border-radius:20px;min-width:17px;text-align:center;line-height:17px;"></span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('pos.courts') }}">
             <i class="fas fa-table-tennis"></i>{% if lang == 'en' %}Courts{% elif lang == 'ku' %}زەوییەکان{% else %}الملاعب{% endif %}
           </a>
@@ -358,5 +364,45 @@
   });
 </script>
 {% block extra_js %}{% endblock %}
+<script>
+  // ── Menu orders: live badge + sound on every POS page ──
+  (function () {
+    var badge = document.getElementById('navOrdersBadge'), ctx = null, baseTitle = document.title;
+    function unlock() { try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {} }
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true });
+    window.moBeep = function () {
+      unlock();
+      if (!ctx) return;
+      [0, 0.22].forEach(function (at) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = at ? 1175 : 880;
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + at);
+        g.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + at + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.2);
+        o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + at); o.stop(ctx.currentTime + at + 0.22);
+      });
+    };
+    var seen = 0;
+    try { seen = +localStorage.getItem('moSeenLatest') || 0; } catch (e) {}
+    function check() {
+      fetch({{ url_for('menu.barista_orders_count') | tojson }}, { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) return;
+          badge.textContent = d.pending; badge.style.display = d.pending ? 'inline-block' : 'none';
+          document.title = (d.pending ? '(' + d.pending + ') ' : '') + baseTitle;
+          if (d.latest > seen) {
+            if (seen) window.moBeep();
+            seen = d.latest; try { localStorage.setItem('moSeenLatest', seen); } catch (e) {}
+          }
+          var page = window.MO_PAGE, typing = document.activeElement && document.activeElement.tagName === 'INPUT';
+          if (page && !typing && (d.pending !== page.pending || d.collect !== page.collect)) location.reload();
+        })
+        .catch(function () {});
+    }
+    check(); setInterval(check, 5000);
+  })();
+</script>
 </body>
 </html>

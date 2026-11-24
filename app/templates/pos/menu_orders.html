@@ -1,0 +1,160 @@
+{% extends 'pos/base_pos.html' %}
+{% block title %}{{ t('Menu Orders', 'داواکارییەکانی مینیو', 'طلبات المنيو') }} — Z Padel POS{% endblock %}
+
+{% block extra_css %}
+<style>
+  .mo-title { font-weight:800; font-size:1.15rem; color:var(--text-primary); display:flex; align-items:center; gap:.5rem; margin-bottom:.8rem; }
+  .mo-count { background:var(--primary); color:#fff; border-radius:20px; font-size:.75rem; padding:1px 9px; }
+  .mo-card { background:var(--bg-surface); border:1.5px solid var(--border); border-radius:14px; padding:1rem 1.1rem; margin-bottom:.8rem; }
+  .mo-card.new { border-color:var(--primary); box-shadow:0 4px 18px var(--primary-glow); animation:moGlow 1.6s ease 2; }
+  /* decoration only: the card is fully visible even if the browser never runs the animation */
+  @keyframes moGlow { 50% { box-shadow:0 0 0 6px var(--primary-glow), 0 4px 18px var(--primary-glow); } }
+  .mo-head { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-bottom:.6rem; }
+  .mo-place { font-weight:900; font-size:1.05rem; padding:.3rem .8rem; border-radius:10px; display:inline-flex; align-items:center; gap:.4rem; }
+  .mo-place.court   { background:#e0f2fe; color:#0369a1; }
+  .mo-place.table   { background:#fef3c7; color:#92400e; }
+  .mo-place.counter { background:#ede9fe; color:#5b21b6; }
+  .mo-meta { color:var(--text-muted); font-size:.8rem; }
+  .mo-items { margin:.2rem 0 .6rem; padding:0; list-style:none; }
+  .mo-items li { display:flex; justify-content:space-between; gap:.6rem; padding:.25rem 0; border-bottom:1px dashed var(--border); font-size:.92rem; }
+  .mo-items li b { color:var(--primary-dark); }
+  .mo-total { font-weight:900; font-size:1.05rem; }
+  .mo-note { background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:8px; padding:.4rem .6rem; font-size:.85rem; margin-bottom:.6rem; }
+  .mo-bill { font-size:.82rem; font-weight:700; margin-bottom:.6rem; }
+  .mo-bill.on  { color:var(--success); }
+  .mo-bill.off { color:#b45309; }
+  .mo-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .mo-actions form { margin:0; }
+  .mo-actions .btn { font-weight:800; }
+  .mo-reject { display:flex; gap:.4rem; flex:1; min-width:220px; }
+  .mo-reject input { flex:1; min-width:0; border:1.5px solid var(--border); border-radius:8px; padding:.35rem .6rem; font-size:.85rem; }
+  .mo-empty { text-align:center; color:var(--text-muted); padding:2.5rem 1rem; border:1.5px dashed var(--border); border-radius:14px; }
+  .mo-empty i { font-size:2.2rem; opacity:.25; display:block; margin-bottom:.5rem; }
+  .mo-recent { font-size:.85rem; }
+  .mo-recent td { padding:.45rem .5rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .mo-st { font-size:.72rem; font-weight:800; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+  .mo-st.accepted, .mo-st.paid { background:var(--success-bg); color:var(--success); }
+  .mo-st.rejected, .mo-st.cancelled { background:var(--danger-bg); color:var(--danger); }
+  .mo-sound { font-size:.8rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set place_icon = {'court': 'fa-table-tennis', 'table': 'fa-mug-hot', 'counter': 'fa-person'} %}
+{% macro place_badge(o) %}
+  <span class="mo-place {{ o.place_type }}"><i class="fas {{ place_icon.get(o.place_type, 'fa-location-dot') }}"></i>
+    {% if o.place_type == 'counter' %}{{ t('Counter', 'کاونتەر', 'الكاونتر') }}{% else %}{{ o.place_label }}{% endif %}</span>
+{% endmacro %}
+{% macro items_list(o) %}
+  <ul class="mo-items">
+    {% for i in o.items %}<li><span><b>{{ i.quantity }}×</b> {{ i.product_name }}</span><span>{{ '{:,.0f}'.format(i.subtotal) }}</span></li>{% endfor %}
+  </ul>
+{% endmacro %}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="mo-meta"><i class="fas fa-circle" style="color:var(--success);font-size:.55rem;"></i>
+    {{ t('Live — new orders appear automatically with a sound.', 'ڕاستەوخۆ — داواکاری نوێ بە دەنگ دەردەکەوێت.', 'مباشر — تظهر الطلبات الجديدة تلقائياً مع صوت.') }}</div>
+  <button type="button" class="btn btn-outline-secondary btn-sm mo-sound" id="soundBtn"><i class="fas fa-volume-high"></i> {{ t('Test sound', 'تاقیکردنەوەی دەنگ', 'تجربة الصوت') }}</button>
+</div>
+
+<div class="row g-4">
+  <!-- NEW ORDERS -->
+  <div class="col-lg-7">
+    <div class="mo-title"><i class="fas fa-bell" style="color:var(--primary);"></i> {{ t('New orders', 'داواکاری نوێ', 'طلبات جديدة') }} <span class="mo-count">{{ pending|length }}</span></div>
+    {% for o in pending %}
+    {% set sess = sessions.get(o.id) %}
+    <div class="mo-card new">
+      <div class="mo-head">
+        {{ place_badge(o) }}
+        {% if o.customer_name %}<span style="font-weight:800;"><i class="fas fa-user"></i> {{ o.customer_name }}</span>{% endif %}
+        <span class="mo-meta ms-auto">#{{ o.id }} · {{ o.created_at | local_dt }}</span>
+      </div>
+      {{ items_list(o) }}
+      {% if o.note %}<div class="mo-note"><i class="fas fa-note-sticky"></i> {{ o.note }}</div>{% endif %}
+      {% if o.place_type != 'counter' %}
+        {% if sess %}<div class="mo-bill on"><i class="fas fa-link"></i> {{ t('Will be added to the running bill of', 'زیاد دەکرێت بۆ پسوولەی', 'سيُضاف إلى الفاتورة الجارية لـ') }} {{ o.place_label }}</div>
+        {% else %}<div class="mo-bill off"><i class="fas fa-triangle-exclamation"></i> {{ t('No running session on', 'هیچ دانیشتنێکی چالاک نییە لە', 'لا توجد جلسة جارية على') }} {{ o.place_label }} — {{ t('customer pays at the counter', 'کڕیار لە کاونتەر پارە دەدات', 'يدفع الزبون عند الكاونتر') }}</div>{% endif %}
+      {% endif %}
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="mo-total">{{ '{:,.0f}'.format(o.total) }} IQD</span>
+        <div class="mo-actions">
+          <form method="POST" action="{{ url_for('menu.barista_accept', order_id=o.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-success"><i class="fas fa-check"></i> {{ t('Accept', 'وەرگرتن', 'قبول') }}</button>
+          </form>
+          <form method="POST" action="{{ url_for('menu.barista_reject', order_id=o.id) }}" class="mo-reject">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="reason" maxlength="200" placeholder="{{ t('Reason (optional)', 'هۆکار (ئارەزوومەندانە)', 'السبب (اختياري)') }}">
+            <button class="btn btn-outline-danger"><i class="fas fa-xmark"></i> {{ t('Reject', 'ڕەتکردنەوە', 'رفض') }}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="mo-empty"><i class="fas fa-mug-hot"></i>{{ t('No new orders.', 'هیچ داواکارییەکی نوێ نییە.', 'لا توجد طلبات جديدة.') }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- TO COLLECT -->
+  <div class="col-lg-5">
+    <div class="mo-title"><i class="fas fa-cash-register" style="color:#b45309;"></i> {{ t('To collect (pay at counter)', 'بۆ وەرگرتن (پارەدان لە کاونتەر)', 'للتحصيل (الدفع عند الكاونتر)') }} <span class="mo-count" style="background:#b45309;">{{ collect|length }}</span></div>
+    {% for o in collect %}
+    <div class="mo-card">
+      <div class="mo-head">
+        {{ place_badge(o) }}
+        {% if o.customer_name %}<span style="font-weight:800;"><i class="fas fa-user"></i> {{ o.customer_name }}</span>{% endif %}
+        <span class="mo-meta ms-auto">#{{ o.id }}</span>
+      </div>
+      {{ items_list(o) }}
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="mo-total">{{ '{:,.0f}'.format(o.total) }} IQD</span>
+        <div class="mo-actions">
+          {% for m, icon, label in (('cash', 'fa-money-bill-wave', t('Cash', 'نەقد', 'نقدي')), ('card', 'fa-credit-card', t('Card', 'کارت', 'بطاقة'))) %}
+          <form method="POST" action="{{ url_for('menu.barista_paid', order_id=o.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="method" value="{{ m }}">
+            <button class="btn btn-primary"><i class="fas {{ icon }}"></i> {{ label }}</button>
+          </form>
+          {% endfor %}
+          <form method="POST" action="{{ url_for('menu.barista_cancel', order_id=o.id) }}"
+                onsubmit="return confirm({{ t('Cancel this order? The items go back to stock.', 'ئەم داواکارییە هەڵبوەشێنیتەوە؟', 'إلغاء هذا الطلب؟ تعود المنتجات إلى المخزون.') | tojson | forceescape }})">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-secondary" title="{{ t('Not collected', 'وەرنەگیرا', 'لم يُستلم') }}"><i class="fas fa-ban"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="mo-empty"><i class="fas fa-cash-register"></i>{{ t('Nothing to collect.', 'هیچ شتێک بۆ وەرگرتن نییە.', 'لا شيء للتحصيل.') }}</div>
+    {% endfor %}
+
+    {% if recent %}
+    <div class="mo-title mt-4" style="font-size:.95rem;"><i class="fas fa-clock-rotate-left"></i> {{ t('Today', 'ئەمڕۆ', 'اليوم') }}</div>
+    <table class="w-100 mo-recent">
+      {% for o in recent %}
+      <tr>
+        <td>#{{ o.id }}</td>
+        <td>{% if o.place_type == 'counter' %}{{ o.customer_name or t('Counter', 'کاونتەر', 'الكاونتر') }}{% else %}{{ o.place_label }}{% endif %}</td>
+        <td>{{ '{:,.0f}'.format(o.total) }}</td>
+        <td>
+          {% if o.status == 'accepted' %}<span class="mo-st accepted">{{ t('On bill', 'لەسەر پسوولە', 'على الفاتورة') }}</span>
+          {% elif o.status == 'paid' %}<a href="{{ url_for('pos.receipt', order_id=o.order_id) }}" class="mo-st paid" style="text-decoration:none;">{{ t('Paid', 'پارەدراو', 'مدفوع') }} <i class="fas fa-receipt"></i></a>
+          {% elif o.status == 'rejected' %}<span class="mo-st rejected" title="{{ o.reject_reason or '' }}">{{ t('Rejected', 'ڕەتکرایەوە', 'مرفوض') }}</span>
+          {% else %}<span class="mo-st cancelled">{{ t('Cancelled', 'هەڵوەشێنرا', 'ملغى') }}</span>{% endif %}
+        </td>
+        <td class="mo-meta">{{ o.handled_by or '' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // This page reloads itself when a new order arrives (the nav badge script below checks every few seconds)
+  window.MO_PAGE = { pending: {{ pending|length }}, collect: {{ collect|length }} };
+  document.getElementById('soundBtn').addEventListener('click', function () { window.moBeep && window.moBeep(); });
+</script>
+{% endblock %}

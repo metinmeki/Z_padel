@@ -86,8 +86,31 @@
         <button type="button" class="btn-z-outline" id="qrDownload" style="font-size:.8rem;"><i class="fas fa-download"></i> {{ t('Download', 'داگرتن', 'تنزيل') }}</button>
         <button type="button" class="btn-z-outline" id="qrPrint" style="font-size:.8rem;"><i class="fas fa-print"></i> {{ t('Print', 'چاپ', 'طباعة') }}</button>
       </div>
-      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.7rem;">{{ t('Put it on the tables so customers can open the menu with their phone camera.', 'لەسەر مێزەکان دایبنێ.', 'ضعه على الطاولات ليفتح الزبائن المنيو بكاميرا الهاتف.') }}</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.7rem;">{{ t('General menu QR: customers choose where they are when they order.', 'QR ی گشتی: کڕیار شوێنەکەی هەڵدەبژێرێت.', 'رمز عام: يختار الزبون مكانه عند الطلب.') }}</div>
     </div>
+  </div>
+</div>
+
+<!-- One QR per court / table: orders from it are tagged with that place -->
+<div class="card-z" style="padding:1.2rem 1.4rem;margin-top:20px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:.4rem;">
+    <div style="font-weight:800;color:var(--brand-blue-dark);"><i class="fas fa-qrcode"></i> {{ t('QR codes for courts & tables', 'QR بۆ یاریگا و مێزەکان', 'رموز QR للملاعب والطاولات') }}</div>
+    <button type="button" class="btn-z-primary" id="qrPrintAll"><i class="fas fa-print"></i> {{ t('Print all', 'چاپکردنی هەموو', 'طباعة الكل') }}</button>
+  </div>
+  <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:1rem;">
+    {{ t('Put each code on its court or table. Orders from it go straight to the barista marked with that place, and are added to that court/table bill when it has a running session.',
+         'هەر کۆدێک لەسەر یاریگا یان مێزەکەی دابنێ. داواکارییەکان بە ناوی ئەو شوێنە دەچن بۆ باریستا.',
+         'ضع كل رمز على ملعبه أو طاولته. تصل الطلبات منه إلى الباريستا مع اسم المكان، وتُضاف إلى فاتورة الملعب/الطاولة إذا كانت هناك جلسة جارية.') }}
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+    {% for code, label, kind in places %}
+    <div style="border:1px solid var(--border-color);border-radius:12px;padding:10px;text-align:center;background:#fff;">
+      <div class="place-qr" data-url="{{ menu_url }}/?at={{ code }}" data-label="{{ label }}" style="display:inline-block;"></div>
+      <div style="font-weight:800;margin-top:6px;font-size:.88rem;">{{ '🎾' if kind == 'court' else ('🎱' if kind == 'snooker' else '☕') }} {{ label }}</div>
+    </div>
+    {% else %}
+    <div style="color:var(--text-muted);">{{ t('No active courts or tables.', 'هیچ یاریگا یان مێزێکی چالاک نییە.', 'لا توجد ملاعب أو طاولات نشطة.') }}</div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}
@@ -106,6 +129,25 @@
   document.getElementById('qrDownload').addEventListener('click', function () {
     var a = document.createElement('a'); a.href = qrDataUrl(); a.download = 'z-padel-menu-qr.png'; a.click();
   });
+  // QR per court / table
+  document.querySelectorAll('.place-qr').forEach(function (el) {
+    if (window.QRCode) new QRCode(el, { text: el.dataset.url, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
+  });
+  function imgOf(el) { var c = el.querySelector('canvas'), i = el.querySelector('img'); return c ? c.toDataURL('image/png') : (i ? i.src : ''); }
+  document.getElementById('qrPrintAll').addEventListener('click', function () {
+    var w = window.open('', '_blank');
+    if (!w) return;
+    var cards = Array.prototype.map.call(document.querySelectorAll('.place-qr'), function (el) {
+      var label = el.dataset.label.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+      return '<div class="c"><div class="b">Z Padel</div><img src="' + imgOf(el) + '"><div class="l">' + label + '</div><div class="s">Scan to order · امسح للطلب · سکان بکە بۆ داواکردن</div></div>';
+    }).join('');
+    w.document.write('<html><head><title>Z Padel QR codes</title><style>body{font-family:sans-serif;margin:20px}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}' +
+      '.c{border:2px dashed #999;border-radius:14px;padding:16px;text-align:center;page-break-inside:avoid}.b{font-weight:900;font-size:20px}' +
+      '.c img{width:180px;height:180px;margin:10px 0}.l{font-size:22px;font-weight:900}.s{font-size:11px;color:#555;margin-top:6px}</style></head><body><div class="g">' + cards +
+      '</div><script>window.onload=function(){window.print();}<\/script></body></html>');
+    w.document.close();
+  });
+
   document.getElementById('qrPrint').addEventListener('click', function () {
     var w = window.open('', '_blank');
     if (!w) return;

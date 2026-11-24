@@ -82,6 +82,48 @@ class OrderItem(db.Model):
         return f'<OrderItem order#{self.order_id} product#{self.product_id}>'
 
 
+# ═══════════════════════════════════════════
+# MENU ORDERS  (sent by customers from menu.z-padel.com, handled by the barista)
+# ═══════════════════════════════════════════
+class MenuOrder(db.Model):
+    __tablename__ = 'menu_orders'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    code           = db.Column(db.String(24), unique=True, nullable=False, index=True)   # secret, for the customer's status page
+    place_type     = db.Column(db.String(10), nullable=False)       # court / table / counter
+    place_id       = db.Column(db.Integer, nullable=True)            # Court.id or ActivityTable.id
+    place_label    = db.Column(db.String(80), default='')            # e.g. "Court 1", kept as it was when ordered
+    customer_name  = db.Column(db.String(80), nullable=True)
+    note           = db.Column(db.String(300), nullable=True)
+    total          = db.Column(db.Float, default=0)
+    # pending -> accepted -> (paid)   or   pending -> rejected   or   accepted -> cancelled (counter, never paid)
+    status         = db.Column(db.String(12), default='pending', index=True)
+    billed_to      = db.Column(db.String(20), nullable=True)         # court_session / activity_session / counter
+    session_id     = db.Column(db.Integer, nullable=True)            # the court/activity session the items went on
+    order_id       = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)   # POS sale once a counter order is paid
+    reject_reason  = db.Column(db.String(200), nullable=True)
+    handled_by     = db.Column(db.String(80), nullable=True)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    decided_at     = db.Column(db.DateTime, nullable=True)
+
+    items = db.relationship('MenuOrderItem', backref='menu_order', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<MenuOrder #{self.id} {self.place_label} {self.status}>'
+
+
+class MenuOrderItem(db.Model):
+    __tablename__ = 'menu_order_items'
+
+    id            = db.Column(db.Integer, primary_key=True)
+    menu_order_id = db.Column(db.Integer, db.ForeignKey('menu_orders.id'), nullable=False)
+    product_id    = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_name  = db.Column(db.String(120), nullable=False)
+    price         = db.Column(db.Float, default=0)
+    quantity      = db.Column(db.Integer, default=1)
+    subtotal      = db.Column(db.Float, default=0)
+
+
 class ExpenseCategory(db.Model):
     __tablename__ = 'expense_categories'
 

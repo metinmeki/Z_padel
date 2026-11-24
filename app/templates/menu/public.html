@@ -7,6 +7,7 @@
   <title>{{ t('Menu', 'مینیو', 'المنيو') }} — Z Padel</title>
   <meta name="description" content="Z Padel café menu — Duhok"/>
   <meta property="og:title" content="Z Padel — {{ t('Menu', 'مینیو', 'المنيو') }}"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}"/>
   <script>
     // Show the splash once per visit (not on every language switch), and never when motion is reduced
     (function () {
@@ -117,6 +118,63 @@
               box-shadow: 0 6px 18px rgba(0,0,0,.2); font-size: 1rem; cursor: pointer; opacity: 0; transform: translateY(20px) scale(.8); pointer-events: none; transition: all .35s cubic-bezier(.34,1.56,.64,1); z-index: 6; }
     .mn-top.show { opacity: 1; transform: none; pointer-events: auto; }
 
+    /* ── Ordering ── */
+    .mn-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .mn-add { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--bd); color: #fff; font-size: .95rem; cursor: pointer;
+              display: flex; align-items: center; justify-content: center; position: relative; transition: transform .2s, background .2s; -webkit-tap-highlight-color: transparent; }
+    .mn-add:active { transform: scale(.85); }
+    .mn-add .mn-q { position: absolute; top: -6px; {{ 'right' if lang == 'en' else 'left' }}: -6px; background: var(--ac); color: var(--bd); font-size: .68rem; font-weight: 900;
+                    min-width: 18px; height: 18px; border-radius: 9px; display: none; align-items: center; justify-content: center; padding: 0 4px; }
+    .mn-add.has .mn-q { display: flex; }
+    .mn-add.pop { animation: pop .35s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { 50% { transform: scale(1.25); } }
+    .mn-place { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px auto 0; width: max-content; max-width: 90%; position: relative;
+                background: rgba(214,195,161,.2); color: #fff; border: 1px solid rgba(214,195,161,.45); border-radius: 999px; padding: 4px 12px; font-size: .8rem; font-weight: 800; }
+    .mn-cartbar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 7; max-width: 696px; margin: 0 auto; display: flex; align-items: center; gap: 10px;
+                  background: var(--bd); color: #fff; border: none; border-radius: 16px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); cursor: pointer; font: inherit;
+                  transform: translateY(140%); transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
+    .mn-cartbar.show { transform: none; }
+    .mn-cartbar .cnt { background: var(--ac); color: var(--bd); font-weight: 900; border-radius: 10px; padding: 2px 9px; font-size: .85rem; }
+    .mn-cartbar .lbl { flex: 1; font-weight: 800; text-align: start; }
+    .mn-cartbar .sum { font-weight: 900; }
+    body.has-cart .mn-top { bottom: 84px; }
+    body.has-cart .mn-foot { padding-bottom: 96px; }
+    .mn-status-pill { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); z-index: 8; background: #fff; color: var(--td); border: 1px solid var(--br); border-radius: 999px;
+                      padding: 7px 14px; font-size: .8rem; font-weight: 800; box-shadow: 0 6px 18px rgba(0,0,0,.12); cursor: pointer; display: none; white-space: nowrap; }
+    .mn-status-pill.show { display: block; animation: fadeUp .4s ease; }
+    .mn-sheet-bg { position: fixed; inset: 0; background: rgba(20,28,33,.55); z-index: 20; opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .mn-sheet-bg.show { opacity: 1; pointer-events: auto; }
+    .mn-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: #fff; border-radius: 22px 22px 0 0; max-height: 88vh; overflow-y: auto;
+                max-width: 720px; margin: 0 auto; padding: 8px 18px calc(18px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .4s cubic-bezier(.22,1,.36,1); }
+    .mn-sheet.show { transform: none; }
+    .mn-grab { width: 44px; height: 5px; border-radius: 3px; background: #d1d5db; margin: 4px auto 12px; }
+    .mn-sheet h3 { font-weight: 900; font-size: 1.15rem; color: var(--td); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+    .mn-line { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f0f0f0; }
+    .mn-line .n { flex: 1; font-weight: 700; color: var(--td); font-size: .92rem; }
+    .mn-line .p { font-weight: 800; color: var(--bdk); white-space: nowrap; font-size: .88rem; min-width: 70px; text-align: end; }
+    .mn-step { display: flex; align-items: center; gap: 8px; }
+    .mn-step button { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--br); background: #fff; color: var(--td); font-weight: 900; cursor: pointer; }
+    .mn-step span { min-width: 16px; text-align: center; font-weight: 900; }
+    .mn-total { display: flex; justify-content: space-between; font-weight: 900; font-size: 1.05rem; padding: 12px 0 4px; color: var(--td); }
+    .mn-lbl { display: block; font-size: .75rem; font-weight: 800; color: var(--tm); text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 5px; }
+    .mn-field { width: 100%; padding: 11px 12px; border: 1.5px solid var(--br); border-radius: 12px; font: inherit; font-size: .95rem; color: var(--td); background: #fff; box-sizing: border-box; }
+    .mn-field:focus { outline: none; border-color: var(--ac2); }
+    .mn-placebox { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(214,195,161,.15); border: 1.5px solid rgba(214,195,161,.5);
+                   border-radius: 12px; padding: 10px 12px; font-weight: 800; color: var(--td); }
+    .mn-placebox button { background: none; border: none; color: var(--bdk); font-weight: 800; text-decoration: underline; cursor: pointer; font: inherit; font-size: .8rem; }
+    .mn-send { width: 100%; margin-top: 16px; padding: 14px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--ac), var(--bdk)); color: #fff;
+               font: inherit; font-weight: 900; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .mn-send:disabled { opacity: .6; }
+    .mn-err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 10px; padding: 9px 12px; font-size: .85rem; margin-top: 12px; display: none; }
+    .mn-st { text-align: center; padding: 10px 0 6px; }
+    .mn-st-icon { width: 86px; height: 86px; border-radius: 50%; margin: 6px auto 14px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; }
+    .mn-st-icon.pending { background: #fef3c7; color: #b45309; } .mn-st-icon.pending i { animation: spinSlow 2.4s linear infinite; }
+    .mn-st-icon.accepted, .mn-st-icon.paid { background: #dcfce7; color: #15803d; animation: pop .5s; }
+    .mn-st-icon.rejected, .mn-st-icon.cancelled { background: #fee2e2; color: #b91c1c; }
+    @keyframes spinSlow { to { transform: rotate(360deg); } }
+    .mn-st h4 { font-weight: 900; color: var(--td); margin: 0 0 6px; font-size: 1.2rem; }
+    .mn-st p { color: var(--tm); margin: 0 0 4px; font-size: .9rem; }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
       .mn-reveal, .mn-img { opacity: 1 !important; }
@@ -143,6 +201,7 @@
     <span class="mn-reveal"><img src="{{ url_for('static', filename='images/logo/Zpadel.jpeg') }}" alt="Z Padel" class="mn-logo"></span>
     <div class="mn-title mn-reveal" style="animation-delay:.1s">Z Padel</div>
     <div class="mn-sub mn-reveal" style="animation-delay:.2s">{{ t('Café menu', 'مینیوی کافێ', 'قائمة الكافيه') }}</div>
+    {% if place_label %}<div class="mn-place mn-reveal" style="animation-delay:.3s"><i class="fas fa-location-dot"></i> {{ place_label }}</div>{% endif %}
   </header>
 
   {% if sections %}
@@ -169,7 +228,13 @@
           {% if pdesc %}<div class="mn-desc">{{ pdesc }}</div>{% endif %}
           {% if sold_out %}<span class="mn-out-badge">{{ t('Sold out', 'نەماوە', 'نفدت الكمية') }}</span>{% endif %}
         </div>
-        <div class="mn-price">{{ '{:,.0f}'.format(p.price) }} <small>{{ 'IQD' if lang == 'en' else 'د.ع' }}</small></div>
+        <div class="mn-side">
+          <div class="mn-price">{{ '{:,.0f}'.format(p.price) }} <small>{{ 'IQD' if lang == 'en' else 'د.ع' }}</small></div>
+          {% if not sold_out %}
+          <button type="button" class="mn-add" data-id="{{ p.id }}" data-name="{{ pname }}" data-price="{{ p.price|round|int }}" data-stock="{{ p.stock }}"
+                  aria-label="{{ t('Add', 'زیادکردن', 'إضافة') }} {{ pname }}"><i class="fas fa-plus"></i><span class="mn-q"></span></button>
+          {% endif %}
+        </div>
       </div>
       {% endfor %}
     </section>
@@ -185,6 +250,54 @@
   <div class="mn-foot">
     {{ t('Prices in Iraqi dinar.', 'نرخەکان بە دیناری عێراقین.', 'الأسعار بالدينار العراقي.') }}
     <a href="{{ (main_url ~ '/home') if main_url else url_for('main.index') }}">{{ t('Book a court at z-padel.com', 'یاریگا بگرە لە z-padel.com', 'احجز ملعباً على z-padel.com') }}</a>
+  </div>
+
+  {% if sections %}
+  <button type="button" class="mn-cartbar" id="mnCartBar">
+    <span class="cnt" id="mnCartCount">0</span>
+    <span class="lbl">{{ t('View your order', 'داواکارییەکەت ببینە', 'عرض طلبك') }}</span>
+    <span class="sum" id="mnCartSum"></span>
+  </button>
+  {% endif %}
+  <div class="mn-status-pill" id="mnPill"></div>
+
+  <div class="mn-sheet-bg" id="mnSheetBg"></div>
+  <div class="mn-sheet" id="mnCart" role="dialog" aria-modal="true">
+    <div class="mn-grab"></div>
+    <h3><i class="fas fa-bag-shopping" style="color:var(--ac2);"></i> {{ t('Your order', 'داواکارییەکەت', 'طلبك') }}</h3>
+    <div id="mnLines"></div>
+    <div class="mn-total"><span>{{ t('Total', 'کۆی گشتی', 'المجموع') }}</span><span id="mnTotal"></span></div>
+
+    <label class="mn-lbl">{{ t('Where are you?', 'لە کوێی؟', 'أين أنت؟') }}</label>
+    <div class="mn-placebox" id="mnPlaceFixed" style="display:none;"><span><i class="fas fa-location-dot"></i> <span id="mnPlaceFixedLbl"></span></span>
+      <button type="button" id="mnPlaceChange">{{ t('Change', 'گۆڕین', 'تغيير') }}</button></div>
+    <select class="mn-field" id="mnPlace">
+      <option value="">{{ t('Choose…', 'هەڵبژێرە…', 'اختر…') }}</option>
+      {% for code, label, kind in places if kind == 'court' %}{% if loop.first %}<optgroup label="{{ t('Courts', 'یاریگاکان', 'الملاعب') }}">{% endif %}
+        <option value="{{ code }}">🎾 {{ label }}</option>{% if loop.last %}</optgroup>{% endif %}{% endfor %}
+      {% for code, label, kind in places if kind != 'court' %}{% if loop.first %}<optgroup label="{{ t('Tables', 'مێزەکان', 'الطاولات') }}">{% endif %}
+        <option value="{{ code }}">{{ '🎱' if kind == 'snooker' else '☕' }} {{ label }}</option>{% if loop.last %}</optgroup>{% endif %}{% endfor %}
+      <option value="counter">🧍 {{ t('Pick up at the counter', 'وەرگرتن لە کاونتەر', 'الاستلام من الكاونتر') }}</option>
+    </select>
+
+    <label class="mn-lbl" for="mnName">{{ t('Your name', 'ناوت', 'اسمك') }} <span id="mnNameReq">*</span></label>
+    <input class="mn-field" id="mnName" maxlength="80" autocomplete="name">
+    <label class="mn-lbl" for="mnNote">{{ t('Note (optional)', 'تێبینی (ئارەزوومەندانە)', 'ملاحظة (اختياري)') }}</label>
+    <input class="mn-field" id="mnNote" maxlength="300" placeholder="{{ t('e.g. no sugar', 'بۆ نموونە: بێ شەکر', 'مثلاً: بدون سكر') }}">
+    <div class="mn-err" id="mnErr"></div>
+    <button type="button" class="mn-send" id="mnSend"><i class="fas fa-paper-plane"></i> {{ t('Send order', 'ناردنی داواکاری', 'إرسال الطلب') }}</button>
+    <div style="text-align:center;font-size:.75rem;color:var(--tm);margin-top:10px;">{{ t('The barista will confirm your order.', 'باریستا داواکارییەکەت پشتڕاست دەکاتەوە.', 'سيؤكد الباريستا طلبك.') }}</div>
+  </div>
+
+  <div class="mn-sheet" id="mnStatus" role="dialog" aria-modal="true">
+    <div class="mn-grab"></div>
+    <div class="mn-st">
+      <div class="mn-st-icon pending" id="mnStIcon"><i class="fas fa-hourglass-half"></i></div>
+      <h4 id="mnStTitle"></h4>
+      <p id="mnStText"></p>
+      <p id="mnStItems" style="font-size:.82rem;"></p>
+    </div>
+    <button type="button" class="mn-send" id="mnStClose" style="background:var(--bd);">{{ t('OK', 'باشە', 'حسناً') }}</button>
   </div>
 
   <button type="button" class="mn-top" id="mnTop" aria-label="{{ t('Back to top', 'گەڕانەوە بۆ سەرەوە', 'العودة للأعلى') }}"><i class="fas fa-arrow-up"></i></button>
@@ -266,6 +379,189 @@
       top.classList.toggle('show', y > 500);
     }, { passive: true });
     top.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' }); });
+  })();
+
+  // ── Ordering ──
+  (function () {
+    var bar = document.getElementById('mnCartBar');
+    if (!bar) return;
+    var T = {{ {
+      'items':    t('items', 'دانە', 'عناصر'),
+      'iqd':      'IQD' if lang == 'en' else 'د.ع',
+      'pickPlace': t('Please choose where you are.', 'تکایە شوێنەکەت هەڵبژێرە.', 'يرجى اختيار مكانك.'),
+      'needName': t('Please write your name so we can call you.', 'تکایە ناوت بنووسە.', 'يرجى كتابة اسمك لنناديك.'),
+      'empty':    t('Your order is empty.', 'داواکارییەکەت بەتاڵە.', 'طلبك فارغ.'),
+      'tooMany':  t('You already have orders waiting. Please wait for the barista.', 'داواکاریت چاوەڕوانە. تکایە چاوەڕێ بکە.', 'لديك طلبات قيد الانتظار. يرجى انتظار الباريستا.'),
+      'unavail':  t('Sorry, not available now:', 'ببورە، ئێستا بەردەست نییە:', 'عذراً، غير متوفر حالياً:'),
+      'netErr':   t('Could not send. Check your internet and try again.', 'نەنێردرا. دووبارە هەوڵ بدەرەوە.', 'تعذر الإرسال. تحقق من الإنترنت وحاول مجدداً.'),
+      'pending':  t('Waiting for the barista…', 'چاوەڕێی باریستا…', 'بانتظار الباريستا…'),
+      'pendingT': t('Your order was sent', 'داواکارییەکەت نێردرا', 'تم إرسال طلبك'),
+      'accepted': t('Accepted! Being prepared ☕', 'وەرگیرا! ئامادە دەکرێت ☕', 'تم القبول! يتم التحضير ☕'),
+      'onBill':   t('Added to the bill of', 'زیادکرا بۆ پسوولەی', 'أضيف إلى فاتورة'),
+      'atCounter': t('Please pay at the counter.', 'تکایە لە کاونتەر پارە بدە.', 'يرجى الدفع عند الكاونتر.'),
+      'paid':     t('Paid — enjoy!', 'پارە درا — نۆشی گیان!', 'تم الدفع — بالعافية!'),
+      'rejected': t('Sorry, we can\'t make this order', 'ببورە، ناتوانین ئەم داواکارییە ئامادە بکەین', 'عذراً، لا يمكننا تجهيز هذا الطلب'),
+      'cancelled': t('This order was cancelled', 'ئەم داواکارییە هەڵوەشێنرایەوە', 'تم إلغاء هذا الطلب'),
+      'pill':     t('Your order', 'داواکارییەکەت', 'طلبك'),
+      'counter':  t('Counter', 'کاونتەر', 'الكاونتر'),
+    } | tojson }};
+    var FIXED = {{ (place_code or '') | tojson }}, FIXED_LABEL = {{ (place_label or '') | tojson }};
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+    var fmt = function (n) { return Math.round(n).toLocaleString('en-US') + ' ' + T.iqd; };
+    var store = {
+      get: function (k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } },
+      set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    };
+
+    // products on this page, by id
+    var P = {};
+    document.querySelectorAll('.mn-add').forEach(function (b) {
+      P[b.dataset.id] = { name: b.dataset.name, price: +b.dataset.price, stock: +b.dataset.stock, btn: b };
+    });
+    var cart = store.get('mnCart', {});
+    Object.keys(cart).forEach(function (id) { if (!P[id]) delete cart[id]; });   // items no longer on the menu
+
+    function save() { store.set('mnCart', cart); render(); }
+    function render() {
+      var n = 0, sum = 0;
+      Object.keys(P).forEach(function (id) {
+        var q = cart[id] || 0, btn = P[id].btn;
+        btn.classList.toggle('has', q > 0);
+        btn.querySelector('.mn-q').textContent = q || '';
+      });
+      var lines = document.getElementById('mnLines'); lines.innerHTML = '';
+      Object.keys(cart).forEach(function (id) {
+        var q = cart[id], p = P[id]; n += q; sum += q * p.price;
+        var row = document.createElement('div'); row.className = 'mn-line';
+        row.innerHTML = '<div class="n"></div><div class="mn-step"><button type="button" data-d="-1">−</button><span></span><button type="button" data-d="1">+</button></div><div class="p"></div>';
+        row.querySelector('.n').textContent = p.name;
+        row.querySelector('.mn-step span').textContent = q;
+        row.querySelector('.p').textContent = fmt(q * p.price);
+        row.querySelectorAll('button').forEach(function (b) {
+          b.addEventListener('click', function () { change(id, +b.dataset.d); });
+        });
+        lines.appendChild(row);
+      });
+      document.getElementById('mnCartCount').textContent = n;
+      document.getElementById('mnCartSum').textContent = fmt(sum);
+      document.getElementById('mnTotal').textContent = fmt(sum);
+      bar.classList.toggle('show', n > 0);
+      document.body.classList.toggle('has-cart', n > 0);
+      if (!n) closeSheet('mnCart');
+    }
+    function change(id, d) {
+      var q = Math.max(0, Math.min((cart[id] || 0) + d, Math.min(20, P[id].stock)));
+      if (q) cart[id] = q; else delete cart[id];
+      save();
+    }
+    document.querySelectorAll('.mn-add').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        change(b.dataset.id, 1);
+        b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+        if (navigator.vibrate) navigator.vibrate(15);
+      });
+    });
+
+    // sheets
+    var bg = document.getElementById('mnSheetBg');
+    function openSheet(id) { document.getElementById(id).classList.add('show'); bg.classList.add('show'); }
+    function closeSheet(id) {
+      document.getElementById(id).classList.remove('show');
+      if (!document.querySelector('.mn-sheet.show')) bg.classList.remove('show');
+    }
+    bg.addEventListener('click', function () { closeSheet('mnCart'); closeSheet('mnStatus'); });
+    bar.addEventListener('click', function () { document.getElementById('mnErr').style.display = 'none'; openSheet('mnCart'); });
+
+    // where the customer is
+    var sel = document.getElementById('mnPlace'), fixedBox = document.getElementById('mnPlaceFixed');
+    var nameIn = document.getElementById('mnName');
+    nameIn.value = store.get('mnName', '');
+    function syncPlace() { document.getElementById('mnNameReq').style.display = sel.value === 'counter' ? '' : 'none'; }
+    if (FIXED) {
+      sel.value = FIXED; sel.style.display = 'none'; fixedBox.style.display = 'flex';
+      document.getElementById('mnPlaceFixedLbl').textContent = FIXED_LABEL;
+      document.getElementById('mnPlaceChange').addEventListener('click', function () { fixedBox.style.display = 'none'; sel.style.display = ''; });
+    }
+    sel.addEventListener('change', syncPlace); syncPlace();
+
+    function showErr(msg) { var e = document.getElementById('mnErr'); e.textContent = msg; e.style.display = 'block'; }
+
+    document.getElementById('mnSend').addEventListener('click', function () {
+      var btn = this, items = Object.keys(cart).map(function (id) { return { id: +id, qty: cart[id] }; });
+      if (!items.length) return showErr(T.empty);
+      if (!sel.value) return showErr(T.pickPlace);
+      if (sel.value === 'counter' && !nameIn.value.trim()) { nameIn.focus(); return showErr(T.needName); }
+      store.set('mnName', nameIn.value.trim());
+      btn.disabled = true;
+      fetch({{ url_for('menu.place_order') | tojson }}, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ place: sel.value, name: nameIn.value.trim(), note: document.getElementById('mnNote').value.trim(), items: items })
+      }).then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .then(function (res) {
+          btn.disabled = false;
+          if (!res.ok) {
+            if (res.error === 'unavailable') return showErr(T.unavail + ' ' + (res.items || []).join(', '));
+            if (res.error === 'too_many') return showErr(T.tooMany);
+            if (res.error === 'name') return showErr(T.needName);
+            if (res.error === 'place') return showErr(T.pickPlace);
+            return showErr(T.netErr);
+          }
+          cart = {}; save();
+          document.getElementById('mnNote').value = '';
+          var mine = store.get('mnOrders', []); mine.push({ code: res.code, at: Date.now() }); store.set('mnOrders', mine.slice(-5));
+          closeSheet('mnCart');
+          track(res.code, true);
+        })
+        .catch(function () { btn.disabled = false; showErr(T.netErr); });
+    });
+
+    // live order status
+    var pill = document.getElementById('mnPill'), watching = null, timer = null, openCode = null;
+    var ICON = { pending: 'fa-hourglass-half', accepted: 'fa-mug-hot', paid: 'fa-circle-check', rejected: 'fa-circle-xmark', cancelled: 'fa-circle-xmark' };
+    function showStatus(code, d) {
+      var icon = document.getElementById('mnStIcon');
+      icon.className = 'mn-st-icon ' + d.status; icon.innerHTML = '<i class="fas ' + (ICON[d.status] || 'fa-mug-hot') + '"></i>';
+      var title = { pending: T.pendingT, accepted: T.accepted, paid: T.paid, rejected: T.rejected, cancelled: T.cancelled }[d.status] || '';
+      var text = d.status === 'pending' ? T.pending
+               : d.status === 'accepted' ? (d.billed_to === 'counter' ? T.atCounter : T.onBill + ' ' + d.place)
+               : d.status === 'rejected' ? (d.reason || '') : '';
+      document.getElementById('mnStTitle').textContent = title;
+      document.getElementById('mnStText').textContent = text;
+      document.getElementById('mnStItems').textContent = d.items.map(function (i) { return i.qty + '× ' + i.name; }).join(' · ') + ' — ' + fmt(d.total);
+      pill.textContent = '☕ ' + T.pill + ': ' + (d.status === 'pending' ? T.pending : title);
+      pill.classList.add('show');
+    }
+    function poll() {
+      if (!watching) return;
+      fetch({{ url_for('menu.order_status', code='CODE') | tojson }}.replace('CODE', watching), { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) { pill.classList.remove('show'); watching = null; return; }
+          var changed = pill.dataset.status && pill.dataset.status !== d.status;
+          pill.dataset.status = d.status;
+          showStatus(watching, d);
+          if (changed) { openSheet('mnStatus'); if (navigator.vibrate) navigator.vibrate([60, 40, 60]); }
+          if (d.status === 'pending') timer = setTimeout(poll, 4000);
+          else setTimeout(function () { pill.classList.remove('show'); }, 60000);
+        })
+        .catch(function () { timer = setTimeout(poll, 8000); });
+    }
+    function track(code, open) {
+      clearTimeout(timer); watching = code; pill.dataset.status = '';
+      if (open) openSheet('mnStatus');
+      poll();
+    }
+    pill.addEventListener('click', function () { openSheet('mnStatus'); });
+    document.getElementById('mnStClose').addEventListener('click', function () { closeSheet('mnStatus'); });
+
+    // keep following the latest order after a reload (orders from the last 3 hours)
+    var recent = store.get('mnOrders', []).filter(function (o) { return Date.now() - o.at < 3 * 3600 * 1000; });
+    store.set('mnOrders', recent);
+    if (recent.length) track(recent[recent.length - 1].code, false);
+
+    render();
   })();
   </script>
 </body>
