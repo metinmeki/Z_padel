@@ -22,6 +22,9 @@ MAIN_URL  = os.environ.get('MAIN_URL', 'https://z-padel.com').rstrip('/')
 # Endpoints that may be used on the menu subdomain (everything else redirects to the main site)
 MENU_HOST_ENDPOINTS = ('main.set_lang', 'menu.public_menu', 'menu.place_order', 'menu.order_status')
 
+# Activity tables customers can order to (besides courts and the counter)
+ORDER_TABLE_ACTIVITIES = ('snooker', 'billiard')
+
 MAX_OPEN_ORDERS = 3      # pending orders one phone can have at once
 MAX_LINES, MAX_QTY = 30, 20
 
@@ -61,16 +64,15 @@ def menu_sections(lang):
 
 # ── Places customers can order to ──
 def all_places(lang='en'):
-    """[(code, label, kind)] — courts first, then activity / café tables."""
+    """[(code, label, kind)] — courts first, then snooker / billiard tables. Everyone else orders to the counter."""
     places = [(f'court-{c.id}', c.name, 'court')
               for c in Court.query.filter_by(is_active=True).order_by(Court.name).all()]
-    for tb in ActivityTable.query.filter_by(is_active=True).order_by(ActivityTable.activity, ActivityTable.name).all():
+    tables = (ActivityTable.query.filter(ActivityTable.is_active == True,  # noqa: E712
+                                         ActivityTable.activity.in_(ORDER_TABLE_ACTIVITIES))
+              .order_by(ActivityTable.activity.desc(), ActivityTable.name).all())
+    for tb in tables:
         meta = ACTIVITY_META.get(tb.activity, {})
-        if tb.activity == 'spectator':
-            label = tb.name
-        else:
-            label = f"{meta.get('en' if lang == 'en' else 'ar', tb.activity)} – {tb.name}"
-        places.append((f'table-{tb.id}', label, 'snooker' if tb.activity != 'spectator' else 'table'))
+        places.append((f'table-{tb.id}', f"{meta.get('en' if lang == 'en' else 'ar', tb.activity)} – {tb.name}", tb.activity))
     return places
 
 

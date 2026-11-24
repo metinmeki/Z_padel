@@ -275,8 +275,8 @@
       <option value="">{{ t('Choose…', 'هەڵبژێرە…', 'اختر…') }}</option>
       {% for code, label, kind in places if kind == 'court' %}{% if loop.first %}<optgroup label="{{ t('Courts', 'یاریگاکان', 'الملاعب') }}">{% endif %}
         <option value="{{ code }}">🎾 {{ label }}</option>{% if loop.last %}</optgroup>{% endif %}{% endfor %}
-      {% for code, label, kind in places if kind != 'court' %}{% if loop.first %}<optgroup label="{{ t('Tables', 'مێزەکان', 'الطاولات') }}">{% endif %}
-        <option value="{{ code }}">{{ '🎱' if kind == 'snooker' else '☕' }} {{ label }}</option>{% if loop.last %}</optgroup>{% endif %}{% endfor %}
+      {% for code, label, kind in places if kind != 'court' %}{% if loop.first %}<optgroup label="{{ t('Snooker & Billiard', 'سنووکەر و بیلیارد', 'سنوكر وبلياردو') }}">{% endif %}
+        <option value="{{ code }}">🎱 {{ label }}</option>{% if loop.last %}</optgroup>{% endif %}{% endfor %}
       <option value="counter">🧍 {{ t('Pick up at the counter', 'وەرگرتن لە کاونتەر', 'الاستلام من الكاونتر') }}</option>
     </select>
 

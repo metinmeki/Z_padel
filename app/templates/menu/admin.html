@@ -94,7 +94,7 @@
 <!-- One QR per court / table: orders from it are tagged with that place -->
 <div class="card-z" style="padding:1.2rem 1.4rem;margin-top:20px;">
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:.4rem;">
-    <div style="font-weight:800;color:var(--brand-blue-dark);"><i class="fas fa-qrcode"></i> {{ t('QR codes for courts & tables', 'QR بۆ یاریگا و مێزەکان', 'رموز QR للملاعب والطاولات') }}</div>
+    <div style="font-weight:800;color:var(--brand-blue-dark);"><i class="fas fa-qrcode"></i> {{ t('QR codes for courts, snooker & billiard', 'QR بۆ یاریگا و سنووکەر و بیلیارد', 'رموز QR للملاعب والسنوكر والبلياردو') }}</div>
     <button type="button" class="btn-z-primary" id="qrPrintAll"><i class="fas fa-print"></i> {{ t('Print all', 'چاپکردنی هەموو', 'طباعة الكل') }}</button>
   </div>
   <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:1rem;">
@@ -106,7 +106,7 @@
     {% for code, label, kind in places %}
     <div style="border:1px solid var(--border-color);border-radius:12px;padding:10px;text-align:center;background:#fff;">
       <div class="place-qr" data-url="{{ menu_url }}/?at={{ code }}" data-label="{{ label }}" style="display:inline-block;"></div>
-      <div style="font-weight:800;margin-top:6px;font-size:.88rem;">{{ '🎾' if kind == 'court' else ('🎱' if kind == 'snooker' else '☕') }} {{ label }}</div>
+      <div style="font-weight:800;margin-top:6px;font-size:.88rem;">{{ '🎾' if kind == 'court' else '🎱' }} {{ label }}</div>
     </div>
     {% else %}
     <div style="color:var(--text-muted);">{{ t('No active courts or tables.', 'هیچ یاریگا یان مێزێکی چالاک نییە.', 'لا توجد ملاعب أو طاولات نشطة.') }}</div>

@@ -40,7 +40,7 @@
 {% endblock %}
 
 {% block content %}
-{% set place_icon = {'court': 'fa-table-tennis', 'table': 'fa-mug-hot', 'counter': 'fa-person'} %}
+{% set place_icon = {'court': 'fa-table-tennis', 'table': 'fa-bullseye', 'counter': 'fa-person'} %}
 {% macro place_badge(o) %}
   <span class="mo-place {{ o.place_type }}"><i class="fas {{ place_icon.get(o.place_type, 'fa-location-dot') }}"></i>
     {% if o.place_type == 'counter' %}{{ t('Counter', 'کاونتەر', 'الكاونتر') }}{% else %}{{ o.place_label }}{% endif %}</span>
