@@ -114,6 +114,17 @@
     .mn-empty i { animation: steam 2.8s ease-in-out infinite; }
     .mn-foot { text-align: center; color: var(--tm); font-size: .8rem; padding: 10px 16px 30px; }
     .mn-foot a { color: var(--bdk); font-weight: 800; text-decoration: none; }
+    .mn-credit { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 26px auto 0; padding-top: 18px; border-top: 1px dashed var(--br); max-width: 320px; }
+    .mn-credit-k { font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--tm); }
+    .mn-credit-logo { display: block; width: 118px; height: 40px; border-radius: 10px; overflow: hidden; background: #000; position: relative;
+                      box-shadow: 0 6px 16px rgba(0,0,0,.18); transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s; }
+    .mn-credit-logo img { position: absolute; left: 50%; top: 50%; width: 236px; height: auto; transform: translate(-50%, -50%); }
+    .mn-credit-logo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.28) 50%, transparent 70%);
+                             transform: translateX(-120%); animation: creditSheen 4.5s ease-in-out 1.5s infinite; }
+    @keyframes creditSheen { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+    .mn-credit a:hover .mn-credit-logo { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 22px rgba(0,0,0,.25); }
+    .mn-credit-url { font-size: .78rem; font-weight: 700; color: var(--tm) !important; direction: ltr; }
+    .mn-credit-url:hover { color: var(--bdk) !important; }
     .mn-top { position: fixed; bottom: 18px; {{ 'right' if lang == 'en' else 'left' }}: 18px; width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--bd); color: #fff;
               box-shadow: 0 6px 18px rgba(0,0,0,.2); font-size: 1rem; cursor: pointer; opacity: 0; transform: translateY(20px) scale(.8); pointer-events: none; transition: all .35s cubic-bezier(.34,1.56,.64,1); z-index: 6; }
     .mn-top.show { opacity: 1; transform: none; pointer-events: auto; }
@@ -297,6 +308,13 @@
   <div class="mn-foot">
     {{ t('Prices in Iraqi dinar.', 'نرخەکان بە دیناری عێراقین.', 'الأسعار بالدينار العراقي.') }}
     <a href="{{ (main_url ~ '/home') if main_url else url_for('main.index') }}">{{ t('Book a court at z-padel.com', 'یاریگا بگرە لە z-padel.com', 'احجز ملعباً على z-padel.com') }}</a>
+    <div class="mn-credit">
+      <span class="mn-credit-k">{{ t('Developed by', 'دروستکراوە لەلایەن', 'تطوير') }}</span>
+      <a href="https://www.coda-agency.net/" target="_blank" rel="noopener" aria-label="Coda Agency">
+        <span class="mn-credit-logo"><img src="{{ url_for('static', filename='images/logo/coda.png') }}" alt="Coda Agency" loading="lazy"></span>
+      </a>
+      <a href="https://www.coda-agency.net/" target="_blank" rel="noopener" class="mn-credit-url">www.coda-agency.net</a>
+    </div>
   </div>
 
   {% if sections %}
