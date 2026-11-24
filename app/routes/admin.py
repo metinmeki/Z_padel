@@ -1455,6 +1455,29 @@ def export_expenses():
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # REPORTS
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+POS_QUICK_SALE_NAME = 'زبون POS'   # customer name the POS quick-sale screen gives its orders
+
+
+def _paid_income(dt_s, dt_e):
+    """Money actually received between two datetimes (inclusive): (pos, store, pos_sessions).
+    Customers pay at the POS, so booking prices are not income by themselves."""
+    def total(q):
+        return q.scalar() or 0
+    in_range = lambda col: (col >= dt_s, col <= dt_e)
+    pos = 0
+    sessions = 0
+    for sess, item in ((CourtSession, CourtSessionItem), (ActivitySession, ActivitySessionItem)):
+        done = (sess.status == 'completed',) + in_range(sess.created_at)
+        pos += total(db.session.query(func.sum(sess.total_price)).filter(*done))
+        pos += total(db.session.query(func.sum(item.subtotal)).join(sess, sess.id == item.session_id).filter(*done))
+        pos -= total(db.session.query(func.sum(sess.discount)).filter(*done))
+        sessions += sess.query.filter(*done).count()
+    paid_orders = (Order.status == 'completed',) + in_range(Order.created_at)
+    pos += total(db.session.query(func.sum(Order.total_price)).filter(*paid_orders, Order.customer_name == POS_QUICK_SALE_NAME))
+    store = total(db.session.query(func.sum(Order.total_price)).filter(*paid_orders, Order.customer_name != POS_QUICK_SALE_NAME))
+    return int(pos), int(store), sessions
+
+
 @admin_bp.route('/reports')
 @login_required
 def reports():
@@ -1590,52 +1613,8 @@ def reports():
     dt_end   = datetime.combine(end,   dtime.max)
     total_ords = Order.query.filter(
         Order.created_at >= dt_start, Order.created_at <= dt_end).count()
-    store_rev  = db.session.query(func.sum(Order.total_price)).filter(
-        Order.status == 'completed',
-        Order.customer_name != 'Ø²Ø¨ÙˆÙ† POS',
-        Order.created_at >= dt_start, Order.created_at <= dt_end).scalar() or 0
-
-    # â”€â”€ POS Revenue (court sessions + activity sessions + quick-sale orders) â”€â”€
-    court_sessions_rev = db.session.query(func.sum(CourtSession.total_price)).filter(
-        CourtSession.status == 'completed',
-        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
-
-    court_items_rev = db.session.query(func.sum(CourtSessionItem.subtotal)).join(
-        CourtSession, CourtSession.id == CourtSessionItem.session_id).filter(
-        CourtSession.status == 'completed',
-        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
-
-    court_discounts = db.session.query(func.sum(CourtSession.discount)).filter(
-        CourtSession.status == 'completed',
-        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).scalar() or 0
-
-    activity_sessions_rev = db.session.query(func.sum(ActivitySession.total_price)).filter(
-        ActivitySession.status == 'completed',
-        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
-
-    activity_items_rev = db.session.query(func.sum(ActivitySessionItem.subtotal)).join(
-        ActivitySession, ActivitySession.id == ActivitySessionItem.session_id).filter(
-        ActivitySession.status == 'completed',
-        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
-
-    activity_discounts = db.session.query(func.sum(ActivitySession.discount)).filter(
-        ActivitySession.status == 'completed',
-        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).scalar() or 0
-
-    quick_sale_rev = db.session.query(func.sum(Order.total_price)).filter(
-        Order.status == 'completed',
-        Order.customer_name == 'Ø²Ø¨ÙˆÙ† POS',
-        Order.created_at >= dt_start, Order.created_at <= dt_end).scalar() or 0
-
-    pos_rev = int(court_sessions_rev + court_items_rev - court_discounts
-                  + activity_sessions_rev + activity_items_rev - activity_discounts
-                  + quick_sale_rev)
-    pos_sessions_count = CourtSession.query.filter(
-        CourtSession.status == 'completed',
-        CourtSession.created_at >= dt_start, CourtSession.created_at <= dt_end).count() + \
-        ActivitySession.query.filter(
-        ActivitySession.status == 'completed',
-        ActivitySession.created_at >= dt_start, ActivitySession.created_at <= dt_end).count()
+    pos_rev, store_rev, pos_sessions_count = _paid_income(dt_start, dt_end)
+    income = pos_rev + store_rev          # money received in the period
 
     # â”€â”€ Top products (date-filtered) â”€â”€
     top_products = (db.session.query(Product.name,
@@ -1676,9 +1655,9 @@ def reports():
         ms = date(_y, _m, 1)
         me = date(_y, _m + 1, 1) if _m < 12 else date(_y + 1, 1, 1)
         balance_labels.append(ms.strftime('%b'))
-        _rev = db.session.query(func.sum(Booking.total_price)).filter(
-            Booking.booking_date >= ms, Booking.booking_date < me,
-            Booking.status == 'confirmed').scalar() or 0
+        _pos, _store, _ = _paid_income(datetime.combine(ms, dtime.min),
+                                       datetime.combine(me, dtime.min) - timedelta(microseconds=1))
+        _rev = _pos + _store
         _exp = db.session.query(func.sum(Expense.amount)).filter(
             Expense.date >= ms, Expense.date < me).scalar() or 0
         balance_revenue.append(int(_rev))
@@ -1706,14 +1685,16 @@ def reports():
             return 100 if cur > 0 else 0
         return round((cur - prev) / prev * 100)
 
-    revenue_growth  = _growth(total_rev,  _prev_rev)
+    _prev_pos, _prev_store, _ = _paid_income(datetime.combine(_prev_start, dtime.min),
+                                             datetime.combine(_prev_end, dtime.max))
+    revenue_growth  = _growth(income, _prev_pos + _prev_store)
     bookings_growth = _growth(conf_bks,   _prev_conf)
     avg_growth      = _growth(avg_val,    _prev_avg)
     orders_growth   = _growth(total_ords, _prev_ords)
     expense_change  = _growth(int(total_exp), int(_prev_exp))
 
     return render_template('admin/reports.html',
-        total_revenue=total_rev, total_bookings=total_bks,
+        income=income, total_revenue=total_rev, total_bookings=total_bks,
         confirmed_bookings=conf_bks, pending_bookings_count=pend_bks,
         cancelled_bookings=canc_bks, avg_booking_value=avg_val,
         total_orders=total_ords, store_revenue=store_rev,

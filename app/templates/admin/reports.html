@@ -289,13 +289,13 @@
   <div class="kpi-card blue" style="animation-delay:0s;">
     <div class="kpi-header">
       <div class="kpi-icon blue"><i class="fas fa-coins"></i></div>
-      <div class="kpi-trend up"><i class="fas fa-arrow-trend-up"></i> +{{ revenue_growth|default(12) }}%</div>
+      <div class="kpi-trend {{ 'up' if revenue_growth|default(0) >= 0 else 'down' }}"><i class="fas fa-arrow-trend-{{ 'up' if revenue_growth|default(0) >= 0 else 'down' }}"></i> {{ '+' if revenue_growth|default(0) >= 0 }}{{ revenue_growth|default(0) }}%</div>
     </div>
     <div class="kpi-value">
-      {{ "{:,.0f}".format(total_revenue|default(0)) }}<small>{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
+      {{ "{:,.0f}".format(income|default(0)) }}<small>{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
     </div>
     <div class="kpi-label">{% if lang == 'en' %}Total Revenue{% else %}إجمالي الإيرادات{% endif %}</div>
-    <div class="kpi-sub">{% if lang == 'en' %}Compared to previous period{% else %}مقارنة بالفترة السابقة{% endif %}</div>
+    <div class="kpi-sub">{% if lang == 'en' %}Money received (POS + store) vs previous period{% else %}المبالغ المستلمة (الكاشير + المتجر) مقارنة بالفترة السابقة{% endif %}</div>
   </div>
 
   <div class="kpi-card green" style="animation-delay:0.07s;">
@@ -352,17 +352,17 @@
       {{ "{:,.0f}".format(total_expenses|default(0)) }}<small>{% if lang == 'en' %}IQD{% else %}د.ع{% endif %}</small>
     </div>
     <div class="kpi-label">{% if lang == 'en' %}Total Expenses{% else %}إجمالي المصروفات{% endif %}</div>
-    <div class="kpi-sub">{% if lang == 'en' %}Net: {{ "{:,.0f}".format((total_revenue|default(0)) - (total_expenses|default(0))) }} IQD{% else %}صافي: {{ "{:,.0f}".format((total_revenue|default(0)) - (total_expenses|default(0))) }} د.ع{% endif %}</div>
+    <div class="kpi-sub">{% if lang == 'en' %}Net: {{ "{:,.0f}".format((income|default(0)) - (total_expenses|default(0))) }} IQD{% else %}صافي: {{ "{:,.0f}".format((income|default(0)) - (total_expenses|default(0))) }} د.ع{% endif %}</div>
   </div>
 
 </div>
 
 <!-- ── Revenue Sources + Financial Summary ── -->
-{% set net_profit = (total_revenue|default(0)) + (store_revenue|default(0)) + (pos_revenue|default(0)) - (total_expenses|default(0)) %}
-{% set total_income = (total_revenue|default(0)) + (store_revenue|default(0)) + (pos_revenue|default(0)) %}
-{% set bk_pct  = ((total_revenue|default(0)) / [total_income, 1]|max * 100)|round|int %}
-{% set pos_pct = ((pos_revenue|default(0)) / [total_income, 1]|max * 100)|round|int %}
-{% set str_pct = 100 - bk_pct - pos_pct %}
+{# Customers pay for courts at the POS, so income = POS + store. Booking prices are shown for information only. #}
+{% set total_income = income|default(0) %}
+{% set net_profit = total_income - (total_expenses|default(0)) %}
+{% set pos_pct = ((pos_revenue|default(0)) / [total_income, 1]|max * 100)|round|int if total_income else 0 %}
+{% set str_pct = (100 - pos_pct) if total_income else 0 %}
 
 <div class="rev-sources-grid">
 
@@ -376,7 +376,7 @@
         <i class="fas fa-calendar-check"></i>
       </div>
       <span style="font-size:13px;font-weight:700;color:var(--text-muted);">
-        {% if lang == 'en' %}Bookings Revenue{% else %}إيرادات الحجوزات{% endif %}
+        {% if lang == 'en' %}Booked value{% else %}قيمة الحجوزات{% endif %}
       </span>
     </div>
     <div class="rev-source-value" style="font-size:30px;font-weight:900;color:var(--brand-blue-dark);line-height:1.1;margin-bottom:6px;">
@@ -389,6 +389,8 @@
       &nbsp;·&nbsp;
       <i class="fas fa-clock" style="color:#FB8C00;"></i>
       {{ pending_bookings_count|default(0) }} {% if lang == 'en' %}pending{% else %}معلق{% endif %}
+      <div style="margin-top:4px;font-size:11.5px;"><i class="fas fa-circle-info"></i>
+        {% if lang == 'en' %}Paid at the POS after the game — counted in POS revenue, not added again.{% else %}تُدفع في الكاشير بعد اللعب — محسوبة ضمن إيرادات الكاشير ولا تُضاف مرة أخرى.{% endif %}</div>
     </div>
   </div>
 
@@ -448,16 +450,12 @@
             animation:fadeSlideIn .4s ease both .1s;">
   <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;
               color:var(--text-muted);margin-bottom:8px;gap:12px;flex-wrap:wrap;">
-    <span><i class="fas fa-circle" style="color:#1565C0;font-size:9px;margin-left:4px;"></i>
-      {% if lang == 'en' %}Bookings{% else %}الحجوزات{% endif %} {{ bk_pct }}%</span>
     <span><i class="fas fa-circle" style="color:#7B1FA2;font-size:9px;margin-left:4px;"></i>
       {% if lang == 'en' %}POS{% else %}الكاشير{% endif %} {{ pos_pct }}%</span>
     <span>{% if lang == 'en' %}Store{% else %}المتجر{% endif %} {{ [str_pct, 0]|max }}%
       <i class="fas fa-circle" style="color:#FB8C00;font-size:9px;margin-right:4px;"></i></span>
   </div>
   <div style="height:10px;border-radius:10px;background:var(--border-color);overflow:hidden;display:flex;">
-    <div style="height:100%;background:linear-gradient(90deg,var(--brand-blue-light),var(--brand-blue));
-                width:{{ bk_pct }}%;transition:width 1s ease;"></div>
     <div style="height:100%;background:linear-gradient(90deg,#7B1FA2,#AB47BC);
                 width:{{ pos_pct }}%;transition:width 1s ease;"></div>
     <div style="height:100%;background:linear-gradient(90deg,#FB8C00,#FFA726);
